@@ -39,7 +39,8 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
     Map<String, RequestHandler> activeRequests;
     ConnectionInfo connectionInfo;
     ObjectMapper mapper;
-    long connectionTimeoutMs;
+    int connectionTimeoutMs;
+    int maxSubscriptions;
     Thread timeoutThread;
     boolean initialized = false;
 
@@ -56,7 +57,8 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
             DataStore topicStore,
             Elide elide,
             GraphQL api,
-            long connectionTimeoutMs,
+            int connectionTimeoutMs,
+            int maxSubscriptions,
             ConnectionInfo connectionInfo) {
         this.wrappedSession = wrappedSession;
         this.topicStore = topicStore;
@@ -66,6 +68,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
         this.mapper = elide.getMapper().getObjectMapper();
         this.activeRequests = new HashMap<>();
         this.connectionTimeoutMs = connectionTimeoutMs;
+        this.maxSubscriptions = maxSubscriptions;
         this.timeoutThread = new Thread(new ConnectionTimer());
         timeoutThread.start();
     }
@@ -140,6 +143,11 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
                     synchronized (this) {
                         if (activeRequests.containsKey(protocolID)) {
                             safeClose(4409, "Subscriber for " + protocolID + " already exists");
+                            return;
+                        }
+
+                        if (activeRequests.size() >= maxSubscriptions) {
+                            safeClose(4300, "Maximum number of subscriptions reached");
                             return;
                         }
 

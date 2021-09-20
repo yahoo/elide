@@ -168,7 +168,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
     @Test
     void testConnectionTimeout() throws Exception {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 0);
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 0, 10);
 
         endpoint.onOpen(session);
 
@@ -176,6 +176,27 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         verify(remote, timeout(1000).times(1)).sendText(argumentCaptor.capture());
         assertEquals("4408: Connection initialisation timeout", argumentCaptor.getAllValues().get(0));
+    }
+
+    @Test
+    void textMaxSubscriptions() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 1000, 0);
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .query("subscription {bookAdded {id title}}")
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(remote, times(2)).sendText(argumentCaptor.capture());
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
+        assertEquals("4300: Maximum number of subscriptions reached", argumentCaptor.getAllValues().get(1));
     }
 
     @Test

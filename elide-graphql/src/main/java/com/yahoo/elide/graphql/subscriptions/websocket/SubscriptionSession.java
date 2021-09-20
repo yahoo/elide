@@ -28,6 +28,7 @@ public class SubscriptionSession extends SessionHandler<Session> {
      * @param api GraphQL API
      * @param wrappedSession underlying JSR 356 session.
      * @param connectTimeoutMs connection timeout.
+     * @param maxSubscriptions max number of subscriptions.
      * @param requestId a unique request/session ID.
      */
     public SubscriptionSession(DataStore topicStore,
@@ -35,8 +36,9 @@ public class SubscriptionSession extends SessionHandler<Session> {
                                GraphQL api,
                                Session wrappedSession,
                                int connectTimeoutMs,
+                               int maxSubscriptions,
                                UUID requestId) {
-        super(wrappedSession, topicStore, elide, api, connectTimeoutMs,
+        super(wrappedSession, topicStore, elide, api, connectTimeoutMs, maxSubscriptions,
                 ConnectionInfo.builder()
                         .user(new User(wrappedSession.getUserPrincipal()))
                         .baseUrl(wrappedSession.getRequestURI().getPath())
