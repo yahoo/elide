@@ -10,6 +10,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Base class of all graphql-ws protocol messages.
+ */
 @AllArgsConstructor
 @Getter
 public abstract class AbstractProtocolMessage {

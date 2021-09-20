@@ -6,20 +6,43 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+import lombok.Getter;
+
 import javax.websocket.CloseReason;
 
 public class WebSocketCloseReasons {
+    public enum CloseCode {
+        CONNECTION_TIMEOUT(4408),
+        MULTIPLE_INIT(4429),
+        UNAUTHORIZED(4401),
+        INVALID_MESSAGE(4400),
+        MAX_SUBSCRIPTIONS(4300),
+        DUPLICATE_ID(4409);
+
+        @Getter
+        private int code;
+
+        CloseCode(int code) {
+            this.code = code;
+        }
+
+        public CloseReason toReason(String reason) {
+            return new CloseReason(createCloseCode(code), reason);
+        }
+
+    }
+
     public static final CloseReason CONNECTION_TIMEOUT =
-            new CloseReason(createCloseCode(4408), "Connection initialisation timeout");
+            CloseCode.CONNECTION_TIMEOUT.toReason("Connection initialisation timeout");
 
     public static final CloseReason MULTIPLE_INIT =
-            new CloseReason(createCloseCode(4429), "Too many initialisation requests");
+            CloseCode.MULTIPLE_INIT.toReason("Too many initialisation requests");
 
     public static final CloseReason UNAUTHORIZED =
-            new CloseReason(createCloseCode(4401), "Unauthorized");
+            CloseCode.UNAUTHORIZED.toReason("Unauthorized");
 
     public static final CloseReason INVALID_MESSAGE =
-            new CloseReason(createCloseCode(4400), "Invalid message");
+            CloseCode.INVALID_MESSAGE.toReason("Invalid message");
 
     public static final CloseReason INTERNAL_ERROR =
             new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, "Internal Error");
@@ -28,7 +51,7 @@ public class WebSocketCloseReasons {
             new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Normal Closure");
 
     public static final CloseReason MAX_SUBSCRIPTIONS =
-            new CloseReason(createCloseCode(4300), "Exceeded max subscriptions");
+            CloseCode.MAX_SUBSCRIPTIONS.toReason("Exceeded max subscriptions");
 
     public static CloseReason.CloseCode createCloseCode(final int code) {
         return new CloseReason.CloseCode() {

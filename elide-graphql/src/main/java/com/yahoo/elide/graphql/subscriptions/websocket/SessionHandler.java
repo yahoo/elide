@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql.subscriptions.websocket;
 
 import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.CONNECTION_TIMEOUT;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.CloseCode.DUPLICATE_ID;
 import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.INTERNAL_ERROR;
 import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.INVALID_MESSAGE;
 import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.MAX_SUBSCRIPTIONS;
@@ -14,6 +15,7 @@ import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocket
 import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.UNAUTHORIZED;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionAck;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Pong;
@@ -124,59 +126,83 @@ public class SessionHandler {
 
             switch (messageType) {
                 case PING: {
-                    safeSendPong();
-                    break;
+                    handlePing();
+                    return;
                 }
                 case CONNECTION_INIT: {
-                    if (initialized) {
-                        safeClose(MULTIPLE_INIT);
-                        return;
-                    }
-
-                    safeSendConnectionAck();
-                    initialized = true;
-                    break;
+                    handleConnectionInit();
+                    return;
+                }
+                case COMPLETE: {
+                    Complete complete = mapper.readValue(message, Complete.class);
+                    handleComplete(complete);
+                    return;
                 }
                 case SUBSCRIBE: {
-
-                    if (!initialized) {
-                        safeClose(UNAUTHORIZED);
-                        return;
-                    }
-
                     Subscribe subscribe = mapper.readValue(message, Subscribe.class);
-                    String protocolID = subscribe.getId();
-
-                    synchronized (this) {
-                        if (activeRequests.containsKey(protocolID)) {
-
-                            safeClose(new CloseReason(WebSocketCloseReasons.createCloseCode(4409),
-                                    "Subscriber for " + protocolID + " already exists"));
-                            return;
-                        }
-
-                        if (activeRequests.size() >= maxSubscriptions) {
-                            safeClose(MAX_SUBSCRIPTIONS);
-                            return;
-                        }
-
-                        timeoutThread.interrupt();
-
-                        RequestHandler requestHandler = new RequestHandler(this,
-                                topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo);
-
-                        if (requestHandler.handleRequest(subscribe)) {
-                            activeRequests.put(protocolID, requestHandler);
-                        }
-                    }
-                    break;
+                    handleSubscribe(subscribe);
+                    return;
                 } default: {
                     safeClose(INVALID_MESSAGE);
+                    return;
                 }
             }
         } catch (JsonProcessingException e) {
             safeClose(INVALID_MESSAGE);
         }
+    }
+
+    protected void handlePing() {
+        safeSendPong();
+    }
+
+    protected void handleConnectionInit() {
+        if (initialized) {
+            safeClose(MULTIPLE_INIT);
+            return;
+        }
+
+        safeSendConnectionAck();
+        initialized = true;
+    }
+
+    protected synchronized void handleSubscribe(Subscribe subscribe) {
+        if (!initialized) {
+            safeClose(UNAUTHORIZED);
+            return;
+        }
+
+        String protocolID = subscribe.getId();
+
+        if (activeRequests.containsKey(protocolID)) {
+            safeClose(new CloseReason(WebSocketCloseReasons.createCloseCode(DUPLICATE_ID.getCode()),
+                    "Subscriber for " + protocolID + " already exists"));
+            return;
+        }
+
+        if (activeRequests.size() >= maxSubscriptions) {
+            safeClose(MAX_SUBSCRIPTIONS);
+            return;
+        }
+
+        timeoutThread.interrupt();
+
+        RequestHandler requestHandler = new RequestHandler(this,
+                topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo);
+
+        if (requestHandler.handleRequest(subscribe)) {
+            activeRequests.put(protocolID, requestHandler);
+        }
+    }
+
+    protected synchronized void handleComplete(Complete complete) {
+        String protocolID = complete.getId();
+        if (activeRequests.containsKey(protocolID)) {
+            RequestHandler handler = activeRequests.remove(protocolID);
+            handler.safeClose();
+        }
+
+        //Ignore otherwise
     }
 
     protected void safeSendConnectionAck() {

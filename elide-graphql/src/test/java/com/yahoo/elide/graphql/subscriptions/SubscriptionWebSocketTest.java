@@ -33,8 +33,10 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
@@ -286,7 +288,39 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
         verify(session, times(1)).close(closeReason.capture());
-        assertEquals(4409, closeReason.getValue().getCloseCode().getCode());
+        assertEquals(WebSocketCloseReasons.CloseCode.DUPLICATE_ID.getCode(),
+                closeReason.getValue().getCloseCode().getCode());
+    }
+
+    @Test
+    void testSubscribeUnsubscribeSubscribe() throws IOException {
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .query("subscription {bookAdded {id title}}")
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        Complete complete = Complete.builder().id("1").build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(complete));
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        List<String> expected = List.of(
+                "{\"type\":\"CONNECTION_ACK\"}",
+                "{\"type\":\"COMPLETE\",\"id\":\"1\"}",
+                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+        );
+
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(3)).sendText(message.capture());
+        assertEquals(expected, message.getAllValues());
     }
 
     @Test

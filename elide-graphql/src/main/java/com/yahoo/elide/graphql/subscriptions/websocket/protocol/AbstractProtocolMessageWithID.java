@@ -9,6 +9,9 @@ package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
+/**
+ * Base class of all graphql-ws messages that take an ID field.
+ */
 @Getter
 public abstract class AbstractProtocolMessageWithID extends AbstractProtocolMessage {
 

@@ -8,6 +8,9 @@ package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
 import lombok.Builder;
 
+/**
+ * Send on subscription completion (bidirectional).
+ */
 public class Complete extends AbstractProtocolMessageWithID {
 
     @Builder
