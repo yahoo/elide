@@ -10,13 +10,17 @@ import lombok.Getter;
 
 import javax.websocket.CloseReason;
 
+/**
+ * Reasons the server will disconnect the web socket.
+ * See (graphql-ws) protocol.
+ */
 public class WebSocketCloseReasons {
     public enum CloseCode {
         CONNECTION_TIMEOUT(4408),
         MULTIPLE_INIT(4429),
         UNAUTHORIZED(4401),
         INVALID_MESSAGE(4400),
-        MAX_SUBSCRIPTIONS(4300),
+        MAX_SUBSCRIPTIONS(4300),  //This is our own message (not part of the protocol)
         DUPLICATE_ID(4409);
 
         @Getter

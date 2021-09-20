@@ -14,6 +14,9 @@ import lombok.Value;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Information about the sessions/connection passed to the request handler.
+ */
 @Value
 @Builder
 public class ConnectionInfo {

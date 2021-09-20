@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+/**
+ * Acknowledge an incoming connection (server -> client).
+ */
 public class ConnectionAck extends AbstractProtocolMessage {
     public ConnectionAck() {
         super(MessageType.CONNECTION_ACK);

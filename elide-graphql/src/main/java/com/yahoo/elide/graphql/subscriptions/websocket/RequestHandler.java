@@ -35,14 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Given that web socket APIs are all different across platforms, this class provides an abstraction
- * with all the common logic needed to pull subscription messages from Elide.
+ * Handles either a single GraphQL schema request or a subscription request.
  */
 @Slf4j
 public class RequestHandler implements Closeable {
@@ -63,6 +61,7 @@ public class RequestHandler implements Closeable {
      * @param api GraphQL api.
      * @param protocolID The graphql-ws protocol message ID this request.
      * @param requestID The Elide request UUID for this request.
+     * @param connectionInfo Meta info about the session.
      */
     public RequestHandler(
             SessionHandler sessionHandler,
@@ -96,8 +95,8 @@ public class RequestHandler implements Closeable {
 
     /**
      * Handles an incoming GraphQL query.
-     * @param subscribeRequest The GraphyQL query.
-     * @return true if the request is still active.
+     * @param subscribeRequest The GraphQL query.
+     * @return true if the request is still active (ie. - a subscription).
      */
     public boolean handleRequest(Subscribe subscribeRequest) {
         if (transaction != null) {
@@ -114,7 +113,7 @@ public class RequestHandler implements Closeable {
 
             //TODO - API version is needed here.
             GraphQLProjectionInfo projectionInfo =
-                    new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION)
+                    new SubscriptionEntityProjectionMaker(settings, subscribeRequest.getVariables(), NO_VERSION)
                             .make(subscribeRequest.getQuery());
 
             GraphQLRequestScope requestScope = new GraphQLRequestScope(
@@ -150,13 +149,18 @@ public class RequestHandler implements Closeable {
 
             Publisher<ExecutionResult> resultPublisher = executionResult.getData();
 
+            //This would be a subscription creation error.
             if (resultPublisher == null) {
                 safeSendError(executionResult.getErrors().toArray(GraphQLError[]::new));
                 safeClose();
                 return false;
             }
 
+
+            //This would be a subscription creation success.
             resultPublisher.subscribe(new ExecutionResultSubscriber());
+
+        //This would be a subscription creation error.
         } catch (RuntimeException e) {
             ElideResponse response = QueryRunner.handleRuntimeException(elide, e, isVerbose);
             safeSendError(response.getBody());

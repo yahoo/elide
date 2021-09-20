@@ -14,6 +14,9 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
+/**
+ * Next subscription message (server -> client).
+ */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @JsonPropertyOrder({ "type", "id", "result"})

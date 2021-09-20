@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+/**
+ * All the message names of the graphql-ws protocol.
+ */
 public enum MessageType {
     CONNECTION_INIT("connection_init"),
     CONNECTION_ACK("connection_ack"),

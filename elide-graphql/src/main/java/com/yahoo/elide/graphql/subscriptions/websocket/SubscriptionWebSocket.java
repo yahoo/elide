@@ -30,8 +30,8 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 /**
- * Given that web socket APIs are all different across platforms, this class provides an abstraction
- * with all the common logic needed to pull subscription messages from Elide.
+ * JSR-356 Implementation of a web socket endpoint for GraphQL subscriptions.  JSR-356 should allow
+ * cross-platform use for Spring, Quarkus, and other containers.
  */
 @Slf4j
 @ServerEndpoint(value = "/")
@@ -46,11 +46,22 @@ public class SubscriptionWebSocket {
 
     public static final UserFactory DEFAULT_USER_FACTORY = session -> new User(session.getUserPrincipal());
 
+    /**
+     * There is no standard for authentication for web sockets.  This interface delegates
+     * Elide user creation to the developer.  This assumes authentication happens during the web socket handshake
+     * and not after during message exchange.
+     */
     @FunctionalInterface
     public interface UserFactory {
         User create(Session session);
     }
 
+    /**
+     * Constructor.
+     * @param topicStore The JMS store.
+     * @param elide Elide instance.
+     * @param api Initialized GraphQL API for subscriptions.
+     */
     public SubscriptionWebSocket(
             DataStore topicStore,
             Elide elide,
@@ -59,6 +70,14 @@ public class SubscriptionWebSocket {
         this(topicStore, elide, api, 10000, 30, DEFAULT_USER_FACTORY);
     }
 
+    /**
+     *
+     * Constructor.
+     * @param topicStore The JMS store.
+     * @param elide Elide instance.
+     * @param api Initialized GraphQL API for subscriptions.
+     * @param userFactory A function which creates an Elide user given a session object.
+     */
     public SubscriptionWebSocket(
             DataStore topicStore,
             Elide elide,
@@ -70,17 +89,20 @@ public class SubscriptionWebSocket {
 
     /**
      * Constructor.
-     * @param topicStore The JMS data store
-     * @param elide Elide instance
-     * @param api GraphQL API
-     * @param connectTimeoutMs Connection timeout
+     * @param topicStore The JMS store.
+     * @param elide Elide instance.
+     * @param api Initialized GraphQL API for subscriptions.
+     * @param connectTimeoutMs Connection timeout.
+     * @param maxSubscriptions The maximum number of concurrent subscriptons per socket.
+     * @param userFactory A function which creates an Elide user given a session object.
      */
     public SubscriptionWebSocket(
             DataStore topicStore,
             Elide elide,
             GraphQL api,
             int connectTimeoutMs,
-            int maxSubscriptions, UserFactory userFactory
+            int maxSubscriptions,
+            UserFactory userFactory
     ) {
         this.topicStore = topicStore;
         this.elide = elide;
@@ -111,7 +133,7 @@ public class SubscriptionWebSocket {
     /**
      * Called on a new web socket message.
      * @param session The platform specific session object.
-     * @param message THe new message.
+     * @param message The new message.
      * @throws IOException If there is an underlying error.
      */
     @OnMessage

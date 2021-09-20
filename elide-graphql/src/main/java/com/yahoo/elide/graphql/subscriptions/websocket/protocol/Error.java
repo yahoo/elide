@@ -14,6 +14,9 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
+/**
+ * Error occurred during setup of the subscription (server -> client).
+ */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @JsonPropertyOrder({ "type", "id", "payload"})

@@ -36,8 +36,8 @@ import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
 /**
- * Given that web socket APIs are all different across platforms, this class provides an abstraction
- * with all the common logic needed to pull subscription messages from Elide.
+ * Implements the graphql-ws protocol (https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md)
+ * over Elide subscriptions.
  */
 @Slf4j
 public class SessionHandler {
@@ -59,6 +59,8 @@ public class SessionHandler {
      * @param topicStore The JMS data store.
      * @param elide Elide instance.
      * @param api GraphQL api.
+     * @param connectionTimeoutMs Connection timeout in milliseconds.
+     * @param maxSubscriptions Max number of outstanding subscriptions per web socket.
      * @param connectionInfo Connection metadata.
      */
     public SessionHandler(
@@ -99,7 +101,7 @@ public class SessionHandler {
         wrappedSession.close(reason);
     }
 
-    public synchronized void close(String protocolID) {
+    protected synchronized void close(String protocolID) {
         activeRequests.remove(protocolID);
     }
 
@@ -240,10 +242,13 @@ public class SessionHandler {
      * @param message The message to send.
      * @throws IOException
      */
-    public void sendMessage(String message) throws IOException {
+    public synchronized void sendMessage(String message) throws IOException {
         wrappedSession.getBasicRemote().sendText(message);
     }
 
+    /**
+     * Closes the socket if SUBSCRIBE has not been received in the allotted time.
+     */
     private class ConnectionTimer implements Runnable {
 
         @Override

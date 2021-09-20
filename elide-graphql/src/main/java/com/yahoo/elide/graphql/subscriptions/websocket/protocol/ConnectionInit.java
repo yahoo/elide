@@ -12,6 +12,9 @@ import lombok.Value;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Start an incoming connection (client -> server)
+ */
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class ConnectionInit extends AbstractProtocolMessage {

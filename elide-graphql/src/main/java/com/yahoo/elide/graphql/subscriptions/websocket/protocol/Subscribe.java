@@ -16,6 +16,9 @@ import lombok.Value;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Create a subscription (client -> server)
+ */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @JsonPropertyOrder({"type", "id", "operationName", "query", "variables"})

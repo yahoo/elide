@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+/**
+ * Ping/Pong telemetry messaging (bidirectional).
+ */
 public class Pong extends AbstractProtocolMessage {
     public Pong() {
         super(MessageType.PONG);
