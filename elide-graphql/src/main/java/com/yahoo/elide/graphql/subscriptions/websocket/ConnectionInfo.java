@@ -38,4 +38,9 @@ public class ConnectionInfo {
      * @return map of parameters.
      */
     private Map<String, List<String>> parameters;
+
+    /**
+     * Gets the API version associated with this websocket.
+     */
+    private String getApiVersion;
 }

@@ -111,16 +111,16 @@ public class RequestHandler implements Closeable {
 
             ElideSettings settings = elide.getElideSettings();
 
-            //TODO - API version is needed here.
             GraphQLProjectionInfo projectionInfo =
-                    new SubscriptionEntityProjectionMaker(settings, subscribeRequest.getVariables(), NO_VERSION)
-                            .make(subscribeRequest.getQuery());
+                    new SubscriptionEntityProjectionMaker(settings,
+                            subscribeRequest.getVariables(),
+                            connectionInfo.getGetApiVersion()).make(subscribeRequest.getQuery());
 
             GraphQLRequestScope requestScope = new GraphQLRequestScope(
                     connectionInfo.getBaseUrl(),
                     transaction,
                     connectionInfo.getUser(),
-                    NO_VERSION, //TODO - API version needs to be set correctly.
+                    connectionInfo.getGetApiVersion(),
                     settings,
                     projectionInfo,
                     requestID,
@@ -135,7 +135,7 @@ public class RequestHandler implements Closeable {
                     .localContext(requestScope)
                     .build();
 
-            //TODO - log the query.
+            log.info("Processing GraphQL query:\n{}", subscribeRequest.getQuery());
 
             ExecutionResult executionResult = api.execute(executionInput);
 

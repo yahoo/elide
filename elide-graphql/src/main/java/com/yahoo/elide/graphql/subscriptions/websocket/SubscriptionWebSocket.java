@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.security.User;
@@ -43,6 +44,7 @@ public class SubscriptionWebSocket {
     private final int connectTimeoutMs;
     private final int maxSubscriptions;
     private final UserFactory userFactory;
+    private final String apiVersion;
 
     public static final UserFactory DEFAULT_USER_FACTORY = session -> new User(session.getUserPrincipal());
 
@@ -67,7 +69,7 @@ public class SubscriptionWebSocket {
             Elide elide,
             GraphQL api
     ) {
-        this(topicStore, elide, api, 10000, 30, DEFAULT_USER_FACTORY);
+        this(topicStore, elide, api, 10000, 30, DEFAULT_USER_FACTORY, NO_VERSION);
     }
 
     /**
@@ -84,7 +86,7 @@ public class SubscriptionWebSocket {
             GraphQL api,
             UserFactory userFactory
     ) {
-        this(topicStore, elide, api, 10000, 30, userFactory);
+        this(topicStore, elide, api, 10000, 30, userFactory, NO_VERSION);
     }
 
     /**
@@ -102,7 +104,8 @@ public class SubscriptionWebSocket {
             GraphQL api,
             int connectTimeoutMs,
             int maxSubscriptions,
-            UserFactory userFactory
+            UserFactory userFactory,
+            String apiVersion
     ) {
         this.topicStore = topicStore;
         this.elide = elide;
@@ -110,6 +113,7 @@ public class SubscriptionWebSocket {
         this.connectTimeoutMs = connectTimeoutMs;
         this.maxSubscriptions = maxSubscriptions;
         this.userFactory = userFactory;
+        this.apiVersion = apiVersion;
 
         GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
         SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
@@ -184,6 +188,7 @@ public class SubscriptionWebSocket {
                         .user(user)
                         .baseUrl(session.getRequestURI().getPath())
                         .parameters(session.getRequestParameterMap())
+                        .getApiVersion(apiVersion)
                         .build());
     }
 }
