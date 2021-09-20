@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -36,15 +37,24 @@ import javax.websocket.server.ServerEndpoint;
  */
 @Slf4j
 @ServerEndpoint(value = "/")
+@Builder
 public class SubscriptionWebSocket {
     private final ConcurrentMap<Session, SessionHandler> openSessions = new ConcurrentHashMap<>();
     private final DataStore topicStore;
     private final Elide elide;
     private final GraphQL api;
-    private final int connectTimeoutMs;
-    private final int maxSubscriptions;
-    private final UserFactory userFactory;
-    private final String apiVersion;
+
+    @Builder.Default
+    private int connectTimeoutMs = 5000;
+
+    @Builder.Default
+    private int maxSubscriptions = 30;
+
+    @Builder.Default
+    private UserFactory userFactory = DEFAULT_USER_FACTORY;
+
+    @Builder.Default
+    private String apiVersion = NO_VERSION;
 
     public static final UserFactory DEFAULT_USER_FACTORY = session -> new User(session.getUserPrincipal());
 
@@ -63,42 +73,11 @@ public class SubscriptionWebSocket {
      * @param topicStore The JMS store.
      * @param elide Elide instance.
      * @param api Initialized GraphQL API for subscriptions.
-     */
-    public SubscriptionWebSocket(
-            DataStore topicStore,
-            Elide elide,
-            GraphQL api
-    ) {
-        this(topicStore, elide, api, 10000, 30, DEFAULT_USER_FACTORY, NO_VERSION);
-    }
-
-    /**
-     *
-     * Constructor.
-     * @param topicStore The JMS store.
-     * @param elide Elide instance.
-     * @param api Initialized GraphQL API for subscriptions.
-     * @param userFactory A function which creates an Elide user given a session object.
-     */
-    public SubscriptionWebSocket(
-            DataStore topicStore,
-            Elide elide,
-            GraphQL api,
-            UserFactory userFactory
-    ) {
-        this(topicStore, elide, api, 10000, 30, userFactory, NO_VERSION);
-    }
-
-    /**
-     * Constructor.
-     * @param topicStore The JMS store.
-     * @param elide Elide instance.
-     * @param api Initialized GraphQL API for subscriptions.
      * @param connectTimeoutMs Connection timeout.
      * @param maxSubscriptions The maximum number of concurrent subscriptons per socket.
      * @param userFactory A function which creates an Elide user given a session object.
      */
-    public SubscriptionWebSocket(
+    protected SubscriptionWebSocket(
             DataStore topicStore,
             Elide elide,
             GraphQL api,
