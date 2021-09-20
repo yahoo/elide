@@ -13,7 +13,6 @@ import com.yahoo.elide.core.security.User;
 import graphql.GraphQL;
 
 import java.io.IOException;
-import java.util.UUID;
 import javax.websocket.Session;
 
 /**
@@ -29,7 +28,7 @@ public class SubscriptionSession extends SessionHandler<Session> {
      * @param wrappedSession underlying JSR 356 session.
      * @param connectTimeoutMs connection timeout.
      * @param maxSubscriptions max number of subscriptions.
-     * @param requestId a unique request/session ID.
+     * @param user The elide user.
      */
     public SubscriptionSession(DataStore topicStore,
                                Elide elide,
@@ -37,10 +36,10 @@ public class SubscriptionSession extends SessionHandler<Session> {
                                Session wrappedSession,
                                int connectTimeoutMs,
                                int maxSubscriptions,
-                               UUID requestId) {
+                               User user) {
         super(wrappedSession, topicStore, elide, api, connectTimeoutMs, maxSubscriptions,
                 ConnectionInfo.builder()
-                        .user(new User(wrappedSession.getUserPrincipal()))
+                        .user(user)
                         .baseUrl(wrappedSession.getRequestURI().getPath())
                         .parameters(wrappedSession.getRequestParameterMap())
                         .build());

@@ -168,7 +168,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
     @Test
     void testConnectionTimeout() throws Exception {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 0, 10);
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 0, 10,
+                SubscriptionEndpoint.DEFAULT_USER_FACTORY);
 
         endpoint.onOpen(session);
 
@@ -180,7 +181,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
     @Test
     void textMaxSubscriptions() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 1000, 0);
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 1000, 0,
+                SubscriptionEndpoint.DEFAULT_USER_FACTORY);
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);

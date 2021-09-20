@@ -8,11 +8,11 @@ package com.yahoo.elide.graphql.subscriptions.websocket;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.security.User;
 
 import graphql.GraphQL;
 
 import java.io.IOException;
-import java.util.UUID;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -30,9 +30,21 @@ public class SubscriptionEndpoint extends AbstractSubscriptionWebSocket<Session>
     private final GraphQL api;
     private final int connectTimeoutMs;
     private final int maxSubscriptions;
+    private final UserFactory userFactory;
+
+    public static final UserFactory DEFAULT_USER_FACTORY = session -> new User(session.getUserPrincipal());
+
+    @FunctionalInterface
+    public interface UserFactory {
+        User create(Session session);
+    }
 
     public SubscriptionEndpoint(DataStore topicStore, Elide elide, GraphQL api) {
-        this(topicStore, elide, api, 10000, 30);
+        this(topicStore, elide, api, 10000, 30, DEFAULT_USER_FACTORY);
+    }
+
+    public SubscriptionEndpoint(DataStore topicStore, Elide elide, GraphQL api, UserFactory userFactory) {
+        this(topicStore, elide, api, 10000, 30, userFactory);
     }
 
     /**
@@ -44,13 +56,14 @@ public class SubscriptionEndpoint extends AbstractSubscriptionWebSocket<Session>
      */
     public SubscriptionEndpoint(DataStore topicStore, Elide elide, GraphQL api,
                                 int connectTimeoutMs,
-                                int maxSubscriptions) {
+                                int maxSubscriptions, UserFactory userFactory) {
         super(elide);
         this.topicStore = topicStore;
         this.elide = elide;
         this.api = api;
         this.connectTimeoutMs = connectTimeoutMs;
         this.maxSubscriptions = maxSubscriptions;
+        this.userFactory = userFactory;
     }
 
     @OnOpen
@@ -79,9 +92,9 @@ public class SubscriptionEndpoint extends AbstractSubscriptionWebSocket<Session>
 
     @Override
     protected SessionHandler<Session> createSession(Session wrappedSession) {
-        UUID requestId = UUID.randomUUID();
+        User user = userFactory.create(wrappedSession);
 
         return new SubscriptionSession(topicStore, elide, api,
-                wrappedSession, connectTimeoutMs, maxSubscriptions, requestId);
+                wrappedSession, connectTimeoutMs, maxSubscriptions, user);
     }
 }
