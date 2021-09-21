@@ -17,8 +17,10 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
@@ -26,6 +28,7 @@ import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
+import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;
@@ -68,6 +71,19 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
 
     public SubscriptionDataFetcherTest() {
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+
+        //This will be done by the JMS data store.
+        dictionary.addArgumentToEntity(ClassType.of(Book.class), ArgumentType
+                .builder()
+                        .name("topic")
+                        .type(ClassType.of(TopicType.class))
+                .build());
+
+        dictionary.addArgumentToEntity(ClassType.of(Author.class), ArgumentType
+                .builder()
+                .name("topic")
+                .type(ClassType.of(TopicType.class))
+                .build());
 
         settings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
@@ -117,11 +133,11 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
 
         List<String> responses = List.of(
-                "{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}",
-                "{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}"
+                "{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}",
+                "{\"book\":{\"id\":\"2\",\"title\":\"Book 2\"}}"
         );
 
-        String graphQLRequest = "subscription {bookAdded {id title}}";
+        String graphQLRequest = "subscription {book(topic: ADDED) {id title}}";
 
         assertSubscriptionEquals(graphQLRequest, responses);
     }
@@ -142,11 +158,11 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(author1, author2));
 
         List<String> responses = List.of(
-                "{\"authorUpdated\":{\"id\":\"1\",\"homeAddress\":{\"street1\":null,\"street2\":null}}}",
-                "{\"authorUpdated\":{\"id\":\"2\",\"homeAddress\":{\"street1\":\"123\",\"street2\":\"XYZ\"}}}"
+                "{\"author\":{\"id\":\"1\",\"homeAddress\":{\"street1\":null,\"street2\":null}}}",
+                "{\"author\":{\"id\":\"2\",\"homeAddress\":{\"street1\":\"123\",\"street2\":\"XYZ\"}}}"
         );
 
-        String graphQLRequest = "subscription {authorUpdated {id homeAddress { street1 street2 }}}";
+        String graphQLRequest = "subscription {author(topic: UPDATED) {id homeAddress { street1 street2 }}}";
 
         assertSubscriptionEquals(graphQLRequest, responses);
     }
@@ -174,7 +190,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 "{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\",\"authors\":[]}}"
         );
 
-        String graphQLRequest = "subscription {bookAdded {id title authors { name }}}";
+        String graphQLRequest = "subscription {bookAdded: book(topic:ADDED) {id title authors { name }}}";
 
         assertSubscriptionEquals(graphQLRequest, responses);
     }
@@ -190,7 +206,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                         + "}"
                         + "}";
 
-        assertSubscriptionEquals(graphQLRequest, List.of("{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]}}\n"));
+        assertSubscriptionEquals(graphQLRequest, List.of("{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]}}\n"));
     }
 
     @Test
@@ -208,13 +224,13 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
 
         List<String> responses = List.of(
-                "{\"bookAdded\":{\"id\":\"1\",\"title\":null}}",
-                "{\"bookAdded\":{\"id\":\"2\",\"title\":null}}"
+                "{\"book\":{\"id\":\"1\",\"title\":null}}",
+                "{\"book\":{\"id\":\"2\",\"title\":null}}"
         );
 
         List<String> errors = List.of("Bad Request", "Bad Request");
 
-        String graphQLRequest = "subscription {bookAdded {id title}}";
+        String graphQLRequest = "subscription {book(topic: ADDED) {id title}}";
 
         assertSubscriptionEquals(graphQLRequest, responses, errors);
     }
@@ -234,7 +250,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         List<String> responses = List.of("null");
         List<String> errors = List.of("Bad Request");
 
-        String graphQLRequest = "subscription {bookAdded {id title}}";
+        String graphQLRequest = "subscription {book(topic:ADDED) {id title}}";
 
         assertSubscriptionEquals(graphQLRequest, responses, errors);
     }

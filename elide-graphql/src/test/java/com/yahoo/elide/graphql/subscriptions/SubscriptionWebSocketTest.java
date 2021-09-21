@@ -26,18 +26,22 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import example.Author;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,6 +79,20 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
     public SubscriptionWebSocketTest() {
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+
+        //This will be done by the JMS data store.
+        dictionary.addArgumentToEntity(ClassType.of(Book.class), ArgumentType
+                .builder()
+                .name("topic")
+                .type(ClassType.of(TopicType.class))
+                .build());
+
+        dictionary.addArgumentToEntity(ClassType.of(Author.class), ArgumentType
+                .builder()
+                .name("topic")
+                .type(ClassType.of(TopicType.class))
+                .build());
+
         dataStore = mock(DataStore.class);
         dataStoreTransaction = mock(DataStoreTransaction.class);
         session = mock(Session.class);
@@ -94,6 +112,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary,
                 new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
+
 
         api = GraphQL.newGraphQL(builder.build())
                 .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
@@ -211,7 +230,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(init));
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {bookAdded {id title}}")
+                .query("subscription {book(topic: ADDED) {id title}}")
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -255,7 +274,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {bookAdded {id title}}")
+                .query("subscription {book(topic: ADDED) {id title}}")
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -278,7 +297,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {bookAdded {id title}}")
+                .query("subscription {book(topic: ADDED) {id title}}")
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -310,7 +329,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {bookAdded {id title}}")
+                .query("subscription {book(topic: ADDED) {id title}}")
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -354,15 +373,15 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {bookAdded {id title}}")
+                .query("subscription {book(topic: ADDED) {id title}}")
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
                 "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/bookAdded/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":29}],\"path\":[\"bookAdded\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/bookAdded/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":29}],\"path\":[\"bookAdded\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
@@ -385,14 +404,14 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {bookAdded {id title}}")
+                .query("subscription {book(topic: ADDED) {id title}}")
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
                 "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":null,\"errors\":[{\"message\":\"Exception while fetching data (/bookAdded) : Bad Request\",\"locations\":[{\"line\":1,\"column\":15}],\"path\":[\"bookAdded\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":null,\"errors\":[{\"message\":\"Exception while fetching data (/book) : Bad Request\",\"locations\":[{\"line\":1,\"column\":15}],\"path\":[\"book\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
@@ -422,15 +441,15 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {bookAdded {id title}}")
+                .query("subscription {book(topic: ADDED) {id title}}")
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
                 "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
@@ -473,7 +492,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         List<String> expected = List.of(
                 "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 

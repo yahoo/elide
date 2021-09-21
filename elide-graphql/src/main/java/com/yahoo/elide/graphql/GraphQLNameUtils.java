@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import org.apache.commons.lang3.StringUtils;
 
 public class GraphQLNameUtils {
@@ -63,27 +62,12 @@ public class GraphQLNameUtils {
         return toOutputTypeName(clazz) + CONNECTION_SUFFIX;
     }
 
-    public String toSubscriptionName(Type<?> clazz, Subscription.Operation operation) {
-        String suffix;
-        switch (operation) {
-            case CREATE: {
-                suffix = "Added";
-                break;
-            }
-            case DELETE: {
-                suffix = "Deleted";
-                break;
-            }
-            default : {
-                suffix = "Updated";
-                break;
-            }
-        }
-        return StringUtils.uncapitalize(toOutputTypeName(clazz) + suffix);
-    }
-
     public String toNonElideOutputTypeName(Type<?> clazz) {
         return StringUtils.uncapitalize(toOutputTypeName(clazz));
+    }
+
+    public String toTopicName(Type<?> clazz) {
+        return toOutputTypeName(clazz) + "Topic";
     }
 
     public String toNonElideInputTypeName(Type<?> clazz) {

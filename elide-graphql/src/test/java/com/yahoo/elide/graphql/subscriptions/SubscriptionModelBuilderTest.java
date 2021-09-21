@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
@@ -36,12 +37,9 @@ public class SubscriptionModelBuilderTest {
 
     private static final String FILTER = "filter";
 
-    private static final String BOOK_ADDED = "bookAdded";
-    private static final String BOOK_DELETED = "bookDeleted";
-    private static final String BOOK_UPDATED = "bookUpdated";
-    private static final String AUTHOR_ADDED = "authorAdded";
-    private static final String AUTHOR_DELETED = "authorDeleted";
-    private static final String AUTHOR_UPDATED = "authorUpdated";
+    private static final String BOOK = "book";
+    private static final String AUTHOR = "author";
+    private static final String TOPIC = "topic";
 
     private static final String SUBSCRIPTION = "Subscription";
     private static final String TYPE_BOOK = "Book";
@@ -78,24 +76,28 @@ public class SubscriptionModelBuilderTest {
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(TYPE_BOOK);
         GraphQLObjectType authorType = (GraphQLObjectType) schema.getType(TYPE_AUTHOR);
 
-        assertEquals(bookType, subscriptionType.getFieldDefinition(BOOK_ADDED).getType());
-        assertNotNull(subscriptionType.getFieldDefinition(BOOK_ADDED).getArgument(FILTER));
+        GraphQLFieldDefinition bookField = subscriptionType.getFieldDefinition(BOOK);
+        GraphQLEnumType bookTopicType = (GraphQLEnumType) bookField.getArgument(TOPIC).getType();
+        assertEquals("BookTopic", bookTopicType.getName());
+        assertNotNull(bookTopicType.getValue("ADDED"));
+        assertNotNull(bookTopicType.getValue("UPDATED"));
+        assertNull(bookTopicType.getValue("DELETED"));
 
-        assertNull(subscriptionType.getFieldDefinition(BOOK_DELETED));
 
-        assertEquals(bookType, subscriptionType.getFieldDefinition(BOOK_UPDATED).getType());
-        assertNotNull(subscriptionType.getFieldDefinition(BOOK_UPDATED).getArgument(FILTER));
+        assertEquals(bookType, subscriptionType.getFieldDefinition(BOOK).getType());
+        assertNotNull(subscriptionType.getFieldDefinition(BOOK).getArgument(FILTER));
 
-        assertEquals(authorType, subscriptionType.getFieldDefinition(AUTHOR_ADDED).getType());
-        assertNotNull(subscriptionType.getFieldDefinition(AUTHOR_ADDED).getArgument(FILTER));
-        assertEquals(authorType, subscriptionType.getFieldDefinition(AUTHOR_DELETED).getType());
-        assertNotNull(subscriptionType.getFieldDefinition(AUTHOR_DELETED).getArgument(FILTER));
-        assertEquals(authorType, subscriptionType.getFieldDefinition(AUTHOR_UPDATED).getType());
-        assertNotNull(subscriptionType.getFieldDefinition(AUTHOR_UPDATED).getArgument(FILTER));
+        assertEquals(authorType, subscriptionType.getFieldDefinition(AUTHOR).getType());
+        assertNotNull(subscriptionType.getFieldDefinition(AUTHOR).getArgument(FILTER));
 
-        assertNull(subscriptionType.getFieldDefinition("publisherAdded"));
-        assertNull(subscriptionType.getFieldDefinition("publisherDeleted"));
-        assertNull(subscriptionType.getFieldDefinition("publisherUpdated"));
+        GraphQLFieldDefinition authorField = subscriptionType.getFieldDefinition(AUTHOR);
+        GraphQLEnumType authorTopicType = (GraphQLEnumType) authorField.getArgument(TOPIC).getType();
+        assertEquals("AuthorTopic", authorTopicType.getName());
+        assertNotNull(authorTopicType.getValue("ADDED"));
+        assertNotNull(authorTopicType.getValue("UPDATED"));
+        assertNotNull(authorTopicType.getValue("DELETED"));
+
+        assertNull(subscriptionType.getFieldDefinition("publisher"));
     }
 
     @Test

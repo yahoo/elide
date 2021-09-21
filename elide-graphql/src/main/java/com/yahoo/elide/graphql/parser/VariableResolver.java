@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import graphql.language.ArrayValue;
 import graphql.language.BooleanValue;
 import graphql.language.EnumValue;
@@ -24,7 +25,9 @@ import graphql.language.VariableDefinition;
 import graphql.language.VariableReference;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -87,11 +90,24 @@ class VariableResolver {
      * @return resolved value of given variable
      */
     public Object resolveValue(Value value) {
+        return resolveValue(value, Optional.empty());
+    }
+
+    /**
+     * Resolve the real value of a GraphQL {@link Value} object. Use variables in request if necessary.
+     *
+     * @param value requested variable value
+     * @param resolveTo the Elide type to resolve to
+     * @return resolved value of given variable
+     */
+    public Object resolveValue(Value value, Optional<com.yahoo.elide.core.type.Type<?>> resolveTo) {
         if (value instanceof BooleanValue) {
             return ((BooleanValue) value).isValue();
         }
         if (value instanceof EnumValue) {
-            // TODO
+            if (resolveTo.isPresent()) {
+                return CoerceUtil.coerce(((EnumValue) value).getName().toUpperCase(Locale.ROOT), resolveTo.get());
+            }
             throw new BadRequestException("Enum value is not supported.");
         }
         if (value instanceof FloatValue) {
