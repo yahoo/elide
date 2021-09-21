@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.jms;
 
+import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -13,10 +14,10 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
-import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.Set;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
@@ -68,10 +69,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
-        Preconditions.checkState(entityProjection.getArguments().size() == 1);
-
-        Argument argument = entityProjection.getArguments().iterator().next();
-        TopicType topicType = (TopicType) argument.getValue();
+        TopicType topicType = getTopicType(entityProjection);
 
         String topicName = topicType.toTopicName(entityProjection.getType(), dictionary);
 
@@ -113,5 +111,17 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
     public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         //Delegate to in-memory pagination
         return false;
+    }
+
+    protected TopicType getTopicType(EntityProjection projection) {
+        Set<Argument> arguments = projection.getArguments();
+
+        for (Argument argument: arguments) {
+            if (argument.getName().equals(TOPIC_ARGUMENT)) {
+                return (TopicType) argument.getValue();
+            }
+        }
+
+        return TopicType.CUSTOM;
     }
 }

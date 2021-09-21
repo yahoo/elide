@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.jms;
 
+import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.ArgumentType;
@@ -63,7 +64,7 @@ public class JMSDataStore implements DataStore {
             //Add topic type argument to each model.
             dictionary.addArgumentToEntity(model, ArgumentType
                     .builder()
-                    .name("topic")
+                    .name(TOPIC_ARGUMENT)
                     .type(ClassType.of(TopicType.class))
                     .build());
         }

@@ -57,6 +57,8 @@ public class SubscriptionModelBuilder {
     private Set<Type<?>> excludedEntities;  //Client controlled models to skip.
     private Set<Type<?>> relationshipTypes; //Keeps track of which relationship models need to be built.
 
+    public static final String TOPIC_ARGUMENT = "topic";
+
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
      * @param entityDictionary elide entity dictionary
@@ -108,22 +110,29 @@ public class SubscriptionModelBuilder {
             if (subscription == null) {
                 continue;
             }
+
             GraphQLObjectType subscriptionType = buildQueryObject(clazz);
-
-            GraphQLEnumType.Builder topicTypeBuilder = newEnum().name(nameUtils.toTopicName(clazz));
-            for (Subscription.Operation operation : subscription.operations()) {
-                TopicType topicType = TopicType.fromOperation(operation);
-                topicTypeBuilder.value(topicType.name(), topicType);
-            }
-            topicTypeBuilder.definition(EnumTypeDefinition.newEnumTypeDefinition().build());
-
             String entityName = entityDictionary.getJsonAliasFor(clazz);
-            root.field(newFieldDefinition()
+
+            GraphQLFieldDefinition.Builder rootFieldDefinitionBuilder = newFieldDefinition()
                     .name(entityName)
                     .description(EntityDictionary.getEntityDescription(clazz))
                     .argument(filterArgument)
-                    .argument(GraphQLArgument.newArgument().name("topic").type(topicTypeBuilder.build()).build())
-                    .type(subscriptionType));
+                    .type(subscriptionType);
+
+            if (subscription.operations() != null && subscription.operations().length > 0) {
+                GraphQLEnumType.Builder topicTypeBuilder = newEnum().name(nameUtils.toTopicName(clazz));
+
+                for (Subscription.Operation operation : subscription.operations()) {
+                    TopicType topicType = TopicType.fromOperation(operation);
+                    topicTypeBuilder.value(topicType.name(), topicType);
+                }
+                topicTypeBuilder.definition(EnumTypeDefinition.newEnumTypeDefinition().build());
+                rootFieldDefinitionBuilder.argument(
+                        GraphQLArgument.newArgument().name(TOPIC_ARGUMENT).type(topicTypeBuilder.build()).build());
+            }
+
+            root.field(rootFieldDefinitionBuilder.build());
         }
 
         GraphQLObjectType queryRoot = root.build();
