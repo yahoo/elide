@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.core.PersistentResource.CLASS_NO_FIELD;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,12 +30,13 @@ import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
@@ -63,7 +65,7 @@ public class JMSDataStoreTest {
         dictionary = EntityDictionary.builder().build();
 
         store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class)),
-                connectionFactory, dictionary, new ObjectMapper());
+                connectionFactory, dictionary, new ObjectMapper(), 2500);
         store.populateEntityDictionary(dictionary);
     }
 
@@ -122,17 +124,20 @@ public class JMSDataStoreTest {
 
         try (DataStoreTransaction tx = store.beginReadTransaction()) {
 
-            RequestScope scope = new SubscriptionRequestScope(
+
+            RequestScope scope = new RequestScope(
                     "/json",
+                    "/",
+                    NO_VERSION,
+                    null,
                     tx,
                     null,
-                    "1.0",
+                    null,
+                    Collections.EMPTY_MAP,
+                    UUID.randomUUID(),
                     new ElideSettingsBuilder(store)
                             .withEntityDictionary(dictionary)
-                            .build(),
-                    null,
-                    null,
-                    2000);
+                            .build());
 
             Iterable<Book> books = tx.loadObjects(
                     EntityProjection.builder()

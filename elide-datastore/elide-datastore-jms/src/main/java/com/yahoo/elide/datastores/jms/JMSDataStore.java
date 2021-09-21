@@ -20,6 +20,8 @@ import com.yahoo.elide.datastores.jms.hooks.NotifyTopicLifeCycleHook;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 
+import lombok.Builder;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.jms.ConnectionFactory;
@@ -28,11 +30,15 @@ import javax.jms.JMSContext;
 /**
  * Elide datastore that reads models from JMS message topics.
  */
+@Builder
 public class JMSDataStore implements DataStore {
     protected Set<Type<?>> models;
     protected ConnectionFactory connectionFactory;
     protected EntityDictionary dictionary;
     protected ObjectMapper mapper;
+
+    @Builder.Default
+    protected long timeoutInMs = -1;
 
     /**
      * Constructor.
@@ -40,17 +46,20 @@ public class JMSDataStore implements DataStore {
      * @param connectionFactory The JMS connection factory.
      * @param dictionary The entity dictionary.
      * @param mapper Object mapper for serializing/deserializing elide models to JMS topics.
+     * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
      */
     public JMSDataStore(
             Set<Type<?>> models,
             ConnectionFactory connectionFactory,
             EntityDictionary dictionary,
-            ObjectMapper mapper
+            ObjectMapper mapper,
+            long timeoutInMs
     ) {
         this.models = models;
         this.connectionFactory = connectionFactory;
         this.dictionary = dictionary;
         this.mapper = mapper;
+        this.timeoutInMs = timeoutInMs;
     }
 
     /**
@@ -59,12 +68,14 @@ public class JMSDataStore implements DataStore {
      * @param connectionFactory The JMS connection factory.
      * @param dictionary The entity dictionary.
      * @param mapper Object mapper for serializing/deserializing elide models to JMS topics.
+     * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
      */
     public JMSDataStore(
             ClassScanner scanner,
             ConnectionFactory connectionFactory,
             EntityDictionary dictionary,
-            ObjectMapper mapper
+            ObjectMapper mapper,
+            long timeoutInMs
     ) {
         this(
                 scanner.getAnnotatedClasses(Subscription.class).stream()
@@ -72,7 +83,8 @@ public class JMSDataStore implements DataStore {
                         .collect(Collectors.toSet()),
                 connectionFactory,
                 dictionary,
-                mapper
+                mapper,
+                timeoutInMs
         );
     }
 
@@ -136,12 +148,12 @@ public class JMSDataStore implements DataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         JMSContext context = connectionFactory.createContext();
-        return new JMSDataStoreTransaction(context, dictionary);
+        return new JMSDataStoreTransaction(context, dictionary, timeoutInMs);
     }
 
     @Override
     public DataStoreTransaction beginReadTransaction() {
         JMSContext context = connectionFactory.createContext();
-        return new JMSDataStoreTransaction(context, dictionary);
+        return new JMSDataStoreTransaction(context, dictionary, timeoutInMs);
     }
 }

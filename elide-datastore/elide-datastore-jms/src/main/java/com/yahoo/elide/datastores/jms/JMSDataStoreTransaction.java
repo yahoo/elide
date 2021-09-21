@@ -26,15 +26,18 @@ import javax.jms.JMSContext;
 public class JMSDataStoreTransaction implements DataStoreTransaction {
     private JMSContext context;
     private EntityDictionary dictionary;
+    private long timeoutInMs;
 
     /**
      * Constructor.
      * @param context JMS Context
      * @param dictionary Elide Entity Dictionary
+     * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
      */
-    public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary) {
+    public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary, long timeoutInMs) {
         this.context = context;
         this.dictionary = dictionary;
+        this.timeoutInMs = timeoutInMs;
     }
 
     @Override
@@ -76,7 +79,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
 
         return new MessageIterator<>(
                 consumer,
-                ((SubscriptionRequestScope) scope).getTimeoutInMs(),
+                timeoutInMs,
                 new MessageDeserializer<>(entityProjection.getType())
         );
     }
