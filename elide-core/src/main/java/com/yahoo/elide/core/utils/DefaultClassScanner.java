@@ -7,7 +7,6 @@ package com.yahoo.elide.core.utils;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.annotation.Subscription;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
@@ -38,7 +37,9 @@ public class DefaultClassScanner implements ClassScanner {
             Include.class.getCanonicalName(),
             SecurityCheck.class.getCanonicalName(),
             ElideTypeConverter.class.getCanonicalName(),
-            Subscription.class.getCanonicalName(),
+
+            //GraphQL annotations.  Strings here to avoid dependency.
+            "com.yahoo.elide.graphql.subscriptions.annotations.Subscription",
 
             //Aggregation Store Annotations.  Strings here to avoid dependency.
             "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable",

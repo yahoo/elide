@@ -3,11 +3,11 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.annotation;
+package com.yahoo.elide.graphql.subscriptions.annotations;
 
-import static com.yahoo.elide.annotation.Subscription.Operation.CREATE;
-import static com.yahoo.elide.annotation.Subscription.Operation.DELETE;
-import static com.yahoo.elide.annotation.Subscription.Operation.UPDATE;
+import static com.yahoo.elide.graphql.subscriptions.annotations.Subscription.Operation.CREATE;
+import static com.yahoo.elide.graphql.subscriptions.annotations.Subscription.Operation.DELETE;
+import static com.yahoo.elide.graphql.subscriptions.annotations.Subscription.Operation.UPDATE;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 

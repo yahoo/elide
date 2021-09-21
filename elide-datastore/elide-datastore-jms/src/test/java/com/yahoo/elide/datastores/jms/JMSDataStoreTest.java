@@ -6,13 +6,11 @@
 
 package com.yahoo.elide.datastores.jms;
 
-import static com.yahoo.elide.core.PersistentResource.CLASS_NO_FIELD;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -20,6 +18,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -67,44 +66,6 @@ public class JMSDataStoreTest {
         store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class)),
                 connectionFactory, dictionary, new ObjectMapper(), 2500);
         store.populateEntityDictionary(dictionary);
-    }
-
-    @Test
-    public void testLifeCycleHookBindings() {
-        assertEquals(1, dictionary.getTriggers(ClassType.of(Book.class),
-                LifeCycleHookBinding.Operation.CREATE,
-                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                CLASS_NO_FIELD).size());
-
-        assertEquals(1, dictionary.getTriggers(ClassType.of(Book.class),
-                LifeCycleHookBinding.Operation.DELETE,
-                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                CLASS_NO_FIELD).size());
-
-        assertEquals(1, dictionary.getTriggers(ClassType.of(Book.class),
-                LifeCycleHookBinding.Operation.UPDATE,
-                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                "title").size());
-
-        assertEquals(1, dictionary.getTriggers(ClassType.of(Book.class),
-                LifeCycleHookBinding.Operation.UPDATE,
-                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                "authors").size());
-
-        assertEquals(1, dictionary.getTriggers(ClassType.of(Author.class),
-                LifeCycleHookBinding.Operation.CREATE,
-                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                CLASS_NO_FIELD).size());
-
-        assertEquals(0, dictionary.getTriggers(ClassType.of(Author.class),
-                LifeCycleHookBinding.Operation.DELETE,
-                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                CLASS_NO_FIELD).size());
-
-        assertEquals(0, dictionary.getTriggers(ClassType.of(Author.class),
-                LifeCycleHookBinding.Operation.UPDATE,
-                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                "name").size());
     }
 
     @Test

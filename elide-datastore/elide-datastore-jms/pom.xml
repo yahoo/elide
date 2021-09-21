@@ -36,6 +36,12 @@
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-graphql</artifactId>
+        </dependency>
+
         <!-- Jackson data-binder -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

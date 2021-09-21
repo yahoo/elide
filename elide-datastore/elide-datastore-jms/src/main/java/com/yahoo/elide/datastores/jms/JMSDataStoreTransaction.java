@@ -12,6 +12,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
