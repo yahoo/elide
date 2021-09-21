@@ -6,10 +6,12 @@
 
 package com.yahoo.elide.datastores.jms;
 
+import static com.yahoo.elide.core.PersistentResource.CLASS_NO_FIELD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -26,18 +28,27 @@ import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.Iterator;
 import java.util.Set;
+import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JMSDataStoreTest {
 
-    @Test
-    public void testLoadObjects() throws Exception {
+    protected ConnectionFactory connectionFactory;
+    protected EntityDictionary dictionary;
+    protected JMSDataStore store;
+
+    @BeforeAll
+    public void init() throws Exception {
         EmbeddedActiveMQ embedded = new EmbeddedActiveMQ();
         Configuration configuration = new ConfigurationImpl();
         configuration.addAcceptorConfiguration("default", "vm://0");
@@ -48,10 +59,54 @@ public class JMSDataStoreTest {
         embedded.setConfiguration(configuration);
         embedded.start();
 
-        ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://0");
+        connectionFactory = new ActiveMQConnectionFactory("vm://0");
+        dictionary = EntityDictionary.builder().build();
 
-        EntityDictionary dictionary = EntityDictionary.builder().build();
+        store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class)),
+                connectionFactory, dictionary, new ObjectMapper());
+        store.populateEntityDictionary(dictionary);
+    }
 
+    @Test
+    public void testLifeCycleHookBindings() {
+        assertEquals(1, dictionary.getTriggers(ClassType.of(Book.class),
+                LifeCycleHookBinding.Operation.CREATE,
+                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
+                CLASS_NO_FIELD).size());
+
+        assertEquals(1, dictionary.getTriggers(ClassType.of(Book.class),
+                LifeCycleHookBinding.Operation.DELETE,
+                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
+                CLASS_NO_FIELD).size());
+
+        assertEquals(1, dictionary.getTriggers(ClassType.of(Book.class),
+                LifeCycleHookBinding.Operation.UPDATE,
+                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
+                "title").size());
+
+        assertEquals(1, dictionary.getTriggers(ClassType.of(Book.class),
+                LifeCycleHookBinding.Operation.UPDATE,
+                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
+                "authors").size());
+
+        assertEquals(1, dictionary.getTriggers(ClassType.of(Author.class),
+                LifeCycleHookBinding.Operation.CREATE,
+                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
+                CLASS_NO_FIELD).size());
+
+        assertEquals(0, dictionary.getTriggers(ClassType.of(Author.class),
+                LifeCycleHookBinding.Operation.DELETE,
+                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
+                CLASS_NO_FIELD).size());
+
+        assertEquals(0, dictionary.getTriggers(ClassType.of(Author.class),
+                LifeCycleHookBinding.Operation.UPDATE,
+                LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
+                "name").size());
+    }
+
+    @Test
+    public void testLoadObjects() throws Exception {
         Author author1 = new Author();
         author1.setId(1);
         author1.setName("Jon Doe");
@@ -64,10 +119,6 @@ public class JMSDataStoreTest {
         Book book2 = new Book();
         book2.setTitle("Grapes of Wrath");
         book2.setId(2);
-
-        JMSDataStore store = new JMSDataStore(Sets.newHashSet(
-                ClassType.of(Book.class), ClassType.of(Author.class)), cf, dictionary);
-        store.populateEntityDictionary(dictionary);
 
         try (DataStoreTransaction tx = store.beginReadTransaction()) {
 
@@ -93,7 +144,7 @@ public class JMSDataStoreTest {
                     scope
             );
 
-            JMSContext context = cf.createContext();
+            JMSContext context = connectionFactory.createContext();
             Destination destination = context.createTopic("bookAdded");
 
             JMSProducer producer = context.createProducer();

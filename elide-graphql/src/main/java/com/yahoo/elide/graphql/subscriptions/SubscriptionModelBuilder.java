@@ -8,6 +8,8 @@ package com.yahoo.elide.graphql.subscriptions;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLObjectType.newObject;
+import com.yahoo.elide.annotation.Subscription;
+import com.yahoo.elide.annotation.SubscriptionField;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.type.Type;

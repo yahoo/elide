@@ -7,6 +7,8 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Subscription;
+import com.yahoo.elide.annotation.SubscriptionField;
 import lombok.Data;
 
 import java.util.Set;
@@ -15,12 +17,15 @@ import javax.persistence.ManyToMany;
 
 @Include
 @Data
+@Subscription
 public class Book {
     @Id
     private long id;
 
+    @SubscriptionField
     private String title;
 
+    @SubscriptionField
     @ManyToMany
     private Set<Author> authors;
 }

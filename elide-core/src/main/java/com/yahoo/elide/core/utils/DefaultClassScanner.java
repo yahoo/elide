@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.core.utils;
 
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.annotation.Subscription;
+import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -17,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * Scans a package for classes by looking at files in the classpath.
@@ -29,16 +35,18 @@ public class DefaultClassScanner implements ClassScanner {
      */
     private static final String [] CACHE_ANNOTATIONS  = {
             //Elide Core Annotations
-            "com.yahoo.elide.annotation.Include",
-            "com.yahoo.elide.annotation.SecurityCheck",
-            "com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter",
+            Include.class.getCanonicalName(),
+            SecurityCheck.class.getCanonicalName(),
+            ElideTypeConverter.class.getCanonicalName(),
+            Subscription.class.getCanonicalName(),
 
-            //Aggregation Store Annotations
+            //Aggregation Store Annotations.  Strings here to avoid dependency.
             "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable",
             "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery",
             "org.hibernate.annotations.Subselect",
-            "javax.persistence.Entity",
-            "javax.persistence.Table"
+
+            Entity.class.getCanonicalName(),
+            Table.class.getCanonicalName()
     };
 
     private final Map<String, Set<Class<?>>> startupCache;

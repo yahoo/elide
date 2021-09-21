@@ -21,7 +21,8 @@ import lombok.Getter;
 public enum TopicType {
     ADDED("Added", CREATE),
     DELETED("Deleted", DELETE),
-    UPDATED("Updated", UPDATE);
+    UPDATED("Updated", UPDATE),
+    CUSTOM("", null);
 
     private final String topicSuffix;
     private final LifeCycleHookBinding.Operation operation;
