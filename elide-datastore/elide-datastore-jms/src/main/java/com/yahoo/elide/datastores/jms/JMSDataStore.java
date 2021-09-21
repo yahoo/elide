@@ -8,8 +8,11 @@ package com.yahoo.elide.datastores.jms;
 
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 
@@ -56,6 +59,13 @@ public class JMSDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         for (Type<?> model : models) {
             dictionary.bindEntity(model);
+
+            //Add topic type argument to each model.
+            dictionary.addArgumentToEntity(model, ArgumentType
+                    .builder()
+                    .name("topic")
+                    .type(ClassType.of(TopicType.class))
+                    .build());
         }
     }
 
