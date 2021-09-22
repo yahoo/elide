@@ -162,7 +162,7 @@ public class SubscriptionModelBuilderTest {
 
         //Verify Preview Fields
         assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID, previewType.getFieldDefinition(FIELD_ID).getType());
-        assertEquals(1, previewType.getFieldDefinitions().size());
+        assertEquals(2, previewType.getFieldDefinitions().size());
 
     }
 }

@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  * Scans a package for classes by looking at files in the classpath.
@@ -46,8 +44,9 @@ public class DefaultClassScanner implements ClassScanner {
             "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery",
             "org.hibernate.annotations.Subselect",
 
-            Entity.class.getCanonicalName(),
-            Table.class.getCanonicalName()
+            //JPA
+            "javax.persistence.Entity",
+            "javax.persistence.Table"
     };
 
     private final Map<String, Set<Class<?>>> startupCache;
