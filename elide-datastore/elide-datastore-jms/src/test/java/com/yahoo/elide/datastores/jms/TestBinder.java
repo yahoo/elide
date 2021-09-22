@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
+import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Author;
@@ -56,7 +57,18 @@ public class TestBinder extends AbstractBinder {
             public Elide provide() {
 
                 HashMapDataStore inMemoryStore = new HashMapDataStore(Set.of(Book.class, Author.class));
-                return buildElide(inMemoryStore, dictionary);
+                Elide elide = buildElide(inMemoryStore, dictionary);
+
+                ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://0");
+                SubscriptionScanner subscriptionScanner = new SubscriptionScanner(
+                        connectionFactory,
+                        elide.getMapper().getObjectMapper(),
+                        elide.getElideSettings().getDictionary(),
+                        elide.getScanner()
+                );
+
+                subscriptionScanner.bindLifecycleHooks();
+                return elide;
             }
 
             @Override
@@ -64,22 +76,6 @@ public class TestBinder extends AbstractBinder {
 
             }
         }).to(Elide.class).named("elide");
-
-        // Web socket instance
-        bindFactory(new Factory<SubscriptionWebSocket>() {
-            @Override
-            public SubscriptionWebSocket provide() {
-                DataStore topicStore = buildDataStore(dictionary, new ObjectMapper());
-                Elide elide = buildElide(topicStore, dictionary);
-
-                return buildWebSocket(elide);
-            }
-
-            @Override
-            public void dispose(SubscriptionWebSocket webSocketEndpoint) {
-
-            }
-        }).to(SubscriptionWebSocket.class);
     }
 
     protected Elide buildElide(DataStore store, EntityDictionary dictionary) {
@@ -92,44 +88,5 @@ public class TestBinder extends AbstractBinder {
                 .withEntityDictionary(dictionary)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                 .build());
-    }
-
-    protected SubscriptionWebSocket buildWebSocket(Elide elide) {
-        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://0");
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-
-        JMSDataStore topicStore = new JMSDataStore(
-                Set.of(ClassType.of(Book.class), ClassType.of(Author.class)),
-                connectionFactory, dictionary,
-                elide.getMapper().getObjectMapper(), -1);
-
-        NonEntityDictionary nonEntityDictionary =
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
-
-        SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary,
-                new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
-
-        GraphQL api = GraphQL.newGraphQL(builder.build())
-                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
-                .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
-                .build();
-
-        return SubscriptionWebSocket.builder()
-                .topicStore(topicStore)
-                .elide(elide)
-                .api(api)
-                .build();
-    }
-
-    protected DataStore buildDataStore(EntityDictionary dictionary, ObjectMapper mapper) {
-        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://0");
-
-        JMSDataStore topicStore = new JMSDataStore(
-                Set.of(ClassType.of(Book.class), ClassType.of(Author.class)),
-                connectionFactory, dictionary, mapper, -1);
-
-        HashMapDataStore inMemoryStore = new HashMapDataStore(Set.of(Book.class, Author.class));
-
-        return new MultiplexManager(inMemoryStore, topicStore);
     }
 }

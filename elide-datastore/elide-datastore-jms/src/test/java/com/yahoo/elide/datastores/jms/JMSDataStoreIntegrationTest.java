@@ -28,6 +28,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -48,17 +49,23 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import graphql.ExecutionResult;
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
+import javax.websocket.ContainerProvider;
+import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
@@ -69,6 +76,7 @@ public class JMSDataStoreIntegrationTest {
     protected ConnectionFactory connectionFactory;
     protected EntityDictionary dictionary;
     protected JMSDataStore store;
+    protected ObjectMapper mapper = new ObjectMapper();
 
     @BeforeAll
     public void init() throws Exception {
@@ -130,7 +138,6 @@ public class JMSDataStoreIntegrationTest {
         return server;
     }
 
-
     @Test
     public void testJsonApiEndpoint() throws Exception {
         given()
@@ -147,6 +154,45 @@ public class JMSDataStoreIntegrationTest {
                 )
                 .post("/book")
                 .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
+
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        WebSocketClient client = new WebSocketClient(1, "subscription {book(topic: ADDED) {id title}}");
+        container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
+
+        List<ExecutionResult> results = client.waitOnClose(300);
+
+        assertEquals(1, results.size());
+
+    }
+
+    @Test
+    public void testJsonApiEndpoint2() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        WebSocketClient client = new WebSocketClient(1, "subscription {book(topic: ADDED) {id title}}");
+        container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("1"),
+                                        attributes(attr("title", "foo"))
+                                )
+                        )
+                )
+                .post("/book")
+                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
+
+
+        List<ExecutionResult> results = client.waitOnClose(300);
+
+        assertEquals(1, results.size());
+
     }
 
     public static Integer getRestAssuredPort() {
