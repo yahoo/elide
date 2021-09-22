@@ -39,6 +39,7 @@ public class SubscriptionModelBuilderTest {
 
     private static final String BOOK = "book";
     private static final String AUTHOR = "author";
+    private static final String PREVIEW = "preview";
     private static final String TOPIC = "topic";
 
     private static final String SUBSCRIPTION = "Subscription";
@@ -73,8 +74,8 @@ public class SubscriptionModelBuilderTest {
         GraphQLSchema schema = builder.build();
         GraphQLObjectType subscriptionType = (GraphQLObjectType) schema.getType("Subscription");
 
+        //Book Type
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(TYPE_BOOK);
-        GraphQLObjectType authorType = (GraphQLObjectType) schema.getType(TYPE_AUTHOR);
 
         GraphQLFieldDefinition bookField = subscriptionType.getFieldDefinition(BOOK);
         GraphQLEnumType bookTopicType = (GraphQLEnumType) bookField.getArgument(TOPIC).getType();
@@ -83,10 +84,11 @@ public class SubscriptionModelBuilderTest {
         assertNotNull(bookTopicType.getValue("UPDATED"));
         assertNull(bookTopicType.getValue("DELETED"));
 
-
         assertEquals(bookType, subscriptionType.getFieldDefinition(BOOK).getType());
         assertNotNull(subscriptionType.getFieldDefinition(BOOK).getArgument(FILTER));
 
+        //Author Type
+        GraphQLObjectType authorType = (GraphQLObjectType) schema.getType(TYPE_AUTHOR);
         assertEquals(authorType, subscriptionType.getFieldDefinition(AUTHOR).getType());
         assertNotNull(subscriptionType.getFieldDefinition(AUTHOR).getArgument(FILTER));
 
@@ -97,7 +99,14 @@ public class SubscriptionModelBuilderTest {
         assertNotNull(authorTopicType.getValue("UPDATED"));
         assertNotNull(authorTopicType.getValue("DELETED"));
 
+        //Publisher Type
         assertNull(subscriptionType.getFieldDefinition("publisher"));
+
+        //Preview Type (Custom Subscription)
+        GraphQLObjectType previewType = (GraphQLObjectType) schema.getType(TYPE_PREVIEW);
+        GraphQLFieldDefinition previewField = subscriptionType.getFieldDefinition(PREVIEW);
+        assertEquals(previewType, previewField.getType());
+        assertNull(previewField.getArgument(TOPIC));
     }
 
     @Test
