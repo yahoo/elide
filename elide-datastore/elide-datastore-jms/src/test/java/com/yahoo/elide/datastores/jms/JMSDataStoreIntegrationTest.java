@@ -10,6 +10,7 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
@@ -138,90 +139,109 @@ public class JMSDataStoreIntegrationTest {
 
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
-        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1, "subscription {book(topic: ADDED) {id title}}");
-        Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {book(topic: ADDED) {id title}}"));
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"))) {
 
-        List<ExecutionResult> results = client.waitOnClose(1);
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
 
-        assertEquals(0, results.size());
-        session.close();
+            List<ExecutionResult> results = client.waitOnClose(1);
+
+            assertEquals(0, results.size());
+        }
     }
 
     @Test
     public void testLifecycleEventAfterSubscribe() throws Exception {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
-        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1, "subscription {book(topic: ADDED) {id title}}");
-        Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {book(topic: ADDED) {id title}}"));
 
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        data(
-                                resource(
-                                        type("book"),
-                                        id("1"),
-                                        attributes(attr("title", "foo"))
-                                )
-                        )
-                )
-                .post("/book")
-                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
+                                            type("book"),
+                                            id("1"),
+                                            attributes(attr("title", "foo"))
+                                    )
+                            )
+                    )
+                    .post("/book")
+                    .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
 
-        List<ExecutionResult> results = client.waitOnClose(10);
-
-        assertEquals(1, results.size());
-        session.close();
+            List<ExecutionResult> results = client.waitOnClose(10);
+            assertEquals(1, results.size());
+        }
     }
 
+    @Test
     public void testCreateUpdateAndDelete() throws Exception {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
-        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1, "subscription {book(topic: ADDED) {id title}}");
-        Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(3,
+                List.of(
+                        "subscription {book(topic: ADDED) {id title}}",
+                        "subscription {book(topic: DELETED) {id title}}",
+                        "subscription {book(topic: UPDATED) {id title}}"
+                ));
 
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        data(
-                                resource(
-                                        type("book"),
-                                        id("3"),
-                                        attributes(attr("title", "foo"))
-                                )
-                        )
-                )
-                .post("/book")
-                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("3"));
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"))) {
 
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        data(
-                                resource(
-                                        type("book"),
-                                        id("3"),
-                                        attributes(attr("title", "new title"))
-                                )
-                        )
-                )
-                .patch("/book/3")
-                .then().statusCode(HttpStatus.SC_NO_CONTENT);
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
 
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .delete("/book/3")
-                .then().statusCode(HttpStatus.SC_NO_CONTENT);
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
+                                            type("book"),
+                                            id("3"),
+                                            attributes(attr("title", "foo"))
+                                    )
+                            )
+                    )
+                    .post("/book")
+                    .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("3"));
 
-        List<ExecutionResult> results = client.waitOnClose(10);
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            datum(
+                                    resource(
+                                            type("book"),
+                                            id("3"),
+                                            attributes(attr("title", "new title"))
+                                    )
+                            )
+                    )
+                    .patch("/book/3")
+                    .then().statusCode(HttpStatus.SC_NO_CONTENT);
 
-        assertEquals(3, results.size());
-        session.close();
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .delete("/book/3")
+                    .then().statusCode(HttpStatus.SC_NO_CONTENT);
+
+            List<ExecutionResult> results = client.waitOnClose(300);
+
+            assertEquals(3, results.size());
+            System.out.println("Final Result: " + results);
+        }
     }
 
     public static Integer getRestAssuredPort() {

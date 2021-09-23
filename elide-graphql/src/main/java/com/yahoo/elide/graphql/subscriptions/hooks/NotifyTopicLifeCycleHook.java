@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql.subscriptions.hooks;
 
+import static javax.jms.DeliveryMode.PERSISTENT;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
@@ -59,6 +60,8 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
         String topicName = topicType.toTopicName(modelType, resource.getDictionary());
 
         JMSProducer producer = context.createProducer();
+        producer.setTimeToLive(10000);
+        producer.setDeliveryMode(PERSISTENT);
         Destination destination = context.createTopic(topicName);
 
         try {

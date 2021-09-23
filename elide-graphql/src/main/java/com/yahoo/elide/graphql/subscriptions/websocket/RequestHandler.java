@@ -18,6 +18,7 @@ import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Ping;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reactivestreams.Publisher;
@@ -50,6 +51,7 @@ public class RequestHandler implements Closeable {
     protected String protocolID;
     protected SessionHandler sessionHandler;
     protected ConnectionInfo connectionInfo;
+    protected boolean sendPingOnSubscribe;
 
     /**
      * Constructor.
@@ -68,7 +70,8 @@ public class RequestHandler implements Closeable {
             GraphQL api,
             String protocolID,
             UUID requestID,
-            ConnectionInfo connectionInfo) {
+            ConnectionInfo connectionInfo,
+            boolean sendPingOnSubscribe) {
         this.sessionHandler = sessionHandler;
         this.topicStore = topicStore;
         this.elide = elide;
@@ -77,6 +80,7 @@ public class RequestHandler implements Closeable {
         this.protocolID = protocolID;
         this.connectionInfo = connectionInfo;
         this.transaction = null;
+        this.sendPingOnSubscribe = sendPingOnSubscribe;
     }
 
     /**
@@ -84,6 +88,7 @@ public class RequestHandler implements Closeable {
      * @throws IOException
      */
     public void close() throws IOException {
+        log.debug("Closing Request");
         if (transaction != null) {
             transaction.close();
             elide.getTransactionRegistry().removeRunningTransaction(requestID);
@@ -96,7 +101,7 @@ public class RequestHandler implements Closeable {
      * @param subscribeRequest The GraphQL query.
      * @return true if the request is still active (ie. - a subscription).
      */
-    public boolean handleRequest(Subscribe subscribeRequest) {
+    public synchronized void handleRequest(Subscribe subscribeRequest) {
         if (transaction != null) {
             throw new IllegalStateException("Already handling an active request.");
         }
@@ -142,7 +147,7 @@ public class RequestHandler implements Closeable {
                 safeSendNext(executionResult);
                 safeSendComplete();
                 safeClose();
-                return false;
+                return;
             }
 
             Publisher<ExecutionResult> resultPublisher = executionResult.getData();
@@ -151,25 +156,35 @@ public class RequestHandler implements Closeable {
             if (resultPublisher == null) {
                 safeSendError(executionResult.getErrors().toArray(GraphQLError[]::new));
                 safeClose();
-                return false;
+                return;
             }
-
 
             //This would be a subscription creation success.
             resultPublisher.subscribe(new ExecutionResultSubscriber());
 
         //This would be a subscription creation error.
         } catch (RuntimeException e) {
+            log.error("YO RuntimeException: {}", e.getMessage());
             ElideResponse response = QueryRunner.handleRuntimeException(elide, e, isVerbose);
             safeSendError(response.getBody());
             safeClose();
-            return false;
         }
+    }
 
-        return true;
+    protected void safeSendPing() {
+        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        Ping ping = new Ping();
+
+        try {
+            sessionHandler.sendMessage(mapper.writeValueAsString(ping));
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            safeClose();
+        }
     }
 
     protected void safeSendNext(ExecutionResult result) {
+        log.debug("Sending Next {}", result);
         ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
         Next next = Next.builder()
                 .result(result)
@@ -184,6 +199,7 @@ public class RequestHandler implements Closeable {
     }
 
     protected void safeSendComplete() {
+        log.debug("Sending Complete");
         ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
         Complete complete = Complete.builder()
                 .id(protocolID)
@@ -197,6 +213,7 @@ public class RequestHandler implements Closeable {
     }
 
     protected void safeSendError(GraphQLError[] errors) {
+        log.debug("Sending Error {}", errors);
         ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
         Error error = Error.builder()
                 .id(protocolID)
@@ -234,7 +251,7 @@ public class RequestHandler implements Closeable {
         safeSendError(errors);
     }
 
-    protected void safeClose() {
+    protected synchronized void safeClose() {
         try {
             close();
         } catch (IOException e) {
@@ -252,18 +269,23 @@ public class RequestHandler implements Closeable {
         @Override
         public void onSubscribe(Subscription subscription) {
             subscriptionRef.set(subscription);
+
+            if (sendPingOnSubscribe) {
+                safeSendPing();
+            }
             subscription.request(1);
         }
 
         @Override
         public void onNext(ExecutionResult executionResult) {
+            log.debug("Next Result");
             safeSendNext(executionResult);
             subscriptionRef.get().request(1);
         }
 
         @Override
         public void onError(Throwable t) {
-            log.error(t.getMessage());
+            log.error("Topic Error {}", t.getMessage());
             safeSendError(t.getMessage());
             safeClose();
         }

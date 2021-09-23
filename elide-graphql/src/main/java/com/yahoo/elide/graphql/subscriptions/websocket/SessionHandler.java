@@ -24,6 +24,7 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseRe
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +33,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
@@ -45,13 +48,15 @@ public class SessionHandler {
     protected Elide elide;
     protected GraphQL api;
     protected Session wrappedSession;
-    Map<String, RequestHandler> activeRequests;
-    ConnectionInfo connectionInfo;
-    ObjectMapper mapper;
-    int connectionTimeoutMs;
-    int maxSubscriptions;
-    Thread timeoutThread;
-    boolean initialized = false;
+    protected Map<String, RequestHandler> activeRequests;
+    protected ConnectionInfo connectionInfo;
+    protected ObjectMapper mapper;
+    protected int connectionTimeoutMs;
+    protected int maxSubscriptions;
+    protected Thread timeoutThread;
+    protected boolean initialized = false;
+    protected boolean sendPingOnSubscribe = false;
+    protected ExecutorService executorService;
 
     /**
      * Constructor.
@@ -62,6 +67,8 @@ public class SessionHandler {
      * @param connectionTimeoutMs Connection timeout in milliseconds.
      * @param maxSubscriptions Max number of outstanding subscriptions per web socket.
      * @param connectionInfo Connection metadata.
+     * @param sendPingOnSubscribe Sends a ping on subscribe message (to aid with testing).
+     * @param executorService Executor Service to launch threads.
      */
     public SessionHandler(
             Session wrappedSession,
@@ -70,7 +77,10 @@ public class SessionHandler {
             GraphQL api,
             int connectionTimeoutMs,
             int maxSubscriptions,
-            ConnectionInfo connectionInfo) {
+            ConnectionInfo connectionInfo,
+            boolean sendPingOnSubscribe,
+            ExecutorService executorService) {
+        Preconditions.checkState(maxSubscriptions > 0);
         this.wrappedSession = wrappedSession;
         this.topicStore = topicStore;
         this.elide = elide;
@@ -80,8 +90,14 @@ public class SessionHandler {
         this.activeRequests = new HashMap<>();
         this.connectionTimeoutMs = connectionTimeoutMs;
         this.maxSubscriptions = maxSubscriptions;
+        this.sendPingOnSubscribe = sendPingOnSubscribe;
+        if (executorService == null) {
+            this.executorService = Executors.newFixedThreadPool(maxSubscriptions);
+        } else {
+            this.executorService = executorService;
+        }
         this.timeoutThread = new Thread(new ConnectionTimer());
-        timeoutThread.start();
+        this.timeoutThread.start();
     }
 
     /**
@@ -110,6 +126,7 @@ public class SessionHandler {
      * @param message The protocol message.
      */
     public void handleRequest(String message) {
+        log.debug("Received Message: {} {}", wrappedSession.getId(), message);
         try {
             JsonNode type = mapper.readTree(message).get("type");
 
@@ -129,6 +146,10 @@ public class SessionHandler {
             switch (messageType) {
                 case PING: {
                     handlePing();
+                    return;
+                }
+                case PONG: {
+                    //Ignore
                     return;
                 }
                 case CONNECTION_INIT: {
@@ -190,11 +211,16 @@ public class SessionHandler {
         timeoutThread.interrupt();
 
         RequestHandler requestHandler = new RequestHandler(this,
-                topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo);
+                topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo, sendPingOnSubscribe);
 
-        if (requestHandler.handleRequest(subscribe)) {
-            activeRequests.put(protocolID, requestHandler);
-        }
+        activeRequests.put(protocolID, requestHandler);
+
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                requestHandler.handleRequest(subscribe);
+            }
+        });
     }
 
     protected synchronized void handleComplete(Complete complete) {
@@ -230,6 +256,7 @@ public class SessionHandler {
     }
 
     protected void safeClose(CloseReason reason) {
+        log.debug("Closing session handler: {} {}", wrappedSession.getId(), reason);
         try {
             close(reason);
         } catch (IOException e) {

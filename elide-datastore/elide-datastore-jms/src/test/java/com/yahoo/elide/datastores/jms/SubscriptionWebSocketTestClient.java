@@ -34,55 +34,57 @@ import javax.websocket.Session;
 @Slf4j
 public class SubscriptionWebSocketTestClient {
 
-    private CountDownLatch latch;
+    private CountDownLatch sessionLatch;
+    private CountDownLatch subscribeLatch;
     private ObjectMapper mapper;
     private List<ExecutionResult> results;
     private Session session;
-    private String query;
+    private List<String> queries;
     private int expectedNumberOfMessages;
+    private int expectedNumberOfSubscribes;
 
     /**
      * Constructor.
      * @param expectedNumberOfMessages The number of expected messages before notifying the test driver.
-     * @param query The subscription query to run.
+     * @param queries The subscription queries to run.
      */
-    public SubscriptionWebSocketTestClient(int expectedNumberOfMessages, String query) {
-        latch = new CountDownLatch(1);
+    public SubscriptionWebSocketTestClient(int expectedNumberOfMessages, List<String> queries) {
+        sessionLatch = new CountDownLatch(1);
+        subscribeLatch = new CountDownLatch(1);
         mapper = new ObjectMapper();
         results = new ArrayList<>();
-        this.query = query;
+        this.queries = queries;
         this.expectedNumberOfMessages = expectedNumberOfMessages;
+        this.expectedNumberOfSubscribes = queries.size();
     }
 
 
     @OnOpen
     public void onOpen(Session session) throws Exception {
         this.session = session;
-        log.info("WebSocket opened: " + session.getId());
+        log.debug("WebSocket opened: " + session.getId());
 
         session.getBasicRemote().sendText(mapper.writeValueAsString(new ConnectionInit()));
-        log.info("Sent INIT");
     }
 
     @OnMessage
     public void onMessage(String text) throws Exception {
-        log.info("Message received: " + text);
 
         JsonNode type = mapper.readTree(text).get("type");
         MessageType messageType = MessageType.valueOf(type.textValue());
 
         switch (messageType) {
             case CONNECTION_ACK: {
-                log.info("ACK received");
+                Integer id = 1;
+                for (String query : queries) {
+                    Subscribe subscribe = Subscribe.builder()
+                            .id(id.toString())
+                            .query(query)
+                            .build();
 
-                Subscribe subscribe = Subscribe.builder()
-                        .id("1")
-                        .query(query)
-                        .build();
-
-                session.getBasicRemote().sendText(mapper.writeValueAsString(subscribe));
-
-                log.info("Subscribe sent.");
+                    session.getBasicRemote().sendText(mapper.writeValueAsString(subscribe));
+                    id++;
+                }
 
                 break;
             }
@@ -91,14 +93,21 @@ public class SubscriptionWebSocketTestClient {
                 results.add(next.getPayload());
                 expectedNumberOfMessages--;
                 if (expectedNumberOfMessages <= 0) {
-                    latch.countDown();
+                    sessionLatch.countDown();
+                }
+                break;
+            }
+            case PING: {
+                expectedNumberOfSubscribes--;
+                if (expectedNumberOfSubscribes <= 0) {
+                    subscribeLatch.countDown();
                 }
                 break;
             }
             case ERROR: {
                 Error error = mapper.readValue(text, Error.class);
-                log.info("ERROR: {}", error.getMessage());
-                latch.countDown();
+                log.error("ERROR: {}", error.getMessage());
+                sessionLatch.countDown();
                 break;
             }
             default: {
@@ -109,14 +118,14 @@ public class SubscriptionWebSocketTestClient {
 
     @OnClose
     public void onClose(CloseReason reason) throws Exception {
-        log.info("Session closed: " + reason.getCloseCode() + " " + reason.getReasonPhrase());
-        latch.countDown();
+        log.debug("Session closed: " + reason.getCloseCode() + " " + reason.getReasonPhrase());
+        sessionLatch.countDown();
     }
 
     @OnError
     public void onError(Throwable t) throws Exception {
-        log.info("Session error: " + t.getMessage());
-        latch.countDown();
+        log.error("Session error: " + t.getMessage());
+        sessionLatch.countDown();
     }
 
     /**
@@ -126,7 +135,16 @@ public class SubscriptionWebSocketTestClient {
      * @throws InterruptedException
      */
     public List<ExecutionResult> waitOnClose(int waitInSeconds) throws InterruptedException {
-        latch.await(waitInSeconds, TimeUnit.SECONDS);
+        sessionLatch.await(waitInSeconds, TimeUnit.SECONDS);
         return results;
+    }
+
+    /**
+     * Wait for the subscription to be setup.
+     * @param waitInSeconds The number of seconds to wait before giving up.
+     * @throws InterruptedException
+     */
+    public void waitOnSubscribe(int waitInSeconds) throws InterruptedException {
+        subscribeLatch.await(waitInSeconds, TimeUnit.SECONDS);
     }
 }

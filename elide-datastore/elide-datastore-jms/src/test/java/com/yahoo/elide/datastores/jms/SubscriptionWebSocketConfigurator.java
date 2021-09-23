@@ -91,8 +91,8 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
         return SubscriptionWebSocket.builder()
                 .topicStore(topicStore)
+                .sendPingOnSubscribe(true)
                 .elide(elide)
-                .api(api)
                 .build();
     }
 }
