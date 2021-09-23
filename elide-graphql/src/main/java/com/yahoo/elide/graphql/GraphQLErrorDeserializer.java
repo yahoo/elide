@@ -3,6 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.graphql;
 
 import static graphql.ErrorType.ExecutionAborted;
@@ -10,7 +11,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import graphql.ErrorClassification;
 import graphql.GraphQLError;
 import graphql.language.SourceLocation;
@@ -49,7 +49,7 @@ public class GraphQLErrorDeserializer extends StdDeserializer<GraphQLError> {
             public List<SourceLocation> getLocations() {
                 if (sourceLocations != null) {
                     List<SourceLocation> result = new ArrayList<>();
-                    ((ArrayNode) sourceLocations).forEach(sourceLocation -> {
+                    sourceLocations.forEach(sourceLocation -> {
                         result.add(new SourceLocation(
                                 sourceLocation.get("line").asInt(),
                                 sourceLocation.get("column").asInt()
@@ -70,7 +70,7 @@ public class GraphQLErrorDeserializer extends StdDeserializer<GraphQLError> {
             public List<Object> getPath() {
                 if (pathNode != null) {
                     List<Object> paths = new ArrayList<>();
-                    ((ArrayNode) pathNode).forEach(path -> {
+                    pathNode.forEach(path -> {
                         paths.add(path.asText());
                     });
                     return paths;

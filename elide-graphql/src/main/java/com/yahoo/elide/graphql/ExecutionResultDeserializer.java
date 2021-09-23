@@ -1,8 +1,9 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.graphql;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -11,7 +12,6 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import graphql.ExecutionResult;
 import graphql.ExecutionResultImpl;
 import graphql.GraphQLError;
@@ -19,9 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Deserializes JSON into an Execution Result.
@@ -43,21 +43,23 @@ public class ExecutionResultDeserializer extends StdDeserializer<ExecutionResult
         JsonNode root = parser.getCodec().readTree(parser);
 
         JsonNode dataNode = root.get("data");
-        JsonNode errorNode = root.get("errors");
+        JsonNode errorsNode = root.get("errors");
 
-        List<GraphQLError> result = null;
+        List<GraphQLError> errors = null;
 
-        if (errorNode != null) {
-            result = new ArrayList<>();
-            ((ArrayNode) errorNode).forEach(error -> {
-                result.add(errorDeserializer.deserialize(error.traverse(), context));
-            });
+        if (errorsNode != null) {
+            errors = new ArrayList<>();
+            Iterator<JsonNode> nodeIterator = errorsNode.iterator();
+            while (nodeIterator.hasNext()) {
+                JsonNode errorNode = nodeIterator.next();
+                errors.add(errorDeserializer.deserialize(errorNode.traverse(parser.getCodec()), context));
+            }
         }
 
-        Map<String, Object> data = mapper.convertValue(dataNode, new TypeReference<Map<String, Object>>(){});
+        Map<String, Object> data = mapper.convertValue(dataNode, new TypeReference<>(){});
 
         return ExecutionResultImpl.newExecutionResult()
-                .errors(result)
+                .errors(errors)
                 .data(data).build();
     }
 }
