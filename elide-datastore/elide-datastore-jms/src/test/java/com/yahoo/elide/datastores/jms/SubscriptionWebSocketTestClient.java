@@ -1,3 +1,9 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.datastores.jms;
 
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
@@ -21,9 +27,12 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
+/**
+ * Test client for GraphQL subscriptions.  This class makes it simpler to write integration tests.
+ */
 @ClientEndpoint
 @Slf4j
-public class WebSocketClient {
+public class SubscriptionWebSocketTestClient {
 
     private CountDownLatch latch;
     private ObjectMapper mapper;
@@ -32,7 +41,12 @@ public class WebSocketClient {
     private String query;
     private int expectedNumberOfMessages;
 
-    public WebSocketClient(int expectedNumberOfMessages, String query) {
+    /**
+     * Constructor.
+     * @param expectedNumberOfMessages The number of expected messages before notifying the test driver.
+     * @param query The subscription query to run.
+     */
+    public SubscriptionWebSocketTestClient(int expectedNumberOfMessages, String query) {
         latch = new CountDownLatch(1);
         mapper = new ObjectMapper();
         results = new ArrayList<>();
@@ -88,7 +102,6 @@ public class WebSocketClient {
                 break;
             }
             default: {
-                log.info("Message received: " + text);
                 break;
             }
         }
@@ -106,7 +119,13 @@ public class WebSocketClient {
         latch.countDown();
     }
 
-    public List<ExecutionResult> waitOnClose(int waitInSeconds) throws InterruptedException{
+    /**
+     * Wait for the subscription to deliver N messages and return them.
+     * @param waitInSeconds The number of seconds to wait before giving up.
+     * @return The messages received.
+     * @throws InterruptedException
+     */
+    public List<ExecutionResult> waitOnClose(int waitInSeconds) throws InterruptedException {
         latch.await(waitInSeconds, TimeUnit.SECONDS);
         return results;
     }

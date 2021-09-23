@@ -1,3 +1,9 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
@@ -27,7 +33,11 @@ import java.util.Set;
 import javax.jms.ConnectionFactory;
 import javax.websocket.server.ServerEndpointConfig;
 
+/**
+ * Initializes and configures the subscription web socket.
+ */
 public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Configurator {
+
     @Override
     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
         if (endpointClass.equals(SubscriptionWebSocket.class)) {

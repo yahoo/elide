@@ -56,7 +56,7 @@ public class ExecutionResultDeserializer extends StdDeserializer<ExecutionResult
             }
         }
 
-        Map<String, Object> data = mapper.convertValue(dataNode, new TypeReference<>(){});
+        Map<String, Object> data = mapper.convertValue(dataNode, new TypeReference<>() { });
 
         return ExecutionResultImpl.newExecutionResult()
                 .errors(errors)

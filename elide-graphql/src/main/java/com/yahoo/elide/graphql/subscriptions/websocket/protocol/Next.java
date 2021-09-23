@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import graphql.ExecutionResult;
-import graphql.ExecutionResultImpl;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;

@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -17,23 +16,8 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.request.Argument;
-import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
-import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
-import example.Author;
-import example.Book;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
@@ -45,6 +29,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -54,15 +39,7 @@ import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSContext;
-import javax.jms.JMSProducer;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
@@ -72,15 +49,13 @@ import javax.websocket.server.ServerEndpointConfig;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Slf4j
 public class JMSDataStoreIntegrationTest {
-
-    protected ConnectionFactory connectionFactory;
-    protected EntityDictionary dictionary;
-    protected JMSDataStore store;
-    protected ObjectMapper mapper = new ObjectMapper();
+    private EmbeddedActiveMQ embedded;
 
     @BeforeAll
     public void init() throws Exception {
-        EmbeddedActiveMQ embedded = new EmbeddedActiveMQ();
+
+        //Startup up an embedded active MQ.
+        embedded = new EmbeddedActiveMQ();
         Configuration configuration = new ConfigurationImpl();
         configuration.addAcceptorConfiguration("default", "vm://0");
         configuration.setPersistenceEnabled(false);
@@ -90,7 +65,13 @@ public class JMSDataStoreIntegrationTest {
         embedded.setConfiguration(configuration);
         embedded.start();
 
+        //Start embedded Jetty
         setUpServer();
+    }
+
+    @AfterAll
+    public void shutdown() throws Exception {
+        embedded.stop();
     }
 
     protected final Server setUpServer() throws Exception {
@@ -126,11 +107,11 @@ public class JMSDataStoreIntegrationTest {
         // GraphQL subscription endpoint
         ServerContainer container  = WebSocketServerContainerInitializer.configureContext(servletContextHandler);
 
-        ServerEndpointConfig echoConfig = ServerEndpointConfig.Builder
-                .create(SubscriptionWebSocket.class,"/subscription")
+        ServerEndpointConfig subscriptionEndpoint = ServerEndpointConfig.Builder
+                .create(SubscriptionWebSocket.class, "/subscription")
                 .configurator(new SubscriptionWebSocketConfigurator())
                 .build();
-        container.addEndpoint(echoConfig);
+        container.addEndpoint(subscriptionEndpoint);
 
         log.debug("...Starting Server...");
         server.start();
@@ -139,7 +120,7 @@ public class JMSDataStoreIntegrationTest {
     }
 
     @Test
-    public void testJsonApiEndpoint() throws Exception {
+    public void testLifecycleEventBeforeSubscribe() throws Exception {
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -147,31 +128,31 @@ public class JMSDataStoreIntegrationTest {
                         data(
                                 resource(
                                         type("book"),
-                                        id("1"),
+                                        id("2"),
                                         attributes(attr("title", "foo"))
                                 )
                         )
                 )
                 .post("/book")
-                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
+                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("2"));
 
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
-        WebSocketClient client = new WebSocketClient(1, "subscription {book(topic: ADDED) {id title}}");
-        container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1, "subscription {book(topic: ADDED) {id title}}");
+        Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
 
-        List<ExecutionResult> results = client.waitOnClose(300);
+        List<ExecutionResult> results = client.waitOnClose(1);
 
-        assertEquals(1, results.size());
-
+        assertEquals(0, results.size());
+        session.close();
     }
 
     @Test
-    public void testJsonApiEndpoint2() throws Exception {
+    public void testLifecycleEventAfterSubscribe() throws Exception {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
-        WebSocketClient client = new WebSocketClient(1, "subscription {book(topic: ADDED) {id title}}");
-        container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1, "subscription {book(topic: ADDED) {id title}}");
+        Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -189,10 +170,58 @@ public class JMSDataStoreIntegrationTest {
                 .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
 
-        List<ExecutionResult> results = client.waitOnClose(300);
+        List<ExecutionResult> results = client.waitOnClose(10);
 
         assertEquals(1, results.size());
+        session.close();
+    }
 
+    public void testCreateUpdateAndDelete() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1, "subscription {book(topic: ADDED) {id title}}");
+        Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"));
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("3"),
+                                        attributes(attr("title", "foo"))
+                                )
+                        )
+                )
+                .post("/book")
+                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("3"));
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("3"),
+                                        attributes(attr("title", "new title"))
+                                )
+                        )
+                )
+                .patch("/book/3")
+                .then().statusCode(HttpStatus.SC_NO_CONTENT);
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .delete("/book/3")
+                .then().statusCode(HttpStatus.SC_NO_CONTENT);
+
+        List<ExecutionResult> results = client.waitOnClose(10);
+
+        assertEquals(3, results.size());
+        session.close();
     }
 
     public static Integer getRestAssuredPort() {
