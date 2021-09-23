@@ -11,12 +11,15 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import graphql.ExecutionResult;
 import graphql.ExecutionResultImpl;
 import graphql.GraphQLError;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 
@@ -27,10 +30,12 @@ import java.util.Map;
 public class ExecutionResultDeserializer extends StdDeserializer<ExecutionResult> {
 
     ObjectMapper mapper;
+    GraphQLErrorDeserializer errorDeserializer;
 
     public ExecutionResultDeserializer() {
         super(ExecutionResult.class);
         mapper = new ObjectMapper();
+        errorDeserializer = new GraphQLErrorDeserializer();
     }
 
     @Override
@@ -38,9 +43,21 @@ public class ExecutionResultDeserializer extends StdDeserializer<ExecutionResult
         JsonNode root = parser.getCodec().readTree(parser);
 
         JsonNode dataNode = root.get("data");
+        JsonNode errorNode = root.get("errors");
+
+        List<GraphQLError> result = null;
+
+        if (errorNode != null) {
+            result = new ArrayList<>();
+            ((ArrayNode) errorNode).forEach(error -> {
+                result.add(errorDeserializer.deserialize(error.traverse(), context));
+            });
+        }
 
         Map<String, Object> data = mapper.convertValue(dataNode, new TypeReference<Map<String, Object>>(){});
 
-        return ExecutionResultImpl.newExecutionResult().data(data).build();
+        return ExecutionResultImpl.newExecutionResult()
+                .errors(result)
+                .data(data).build();
     }
 }
