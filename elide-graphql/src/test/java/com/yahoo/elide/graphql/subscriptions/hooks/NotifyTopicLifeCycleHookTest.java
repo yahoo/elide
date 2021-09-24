@@ -58,9 +58,10 @@ public class NotifyTopicLifeCycleHookTest {
     @Test
     public void testManagedModelNotification() {
 
-        NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook(
+        NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook<Book>(
                 connectionFactory,
-                new ObjectMapper());
+                new ObjectMapper(),
+                JMSContext::createProducer);
 
         Book book = new Book();
         PersistentResource<Book> resource = new PersistentResource<>(book, "123", scope);

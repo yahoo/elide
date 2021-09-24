@@ -17,12 +17,18 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
+import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+import example.Author;
+import example.Book;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
@@ -41,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
@@ -110,7 +117,12 @@ public class JMSDataStoreIntegrationTest {
 
         ServerEndpointConfig subscriptionEndpoint = ServerEndpointConfig.Builder
                 .create(SubscriptionWebSocket.class, "/subscription")
-                .configurator(new SubscriptionWebSocketConfigurator())
+                .configurator(SubscriptionWebSocketConfigurator.builder()
+                        .baseUrl("/subscription")
+                        .models(Set.of(ClassType.of(Book.class), ClassType.of(Author.class)))
+                        .connectionFactory(new ActiveMQConnectionFactory("vm://0"))
+                        .sendPingOnSubscribe(true)
+                        .build())
                 .build();
         container.addEndpoint(subscriptionEndpoint);
 

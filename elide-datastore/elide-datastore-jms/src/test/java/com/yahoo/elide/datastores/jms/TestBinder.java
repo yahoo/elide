@@ -55,12 +55,12 @@ public class TestBinder extends AbstractBinder {
                 Elide elide = buildElide(inMemoryStore, dictionary);
 
                 ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://0");
-                SubscriptionScanner subscriptionScanner = new SubscriptionScanner(
-                        connectionFactory,
-                        elide.getMapper().getObjectMapper(),
-                        elide.getElideSettings().getDictionary(),
-                        elide.getScanner()
-                );
+                SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
+                        .connectionFactory(connectionFactory)
+                        .mapper(elide.getMapper().getObjectMapper())
+                        .dictionary(elide.getElideSettings().getDictionary())
+                        .scanner(elide.getScanner())
+                        .build();
 
                 subscriptionScanner.bindLifecycleHooks();
                 return elide;
