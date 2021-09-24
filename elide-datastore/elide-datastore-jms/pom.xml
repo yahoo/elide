@@ -151,14 +151,7 @@
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-datastore-multiplex</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

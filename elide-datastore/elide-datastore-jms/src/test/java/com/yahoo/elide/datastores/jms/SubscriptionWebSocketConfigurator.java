@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.jms;
 
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.audit.Slf4jLogger;
@@ -14,19 +13,11 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.core.utils.DefaultClassScanner;
-import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.graphql.NonEntityDictionary;
-import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
-import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Author;
 import example.Book;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
-import graphql.GraphQL;
-import graphql.execution.AsyncSerialExecutionStrategy;
-import graphql.execution.SubscriptionExecutionStrategy;
 
 import java.util.Calendar;
 import java.util.Set;
@@ -48,7 +39,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
             Elide elide = buildElide(store, dictionary);
 
-            return (T) buildWebSocket(elide, store, dictionary);
+            return (T) buildWebSocket(elide, store);
 
         }
 
@@ -76,19 +67,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
                 mapper, -1);
     }
 
-    protected SubscriptionWebSocket buildWebSocket(Elide elide, DataStore topicStore, EntityDictionary dictionary) {
-
-        NonEntityDictionary nonEntityDictionary =
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
-
-        SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary,
-                new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
-
-        GraphQL api = GraphQL.newGraphQL(builder.build())
-                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
-                .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
-                .build();
-
+    protected SubscriptionWebSocket buildWebSocket(Elide elide, DataStore topicStore) {
         return SubscriptionWebSocket.builder()
                 .topicStore(topicStore)
                 .sendPingOnSubscribe(true)
