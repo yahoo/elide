@@ -142,7 +142,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onClose(session);
 
         verify(remote, times(1)).sendText(message.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+        assertEquals("{\"type\":\"connection_ack\"}", message.getAllValues().get(0));
 
         ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
         verify(session, times(1)).close(closeReason.capture());
@@ -190,7 +190,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .topicStore(dataStore).elide(elide).build();
 
         //Missing payload field
-        String invalid = "{ \"type\": \"SUBSCRIBE\"}";
+        String invalid = "{ \"type\": \"subscribe\"}";
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
@@ -199,7 +199,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
         verify(remote, times(1)).sendText(message.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+        assertEquals("{\"type\":\"connection_ack\"}", message.getAllValues().get(0));
 
         ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
         verify(session, times(1)).close(closeReason.capture());
@@ -233,7 +233,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
         verify(remote, times(1)).sendText(message.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+        assertEquals("{\"type\":\"connection_ack\"}", message.getAllValues().get(0));
 
         ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
         verify(session, times(1)).close(closeReason.capture());
@@ -285,9 +285,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"complete\",\"id\":\"1\"}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
@@ -325,10 +325,10 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
@@ -357,9 +357,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":null,\"errors\":[{\"message\":\"Exception while fetching data (/book) : Bad Request\",\"locations\":[{\"line\":1,\"column\":15}],\"path\":[\"book\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":null,\"errors\":[{\"message\":\"Exception while fetching data (/book) : Bad Request\",\"locations\":[{\"line\":1,\"column\":15}],\"path\":[\"book\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
@@ -395,10 +395,10 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
@@ -440,13 +440,42 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
         verify(remote, times(3)).sendText(message.capture());
         assertEquals(expected, message.getAllValues());
+    }
+
+    @Test
+    void testGraphiqlStartupQuery() throws IOException {
+        SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
+                .executorService(executorService)
+                .topicStore(dataStore).elide(elide).build();
+
+        String graphQLRequest = "{\"id\":\"34d5bc68-4126-4933-aba3-ec34f5c348ab\",\"type\":\"subscribe\",\"payload\":{\"query\":\"\\n    query IntrospectionQuery {\\n      __schema {\\n        \\n        queryType { name }\\n        mutationType { name }\\n        subscriptionType { name }\\n        types {\\n          ...FullType\\n        }\\n        directives {\\n          name\\n          description\\n          \\n          locations\\n          args {\\n            ...InputValue\\n          }\\n        }\\n      }\\n    }\\n\\n    fragment FullType on __Type {\\n      kind\\n      name\\n      description\\n      \\n      fields(includeDeprecated: true) {\\n        name\\n        description\\n        args {\\n          ...InputValue\\n        }\\n        type {\\n          ...TypeRef\\n        }\\n        isDeprecated\\n        deprecationReason\\n      }\\n      inputFields {\\n        ...InputValue\\n      }\\n      interfaces {\\n        ...TypeRef\\n      }\\n      enumValues(includeDeprecated: true) {\\n        name\\n        description\\n        isDeprecated\\n        deprecationReason\\n      }\\n      possibleTypes {\\n        ...TypeRef\\n      }\\n    }\\n\\n    fragment InputValue on __InputValue {\\n      name\\n      description\\n      type { ...TypeRef }\\n      defaultValue\\n    }\\n\\n    fragment TypeRef on __Type {\\n      kind\\n      name\\n      ofType {\\n        kind\\n        name\\n        ofType {\\n          kind\\n          name\\n          ofType {\\n            kind\\n            name\\n            ofType {\\n              kind\\n              name\\n              ofType {\\n                kind\\n                name\\n                ofType {\\n                  kind\\n                  name\\n                  ofType {\\n                    kind\\n                    name\\n                  }\\n                }\\n              }\\n            }\\n          }\\n        }\\n      }\\n    }\\n  \",\"operationName\":\"IntrospectionQuery\"}}";
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        endpoint.onMessage(session, graphQLRequest);
+
+        List<String> expected = List.of(
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
+        );
+
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(1)).sendText(message.capture());
+        //assertEquals(expected, message.getAllValues());
+
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(MULTIPLE_INIT, closeReason.getValue());
     }
 }

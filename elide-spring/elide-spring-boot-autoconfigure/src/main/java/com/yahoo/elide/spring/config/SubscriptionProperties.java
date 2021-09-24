@@ -17,4 +17,6 @@ public class SubscriptionProperties {
      * Turns on/off GraphQL subscriptions.
      */
     private boolean enabled = false;
+
+    private boolean sendPingOnSubscribe = false;
 }

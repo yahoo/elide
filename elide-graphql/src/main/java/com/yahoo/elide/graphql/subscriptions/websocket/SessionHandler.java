@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -137,7 +138,7 @@ public class SessionHandler {
 
             MessageType messageType;
             try {
-                messageType = MessageType.valueOf(type.textValue());
+                messageType = MessageType.valueOf(type.textValue().toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
                 safeClose(INVALID_MESSAGE);
                 return;
@@ -185,6 +186,8 @@ public class SessionHandler {
             return;
         }
 
+        timeoutThread.interrupt();
+
         safeSendConnectionAck();
         initialized = true;
     }
@@ -207,8 +210,6 @@ public class SessionHandler {
             safeClose(MAX_SUBSCRIPTIONS);
             return;
         }
-
-        timeoutThread.interrupt();
 
         RequestHandler requestHandler = new RequestHandler(this,
                 topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo, sendPingOnSubscribe);

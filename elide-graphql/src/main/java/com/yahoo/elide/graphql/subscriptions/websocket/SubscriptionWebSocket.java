@@ -42,7 +42,7 @@ import javax.websocket.server.ServerEndpoint;
  * cross-platform use for Spring, Quarkus, and other containers.
  */
 @Slf4j
-@ServerEndpoint(value = "/")
+@ServerEndpoint(value = "/", subprotocols = { "graphql-transport-ws" })
 @Builder
 public class SubscriptionWebSocket {
     private DataStore topicStore;
