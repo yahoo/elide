@@ -6,13 +6,19 @@
 
 package com.yahoo.elide.datastores.jms.websocket;
 
+import com.yahoo.elide.graphql.ExecutionResultSerializer;
+import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import graphql.ExecutionResult;
+import graphql.GraphQLError;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -51,11 +57,16 @@ public class SubscriptionWebSocketTestClient {
     public SubscriptionWebSocketTestClient(int expectedNumberOfMessages, List<String> queries) {
         sessionLatch = new CountDownLatch(1);
         subscribeLatch = new CountDownLatch(1);
-        mapper = new ObjectMapper();
         results = new ArrayList<>();
         this.queries = queries;
         this.expectedNumberOfMessages = expectedNumberOfMessages;
         this.expectedNumberOfSubscribes = queries.size();
+        this.mapper = new ObjectMapper();
+        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
+        SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
+        module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
+        module.addSerializer(GraphQLError.class, errorSerializer);
+        mapper.registerModule(module);
     }
 
 
@@ -106,7 +117,7 @@ public class SubscriptionWebSocketTestClient {
             }
             case ERROR: {
                 Error error = mapper.readValue(text, Error.class);
-                log.error("ERROR: {}", error.getMessage());
+                log.error("ERROR: {}", error.getPayload());
                 sessionLatch.countDown();
                 break;
             }

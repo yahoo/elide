@@ -12,6 +12,8 @@ elide:
   swagger:
     path: /doc
     enabled: true
+  subscription:
+    enabled: true
   async:
     enabled: true
     threadPoolSize: 7
@@ -46,3 +48,6 @@ spring:
     username: 'sa'
     password: ''
     driver-class-name: 'org.h2.Driver'
+  activemq:
+    broker-url: 'vm://embedded?broker.persistent=false,useShutdownHook=false'
+    in-memory: true

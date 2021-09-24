@@ -28,6 +28,10 @@ import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.graphql.ExecutionResultDeserializer;
+import com.yahoo.elide.graphql.ExecutionResultSerializer;
+import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
+import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
@@ -35,6 +39,7 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.util.concurrent.MoreExecutors;
 import example.Author;
 import example.Book;
@@ -42,6 +47,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
+import graphql.ExecutionResult;
+import graphql.GraphQLError;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -98,6 +105,13 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .build();
 
         elide = new Elide(settings);
+
+        elide.getMapper().getObjectMapper().registerModule(new SimpleModule("Test")
+                .addSerializer(ExecutionResult.class, new ExecutionResultSerializer(new GraphQLErrorSerializer()))
+                .addSerializer(GraphQLError.class, new GraphQLErrorSerializer())
+                .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())
+                .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())
+        );
     }
 
     @BeforeEach
