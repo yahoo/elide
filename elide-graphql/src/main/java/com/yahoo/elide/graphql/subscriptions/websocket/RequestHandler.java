@@ -52,6 +52,7 @@ public class RequestHandler implements Closeable {
     protected SessionHandler sessionHandler;
     protected ConnectionInfo connectionInfo;
     protected boolean sendPingOnSubscribe;
+    boolean isOpen = true;
 
     /**
      * Constructor.
@@ -88,14 +89,19 @@ public class RequestHandler implements Closeable {
      * @throws IOException
      */
     public void close() throws IOException {
-        log.debug("Closing Request");
         synchronized (this) {
+            if (!isOpen) {
+                return;
+            }
             if (transaction != null) {
                 transaction.close();
                 elide.getTransactionRegistry().removeRunningTransaction(requestID);
             }
+
+            isOpen = false;
         }
         sessionHandler.close(protocolID);
+        log.debug("Closed Request Handler");
     }
 
     /**
@@ -104,77 +110,74 @@ public class RequestHandler implements Closeable {
      * @return true if the request is still active (ie. - a subscription).
      */
     public void handleRequest(Subscribe subscribeRequest) {
+        ExecutionResult executionResult = null;
+        try {
+           executionResult = executeRequest(subscribeRequest);
+            //This would be a subscription creation error.
+        } catch (RuntimeException e) {
+            log.error("RuntimeException: {}", e.getMessage());
+            //TODO - get isVerbose from Elide.
+            ElideResponse response = QueryRunner.handleRuntimeException(elide, e, true);
+            safeSendError(response.getBody());
+            safeClose();
+        }
+
+        //GraphQL schema requests or other queries will take this route.
+        if (!(executionResult.getData() instanceof Publisher)) {
+            safeSendNext(executionResult);
+            safeSendComplete();
+            safeClose();
+            return;
+        }
+
+        Publisher<ExecutionResult> resultPublisher = executionResult.getData();
+
+        //This would be a subscription creation error.
+        if (resultPublisher == null) {
+            safeSendError(executionResult.getErrors().toArray(GraphQLError[]::new));
+            safeClose();
+            return;
+        }
+
+        //This would be a subscription creation success.
+        resultPublisher.subscribe(new ExecutionResultSubscriber());
+    }
+
+    public synchronized ExecutionResult executeRequest(Subscribe subscribeRequest) {
         if (transaction != null) {
             throw new IllegalStateException("Already handling an active request.");
         }
 
-        boolean isVerbose = false;
+        transaction = topicStore.beginReadTransaction();
+        elide.getTransactionRegistry().addRunningTransaction(requestID, transaction);
 
-        try {
-            ExecutionResult executionResult;
+        ElideSettings settings = elide.getElideSettings();
 
-            synchronized (this) {
-                transaction = topicStore.beginReadTransaction();
-                elide.getTransactionRegistry().addRunningTransaction(requestID, transaction);
-
-                ElideSettings settings = elide.getElideSettings();
-
-                GraphQLProjectionInfo projectionInfo =
-                        new SubscriptionEntityProjectionMaker(settings,
+        GraphQLProjectionInfo projectionInfo =
+            new SubscriptionEntityProjectionMaker(settings,
                                 subscribeRequest.getPayload().getVariables(),
                                 connectionInfo.getGetApiVersion()).make(subscribeRequest.getPayload().getQuery());
 
-                GraphQLRequestScope requestScope = new GraphQLRequestScope(
-                        connectionInfo.getBaseUrl(),
-                        transaction,
-                        connectionInfo.getUser(),
-                        connectionInfo.getGetApiVersion(),
-                        settings,
-                        projectionInfo,
-                        requestID,
-                        connectionInfo.getParameters());
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(
+                connectionInfo.getBaseUrl(),
+                transaction,
+                connectionInfo.getUser(),
+                connectionInfo.getGetApiVersion(),
+                settings,
+                projectionInfo,
+                requestID,
+                connectionInfo.getParameters());
 
-                isVerbose = requestScope.getPermissionExecutor().isVerbose();
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(subscribeRequest.getPayload().getQuery())
+                .operationName(subscribeRequest.getPayload().getOperationName())
+                .variables(subscribeRequest.getPayload().getVariables())
+                .localContext(requestScope)
+                .build();
 
-                ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                        .query(subscribeRequest.getPayload().getQuery())
-                        .operationName(subscribeRequest.getPayload().getOperationName())
-                        .variables(subscribeRequest.getPayload().getVariables())
-                        .localContext(requestScope)
-                        .build();
+        log.info("Processing GraphQL query:\n{}", subscribeRequest.getPayload().getQuery());
 
-                log.info("Processing GraphQL query:\n{}", subscribeRequest.getPayload().getQuery());
-
-                executionResult = api.execute(executionInput);
-            }
-
-            //GraphQL schema requests or other queries will take this route.
-            if (!(executionResult.getData() instanceof Publisher)) {
-                safeSendNext(executionResult);
-                safeSendComplete();
-                safeClose();
-                return;
-            }
-
-            Publisher<ExecutionResult> resultPublisher = executionResult.getData();
-
-            //This would be a subscription creation error.
-            if (resultPublisher == null) {
-                safeSendError(executionResult.getErrors().toArray(GraphQLError[]::new));
-                safeClose();
-                return;
-            }
-
-            //This would be a subscription creation success.
-            resultPublisher.subscribe(new ExecutionResultSubscriber());
-
-        //This would be a subscription creation error.
-        } catch (RuntimeException e) {
-            log.error("RuntimeException: {}", e.getMessage());
-            ElideResponse response = QueryRunner.handleRuntimeException(elide, e, isVerbose);
-            safeSendError(response.getBody());
-            safeClose();
-        }
+        return api.execute(executionInput);
     }
 
     protected void safeSendPing() {
