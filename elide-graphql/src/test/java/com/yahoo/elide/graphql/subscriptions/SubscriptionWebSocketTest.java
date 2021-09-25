@@ -250,7 +250,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -274,7 +276,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -319,7 +323,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -351,7 +357,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -389,7 +397,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -434,48 +444,45 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query(graphQLRequest)
+                .payload(Subscribe.Payload.builder()
+                        .query(graphQLRequest)
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
                 "{\"type\":\"connection_ack\"}",
-                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
-                "{\"type\":\"complete\",\"id\":\"1\"}"
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
-        verify(remote, times(3)).sendText(message.capture());
+        verify(remote, times(2)).sendText(message.capture());
         assertEquals(expected, message.getAllValues());
     }
 
     @Test
-    void testGraphiqlStartupQuery() throws IOException {
+    void testActualComplete() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
                 .topicStore(dataStore).elide(elide).build();
-
-        String graphQLRequest = "{\"id\":\"34d5bc68-4126-4933-aba3-ec34f5c348ab\",\"type\":\"subscribe\",\"payload\":{\"query\":\"\\n    query IntrospectionQuery {\\n      __schema {\\n        \\n        queryType { name }\\n        mutationType { name }\\n        subscriptionType { name }\\n        types {\\n          ...FullType\\n        }\\n        directives {\\n          name\\n          description\\n          \\n          locations\\n          args {\\n            ...InputValue\\n          }\\n        }\\n      }\\n    }\\n\\n    fragment FullType on __Type {\\n      kind\\n      name\\n      description\\n      \\n      fields(includeDeprecated: true) {\\n        name\\n        description\\n        args {\\n          ...InputValue\\n        }\\n        type {\\n          ...TypeRef\\n        }\\n        isDeprecated\\n        deprecationReason\\n      }\\n      inputFields {\\n        ...InputValue\\n      }\\n      interfaces {\\n        ...TypeRef\\n      }\\n      enumValues(includeDeprecated: true) {\\n        name\\n        description\\n        isDeprecated\\n        deprecationReason\\n      }\\n      possibleTypes {\\n        ...TypeRef\\n      }\\n    }\\n\\n    fragment InputValue on __InputValue {\\n      name\\n      description\\n      type { ...TypeRef }\\n      defaultValue\\n    }\\n\\n    fragment TypeRef on __Type {\\n      kind\\n      name\\n      ofType {\\n        kind\\n        name\\n        ofType {\\n          kind\\n          name\\n          ofType {\\n            kind\\n            name\\n            ofType {\\n              kind\\n              name\\n              ofType {\\n                kind\\n                name\\n                ofType {\\n                  kind\\n                  name\\n                  ofType {\\n                    kind\\n                    name\\n                  }\\n                }\\n              }\\n            }\\n          }\\n        }\\n      }\\n    }\\n  \",\"operationName\":\"IntrospectionQuery\"}}";
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
-        endpoint.onMessage(session, graphQLRequest);
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
+                .build();
 
-        List<String> expected = List.of(
-                "{\"type\":\"connection_ack\"}",
-                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
-                "{\"type\":\"complete\",\"id\":\"1\"}"
-        );
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
-        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
-        verify(remote, times(1)).sendText(message.capture());
-        //assertEquals(expected, message.getAllValues());
+        String complete = "{\"id\":\"5d585eff-ed05-48c2-8af7-ad662930ba74\",\"type\":\"complete\"}";
+        //Complete complete = Complete.builder().id("1").build();
 
-        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
-        verify(session, times(1)).close(closeReason.capture());
-        assertEquals(MULTIPLE_INIT, closeReason.getValue());
+        endpoint.onMessage(session, complete);
     }
 }

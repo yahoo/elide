@@ -62,7 +62,7 @@ public class ElideSubscriptionConfiguration {
     @Bean
     @ConditionalOnMissingBean
     ServerEndpointConfig serverEndpointConfig(
-            SubscriptionProperties subscriptionProperties,
+            ElideConfigProperties config,
             ConnectionFactory connectionFactory,
             @Qualifier(SUBSCRIPTION_MODELS) Set<Type<?>> subscriptionModels
     ) {
@@ -70,7 +70,7 @@ public class ElideSubscriptionConfiguration {
                 .create(SubscriptionWebSocket.class, "/subscription")
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl("/subscription")
-                        .sendPingOnSubscribe(subscriptionProperties.isSendPingOnSubscribe())
+                        .sendPingOnSubscribe(config.getSubscription().isSendPingOnSubscribe())
                         .connectionFactory(connectionFactory)
                         .build())
                 .build();

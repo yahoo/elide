@@ -116,8 +116,8 @@ public class RequestHandler implements Closeable {
 
             GraphQLProjectionInfo projectionInfo =
                     new SubscriptionEntityProjectionMaker(settings,
-                            subscribeRequest.getVariables(),
-                            connectionInfo.getGetApiVersion()).make(subscribeRequest.getQuery());
+                            subscribeRequest.getPayload().getVariables(),
+                            connectionInfo.getGetApiVersion()).make(subscribeRequest.getPayload().getQuery());
 
             GraphQLRequestScope requestScope = new GraphQLRequestScope(
                     connectionInfo.getBaseUrl(),
@@ -132,20 +132,23 @@ public class RequestHandler implements Closeable {
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                    .query(subscribeRequest.getQuery())
-                    .operationName(subscribeRequest.getOperationName())
-                    .variables(subscribeRequest.getVariables())
+                    .query(subscribeRequest.getPayload().getQuery())
+                    .operationName(subscribeRequest.getPayload().getOperationName())
+                    .variables(subscribeRequest.getPayload().getVariables())
                     .localContext(requestScope)
                     .build();
 
-            log.info("Processing GraphQL query:\n{}", subscribeRequest.getQuery());
+            log.info("Processing GraphQL query:\n{}", subscribeRequest.getPayload().getQuery());
 
             ExecutionResult executionResult = api.execute(executionInput);
 
             //GraphQL schema requests or other queries will take this route.
             if (!(executionResult.getData() instanceof Publisher)) {
                 safeSendNext(executionResult);
-                safeSendComplete();
+
+                if (! executionResult.getErrors().isEmpty()) {
+                    safeSendComplete();
+                }
                 safeClose();
                 return;
             }

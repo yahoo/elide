@@ -53,22 +53,25 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             LifeCycleHookBinding.TransactionPhase phase,
             CRUDEvent event) {
 
-        JMSContext context = connectionFactory.createContext();
+        try (JMSContext context = connectionFactory.createContext()) {
 
-        PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
+            PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
 
-        Type<?> modelType = resource.getResourceType();
+            Type<?> modelType = resource.getResourceType();
 
-        TopicType topicType = TopicType.fromOperation(operation);
-        String topicName = topicType.toTopicName(modelType, resource.getDictionary());
+            TopicType topicType = TopicType.fromOperation(operation);
+            String topicName = topicType.toTopicName(modelType, resource.getDictionary());
 
-        JMSProducer producer = createProducer.apply(context);
-        Destination destination = context.createTopic(topicName);
+            JMSProducer producer = createProducer.apply(context);
+            Destination destination = context.createTopic(topicName);
 
-        try {
-            producer.send(destination, mapper.writeValueAsString(resource.getObject()));
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
+            try {
+                String message = mapper.writeValueAsString(resource.getObject());
+                log.debug("Serializing {} {}", modelType, message);
+                producer.send(destination, message);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
+            }
         }
     }
 

@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpoint;
@@ -82,7 +83,7 @@ public class SubscriptionWebSocketTestClient {
     public void onMessage(String text) throws Exception {
 
         JsonNode type = mapper.readTree(text).get("type");
-        MessageType messageType = MessageType.valueOf(type.textValue());
+        MessageType messageType = MessageType.valueOf(type.textValue().toUpperCase(Locale.ROOT));
 
         switch (messageType) {
             case CONNECTION_ACK: {
@@ -90,7 +91,9 @@ public class SubscriptionWebSocketTestClient {
                 for (String query : queries) {
                     Subscribe subscribe = Subscribe.builder()
                             .id(id.toString())
-                            .query(query)
+                            .payload(Subscribe.Payload.builder()
+                                    .query(query)
+                                    .build())
                             .build();
 
                     session.getBasicRemote().sendText(mapper.writeValueAsString(subscribe));

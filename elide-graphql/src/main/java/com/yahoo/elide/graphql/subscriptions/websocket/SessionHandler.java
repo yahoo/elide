@@ -116,6 +116,7 @@ public class SessionHandler {
 
         }
         wrappedSession.close(reason);
+        executorService.shutdown();
     }
 
     protected synchronized void close(String protocolID) {
