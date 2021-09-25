@@ -52,7 +52,7 @@ public class RequestHandler implements Closeable {
     protected SessionHandler sessionHandler;
     protected ConnectionInfo connectionInfo;
     protected boolean sendPingOnSubscribe;
-    boolean isOpen = true;
+    protected boolean isOpen = true;
 
     /**
      * Constructor.
@@ -88,18 +88,16 @@ public class RequestHandler implements Closeable {
      * Close this session.
      * @throws IOException
      */
-    public void close() throws IOException {
-        synchronized (this) {
-            if (!isOpen) {
-                return;
-            }
-            if (transaction != null) {
-                transaction.close();
-                elide.getTransactionRegistry().removeRunningTransaction(requestID);
-            }
-
-            isOpen = false;
+    public synchronized void close() throws IOException {
+        if (!isOpen) {
+            return;
         }
+        if (transaction != null) {
+            transaction.close();
+            elide.getTransactionRegistry().removeRunningTransaction(requestID);
+        }
+
+        isOpen = false;
         sessionHandler.close(protocolID);
         log.debug("Closed Request Handler");
     }
@@ -116,8 +114,7 @@ public class RequestHandler implements Closeable {
             //This would be a subscription creation error.
         } catch (RuntimeException e) {
             log.error("RuntimeException: {}", e.getMessage());
-            //TODO - get isVerbose from Elide.
-            ElideResponse response = QueryRunner.handleRuntimeException(elide, e, true);
+            ElideResponse response = QueryRunner.handleRuntimeException(elide, e, false);
             safeSendError(response.getBody());
             safeClose();
         }
