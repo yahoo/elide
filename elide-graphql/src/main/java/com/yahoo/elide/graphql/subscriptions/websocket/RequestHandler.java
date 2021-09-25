@@ -89,9 +89,11 @@ public class RequestHandler implements Closeable {
      */
     public void close() throws IOException {
         log.debug("Closing Request");
-        if (transaction != null) {
-            transaction.close();
-            elide.getTransactionRegistry().removeRunningTransaction(requestID);
+        synchronized (this) {
+            if (transaction != null) {
+                transaction.close();
+                elide.getTransactionRegistry().removeRunningTransaction(requestID);
+            }
         }
         sessionHandler.close(protocolID);
     }
@@ -101,7 +103,7 @@ public class RequestHandler implements Closeable {
      * @param subscribeRequest The GraphQL query.
      * @return true if the request is still active (ie. - a subscription).
      */
-    public synchronized void handleRequest(Subscribe subscribeRequest) {
+    public void handleRequest(Subscribe subscribeRequest) {
         if (transaction != null) {
             throw new IllegalStateException("Already handling an active request.");
         }
@@ -109,46 +111,47 @@ public class RequestHandler implements Closeable {
         boolean isVerbose = false;
 
         try {
-            transaction = topicStore.beginReadTransaction();
-            elide.getTransactionRegistry().addRunningTransaction(requestID, transaction);
+            ExecutionResult executionResult;
 
-            ElideSettings settings = elide.getElideSettings();
+            synchronized (this) {
+                transaction = topicStore.beginReadTransaction();
+                elide.getTransactionRegistry().addRunningTransaction(requestID, transaction);
 
-            GraphQLProjectionInfo projectionInfo =
-                    new SubscriptionEntityProjectionMaker(settings,
-                            subscribeRequest.getPayload().getVariables(),
-                            connectionInfo.getGetApiVersion()).make(subscribeRequest.getPayload().getQuery());
+                ElideSettings settings = elide.getElideSettings();
 
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(
-                    connectionInfo.getBaseUrl(),
-                    transaction,
-                    connectionInfo.getUser(),
-                    connectionInfo.getGetApiVersion(),
-                    settings,
-                    projectionInfo,
-                    requestID,
-                    connectionInfo.getParameters());
+                GraphQLProjectionInfo projectionInfo =
+                        new SubscriptionEntityProjectionMaker(settings,
+                                subscribeRequest.getPayload().getVariables(),
+                                connectionInfo.getGetApiVersion()).make(subscribeRequest.getPayload().getQuery());
 
-            isVerbose = requestScope.getPermissionExecutor().isVerbose();
+                GraphQLRequestScope requestScope = new GraphQLRequestScope(
+                        connectionInfo.getBaseUrl(),
+                        transaction,
+                        connectionInfo.getUser(),
+                        connectionInfo.getGetApiVersion(),
+                        settings,
+                        projectionInfo,
+                        requestID,
+                        connectionInfo.getParameters());
 
-            ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                    .query(subscribeRequest.getPayload().getQuery())
-                    .operationName(subscribeRequest.getPayload().getOperationName())
-                    .variables(subscribeRequest.getPayload().getVariables())
-                    .localContext(requestScope)
-                    .build();
+                isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
-            log.info("Processing GraphQL query:\n{}", subscribeRequest.getPayload().getQuery());
+                ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                        .query(subscribeRequest.getPayload().getQuery())
+                        .operationName(subscribeRequest.getPayload().getOperationName())
+                        .variables(subscribeRequest.getPayload().getVariables())
+                        .localContext(requestScope)
+                        .build();
 
-            ExecutionResult executionResult = api.execute(executionInput);
+                log.info("Processing GraphQL query:\n{}", subscribeRequest.getPayload().getQuery());
+
+                executionResult = api.execute(executionInput);
+            }
 
             //GraphQL schema requests or other queries will take this route.
             if (!(executionResult.getData() instanceof Publisher)) {
                 safeSendNext(executionResult);
-
-                if (! executionResult.getErrors().isEmpty()) {
-                    safeSendComplete();
-                }
+                safeSendComplete();
                 safeClose();
                 return;
             }
@@ -254,7 +257,7 @@ public class RequestHandler implements Closeable {
         safeSendError(errors);
     }
 
-    protected synchronized void safeClose() {
+    protected void safeClose() {
         try {
             close();
         } catch (IOException e) {

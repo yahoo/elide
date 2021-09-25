@@ -143,7 +143,13 @@ public class SubscriptionWebSocket {
     @OnMessage
     public void onMessage(Session session, String message) throws IOException {
         log.debug("Session Message: {} {}", session.getId(), message);
-        findSession(session).handleRequest(message);
+
+        SessionHandler handler = findSession(session);
+        if (handler != null) {
+            handler.handleRequest(message);
+        } else {
+            throw new IllegalStateException("Cannot locate session: " + session.getId());
+        }
     }
 
     /**
@@ -154,8 +160,12 @@ public class SubscriptionWebSocket {
     @OnClose
     public void onClose(Session session) throws IOException {
         log.debug("Session Closing: {}", session.getId());
-        findSession(session).safeClose(WebSocketCloseReasons.NORMAL_CLOSE);
-        openSessions.remove(session);
+        SessionHandler handler = findSession(session);
+
+        if (handler != null) {
+            handler.safeClose(WebSocketCloseReasons.NORMAL_CLOSE);
+            openSessions.remove(session);
+        }
     }
 
     /**
@@ -166,8 +176,12 @@ public class SubscriptionWebSocket {
     @OnError
     public void onError(Session session, Throwable throwable) {
         log.error("Session Error: {} {}", session.getId(), throwable.getMessage());
-        findSession(session).safeClose(WebSocketCloseReasons.INTERNAL_ERROR);
-        openSessions.remove(session);
+        SessionHandler handler = findSession(session);
+
+        if (handler != null) {
+            handler.safeClose(WebSocketCloseReasons.INTERNAL_ERROR);
+            openSessions.remove(session);
+        }
     }
 
     private SessionHandler findSession(Session wrappedSession) {
@@ -176,7 +190,6 @@ public class SubscriptionWebSocket {
         String message = "Unable to locate active session: " + wrappedSession.getId();
         if (sessionHandler == null) {
             log.error(message);
-            throw new IllegalStateException(message);
         }
         return sessionHandler;
     }
