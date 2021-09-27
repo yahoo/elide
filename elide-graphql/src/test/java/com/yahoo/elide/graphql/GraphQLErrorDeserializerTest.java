@@ -44,6 +44,20 @@ public class GraphQLErrorDeserializerTest {
     }
 
     @Test
+    public void testDeserializationArray() throws Exception {
+        String errorText = "[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]";
+
+        GraphQLError[] error = mapper.readValue(errorText, GraphQLError[].class);
+
+        assertEquals(1, error[0].getLocations().size());
+        assertEquals(new SourceLocation(1, 38), error[0].getLocations().get(0));
+        assertEquals(2, error[0].getPath().size());
+        assertEquals("book", error[0].getPath().get(0));
+        assertEquals("title", error[0].getPath().get(1));
+        assertEquals("Exception while fetching data (/book/title) : Bad Request", error[0].getMessage());
+    }
+
+    @Test
     public void testDeserializationWithMissingPath() throws Exception {
         String errorText = "{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}]}";
 

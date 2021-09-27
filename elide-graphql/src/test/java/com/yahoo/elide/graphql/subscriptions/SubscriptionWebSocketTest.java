@@ -28,6 +28,10 @@ import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.graphql.ExecutionResultDeserializer;
+import com.yahoo.elide.graphql.ExecutionResultSerializer;
+import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
+import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
@@ -35,6 +39,7 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.util.concurrent.MoreExecutors;
 import example.Author;
 import example.Book;
@@ -42,6 +47,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
+import graphql.ExecutionResult;
+import graphql.GraphQLError;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -98,6 +105,13 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .build();
 
         elide = new Elide(settings);
+
+        elide.getMapper().getObjectMapper().registerModule(new SimpleModule("Test")
+                .addSerializer(ExecutionResult.class, new ExecutionResultSerializer(new GraphQLErrorSerializer()))
+                .addSerializer(GraphQLError.class, new GraphQLErrorSerializer())
+                .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())
+                .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())
+        );
     }
 
     @BeforeEach
@@ -128,7 +142,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onClose(session);
 
         verify(remote, times(1)).sendText(message.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+        assertEquals("{\"type\":\"connection_ack\"}", message.getAllValues().get(0));
 
         ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
         verify(session, times(1)).close(closeReason.capture());
@@ -176,7 +190,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .topicStore(dataStore).elide(elide).build();
 
         //Missing payload field
-        String invalid = "{ \"type\": \"SUBSCRIBE\"}";
+        String invalid = "{ \"type\": \"subscribe\"}";
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
@@ -185,7 +199,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
         verify(remote, times(1)).sendText(message.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+        assertEquals("{\"type\":\"connection_ack\"}", message.getAllValues().get(0));
 
         ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
         verify(session, times(1)).close(closeReason.capture());
@@ -219,7 +233,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
         verify(remote, times(1)).sendText(message.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+        assertEquals("{\"type\":\"connection_ack\"}", message.getAllValues().get(0));
 
         ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
         verify(session, times(1)).close(closeReason.capture());
@@ -236,7 +250,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -260,7 +276,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
@@ -271,9 +289,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"complete\",\"id\":\"1\"}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
@@ -305,16 +323,18 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
@@ -337,15 +357,17 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":null,\"errors\":[{\"message\":\"Exception while fetching data (/book) : Bad Request\",\"locations\":[{\"line\":1,\"column\":15}],\"path\":[\"book\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":null,\"errors\":[{\"message\":\"Exception while fetching data (/book) : Bad Request\",\"locations\":[{\"line\":1,\"column\":15}],\"path\":[\"book\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
@@ -375,16 +397,18 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query("subscription {book(topic: ADDED) {id title}}")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"book\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
@@ -420,19 +444,46 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
-                .query(graphQLRequest)
+                .payload(Subscribe.Payload.builder()
+                        .query(graphQLRequest)
+                        .build())
                 .build();
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         List<String> expected = List.of(
-                "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+                "{\"type\":\"connection_ack\"}",
+                "{\"type\":\"next\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorTopic\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"BookTopic\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
+                "{\"type\":\"complete\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
         verify(remote, times(3)).sendText(message.capture());
         assertEquals(expected, message.getAllValues());
+    }
+
+    @Test
+    void testActualComplete() throws IOException {
+        SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
+                .executorService(executorService)
+                .topicStore(dataStore).elide(elide).build();
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .payload(Subscribe.Payload.builder()
+                        .query("subscription {book(topic: ADDED) {id title}}")
+                        .build())
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        String complete = "{\"id\":\"5d585eff-ed05-48c2-8af7-ad662930ba74\",\"type\":\"complete\"}";
+        //Complete complete = Complete.builder().id("1").build();
+
+        endpoint.onMessage(session, complete);
     }
 }

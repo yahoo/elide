@@ -13,17 +13,11 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.graphql.ExecutionResultSerializer;
-import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import graphql.ExecutionResult;
 import graphql.GraphQL;
-import graphql.GraphQLError;
 import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
 import lombok.Builder;
@@ -48,7 +42,7 @@ import javax.websocket.server.ServerEndpoint;
  * cross-platform use for Spring, Quarkus, and other containers.
  */
 @Slf4j
-@ServerEndpoint(value = "/")
+@ServerEndpoint(value = "/", subprotocols = { "graphql-transport-ws" })
 @Builder
 public class SubscriptionWebSocket {
     private DataStore topicStore;
@@ -109,11 +103,6 @@ public class SubscriptionWebSocket {
         this.userFactory = userFactory;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
 
-        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
-        SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
-        module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
-        module.addSerializer(GraphQLError.class, errorSerializer);
-        elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
 
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
         for (String apiVersion : dictionary.getApiVersions()) {
@@ -154,7 +143,13 @@ public class SubscriptionWebSocket {
     @OnMessage
     public void onMessage(Session session, String message) throws IOException {
         log.debug("Session Message: {} {}", session.getId(), message);
-        findSession(session).handleRequest(message);
+
+        SessionHandler handler = findSession(session);
+        if (handler != null) {
+            handler.handleRequest(message);
+        } else {
+            throw new IllegalStateException("Cannot locate session: " + session.getId());
+        }
     }
 
     /**
@@ -165,8 +160,12 @@ public class SubscriptionWebSocket {
     @OnClose
     public void onClose(Session session) throws IOException {
         log.debug("Session Closing: {}", session.getId());
-        findSession(session).safeClose(WebSocketCloseReasons.NORMAL_CLOSE);
-        openSessions.remove(session);
+        SessionHandler handler = findSession(session);
+
+        if (handler != null) {
+            handler.safeClose(WebSocketCloseReasons.NORMAL_CLOSE);
+            openSessions.remove(session);
+        }
     }
 
     /**
@@ -177,8 +176,12 @@ public class SubscriptionWebSocket {
     @OnError
     public void onError(Session session, Throwable throwable) {
         log.error("Session Error: {} {}", session.getId(), throwable.getMessage());
-        findSession(session).safeClose(WebSocketCloseReasons.INTERNAL_ERROR);
-        openSessions.remove(session);
+        SessionHandler handler = findSession(session);
+
+        if (handler != null) {
+            handler.safeClose(WebSocketCloseReasons.INTERNAL_ERROR);
+            openSessions.remove(session);
+        }
     }
 
     private SessionHandler findSession(Session wrappedSession) {
@@ -187,7 +190,6 @@ public class SubscriptionWebSocket {
         String message = "Unable to locate active session: " + wrappedSession.getId();
         if (sessionHandler == null) {
             log.error(message);
-            throw new IllegalStateException(message);
         }
         return sessionHandler;
     }

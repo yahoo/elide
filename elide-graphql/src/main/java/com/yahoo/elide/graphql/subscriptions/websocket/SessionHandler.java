@@ -29,12 +29,14 @@ import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
@@ -87,7 +89,7 @@ public class SessionHandler {
         this.api = api;
         this.connectionInfo = connectionInfo;
         this.mapper = elide.getMapper().getObjectMapper();
-        this.activeRequests = new HashMap<>();
+        this.activeRequests = new ConcurrentHashMap<>();
         this.connectionTimeoutMs = connectionTimeoutMs;
         this.maxSubscriptions = maxSubscriptions;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
@@ -104,8 +106,9 @@ public class SessionHandler {
      * Close this session.
      * @throws IOException
      */
-    public synchronized void close(CloseReason reason) throws IOException {
+    public void close(CloseReason reason) throws IOException {
 
+        log.debug("SessionHandler closing");
         //Iterator here to avoid concurrent modification exceptions.
         Iterator<Map.Entry<String, RequestHandler>> iterator = activeRequests.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -115,9 +118,17 @@ public class SessionHandler {
 
         }
         wrappedSession.close(reason);
+
+        executorService.shutdownNow();
+        try {
+            executorService.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+
+        }
+        log.debug("SessionHandler closed");
     }
 
-    protected synchronized void close(String protocolID) {
+    protected void close(String protocolID) {
         activeRequests.remove(protocolID);
     }
 
@@ -137,7 +148,7 @@ public class SessionHandler {
 
             MessageType messageType;
             try {
-                messageType = MessageType.valueOf(type.textValue());
+                messageType = MessageType.valueOf(type.textValue().toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
                 safeClose(INVALID_MESSAGE);
                 return;
@@ -185,11 +196,13 @@ public class SessionHandler {
             return;
         }
 
+        timeoutThread.interrupt();
+
         safeSendConnectionAck();
         initialized = true;
     }
 
-    protected synchronized void handleSubscribe(Subscribe subscribe) {
+    protected void handleSubscribe(Subscribe subscribe) {
         if (!initialized) {
             safeClose(UNAUTHORIZED);
             return;
@@ -208,8 +221,6 @@ public class SessionHandler {
             return;
         }
 
-        timeoutThread.interrupt();
-
         RequestHandler requestHandler = new RequestHandler(this,
                 topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo, sendPingOnSubscribe);
 
@@ -223,10 +234,11 @@ public class SessionHandler {
         });
     }
 
-    protected synchronized void handleComplete(Complete complete) {
+    protected void handleComplete(Complete complete) {
         String protocolID = complete.getId();
-        if (activeRequests.containsKey(protocolID)) {
-            RequestHandler handler = activeRequests.remove(protocolID);
+        RequestHandler handler = activeRequests.remove(protocolID);
+
+        if (handler != null) {
             handler.safeClose();
         }
 
@@ -269,7 +281,9 @@ public class SessionHandler {
      * @param message The message to send.
      * @throws IOException
      */
-    public synchronized void sendMessage(String message) throws IOException {
+    public void sendMessage(String message) throws IOException {
+
+        //JSR 356 session is thread safe.
         wrappedSession.getBasicRemote().sendText(message);
     }
 
@@ -282,11 +296,9 @@ public class SessionHandler {
         public void run() {
             try {
                 Thread.sleep(connectionTimeoutMs);
-                synchronized (SessionHandler.this) {
-                    if (activeRequests.size() == 0) {
-                        safeClose(CONNECTION_TIMEOUT);
-                    }
-                }
+                if (activeRequests.size() == 0) {
+                   safeClose(CONNECTION_TIMEOUT);
+               }
             } catch (InterruptedException e) {
                 log.debug("Timeout thread interrupted: " + e.getMessage());
             }

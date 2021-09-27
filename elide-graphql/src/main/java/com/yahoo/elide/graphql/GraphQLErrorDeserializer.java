@@ -41,6 +41,14 @@ public class GraphQLErrorDeserializer extends StdDeserializer<GraphQLError> {
 
         GraphQLError error = new GraphQLError() {
             @Override
+            public String toString() {
+                return String.format("{ \"message\": \"%s\", \"locations\": %s, \"path\": %s}",
+                        getMessage(),
+                        getLocations(),
+                        getPath());
+            }
+
+            @Override
             public String getMessage() {
                 return messageNode == null ? null : messageNode.textValue();
             }

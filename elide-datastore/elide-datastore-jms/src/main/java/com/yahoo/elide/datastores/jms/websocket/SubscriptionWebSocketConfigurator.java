@@ -16,17 +16,22 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jms.JMSDataStore;
+import com.yahoo.elide.graphql.ExecutionResultDeserializer;
+import com.yahoo.elide.graphql.ExecutionResultSerializer;
+import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
+import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import graphql.ExecutionResult;
+import graphql.GraphQLError;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import java.util.Calendar;
-import java.util.Set;
 import javax.jms.ConnectionFactory;
 import javax.websocket.server.ServerEndpointConfig;
 
@@ -36,7 +41,6 @@ import javax.websocket.server.ServerEndpointConfig;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Configurator {
-    protected final Set<Type<?>> models;
 
     @Builder.Default
     protected ObjectMapper mapper = new ObjectMapper();
@@ -53,7 +57,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     protected String baseUrl = "/";
 
     @Builder.Default
-    protected boolean verboseErrors = true;
+    protected boolean verboseErrors = false;
 
     @Builder.Default
     protected int connectionTimeoutMs = 5000;
@@ -103,8 +107,15 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     }
 
     protected DataStore buildDataStore(EntityDictionary dictionary) {
+        mapper.registerModule(new SimpleModule("ExecutionResult")
+                .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())
+                .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())
+                .addSerializer(GraphQLError.class, new GraphQLErrorSerializer())
+                .addSerializer(ExecutionResult.class, new ExecutionResultSerializer(new GraphQLErrorSerializer()))
+        );
+
         return new JMSDataStore(
-                models,
+                dictionary.getScanner(),
                 connectionFactory, dictionary,
                 mapper, -1);
     }

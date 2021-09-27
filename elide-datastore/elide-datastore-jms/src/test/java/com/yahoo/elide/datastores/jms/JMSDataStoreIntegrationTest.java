@@ -17,13 +17,10 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
-import example.Author;
-import example.Book;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
@@ -47,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Set;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
@@ -119,7 +115,6 @@ public class JMSDataStoreIntegrationTest {
                 .create(SubscriptionWebSocket.class, "/subscription")
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl("/subscription")
-                        .models(Set.of(ClassType.of(Book.class), ClassType.of(Author.class)))
                         .connectionFactory(new ActiveMQConnectionFactory("vm://0"))
                         .sendPingOnSubscribe(true)
                         .build())
@@ -252,7 +247,6 @@ public class JMSDataStoreIntegrationTest {
             List<ExecutionResult> results = client.waitOnClose(300);
 
             assertEquals(3, results.size());
-            System.out.println("Final Result: " + results);
         }
     }
 

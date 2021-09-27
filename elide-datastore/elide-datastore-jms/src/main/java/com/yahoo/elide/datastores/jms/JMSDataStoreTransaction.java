@@ -15,20 +15,27 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
+import javax.jms.JMSRuntimeException;
 
 /**
  * Data store transaction for reading Elide models from JMS topics.
  */
+@Slf4j
 public class JMSDataStoreTransaction implements DataStoreTransaction {
     private JMSContext context;
     private EntityDictionary dictionary;
     private long timeoutInMs;
+    private List<JMSConsumer> consumers;
 
     /**
      * Constructor.
@@ -40,6 +47,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
         this.context = context;
         this.dictionary = dictionary;
         this.timeoutInMs = timeoutInMs;
+        this.consumers = new ArrayList<>();
     }
 
     @Override
@@ -76,6 +84,10 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
         Destination destination = context.createTopic(topicName);
         JMSConsumer consumer = context.createConsumer(destination);
 
+        context.start();
+
+        consumers.add(consumer);
+
         return new MessageIterator<>(
                 consumer,
                 timeoutInMs,
@@ -85,14 +97,22 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public void cancel(RequestScope scope) {
-        context.stop();
-        context.close();
+        shutdown();
     }
 
     @Override
     public void close() throws IOException {
-        context.stop();
-        context.close();
+        shutdown();
+    }
+
+    private void shutdown() {
+        try {
+            consumers.forEach(JMSConsumer::close);
+            context.stop();
+            context.close();
+        } catch (JMSRuntimeException e) {
+            log.debug("Exception throws while closing context: {}", e.getMessage());
+        }
     }
 
     @Override
