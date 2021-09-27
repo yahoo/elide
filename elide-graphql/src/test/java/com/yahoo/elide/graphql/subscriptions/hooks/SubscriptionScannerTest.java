@@ -30,8 +30,12 @@ public class SubscriptionScannerTest {
         ClassScanner classScanner = DefaultClassScanner.getInstance();
         EntityDictionary dictionary = EntityDictionary.builder().scanner(classScanner).build();
 
-        SubscriptionScanner subscriptionScanner = new SubscriptionScanner(connectionFactory, mapper,
-                dictionary, classScanner);
+        SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
+                .connectionFactory(connectionFactory)
+                .mapper(mapper)
+                .dictionary(dictionary)
+                .scanner(classScanner)
+                .build();
 
         subscriptionScanner.bindLifecycleHooks();
 

@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
+import java.util.function.Function;
 import javax.inject.Inject;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -43,28 +44,34 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
     @Inject
     private ObjectMapper mapper;
 
+    @Inject
+    private Function<JMSContext, JMSProducer> createProducer;
+
     @Override
     public void execute(
             LifeCycleHookBinding.Operation operation,
             LifeCycleHookBinding.TransactionPhase phase,
             CRUDEvent event) {
 
-        JMSContext context = connectionFactory.createContext();
+        try (JMSContext context = connectionFactory.createContext()) {
 
-        PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
+            PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
 
-        Type<?> modelType = resource.getResourceType();
+            Type<?> modelType = resource.getResourceType();
 
-        TopicType topicType = TopicType.fromOperation(operation);
-        String topicName = topicType.toTopicName(modelType, resource.getDictionary());
+            TopicType topicType = TopicType.fromOperation(operation);
+            String topicName = topicType.toTopicName(modelType, resource.getDictionary());
 
-        JMSProducer producer = context.createProducer();
-        Destination destination = context.createTopic(topicName);
+            JMSProducer producer = createProducer.apply(context);
+            Destination destination = context.createTopic(topicName);
 
-        try {
-            producer.send(destination, mapper.writeValueAsString(resource.getObject()));
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
+            try {
+                String message = mapper.writeValueAsString(resource.getObject());
+                log.debug("Serializing {} {}", modelType, message);
+                producer.send(destination, message);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
+            }
         }
     }
 

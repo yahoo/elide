@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * All the message names of the graphql-ws protocol.
  */
@@ -19,7 +21,12 @@ public enum MessageType {
     ERROR("error"),
     COMPLETE("complete");
 
-    String name;
+    private String name;
+
+    @JsonValue
+    public String getName() {
+        return name;
+    }
 
     MessageType(String name) {
         this.name = name;

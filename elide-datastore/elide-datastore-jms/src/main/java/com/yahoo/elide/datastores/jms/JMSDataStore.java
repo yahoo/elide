@@ -13,11 +13,15 @@ import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
+import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 
@@ -50,6 +54,31 @@ public class JMSDataStore implements DataStore {
             long timeoutInMs
     ) {
         this.models = models;
+        this.connectionFactory = connectionFactory;
+        this.dictionary = dictionary;
+        this.mapper = mapper;
+        this.timeoutInMs = timeoutInMs;
+    }
+
+    /**
+     * Constructor.
+     * @param scanner to scan for subscription annotations.
+     * @param connectionFactory The JMS connection factory.
+     * @param dictionary The entity dictionary.
+     * @param mapper Object mapper for serializing/deserializing elide models to JMS topics.
+     * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
+     */
+    public JMSDataStore(
+            ClassScanner scanner,
+            ConnectionFactory connectionFactory,
+            EntityDictionary dictionary,
+            ObjectMapper mapper,
+            long timeoutInMs
+    ) {
+        this.models = scanner.getAnnotatedClasses(Subscription.class, SubscriptionField.class).stream()
+                .map(ClassType::of)
+                .collect(Collectors.toSet());
+
         this.connectionFactory = connectionFactory;
         this.dictionary = dictionary;
         this.mapper = mapper;
