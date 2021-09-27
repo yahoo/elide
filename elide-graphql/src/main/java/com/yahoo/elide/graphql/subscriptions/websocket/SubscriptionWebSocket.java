@@ -61,6 +61,9 @@ public class SubscriptionWebSocket {
     @Builder.Default
     private boolean sendPingOnSubscribe = false;
 
+    @Builder.Default
+    private boolean verboseErrors = false;
+
     private final Map<String, GraphQL> apis = new HashMap<>();
     private final ConcurrentMap<Session, SessionHandler> openSessions = new ConcurrentHashMap<>();
 
@@ -93,7 +96,8 @@ public class SubscriptionWebSocket {
             int connectTimeoutMs,
             int maxSubscriptions,
             UserFactory userFactory,
-            boolean sendPingOnSubscribe
+            boolean sendPingOnSubscribe,
+            boolean verboseErrors
     ) {
         this.topicStore = topicStore;
         this.elide = elide;
@@ -102,7 +106,7 @@ public class SubscriptionWebSocket {
         this.maxSubscriptions = maxSubscriptions;
         this.userFactory = userFactory;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
-
+        this.verboseErrors = verboseErrors;
 
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
         for (String apiVersion : dictionary.getApiVersions()) {
@@ -208,6 +212,7 @@ public class SubscriptionWebSocket {
                         .parameters(session.getRequestParameterMap())
                         .getApiVersion(apiVersion).build(),
                 sendPingOnSubscribe,
+                verboseErrors,
                 executorService);
     }
 }
