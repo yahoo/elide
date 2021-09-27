@@ -28,6 +28,7 @@ import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -47,10 +48,11 @@ public class JMSDataStoreTest {
     protected ConnectionFactory connectionFactory;
     protected EntityDictionary dictionary;
     protected JMSDataStore store;
+    protected EmbeddedActiveMQ embedded;
 
     @BeforeAll
     public void init() throws Exception {
-        EmbeddedActiveMQ embedded = new EmbeddedActiveMQ();
+        embedded = new EmbeddedActiveMQ();
         Configuration configuration = new ConfigurationImpl();
         configuration.addAcceptorConfiguration("default", "vm://0");
         configuration.setPersistenceEnabled(false);
@@ -66,6 +68,11 @@ public class JMSDataStoreTest {
         store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class)),
                 connectionFactory, dictionary, new ObjectMapper(), 2500);
         store.populateEntityDictionary(dictionary);
+    }
+
+    @AfterAll
+    public void shutdown() throws Exception {
+        embedded.stop();
     }
 
     @Test
