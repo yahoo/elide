@@ -58,6 +58,7 @@ public class SessionHandler {
     protected Thread timeoutThread;
     protected boolean initialized = false;
     protected boolean sendPingOnSubscribe = false;
+    protected boolean verboseErrors = false;
     protected ExecutorService executorService;
 
     /**
@@ -70,6 +71,7 @@ public class SessionHandler {
      * @param maxSubscriptions Max number of outstanding subscriptions per web socket.
      * @param connectionInfo Connection metadata.
      * @param sendPingOnSubscribe Sends a ping on subscribe message (to aid with testing).
+     * @param verboseErrors Send verbose error messages.
      * @param executorService Executor Service to launch threads.
      */
     public SessionHandler(
@@ -81,6 +83,7 @@ public class SessionHandler {
             int maxSubscriptions,
             ConnectionInfo connectionInfo,
             boolean sendPingOnSubscribe,
+            boolean verboseErrors,
             ExecutorService executorService) {
         Preconditions.checkState(maxSubscriptions > 0);
         this.wrappedSession = wrappedSession;
@@ -93,6 +96,7 @@ public class SessionHandler {
         this.connectionTimeoutMs = connectionTimeoutMs;
         this.maxSubscriptions = maxSubscriptions;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
+        this.verboseErrors = verboseErrors;
         if (executorService == null) {
             this.executorService = Executors.newFixedThreadPool(maxSubscriptions);
         } else {
@@ -222,7 +226,8 @@ public class SessionHandler {
         }
 
         RequestHandler requestHandler = new RequestHandler(this,
-                topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo, sendPingOnSubscribe);
+                topicStore, elide, api, protocolID, UUID.randomUUID(),
+                connectionInfo, sendPingOnSubscribe, verboseErrors);
 
         activeRequests.put(protocolID, requestHandler);
 

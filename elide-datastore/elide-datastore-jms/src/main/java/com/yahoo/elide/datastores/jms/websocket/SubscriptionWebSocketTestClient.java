@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jms.websocket;
 
 import com.yahoo.elide.graphql.ExecutionResultSerializer;
 import com.yahoo.elide.graphql.GraphQLErrorSerializer;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType;
@@ -49,6 +50,7 @@ public class SubscriptionWebSocketTestClient {
     private List<String> queries;
     private int expectedNumberOfMessages;
     private int expectedNumberOfSubscribes;
+    boolean isOpen = false;
 
     /**
      * Constructor.
@@ -75,6 +77,8 @@ public class SubscriptionWebSocketTestClient {
     public void onOpen(Session session) throws Exception {
         this.session = session;
         log.debug("WebSocket opened: " + session.getId());
+
+        isOpen = true;
 
         session.getBasicRemote().sendText(mapper.writeValueAsString(new ConnectionInit()));
     }
@@ -133,13 +137,26 @@ public class SubscriptionWebSocketTestClient {
     @OnClose
     public void onClose(CloseReason reason) throws Exception {
         log.debug("Session closed: " + reason.getCloseCode() + " " + reason.getReasonPhrase());
+        isOpen = false;
         sessionLatch.countDown();
     }
 
     @OnError
     public void onError(Throwable t) throws Exception {
         log.error("Session error: " + t.getMessage());
+        isOpen = false;
         sessionLatch.countDown();
+    }
+
+    public void sendClose() throws Exception {
+        if (isOpen) {
+            Integer id = 1;
+            for (String query : queries) {
+                session.getBasicRemote().sendText(mapper.writeValueAsString(new Complete(id.toString())));
+                id++;
+            }
+            isOpen = false;
+        }
     }
 
     /**

@@ -128,6 +128,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
                 .maxSubscriptions(maxSubscriptions)
                 .userFactory(userFactory)
                 .sendPingOnSubscribe(sendPingOnSubscribe)
+                .verboseErrors(verboseErrors)
                 .build();
     }
 }

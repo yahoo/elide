@@ -15,6 +15,7 @@ elide:
   subscription:
     enabled: true
     sendPingOnSubscribe: true
+    path: /subscription
   async:
     enabled: true
     threadPoolSize: 7

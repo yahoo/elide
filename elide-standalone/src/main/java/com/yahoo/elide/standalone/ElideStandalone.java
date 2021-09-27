@@ -10,6 +10,8 @@ import static com.yahoo.elide.standalone.config.ElideResourceConfig.ASYNC_UPDATE
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
+import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.codahale.metrics.servlet.InstrumentedFilter;
@@ -20,6 +22,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +30,8 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import javax.servlet.DispatcherType;
+import javax.websocket.server.ServerContainer;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * Elide Standalone.
@@ -107,6 +112,23 @@ public class ElideStandalone {
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
+
+        if (elideStandaloneSettings.enableGraphQL() && elideStandaloneSettings.getSubscriptionProperties().enabled()) {
+            // GraphQL subscription endpoint
+            ServerContainer container  = WebSocketServerContainerInitializer.configureContext(context);
+
+            ServerEndpointConfig subscriptionEndpoint = ServerEndpointConfig.Builder
+                    .create(SubscriptionWebSocket.class, elideStandaloneSettings.getSubscriptionProperties().getPath())
+                    .configurator(SubscriptionWebSocketConfigurator.builder()
+                            .baseUrl("/subscription")
+                            .connectionFactory(elideStandaloneSettings.getSubscriptionProperties()
+                                    .getConnectionFactory())
+                            .sendPingOnSubscribe(true)
+                            .build())
+                    .build();
+            container.addEndpoint(subscriptionEndpoint);
+
         }
 
         if (elideStandaloneSettings.getAsyncProperties().enableExport()) {

@@ -38,6 +38,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBe
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
@@ -138,11 +139,13 @@ public class ElideAutoConfiguration {
     public Elide initializeElide(EntityDictionary dictionary,
                                  DataStore dataStore,
                                  ElideConfigProperties settings,
+                                 JsonApiMapper mapper,
                                  ErrorMapper errorMapper) {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withErrorMapper(errorMapper)
+                .withJsonApiMapper(mapper)
                 .withDefaultMaxPageSize(settings.getMaxPageSize())
                 .withDefaultPageSize(settings.getPageSize())
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
@@ -396,6 +399,12 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     public ErrorMapper getErrorMapper() {
         return error -> null;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonApiMapper mapper() {
+        return new JsonApiMapper();
     }
 
     private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {
