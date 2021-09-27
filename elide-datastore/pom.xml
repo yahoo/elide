@@ -62,6 +62,16 @@
                 <version>6.0.0-pr1-SNAPSHOT</version>
             </dependency>
             <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-graphql</artifactId>
+                <version>6.0.0-pr1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-test-helpers</artifactId>
+                <version>6.0.0-pr1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>5.4.3.Final</version>

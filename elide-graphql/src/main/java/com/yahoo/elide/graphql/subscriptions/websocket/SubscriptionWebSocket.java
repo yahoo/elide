@@ -9,21 +9,27 @@ package com.yahoo.elide.graphql.subscriptions.websocket;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.graphql.ExecutionResultSerializer;
-import com.yahoo.elide.graphql.GraphQLErrorSerializer;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
+import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import graphql.ExecutionResult;
 import graphql.GraphQL;
-import graphql.GraphQLError;
+import graphql.execution.AsyncSerialExecutionStrategy;
+import graphql.execution.SubscriptionExecutionStrategy;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -36,13 +42,12 @@ import javax.websocket.server.ServerEndpoint;
  * cross-platform use for Spring, Quarkus, and other containers.
  */
 @Slf4j
-@ServerEndpoint(value = "/")
+@ServerEndpoint(value = "/", subprotocols = { "graphql-transport-ws" })
 @Builder
 public class SubscriptionWebSocket {
-    private final ConcurrentMap<Session, SessionHandler> openSessions = new ConcurrentHashMap<>();
-    private final DataStore topicStore;
-    private final Elide elide;
-    private final GraphQL api;
+    private DataStore topicStore;
+    private Elide elide;
+    private ExecutorService executorService;
 
     @Builder.Default
     private int connectTimeoutMs = 5000;
@@ -54,7 +59,10 @@ public class SubscriptionWebSocket {
     private UserFactory userFactory = DEFAULT_USER_FACTORY;
 
     @Builder.Default
-    private String apiVersion = NO_VERSION;
+    private boolean sendPingOnSubscribe = false;
+
+    private final Map<String, GraphQL> apis = new HashMap<>();
+    private final ConcurrentMap<Session, SessionHandler> openSessions = new ConcurrentHashMap<>();
 
     public static final UserFactory DEFAULT_USER_FACTORY = session -> new User(session.getUserPrincipal());
 
@@ -72,33 +80,45 @@ public class SubscriptionWebSocket {
      * Constructor.
      * @param topicStore The JMS store.
      * @param elide Elide instance.
-     * @param api Initialized GraphQL API for subscriptions.
+     * @param executorService Thread pool for all websockets. If null each session will make its own.
      * @param connectTimeoutMs Connection timeout.
-     * @param maxSubscriptions The maximum number of concurrent subscriptons per socket.
+     * @param maxSubscriptions The maximum number of concurrent subscriptions per socket.
      * @param userFactory A function which creates an Elide user given a session object.
+     * @param sendPingOnSubscribe testing option to ping the client when subscribe is ready.
      */
     protected SubscriptionWebSocket(
             DataStore topicStore,
             Elide elide,
-            GraphQL api,
+            ExecutorService executorService,
             int connectTimeoutMs,
             int maxSubscriptions,
             UserFactory userFactory,
-            String apiVersion
+            boolean sendPingOnSubscribe
     ) {
         this.topicStore = topicStore;
         this.elide = elide;
-        this.api = api;
+        this.executorService = executorService;
         this.connectTimeoutMs = connectTimeoutMs;
         this.maxSubscriptions = maxSubscriptions;
         this.userFactory = userFactory;
-        this.apiVersion = apiVersion;
+        this.sendPingOnSubscribe = sendPingOnSubscribe;
 
-        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
-        SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
-        module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
-        module.addSerializer(GraphQLError.class, errorSerializer);
-        elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
+
+        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+        for (String apiVersion : dictionary.getApiVersions()) {
+            NonEntityDictionary nonEntityDictionary =
+                    new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
+
+            SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary,
+                    new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
+
+            GraphQL api = GraphQL.newGraphQL(builder.build())
+                    .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
+                    .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
+                    .build();
+
+            apis.put(apiVersion, api);
+        }
     }
 
     /**
@@ -108,6 +128,7 @@ public class SubscriptionWebSocket {
      */
     @OnOpen
     public void onOpen(Session session) throws IOException {
+        log.debug("Session Opening: {}", session.getId());
         SessionHandler subscriptionSession = createSessionHandler(session);
 
         openSessions.put(session, subscriptionSession);
@@ -121,7 +142,14 @@ public class SubscriptionWebSocket {
      */
     @OnMessage
     public void onMessage(Session session, String message) throws IOException {
-        findSession(session).handleRequest(message);
+        log.debug("Session Message: {} {}", session.getId(), message);
+
+        SessionHandler handler = findSession(session);
+        if (handler != null) {
+            handler.handleRequest(message);
+        } else {
+            throw new IllegalStateException("Cannot locate session: " + session.getId());
+        }
     }
 
     /**
@@ -131,8 +159,13 @@ public class SubscriptionWebSocket {
      */
     @OnClose
     public void onClose(Session session) throws IOException {
-        findSession(session).safeClose(WebSocketCloseReasons.NORMAL_CLOSE);
-        openSessions.remove(session);
+        log.debug("Session Closing: {}", session.getId());
+        SessionHandler handler = findSession(session);
+
+        if (handler != null) {
+            handler.safeClose(WebSocketCloseReasons.NORMAL_CLOSE);
+            openSessions.remove(session);
+        }
     }
 
     /**
@@ -142,32 +175,39 @@ public class SubscriptionWebSocket {
      */
     @OnError
     public void onError(Session session, Throwable throwable) {
-        log.error(throwable.getMessage());
-        findSession(session).safeClose(WebSocketCloseReasons.INTERNAL_ERROR);
-        openSessions.remove(session);
+        log.error("Session Error: {} {}", session.getId(), throwable.getMessage());
+        SessionHandler handler = findSession(session);
+
+        if (handler != null) {
+            handler.safeClose(WebSocketCloseReasons.INTERNAL_ERROR);
+            openSessions.remove(session);
+        }
     }
 
     private SessionHandler findSession(Session wrappedSession) {
         SessionHandler sessionHandler = openSessions.getOrDefault(wrappedSession, null);
 
-        String message = "Unable to locate active session associated with: " + wrappedSession.toString();
-        log.error(message);
+        String message = "Unable to locate active session: " + wrappedSession.getId();
         if (sessionHandler == null) {
-            throw new IllegalStateException(message);
+            log.error(message);
         }
         return sessionHandler;
     }
 
     protected SessionHandler createSessionHandler(Session session) {
+        String apiVersion = session.getRequestParameterMap().getOrDefault("ApiVersion",
+                List.of(NO_VERSION)).get(0);
+
         User user = userFactory.create(session);
 
-        return new SessionHandler(session, topicStore, elide, api,
+        return new SessionHandler(session, topicStore, elide, apis.get(apiVersion),
                 connectTimeoutMs, maxSubscriptions,
                 ConnectionInfo.builder()
                         .user(user)
                         .baseUrl(session.getRequestURI().getPath())
                         .parameters(session.getRequestParameterMap())
-                        .getApiVersion(apiVersion)
-                        .build());
+                        .getApiVersion(apiVersion).build(),
+                sendPingOnSubscribe,
+                executorService);
     }
 }

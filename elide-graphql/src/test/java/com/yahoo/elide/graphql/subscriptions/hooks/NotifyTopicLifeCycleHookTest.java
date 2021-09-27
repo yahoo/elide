@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.jms.hooks;
+package com.yahoo.elide.graphql.subscriptions.hooks;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,9 +58,10 @@ public class NotifyTopicLifeCycleHookTest {
     @Test
     public void testManagedModelNotification() {
 
-        NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook(
+        NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook<Book>(
                 connectionFactory,
-                new ObjectMapper());
+                new ObjectMapper(),
+                JMSContext::createProducer);
 
         Book book = new Book();
         PersistentResource<Book> resource = new PersistentResource<>(book, "123", scope);

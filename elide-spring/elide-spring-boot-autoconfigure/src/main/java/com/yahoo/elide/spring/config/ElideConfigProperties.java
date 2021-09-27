@@ -36,6 +36,11 @@ public class ElideConfigProperties {
     private AsyncProperties async = new AsyncProperties();
 
     /**
+     * Settings for subscriptions.
+     */
+    private SubscriptionProperties subscription = new SubscriptionProperties();
+
+    /**
      * Settings for the Dynamic Configuration.
      */
     private DynamicConfigProperties dynamicConfig = new DynamicConfigProperties();

@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.type.Type;
-
 import graphql.language.OperationDefinition;
 
 import java.util.Map;

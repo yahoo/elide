@@ -565,7 +565,9 @@ public class GraphQLEntityProjectionMaker {
                         .name(clientArgument.get().getName())
                         .value(
                                 variableResolver.resolveValue(
-                                        clientArgument.get().getValue()))
+                                        clientArgument.get().getValue(),
+                                        Optional.of(argumentType.getType())
+                                ))
                         .build());
 
             //If not, check if there is a default value for this argument.

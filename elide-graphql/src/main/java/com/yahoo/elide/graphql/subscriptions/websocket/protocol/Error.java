@@ -6,9 +6,11 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import graphql.GraphQLError;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -23,6 +25,7 @@ import lombok.Value;
 public class Error extends AbstractProtocolMessageWithID {
 
     @JsonProperty(required = true)
+    @JsonDeserialize(contentAs = GraphQLError.class, contentUsing = GraphQLErrorDeserializer.class)
     GraphQLError[] payload;
 
     @Builder

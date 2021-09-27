@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Start an incoming connection (client -> server)
+ * Start an incoming connection (client -> server).
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
