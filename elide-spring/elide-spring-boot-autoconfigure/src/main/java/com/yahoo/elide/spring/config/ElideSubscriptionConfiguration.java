@@ -57,7 +57,7 @@ public class ElideSubscriptionConfiguration {
             JsonApiMapper mapper
     ) {
         return ServerEndpointConfig.Builder
-                .create(SubscriptionWebSocket.class, "/subscription")
+                .create(SubscriptionWebSocket.class, config.getSubscription().getPath())
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl(config.getSubscription().getPath())
                         .sendPingOnSubscribe(config.getSubscription().isSendPingOnSubscribe())

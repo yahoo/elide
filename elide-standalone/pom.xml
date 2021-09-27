@@ -50,8 +50,6 @@
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
-        <min_jdk_version>1.8</min_jdk_version>
-        <max_jdk_version>1.8</max_jdk_version>
     </properties>
 
     <dependencies>
@@ -65,6 +63,11 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
+            <version>6.0.0-pr1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-jms</artifactId>
             <version>6.0.0-pr1-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -176,6 +179,26 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- dependencies for native jetty websocket -->
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
+            <version>${version.jetty}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-servlet</artifactId>
+            <version>${version.jetty}</version>
+        </dependency>
+        <!-- dependencies for javax.websocket (JSR-356) websocket -->
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>javax-websocket-server-impl</artifactId>
+            <version>${version.jetty}</version>
+        </dependency>
+
+
         <!-- Test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -216,6 +239,28 @@
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-server</artifactId>
+            <version>2.18.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-jms-client-all</artifactId>
+            <version>2.18.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-client</artifactId>
+            <version>${version.jetty}</version>
+            <scope>test</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

@@ -123,6 +123,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 DataStore dataStore;
 
+
                 if (settings.getAnalyticProperties().enableAggregationDataStore()) {
                     MetaDataStore metaDataStore = settings.getMetaDataStore(classScanner, dynamicConfiguration);
                     if (metaDataStore == null) {
@@ -146,7 +147,8 @@ public class ElideResourceConfig extends ResourceConfig {
                     dataStore = settings.getDataStore(entityManagerFactory);
                 }
 
-                ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore);
+                ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore,
+                        settings.getObjectMapper());
                 Elide elide = new Elide(elideSettings);
 
                 // Bind elide instance for injection into endpoint
@@ -156,6 +158,12 @@ public class ElideResourceConfig extends ResourceConfig {
                 bind(elideSettings).to(ElideSettings.class);
                 bind(elideSettings.getDictionary()).to(EntityDictionary.class);
                 bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
+
+                //Bind subscription hooks.
+                if (settings.getSubscriptionProperties().enabled()) {
+                    settings.getSubscriptionProperties().subscriptionScanner(elide,
+                            settings.getSubscriptionProperties().getConnectionFactory());
+                }
 
                 // Binding async service
                 if (asyncProperties.enabled()) {

@@ -24,14 +24,26 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.server.JournalType;
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import graphql.ExecutionResult;
 import io.restassured.response.Response;
 
+import java.net.URI;
+import java.util.List;
+import javax.websocket.ContainerProvider;
+import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -40,15 +52,31 @@ import javax.ws.rs.core.MediaType;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneTest {
     protected ElideStandalone elide;
+    protected EmbeddedActiveMQ embedded;
+    protected ElideStandaloneSettings settings;
 
     @BeforeAll
     public void init() throws Exception {
-        elide = new ElideStandalone(new ElideStandaloneTestSettings());
+        settings = new ElideStandaloneTestSettings();
+        elide = new ElideStandalone(settings);
         elide.start(false);
+
+        //Startup up an embedded active MQ.
+        embedded = new EmbeddedActiveMQ();
+        Configuration configuration = new ConfigurationImpl();
+        configuration.addAcceptorConfiguration("default", "vm://0");
+        configuration.setPersistenceEnabled(false);
+        configuration.setSecurityEnabled(false);
+        configuration.setJournalType(JournalType.NIO);
+
+        embedded.setConfiguration(configuration);
+        embedded.start();
+
     }
 
     @AfterAll
     public void shutdown() throws Exception {
+        embedded.stop();
         elide.stop();
     }
 
@@ -71,7 +99,6 @@ public class ElideStandaloneTest {
             )
             .post("/api/v1/post")
             .then()
-
             .statusCode(HttpStatus.SC_CREATED);
 
         // Test the Dynamic Generated Analytical Model is accessible
@@ -311,5 +338,43 @@ public class ElideStandaloneTest {
                 .then()
                 .body("errors.detail[0]", equalTo("Invalid value: Invalid\nDate strings must be formatted as yyyy-MM-dd&#39;T&#39;HH:mm&#39;Z&#39;"))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testSubscription() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {post(topic: ADDED) {id content}}"));
+
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:" + settings.getPort() + "/subscription"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            datum(
+                                    resource(
+                                            type("post"),
+                                            id("1"),
+                                            attributes(
+                                                    attr("content", "This is my first post. woot."),
+                                                    attr("date", "2019-01-01T00:00Z")
+                                            )
+                                    )
+                            )
+                    )
+                    .post("/api/v1/post")
+                    .then()
+                    .statusCode(HttpStatus.SC_CREATED);
+
+            List<ExecutionResult> results = client.waitOnClose(10);
+
+            assertEquals(1, results.size());
+            assertEquals(0, results.get(0).getErrors().size());
+        }
     }
 }

@@ -28,6 +28,4 @@ public class SubscriptionProperties extends ControllerProperties {
      * Maximum number of outstanding GraphQL queries per websocket.
      */
     protected int maxSubscriptions = 30;
-
-
 }

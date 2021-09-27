@@ -40,6 +40,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBe
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
@@ -115,9 +116,10 @@ public interface ElideStandaloneSettings {
      *
      * @param dictionary EntityDictionary object.
      * @param dataStore Dastore object
+     * @param mapper Object mapper
      * @return Configured ElideSettings object.
      */
-    default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore) {
+    default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, JsonApiMapper mapper) {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
@@ -127,6 +129,7 @@ public interface ElideStandaloneSettings {
                 .withBaseUrl(getBaseUrl())
                 .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
                 .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
+                .withJsonApiMapper(mapper)
                 .withAuditLogger(getAuditLogger());
 
         if (verboseErrors()) {
@@ -242,6 +245,16 @@ public interface ElideStandaloneSettings {
     default ElideStandaloneAnalyticSettings getAnalyticProperties() {
         //Default Properties
         return new ElideStandaloneAnalyticSettings() { };
+    }
+
+    /**
+     * Subscription Properties.
+     *
+     * @return SubscriptionProperties type object.
+     */
+    default ElideStandaloneSubscriptionSettings getSubscriptionProperties() {
+        //Default Properties
+        return new ElideStandaloneSubscriptionSettings() { };
     }
 
     /**
@@ -482,6 +495,7 @@ public interface ElideStandaloneSettings {
         dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
             dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
         );
+
         return dictionary;
     }
 
@@ -544,5 +558,14 @@ public interface ElideStandaloneSettings {
      */
     default ErrorMapper getErrorMapper() {
         return error -> null;
+    }
+
+    /**
+     * Get the Jackson object mapper for Elide.
+     *
+     * @return object mapper.
+     */
+    default JsonApiMapper getObjectMapper() {
+        return new JsonApiMapper();
     }
 }
