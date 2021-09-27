@@ -122,7 +122,8 @@ public class ElideStandalone {
                     .create(SubscriptionWebSocket.class, elideStandaloneSettings.getSubscriptionProperties().getPath())
                     .configurator(SubscriptionWebSocketConfigurator.builder()
                             .baseUrl("/subscription")
-                            .connectionFactory(elideStandaloneSettings.getSubscriptionProperties().getConnectionFactory())
+                            .connectionFactory(elideStandaloneSettings.getSubscriptionProperties()
+                                    .getConnectionFactory())
                             .sendPingOnSubscribe(true)
                             .build())
                     .build();

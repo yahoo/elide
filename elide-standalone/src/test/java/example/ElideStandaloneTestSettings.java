@@ -171,7 +171,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
         return new ElideStandaloneSubscriptionSettings() {
             @Override
             public boolean enabled() {
-                return true;
+                return false;
             }
 
             @Override
