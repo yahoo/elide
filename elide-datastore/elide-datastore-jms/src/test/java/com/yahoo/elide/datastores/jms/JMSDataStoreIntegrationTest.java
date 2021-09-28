@@ -12,6 +12,9 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
@@ -294,9 +297,9 @@ public class JMSDataStoreIntegrationTest {
 
         SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(3,
                 List.of(
-                        "subscription {book(topic: ADDED) {id title}}",
-                        "subscription {book(topic: DELETED) {id title}}",
-                        "subscription {book(topic: UPDATED) {id title}}"
+                        "subscription {book(topic: ADDED) { id title authors { id name }}}",
+                        "subscription {book(topic: DELETED) { id title }}",
+                        "subscription {book(topic: UPDATED) { id title }}"
                 ));
 
         try (Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"))) {
@@ -310,9 +313,27 @@ public class JMSDataStoreIntegrationTest {
                     .body(
                             data(
                                     resource(
+                                            type("author"),
+                                            id("1"),
+                                            attributes(attr("name", "Jane Doe"))
+                                    )
+                            )
+                    )
+                    .post("/author")
+                    .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
                                             type("book"),
                                             id("3"),
-                                            attributes(attr("title", "foo"))
+                                            attributes(attr("title", "foo")),
+                                            relationships(
+                                                    relation("authors", linkage(type("author"), id("1")))
+                                            )
                                     )
                             )
                     )
@@ -343,6 +364,9 @@ public class JMSDataStoreIntegrationTest {
             List<ExecutionResult> results = client.waitOnClose(300);
 
             assertEquals(3, results.size());
+            assertEquals("{book={id=3, title=foo, authors=[{id=1, name=Jane Doe}]}}", results.get(0).getData().toString());
+            assertEquals("{book={id=3, title=new title}}", results.get(1).getData().toString());
+            assertEquals("{book={id=3, title=new title}}", results.get(2).getData().toString());
         }
     }
 
