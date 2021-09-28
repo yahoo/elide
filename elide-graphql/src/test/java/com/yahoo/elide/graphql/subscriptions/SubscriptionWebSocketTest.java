@@ -131,7 +131,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testConnectionSetupAndTeardown() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
@@ -153,7 +153,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testMissingType() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         String invalid = "{ \"id\": 123 }";
         endpoint.onOpen(session);
@@ -170,7 +170,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testInvalidType() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         String invalid = "{ \"type\": \"foo\", \"id\": 123 }";
         endpoint.onOpen(session);
@@ -187,7 +187,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testInvalidJson() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         //Missing payload field
         String invalid = "{ \"type\": \"subscribe\"}";
@@ -210,7 +210,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testConnectionTimeout() throws Exception {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .connectTimeoutMs(0).topicStore(dataStore).elide(elide).build();
+                .connectTimeoutMs(0).elide(elide).build();
 
         endpoint.onOpen(session);
 
@@ -223,7 +223,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testDoubleInit() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
@@ -244,7 +244,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testSubscribeBeforeInit() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         endpoint.onOpen(session);
 
@@ -268,7 +268,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testSubscribeUnsubscribeSubscribe() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
@@ -303,7 +303,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testErrorInStream() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         Book book1 = new Book();
         book1.setTitle("Book 1");
@@ -346,7 +346,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testErrorPriorToStream() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         reset(dataStoreTransaction);
         when(dataStoreTransaction.loadObjects(any(), any())).thenThrow(new BadRequestException("Bad Request"));
@@ -379,7 +379,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testRootSubscription() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         Book book1 = new Book();
         book1.setTitle("Book 1");
@@ -420,7 +420,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testSchemaQuery() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         String graphQLRequest =
                 "{"
@@ -466,7 +466,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testActualComplete() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .topicStore(dataStore).elide(elide).build();
+                .elide(elide).build();
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);

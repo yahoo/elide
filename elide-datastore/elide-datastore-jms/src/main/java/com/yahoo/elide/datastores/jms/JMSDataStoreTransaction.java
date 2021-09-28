@@ -88,7 +88,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
 
         consumers.add(consumer);
 
-        return new MessageIterator<>(
+        return new MessageIterable<>(
                 consumer,
                 timeoutInMs,
                 new MessageDeserializer<>(entityProjection.getType())

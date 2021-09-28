@@ -17,6 +17,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -72,6 +73,9 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     public SubscriptionDataFetcherTest() {
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
 
+        dataStore = mock(DataStore.class);
+        dataStoreTransaction = mock(DataStoreTransaction.class);
+
         //This will be done by the JMS data store.
         dictionary.addArgumentToEntity(ClassType.of(Book.class), ArgumentType
                 .builder()
@@ -85,7 +89,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 .type(ClassType.of(TopicType.class))
                 .build());
 
-        settings = new ElideSettingsBuilder(null)
+        settings = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(filterDialect)
                 .withSubqueryFilterDialect(filterDialect)
@@ -93,10 +97,6 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 .build();
 
         settings.getSerdes().forEach(CoerceUtil::register);
-
-        dataStore = mock(DataStore.class);
-        dataStoreTransaction = mock(DataStoreTransaction.class);
-
 
         NonEntityDictionary nonEntityDictionary =
                 new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
@@ -138,6 +138,27 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         );
 
         String graphQLRequest = "subscription {book(topic: ADDED) {id title}}";
+
+        assertSubscriptionEquals(graphQLRequest, responses);
+    }
+
+    @Test
+    void testRootSubscriptionWithFilter() {
+        Book book1 = new Book();
+        book1.setTitle("Book 1");
+        book1.setId(1);
+
+        Book book2 = new Book();
+        book2.setTitle("Book 2");
+        book2.setId(2);
+
+        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+
+        List<String> responses = List.of(
+                "{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}"
+        );
+
+        String graphQLRequest = "subscription {book(topic: ADDED, filter: \"title==*1*\") {id title}}";
 
         assertSubscriptionEquals(graphQLRequest, responses);
     }
@@ -295,7 +316,9 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
      * @return A discrete list of results returned from the subscription.
      */
     protected List<ExecutionResult> runSubscription(String request) {
-        DataStoreTransaction tx = dataStore.beginTransaction();
+        InMemoryDataStore inMemoryDataStore = new InMemoryDataStore(dataStore);
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+
         GraphQLProjectionInfo projectionInfo =
                 new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION).make(request);
         GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID(), null);

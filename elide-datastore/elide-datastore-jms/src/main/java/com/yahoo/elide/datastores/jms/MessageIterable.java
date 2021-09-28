@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jms;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSRuntimeException;
@@ -16,7 +17,7 @@ import javax.jms.Message;
  * Converts a JMS message consumer into an Iterable.
  * @param <T> The type to convert a Message into.
  */
-public class MessageIterator<T> implements Iterable<T> {
+public class MessageIterable<T> implements Iterable<T> {
 
     private JMSConsumer consumer;
     private long timeout;
@@ -28,7 +29,7 @@ public class MessageIterator<T> implements Iterable<T> {
      * @param timeout The timeout to wait on message topics.  0 means no wait.  Less than 0 means wait forever.
      * @param messageConverter Converts JMS messages into some other thing.
      */
-    public MessageIterator(
+    public MessageIterable(
             JMSConsumer consumer,
             long timeout,
             Function<Message, T> messageConverter
@@ -45,8 +46,9 @@ public class MessageIterator<T> implements Iterable<T> {
 
             @Override
             public boolean hasNext() {
-                next = next();
-                if (next == null) {
+                try {
+                    next = next();
+                } catch (NoSuchElementException e) {
                     return false;
                 }
 
@@ -74,9 +76,9 @@ public class MessageIterator<T> implements Iterable<T> {
                     if (message != null) {
                         return messageConverter.apply(message);
                     }
-                    return null;
+                    throw new NoSuchElementException();
                 } catch (JMSRuntimeException e)  {
-                    return null;
+                    throw new NoSuchElementException();
                 }
             }
         };

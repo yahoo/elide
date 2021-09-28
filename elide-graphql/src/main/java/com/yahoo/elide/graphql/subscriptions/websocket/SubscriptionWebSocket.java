@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql.subscriptions.websocket;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -45,7 +44,6 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/", subprotocols = { "graphql-transport-ws" })
 @Builder
 public class SubscriptionWebSocket {
-    private DataStore topicStore;
     private Elide elide;
     private ExecutorService executorService;
 
@@ -81,7 +79,6 @@ public class SubscriptionWebSocket {
 
     /**
      * Constructor.
-     * @param topicStore The JMS store.
      * @param elide Elide instance.
      * @param executorService Thread pool for all websockets. If null each session will make its own.
      * @param connectTimeoutMs Connection timeout.
@@ -90,7 +87,6 @@ public class SubscriptionWebSocket {
      * @param sendPingOnSubscribe testing option to ping the client when subscribe is ready.
      */
     protected SubscriptionWebSocket(
-            DataStore topicStore,
             Elide elide,
             ExecutorService executorService,
             int connectTimeoutMs,
@@ -99,7 +95,6 @@ public class SubscriptionWebSocket {
             boolean sendPingOnSubscribe,
             boolean verboseErrors
     ) {
-        this.topicStore = topicStore;
         this.elide = elide;
         this.executorService = executorService;
         this.connectTimeoutMs = connectTimeoutMs;
@@ -204,7 +199,7 @@ public class SubscriptionWebSocket {
 
         User user = userFactory.create(session);
 
-        return new SessionHandler(session, topicStore, elide, apis.get(apiVersion),
+        return new SessionHandler(session, elide.getDataStore(), elide, apis.get(apiVersion),
                 connectTimeoutMs, maxSubscriptions,
                 ConnectionInfo.builder()
                         .user(user)

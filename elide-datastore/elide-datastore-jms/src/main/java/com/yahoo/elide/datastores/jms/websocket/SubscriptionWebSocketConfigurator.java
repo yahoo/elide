@@ -81,7 +81,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
             Elide elide = buildElide(store, dictionary);
 
-            return (T) buildWebSocket(elide, store);
+            return (T) buildWebSocket(elide);
         }
 
         return super.getEndpointInstance(endpointClass);
@@ -120,10 +120,9 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
                 mapper, -1);
     }
 
-    protected SubscriptionWebSocket buildWebSocket(Elide elide, DataStore topicStore) {
+    protected SubscriptionWebSocket buildWebSocket(Elide elide) {
         return SubscriptionWebSocket.builder()
                 .elide(elide)
-                .topicStore(topicStore)
                 .connectTimeoutMs(connectionTimeoutMs)
                 .maxSubscriptions(maxSubscriptions)
                 .userFactory(userFactory)

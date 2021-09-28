@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.type.Type;
 import graphql.language.OperationDefinition;
 
@@ -40,5 +41,10 @@ public class SubscriptionEntityProjectionMaker extends GraphQLEntityProjectionMa
             return true;
         }
         return false;
+    }
+
+    @Override
+    protected Pagination getDefaultPagination(Type<?> entityType) {
+        return null;
     }
 }
