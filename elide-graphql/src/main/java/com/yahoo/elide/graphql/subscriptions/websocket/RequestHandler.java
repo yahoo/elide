@@ -20,6 +20,7 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Ping;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -36,6 +37,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -52,7 +54,7 @@ public class RequestHandler implements Closeable {
     protected SessionHandler sessionHandler;
     protected ConnectionInfo connectionInfo;
     protected boolean sendPingOnSubscribe;
-    protected boolean isOpen = true;
+    protected AtomicBoolean isOpen = new AtomicBoolean(true);
     protected boolean verboseErrors = false;
 
     /**
@@ -88,11 +90,11 @@ public class RequestHandler implements Closeable {
     }
 
     /**
-     * Close this session.
+     * Close this session.  Synchronized to protect transaction.
      * @throws IOException
      */
     public synchronized void close() throws IOException {
-        if (!isOpen) {
+        if (! isOpen.compareAndExchange(true, false)) {
             return;
         }
         if (transaction != null) {
@@ -100,7 +102,6 @@ public class RequestHandler implements Closeable {
             elide.getTransactionRegistry().removeRunningTransaction(requestID);
         }
 
-        isOpen = false;
         sessionHandler.close(protocolID);
         log.debug("Closed Request Handler");
     }
@@ -116,7 +117,7 @@ public class RequestHandler implements Closeable {
            executionResult = executeRequest(subscribeRequest);
             //This would be a subscription creation error.
         } catch (RuntimeException e) {
-            log.error("RuntimeException: {}", e.getMessage());
+            log.error("UNEXPECTED RuntimeException: {}", e.getMessage());
             ElideResponse response = QueryRunner.handleRuntimeException(elide, e, verboseErrors);
             safeSendError(response.getBody());
             safeClose();
@@ -180,14 +181,22 @@ public class RequestHandler implements Closeable {
         return api.execute(executionInput);
     }
 
+    protected void sendMessage(String message) {
+        if (isOpen.get()) {
+            sessionHandler.sendMessage(message);
+            return;
+        }
+        log.debug("UNEXPECTED Sending message on closed handler: {}", message);
+    }
+
     protected void safeSendPing() {
         ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
         Ping ping = new Ping();
 
         try {
-            sessionHandler.sendMessage(mapper.writeValueAsString(ping));
-        } catch (IOException e) {
-            log.error(e.getMessage());
+            sendMessage(mapper.writeValueAsString(ping));
+        } catch (JsonProcessingException e) {
+            log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose();
         }
     }
@@ -200,9 +209,9 @@ public class RequestHandler implements Closeable {
                 .id(protocolID)
                 .build();
         try {
-            sessionHandler.sendMessage(mapper.writeValueAsString(next));
-        } catch (IOException e) {
-            log.error(e.getMessage());
+            sendMessage(mapper.writeValueAsString(next));
+        } catch (JsonProcessingException e) {
+            log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose();
         }
     }
@@ -214,9 +223,9 @@ public class RequestHandler implements Closeable {
                 .id(protocolID)
                 .build();
         try {
-            sessionHandler.sendMessage(mapper.writeValueAsString(complete));
-        } catch (IOException e) {
-            log.error(e.getMessage());
+            sendMessage(mapper.writeValueAsString(complete));
+        } catch (JsonProcessingException e) {
+            log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose();
         }
     }
@@ -229,9 +238,9 @@ public class RequestHandler implements Closeable {
                 .payload(errors)
                 .build();
         try {
-            sessionHandler.sendMessage(mapper.writeValueAsString(error));
-        } catch (IOException e) {
-            log.error(e.getMessage());
+            sendMessage(mapper.writeValueAsString(error));
+        } catch (JsonProcessingException e) {
+            log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose();
         }
     }
@@ -263,8 +272,8 @@ public class RequestHandler implements Closeable {
     protected void safeClose() {
         try {
             close();
-        } catch (IOException e) {
-            log.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("UNEXPECTED Exception during close {}", e.getMessage());
         }
     }
 
@@ -294,7 +303,7 @@ public class RequestHandler implements Closeable {
 
         @Override
         public void onError(Throwable t) {
-            log.error("Topic Error {}", t.getMessage());
+            log.error("UNEXPECTED Topic Error {}", t.getMessage());
             safeSendError(t.getMessage());
             safeClose();
         }

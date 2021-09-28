@@ -36,7 +36,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
@@ -60,6 +59,7 @@ public class SessionHandler {
     protected boolean sendPingOnSubscribe = false;
     protected boolean verboseErrors = false;
     protected ExecutorService executorService;
+    protected boolean isOpen = true;
 
     /**
      * Constructor.
@@ -110,9 +110,12 @@ public class SessionHandler {
      * Close this session.
      * @throws IOException
      */
-    public void close(CloseReason reason) throws IOException {
+    public synchronized void close(CloseReason reason) throws IOException {
 
         log.debug("SessionHandler closing");
+
+        isOpen = false;
+
         //Iterator here to avoid concurrent modification exceptions.
         Iterator<Map.Entry<String, RequestHandler>> iterator = activeRequests.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -124,11 +127,6 @@ public class SessionHandler {
         wrappedSession.close(reason);
 
         executorService.shutdownNow();
-        try {
-            executorService.awaitTermination(30, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-
-        }
         log.debug("SessionHandler closed");
     }
 
@@ -256,7 +254,7 @@ public class SessionHandler {
 
         try {
             sendMessage(mapper.writeValueAsString(ack));
-        } catch (IOException e) {
+        } catch (JsonProcessingException e) {
             safeClose(INTERNAL_ERROR);
         }
     }
@@ -267,7 +265,7 @@ public class SessionHandler {
 
         try {
             sendMessage(mapper.writeValueAsString(pong));
-        } catch (IOException e) {
+        } catch (JsonProcessingException e) {
             safeClose(INTERNAL_ERROR);
         }
     }
@@ -276,8 +274,8 @@ public class SessionHandler {
         log.debug("Closing session handler: {} {}", wrappedSession.getId(), reason);
         try {
             close(reason);
-        } catch (IOException e) {
-            log.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("UNEXPECTED: Closing {} failed for {}", wrappedSession.getId(), e.getMessage());
         }
     }
 
@@ -286,10 +284,19 @@ public class SessionHandler {
      * @param message The message to send.
      * @throws IOException
      */
-    public void sendMessage(String message) throws IOException {
+    public synchronized void sendMessage(String message) {
 
         //JSR 356 session is thread safe.
-        wrappedSession.getBasicRemote().sendText(message);
+        if (isOpen) {
+            try {
+                wrappedSession.getBasicRemote().sendText(message);
+                return;
+            } catch (Exception e) {
+                log.debug("UNEXPECTED: Sending message {} failed for {}", message, e.getMessage());
+                safeClose(INTERNAL_ERROR);
+            }
+        }
+        log.debug("UNEXPECTED: Sending message {} on closed session", message);
     }
 
     /**
@@ -305,7 +312,7 @@ public class SessionHandler {
                    safeClose(CONNECTION_TIMEOUT);
                }
             } catch (InterruptedException e) {
-                log.debug("Timeout thread interrupted: " + e.getMessage());
+                log.debug("UNEXPECTED: Timeout thread interrupted: " + e.getMessage());
             }
         }
     }
