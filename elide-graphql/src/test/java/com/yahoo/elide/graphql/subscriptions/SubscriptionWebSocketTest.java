@@ -72,7 +72,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     protected DataStoreTransaction dataStoreTransaction;
     protected ElideSettings settings;
     protected Session session;
-    protected RemoteEndpoint.Basic remote;
+    protected RemoteEndpoint.Async remote;
     protected Elide elide;
     protected ExecutorService executorService = MoreExecutors.newDirectExecutorService();
 
@@ -95,7 +95,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         dataStore = mock(DataStore.class);
         dataStoreTransaction = mock(DataStoreTransaction.class);
         session = mock(Session.class);
-        remote = mock(RemoteEndpoint.Basic.class);
+        remote = mock(RemoteEndpoint.Async.class);
 
         settings = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
@@ -120,7 +120,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         reset(dataStoreTransaction);
         reset(session);
         when(session.getRequestURI()).thenReturn(new URI("http://localhost:1234/subscription"));
-        when(session.getBasicRemote()).thenReturn(remote);
+        when(session.getAsyncRemote()).thenReturn(remote);
         when(dataStore.beginTransaction()).thenReturn(dataStoreTransaction);
         when(dataStore.beginReadTransaction()).thenReturn(dataStoreTransaction);
         when(dataStoreTransaction.getAttribute(any(), any(), any())).thenCallRealMethod();
