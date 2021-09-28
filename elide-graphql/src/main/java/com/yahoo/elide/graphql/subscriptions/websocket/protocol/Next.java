@@ -7,10 +7,12 @@
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
 import com.yahoo.elide.graphql.ExecutionResultDeserializer;
+import com.yahoo.elide.graphql.ExecutionResultSerializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import graphql.ExecutionResult;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -25,6 +27,7 @@ import lombok.Value;
 public class Next extends AbstractProtocolMessageWithID {
     @JsonProperty(required = true)
     @JsonDeserialize(as = ExecutionResult.class, using = ExecutionResultDeserializer.class)
+    @JsonSerialize(as = ExecutionResult.class, using = ExecutionResultSerializer.class)
     ExecutionResult payload;
 
     @Builder
