@@ -280,7 +280,8 @@ public class SessionHandler {
     }
 
     /**
-     * Send a text message on the native session.
+     * Send a text message on the native session.  Synchronized to protect session & isOpen
+     * (which has dubious thread safety - even when async).
      * @param message The message to send.
      * @throws IOException
      */
@@ -289,7 +290,7 @@ public class SessionHandler {
         //JSR 356 session is thread safe.
         if (isOpen) {
             try {
-                wrappedSession.getBasicRemote().sendText(message);
+                wrappedSession.getAsyncRemote().sendText(message);
                 return;
             } catch (Exception e) {
                 log.debug("UNEXPECTED: Sending message {} failed for {}", message, e.getMessage());
