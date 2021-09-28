@@ -77,6 +77,8 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
             EntityDictionary dictionary = EntityDictionary.builder().build();
 
+            dictionary.scanForSecurityChecks();
+
             DataStore store = buildDataStore(dictionary);
 
             Elide elide = buildElide(store, dictionary);

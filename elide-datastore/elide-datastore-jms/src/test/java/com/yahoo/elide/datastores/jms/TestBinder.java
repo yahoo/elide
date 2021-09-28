@@ -44,6 +44,8 @@ public class TestBinder extends AbstractBinder {
                 .injector(injector::inject)
                 .build();
 
+        dictionary.scanForSecurityChecks();
+
         bind(dictionary).to(EntityDictionary.class);
 
         // Primary Elide instance for CRUD endpoints.

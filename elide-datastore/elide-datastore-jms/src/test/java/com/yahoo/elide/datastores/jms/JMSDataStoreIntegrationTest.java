@@ -241,6 +241,54 @@ public class JMSDataStoreIntegrationTest {
     }
 
     @Test
+    public void testLifecycleEventAfterSubscribeWithSecurityFilter() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {book(topic: ADDED) {id title}}"));
+
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
+                                            type("book"),
+                                            id("1000"),
+                                            attributes(attr("title", "bar"))
+                                    )
+                            )
+                    )
+                    .post("/book")
+                    .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1000"));
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
+                                            type("book"),
+                                            id("99"),
+                                            attributes(attr("title", "foo"))
+                                    )
+                            )
+                    )
+                    .post("/book")
+                    .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("99"));
+
+
+            List<ExecutionResult> results = client.waitOnClose(10);
+            assertEquals(1, results.size());
+        }
+    }
+
+    @Test
     public void testCreateUpdateAndDelete() throws Exception {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
