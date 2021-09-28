@@ -31,4 +31,9 @@ public class Book {
     @SubscriptionField
     @ManyToMany
     private Set<Author> authors;
+
+    //Nobody can read this.
+    @ReadPermission(expression = "NONE")
+    @SubscriptionField
+    private String nope;
 }

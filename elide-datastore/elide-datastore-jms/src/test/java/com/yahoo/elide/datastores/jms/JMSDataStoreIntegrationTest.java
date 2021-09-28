@@ -196,6 +196,41 @@ public class JMSDataStoreIntegrationTest {
     }
 
     @Test
+    public void testLifecycleEventAfterSubscribeWithInaccessibleField() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {book(topic: ADDED) {id title nope}}"));
+
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
+                                            type("book"),
+                                            id("14"),
+                                            attributes(attr("title", "foo"))
+                                    )
+                            )
+                    )
+                    .post("/book")
+                    .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("14"));
+
+
+            List<ExecutionResult> results = client.waitOnClose(10);
+            assertEquals(1, results.size());
+            assertEquals("{book={id=14, title=foo, nope=null}}", results.get(0).getData().toString());
+            assertEquals("[{ \"message\": \"Exception while fetching data (/book/nope) : ReadPermission Denied\", \"locations\": [SourceLocation{line=1, column=44}], \"path\": [book, nope]}]", results.get(0).getErrors().toString());
+        }
+    }
+
+    @Test
     public void testLifecycleEventAfterSubscribeWithFilter() throws Exception {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
