@@ -90,7 +90,10 @@ public class SubscriptionWebSocket {
      * @param connectTimeoutMs Connection timeout.
      * @param maxSubscriptions The maximum number of concurrent subscriptions per socket.
      * @param userFactory A function which creates an Elide user given a session object.
+     * @param maxIdleTimeoutMs Max idle time on the websocket before disconnect.
+     * @param maxMessageSize Maximum message size allowed on this websocket.
      * @param sendPingOnSubscribe testing option to ping the client when subscribe is ready.
+     * @param verboseErrors whether or not to send verbose errors.
      */
     protected SubscriptionWebSocket(
             Elide elide,
@@ -98,6 +101,8 @@ public class SubscriptionWebSocket {
             int connectTimeoutMs,
             int maxSubscriptions,
             UserFactory userFactory,
+            long maxIdleTimeoutMs,
+            int maxMessageSize,
             boolean sendPingOnSubscribe,
             boolean verboseErrors
     ) {
@@ -107,6 +112,8 @@ public class SubscriptionWebSocket {
         this.maxSubscriptions = maxSubscriptions;
         this.userFactory = userFactory;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
+        this.maxIdleTimeoutMs = maxIdleTimeoutMs;
+        this.maxMessageSize = maxMessageSize;
         this.verboseErrors = verboseErrors;
 
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
