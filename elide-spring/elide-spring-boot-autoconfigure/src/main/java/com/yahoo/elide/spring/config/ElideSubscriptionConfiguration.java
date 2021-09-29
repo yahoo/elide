@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Message;
 import javax.websocket.server.ServerEndpointConfig;
 
 /**
@@ -36,6 +37,14 @@ public class ElideSubscriptionConfiguration {
     @ConditionalOnMissingBean
     SubscriptionScanner subscriptionScanner(Elide elide, ConnectionFactory connectionFactory) {
         SubscriptionScanner scanner = SubscriptionScanner.builder()
+
+                //Things you may want to override...
+                .deliveryDelay(Message.DEFAULT_DELIVERY_DELAY)
+                .messagePriority(Message.DEFAULT_PRIORITY)
+                .timeToLive(Message.DEFAULT_TIME_TO_LIVE)
+                .deliveryMode(Message.DEFAULT_DELIVERY_MODE)
+
+                //Things you probably don't care about...
                 .scanner(elide.getScanner())
                 .dictionary(elide.getElideSettings().getDictionary())
                 .connectionFactory(connectionFactory)

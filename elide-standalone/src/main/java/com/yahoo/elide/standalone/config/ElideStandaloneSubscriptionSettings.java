@@ -12,6 +12,7 @@ import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Message;
 import javax.websocket.server.ServerEndpointConfig;
 
 /**
@@ -109,6 +110,14 @@ public interface ElideStandaloneSubscriptionSettings {
      */
     default SubscriptionScanner subscriptionScanner(Elide elide, ConnectionFactory connectionFactory) {
         SubscriptionScanner scanner = SubscriptionScanner.builder()
+
+                //Things you may want to override...
+                .deliveryDelay(Message.DEFAULT_DELIVERY_DELAY)
+                .messagePriority(Message.DEFAULT_PRIORITY)
+                .timeToLive(Message.DEFAULT_TIME_TO_LIVE)
+                .deliveryMode(Message.DEFAULT_DELIVERY_MODE)
+
+                //Things you probably don't care about...
                 .scanner(elide.getScanner())
                 .dictionary(elide.getElideSettings().getDictionary())
                 .connectionFactory(connectionFactory)
