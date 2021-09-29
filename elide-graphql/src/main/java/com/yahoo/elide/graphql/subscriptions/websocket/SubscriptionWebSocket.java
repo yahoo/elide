@@ -57,6 +57,12 @@ public class SubscriptionWebSocket {
     private UserFactory userFactory = DEFAULT_USER_FACTORY;
 
     @Builder.Default
+    private long maxIdleTimeoutMs = 300000;
+
+    @Builder.Default
+    private int maxMessageSize = 10000;
+
+    @Builder.Default
     private boolean sendPingOnSubscribe = false;
 
     @Builder.Default
@@ -129,6 +135,10 @@ public class SubscriptionWebSocket {
     public void onOpen(Session session) throws IOException {
         log.debug("Session Opening: {}", session.getId());
         SessionHandler subscriptionSession = createSessionHandler(session);
+
+        session.setMaxIdleTimeout(maxIdleTimeoutMs);
+        session.setMaxTextMessageBufferSize(maxMessageSize);
+        session.setMaxBinaryMessageBufferSize(maxMessageSize);
 
         openSessions.put(session, subscriptionSession);
     }

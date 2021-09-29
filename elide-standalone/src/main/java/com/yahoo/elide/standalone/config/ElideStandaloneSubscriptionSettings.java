@@ -66,6 +66,24 @@ public interface ElideStandaloneSubscriptionSettings {
     }
 
     /**
+     * Maximum message size that can be sent to the websocket.
+     *
+     * @return Default 10000
+     */
+    default Integer getMaxMessageSize() {
+        return 10000;
+    }
+
+    /**
+     * Maximum idle timeout in milliseconds with no websocket activity.
+     *
+     * @return default 300000
+     */
+    default Long getIdleTimeoutMs() {
+        return 300000L;
+    }
+
+    /**
      * Return JMS connection factory.
      *
      * @return Default null.  This must be implemented if leveraging GraphQL subscriptions.
@@ -117,6 +135,8 @@ public interface ElideStandaloneSubscriptionSettings {
                         .sendPingOnSubscribe(shouldSendPingOnSubscribe())
                         .connectionTimeoutMs(getConnectionTimeoutMs())
                         .maxSubscriptions(getMaxSubscriptions())
+                        .maxMessageSize(getMaxMessageSize())
+                        .maxIdleTimeoutMs(getIdleTimeoutMs())
                         .connectionFactory(getConnectionFactory())
                         .userFactory(getUserFactory())
                         .auditLogger(settings.getAuditLogger())

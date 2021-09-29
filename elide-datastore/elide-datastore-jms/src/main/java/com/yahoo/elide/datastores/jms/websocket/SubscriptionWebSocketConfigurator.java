@@ -66,6 +66,12 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     protected int maxSubscriptions = 30;
 
     @Builder.Default
+    private long maxIdleTimeoutMs = 300000;
+
+    @Builder.Default
+    private int maxMessageSize = 10000;
+
+    @Builder.Default
     protected SubscriptionWebSocket.UserFactory userFactory = DEFAULT_USER_FACTORY;
 
     @Builder.Default
@@ -127,6 +133,8 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
                 .elide(elide)
                 .connectTimeoutMs(connectionTimeoutMs)
                 .maxSubscriptions(maxSubscriptions)
+                .maxMessageSize(maxMessageSize)
+                .maxIdleTimeoutMs(maxIdleTimeoutMs)
                 .userFactory(userFactory)
                 .sendPingOnSubscribe(sendPingOnSubscribe)
                 .verboseErrors(verboseErrors)

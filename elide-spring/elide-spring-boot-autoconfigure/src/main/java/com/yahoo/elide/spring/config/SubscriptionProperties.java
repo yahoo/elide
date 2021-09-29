@@ -17,7 +17,7 @@ public class SubscriptionProperties extends ControllerProperties {
      * Websocket sends a PING immediate after receiving a SUBSCRIBE.  Only useful for testing.
      * @see com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient
      */
-    private boolean sendPingOnSubscribe = false;
+    protected boolean sendPingOnSubscribe = false;
 
     /**
      * Time allowed in milliseconds from web socket creation to successfully receiving a CONNECTION_INIT message.
@@ -28,4 +28,14 @@ public class SubscriptionProperties extends ControllerProperties {
      * Maximum number of outstanding GraphQL queries per websocket.
      */
     protected int maxSubscriptions = 30;
+
+    /**
+     * Maximum message size that can be sent to the websocket.
+     */
+    protected int maxMessageSize = 10000;
+
+    /**
+     * Maximum idle timeout in milliseconds with no websocket activity.
+     */
+    protected long idleTimeoutMs = 300000;
 }

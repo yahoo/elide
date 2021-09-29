@@ -63,6 +63,8 @@ public class ElideSubscriptionConfiguration {
                         .sendPingOnSubscribe(config.getSubscription().isSendPingOnSubscribe())
                         .connectionTimeoutMs(config.getSubscription().getConnectionTimeoutMs())
                         .maxSubscriptions(config.getSubscription().maxSubscriptions)
+                        .maxMessageSize(config.getSubscription().maxMessageSize)
+                        .maxIdleTimeoutMs(config.getSubscription().idleTimeoutMs)
                         .connectionFactory(connectionFactory)
                         .userFactory(userFactory)
                         .auditLogger(new Slf4jLogger())

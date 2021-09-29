@@ -94,6 +94,7 @@ public class JMSDataStore implements DataStore {
             dictionary.addArgumentToEntity(model, ArgumentType
                     .builder()
                     .name(TOPIC_ARGUMENT)
+                    .defaultValue(TopicType.ADDED)
                     .type(ClassType.of(TopicType.class))
                     .build());
         }
