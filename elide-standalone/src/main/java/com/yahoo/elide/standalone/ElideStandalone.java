@@ -10,10 +10,9 @@ import static com.yahoo.elide.standalone.config.ElideResourceConfig.ASYNC_UPDATE
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
-import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
@@ -113,22 +112,15 @@ public class ElideStandalone {
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
-
-        if (elideStandaloneSettings.enableGraphQL() && elideStandaloneSettings.getSubscriptionProperties().enabled()) {
+        ElideStandaloneSubscriptionSettings subscriptionSettings = elideStandaloneSettings.getSubscriptionProperties();
+        if (elideStandaloneSettings.enableGraphQL() && subscriptionSettings.enabled()) {
             // GraphQL subscription endpoint
             ServerContainer container  = WebSocketServerContainerInitializer.configureContext(context);
 
-            ServerEndpointConfig subscriptionEndpoint = ServerEndpointConfig.Builder
-                    .create(SubscriptionWebSocket.class, elideStandaloneSettings.getSubscriptionProperties().getPath())
-                    .configurator(SubscriptionWebSocketConfigurator.builder()
-                            .baseUrl("/subscription")
-                            .connectionFactory(elideStandaloneSettings.getSubscriptionProperties()
-                                    .getConnectionFactory())
-                            .sendPingOnSubscribe(true)
-                            .build())
-                    .build();
-            container.addEndpoint(subscriptionEndpoint);
+            ServerEndpointConfig subscriptionEndpoint =
+                    subscriptionSettings.serverEndpointConfig(elideStandaloneSettings);
 
+            container.addEndpoint(subscriptionEndpoint);
         }
 
         if (elideStandaloneSettings.getAsyncProperties().enableExport()) {
