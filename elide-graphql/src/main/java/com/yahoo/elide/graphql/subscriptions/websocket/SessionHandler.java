@@ -108,7 +108,7 @@ public class SessionHandler {
 
     /**
      * Close this session.
-     * @throws IOException
+     * @throws IOException If closing the session causes an error.
      */
     public synchronized void close(CloseReason reason) throws IOException {
 
@@ -282,10 +282,9 @@ public class SessionHandler {
     }
 
     /**
-     * Send a text message on the native session.  Synchronized to protect session & isOpen
+     * Send a text message on the native session.  Synchronized to protect session and isOpen
      * (which has dubious thread safety - even when async).
      * @param message The message to send.
-     * @throws IOException
      */
     public synchronized void sendMessage(String message) {
 

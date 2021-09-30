@@ -28,7 +28,7 @@ public @interface Subscription {
 
     /**
      * Notify subscribers whenever a model is manipulated by the given operations.
-     * @return
+     * @return operation topics to post on.
      */
     Operation[] operations() default { CREATE, UPDATE, DELETE };
 }

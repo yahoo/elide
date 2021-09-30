@@ -91,7 +91,7 @@ public class RequestHandler implements Closeable {
 
     /**
      * Close this session.  Synchronized to protect transaction.
-     * @throws IOException
+     * @throws IOException If there is a problem closing the underlying transaction.
      */
     public synchronized void close() throws IOException {
         if (! isOpen.compareAndExchange(true, false)) {
@@ -109,7 +109,6 @@ public class RequestHandler implements Closeable {
     /**
      * Handles an incoming GraphQL query.
      * @param subscribeRequest The GraphQL query.
-     * @return true if the request is still active (ie. - a subscription).
      */
     public void handleRequest(Subscribe subscribeRequest) {
         ExecutionResult executionResult = null;
