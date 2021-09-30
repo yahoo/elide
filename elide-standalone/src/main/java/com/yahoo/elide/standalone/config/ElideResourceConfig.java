@@ -97,7 +97,6 @@ public class ElideResourceConfig extends ResourceConfig {
 
             DataStore dataStore;
 
-
             if (settings.getAnalyticProperties().enableAggregationDataStore()) {
                 MetaDataStore metaDataStore = settings.getMetaDataStore(classScanner, dynamicConfiguration);
                 if (metaDataStore == null) {

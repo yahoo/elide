@@ -482,7 +482,6 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
         String complete = "{\"id\":\"5d585eff-ed05-48c2-8af7-ad662930ba74\",\"type\":\"complete\"}";
-        //Complete complete = Complete.builder().id("1").build();
 
         endpoint.onMessage(session, complete);
     }

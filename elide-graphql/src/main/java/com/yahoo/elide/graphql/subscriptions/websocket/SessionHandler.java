@@ -255,6 +255,7 @@ public class SessionHandler {
         try {
             sendMessage(mapper.writeValueAsString(ack));
         } catch (JsonProcessingException e) {
+            log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose(INTERNAL_ERROR);
         }
     }
@@ -266,6 +267,7 @@ public class SessionHandler {
         try {
             sendMessage(mapper.writeValueAsString(pong));
         } catch (JsonProcessingException e) {
+            log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose(INTERNAL_ERROR);
         }
     }

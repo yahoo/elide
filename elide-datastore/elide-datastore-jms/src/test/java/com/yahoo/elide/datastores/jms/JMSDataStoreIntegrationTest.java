@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.datastores.jms.TestBinder.EMBEDDED_JMS_URL;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -64,7 +65,7 @@ public class JMSDataStoreIntegrationTest {
         //Startup up an embedded active MQ.
         embedded = new EmbeddedActiveMQ();
         Configuration configuration = new ConfigurationImpl();
-        configuration.addAcceptorConfiguration("default", "vm://0");
+        configuration.addAcceptorConfiguration("default", EMBEDDED_JMS_URL);
         configuration.setPersistenceEnabled(false);
         configuration.setSecurityEnabled(false);
         configuration.setJournalType(JournalType.NIO);
@@ -118,7 +119,7 @@ public class JMSDataStoreIntegrationTest {
                 .create(SubscriptionWebSocket.class, "/subscription")
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl("/subscription")
-                        .connectionFactory(new ActiveMQConnectionFactory("vm://0"))
+                        .connectionFactory(new ActiveMQConnectionFactory(EMBEDDED_JMS_URL))
                         .sendPingOnSubscribe(true)
                         .build())
                 .build();

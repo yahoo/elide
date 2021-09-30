@@ -31,6 +31,8 @@ import javax.jms.ConnectionFactory;
  */
 public class TestBinder extends AbstractBinder {
 
+    public static final String EMBEDDED_JMS_URL = "vm://0";
+
     private final AuditLogger auditLogger;
     private final ServiceLocator injector;
 
@@ -49,7 +51,7 @@ public class TestBinder extends AbstractBinder {
 
         bind(dictionary).to(EntityDictionary.class);
 
-        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://0");
+        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(EMBEDDED_JMS_URL);
 
         bind(connectionFactory).to(ConnectionFactory.class);
 
