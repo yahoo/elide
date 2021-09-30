@@ -1,6 +1,6 @@
 # Change Log
 
-## 6.0.0-pr2
+## 6.0.0-pr3
 Prerelease candidate for Elide 6.  
 
 ### New Features in Elide 6.X
