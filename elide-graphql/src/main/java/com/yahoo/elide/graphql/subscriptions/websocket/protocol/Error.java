@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 /**
- * Error occurred during setup of the subscription (server -> client).
+ * Error occurred during setup of the subscription (server to client).
  */
 @Value
 @EqualsAndHashCode(callSuper = true)

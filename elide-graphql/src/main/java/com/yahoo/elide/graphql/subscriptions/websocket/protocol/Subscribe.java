@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Create a subscription (client -> server).
+ * Create a subscription (client to server).
  */
 @Value
 @EqualsAndHashCode(callSuper = true)

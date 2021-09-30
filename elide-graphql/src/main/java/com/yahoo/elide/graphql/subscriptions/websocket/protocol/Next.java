@@ -19,7 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 /**
- * Next subscription message (server -> client).
+ * Next subscription message (server to client).
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
