@@ -46,7 +46,7 @@ jobs:
     steps:
       - build: mvn -B clean verify coveralls:report
 
-  release:
+  release-java11:
     image: maven:3.8.2-openjdk-11
     secrets:
         - GPG_KEYNAME
@@ -54,12 +54,12 @@ jobs:
         - GPG_ENCPHRASE
         - OSSRH_USER
         - OSSRH_TOKEN
-    requires: [~tag, ~release]
+    requires: [~tag:/^6/, ~release:/^6/]
     steps:
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
       
-  release-elide5:
+  release-java8:
     image: maven:3.6.3-jdk-8
     secrets:
         - GPG_KEYNAME
@@ -67,7 +67,7 @@ jobs:
         - GPG_ENCPHRASE
         - OSSRH_USER
         - OSSRH_TOKEN
-    requires: [~tag:elide-5.x, ~release:elide-5.x]
+    requires: [~tag:/^4|5/, ~release:/^4|5/]
     steps:
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"      
