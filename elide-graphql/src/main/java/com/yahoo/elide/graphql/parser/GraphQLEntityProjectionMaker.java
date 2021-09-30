@@ -194,7 +194,7 @@ public class GraphQLEntityProjectionMaker {
     private EntityProjection createProjection(Type<?> entityType, Field entityField) {
         final EntityProjectionBuilder projectionBuilder = EntityProjection.builder()
                 .type(entityType)
-                .pagination(PaginationImpl.getDefaultPagination(entityType, elideSettings));
+                .pagination(getDefaultPagination(entityType));
 
         // Add the Entity Arguments to the Projection
         projectionBuilder.arguments(new HashSet<>(
@@ -565,7 +565,9 @@ public class GraphQLEntityProjectionMaker {
                         .name(clientArgument.get().getName())
                         .value(
                                 variableResolver.resolveValue(
-                                        clientArgument.get().getValue()))
+                                        clientArgument.get().getValue(),
+                                        Optional.of(argumentType.getType())
+                                ))
                         .build());
 
             //If not, check if there is a default value for this argument.
@@ -588,5 +590,9 @@ public class GraphQLEntityProjectionMaker {
             return true;
         }
         return false;
+    }
+
+    protected Pagination getDefaultPagination(Type<?> entityType) {
+        return PaginationImpl.getDefaultPagination(entityType, elideSettings);
     }
 }

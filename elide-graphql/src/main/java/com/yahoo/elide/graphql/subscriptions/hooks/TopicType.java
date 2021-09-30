@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.jms;
+package com.yahoo.elide.graphql.subscriptions.hooks;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
@@ -12,6 +12,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import lombok.Getter;
 
 /**
@@ -21,7 +22,8 @@ import lombok.Getter;
 public enum TopicType {
     ADDED("Added", CREATE),
     DELETED("Deleted", DELETE),
-    UPDATED("Updated", UPDATE);
+    UPDATED("Updated", UPDATE),
+    CUSTOM("", null);
 
     private final String topicSuffix;
     private final LifeCycleHookBinding.Operation operation;
@@ -51,6 +53,25 @@ public enum TopicType {
      * @return The corresponding topic type.
      */
     public static TopicType fromOperation(LifeCycleHookBinding.Operation op) {
+        switch (op) {
+            case CREATE: {
+                return ADDED;
+            }
+            case DELETE: {
+                return DELETED;
+            }
+            default : {
+                return UPDATED;
+            }
+        }
+    }
+
+    /**
+     * Converts a LifeCycleHookBinding to a topic type.
+     * @param op The lifecyle operation
+     * @return The corresponding topic type.
+     */
+    public static TopicType fromOperation(Subscription.Operation op) {
         switch (op) {
             case CREATE: {
                 return ADDED;

@@ -39,8 +39,6 @@
 
     <properties>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
-        <min_jdk_version>1.8</min_jdk_version>
-        <max_jdk_version>1.8</max_jdk_version>
     </properties>
 
     <dependencies>
@@ -77,6 +75,13 @@
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-jms</artifactId>
+            <version>6.0.0-pr1-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
             <version>6.0.0-pr1-SNAPSHOT</version>
             <optional>true</optional>
@@ -99,6 +104,20 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-websocket</artifactId>
+            <optional>true</optional>
+        </dependency>
+        -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
             <optional>true</optional>
         </dependency>
 
@@ -192,6 +211,19 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-artemis</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-jms-server</artifactId>
+            <version>2.18.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
@@ -224,19 +256,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>${min_jdk_version}</source>
-                    <target>${min_jdk_version}</target>
-                    <showDeprecation>true</showDeprecation>
-                    <showWarnings>true</showWarnings>
-                    <optimize>true</optimize>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>

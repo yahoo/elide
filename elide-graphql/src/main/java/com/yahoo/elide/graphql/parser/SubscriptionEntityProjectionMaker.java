@@ -7,8 +7,8 @@
 package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.type.Type;
-
 import graphql.language.OperationDefinition;
 
 import java.util.Map;
@@ -22,24 +22,15 @@ public class SubscriptionEntityProjectionMaker extends GraphQLEntityProjectionMa
     }
 
     @Override
-    protected Type<?> getRootEntity(String entityName, String apiVersion) {
-        String [] suffixes = {"Added", "Deleted", "Updated"};
-
-        for (String suffix : suffixes) {
-            if (entityName.endsWith(suffix)) {
-                entityName = entityName.substring(0, entityName.length() - suffix.length());
-                break;
-            }
-        }
-
-        return entityDictionary.getEntityClass(entityName, apiVersion);
-    }
-
-    @Override
     protected boolean supportsOperationType(OperationDefinition.Operation operation) {
         if (operation != OperationDefinition.Operation.MUTATION) {
             return true;
         }
         return false;
+    }
+
+    @Override
+    protected Pagination getDefaultPagination(Type<?> entityType) {
+        return null;
     }
 }

@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,10 +41,13 @@ import javax.ws.rs.core.MediaType;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneTest {
     protected ElideStandalone elide;
+    protected ElideStandaloneSettings settings;
 
     @BeforeAll
     public void init() throws Exception {
-        elide = new ElideStandalone(new ElideStandaloneTestSettings());
+        settings = new ElideStandaloneTestSettings();
+
+        elide = new ElideStandalone(settings);
         elide.start(false);
     }
 
@@ -71,7 +75,6 @@ public class ElideStandaloneTest {
             )
             .post("/api/v1/post")
             .then()
-
             .statusCode(HttpStatus.SC_CREATED);
 
         // Test the Dynamic Generated Analytical Model is accessible

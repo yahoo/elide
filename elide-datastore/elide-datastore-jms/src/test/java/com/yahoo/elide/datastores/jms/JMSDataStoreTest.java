@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.jms;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.datastores.jms.TestBinder.EMBEDDED_JMS_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,30 +19,44 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import example.Author;
 import example.Book;
+import example.Chat;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
+import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JMSDataStoreTest {
 
-    @Test
-    public void testLoadObjects() throws Exception {
-        EmbeddedActiveMQ embedded = new EmbeddedActiveMQ();
+    protected ConnectionFactory connectionFactory;
+    protected EntityDictionary dictionary;
+    protected JMSDataStore store;
+    protected EmbeddedActiveMQ embedded;
+
+    @BeforeAll
+    public void init() throws Exception {
+        embedded = new EmbeddedActiveMQ();
         Configuration configuration = new ConfigurationImpl();
-        configuration.addAcceptorConfiguration("default", "vm://0");
+        configuration.addAcceptorConfiguration("default", EMBEDDED_JMS_URL);
         configuration.setPersistenceEnabled(false);
         configuration.setSecurityEnabled(false);
         configuration.setJournalType(JournalType.NIO);
@@ -48,10 +64,29 @@ public class JMSDataStoreTest {
         embedded.setConfiguration(configuration);
         embedded.start();
 
-        ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://0");
+        connectionFactory = new ActiveMQConnectionFactory(EMBEDDED_JMS_URL);
+        dictionary = EntityDictionary.builder().build();
 
-        EntityDictionary dictionary = EntityDictionary.builder().build();
+        store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class),
+                ClassType.of(Chat.class)),
+                connectionFactory, dictionary, new ObjectMapper(), 2500);
+        store.populateEntityDictionary(dictionary);
+    }
 
+    @AfterAll
+    public void shutdown() throws Exception {
+        embedded.stop();
+    }
+
+    @Test
+    public void testModelLabels() throws Exception {
+        assertFalse(store.models.get(ClassType.of(Book.class)));
+        assertFalse(store.models.get(ClassType.of(Author.class)));
+        assertTrue(store.models.get(ClassType.of(Chat.class)));
+    }
+
+    @Test
+    public void testLoadObjects() throws Exception {
         Author author1 = new Author();
         author1.setId(1);
         author1.setName("Jon Doe");
@@ -65,23 +100,22 @@ public class JMSDataStoreTest {
         book2.setTitle("Grapes of Wrath");
         book2.setId(2);
 
-        JMSDataStore store = new JMSDataStore(Sets.newHashSet(
-                ClassType.of(Book.class), ClassType.of(Author.class)), cf, dictionary);
-        store.populateEntityDictionary(dictionary);
-
         try (DataStoreTransaction tx = store.beginReadTransaction()) {
 
-            RequestScope scope = new SubscriptionRequestScope(
+
+            RequestScope scope = new RequestScope(
                     "/json",
+                    "/",
+                    NO_VERSION,
+                    null,
                     tx,
                     null,
-                    "1.0",
+                    null,
+                    Collections.EMPTY_MAP,
+                    UUID.randomUUID(),
                     new ElideSettingsBuilder(store)
                             .withEntityDictionary(dictionary)
-                            .build(),
-                    null,
-                    null,
-                    2000);
+                            .build());
 
             Iterable<Book> books = tx.loadObjects(
                     EntityProjection.builder()
@@ -93,7 +127,7 @@ public class JMSDataStoreTest {
                     scope
             );
 
-            JMSContext context = cf.createContext();
+            JMSContext context = connectionFactory.createContext();
             Destination destination = context.createTopic("bookAdded");
 
             JMSProducer producer = context.createProducer();

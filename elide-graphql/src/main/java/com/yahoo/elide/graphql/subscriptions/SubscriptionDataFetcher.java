@@ -31,7 +31,7 @@ public class SubscriptionDataFetcher implements DataFetcher<Object>, QueryLogger
     private final Integer bufferSize;
 
     /**
-     * Constructor
+     * Constructor.
      * @param nonEntityDictionary Entity dictionary for types that are not Elide models.
      */
     public SubscriptionDataFetcher(NonEntityDictionary nonEntityDictionary) {
@@ -39,7 +39,7 @@ public class SubscriptionDataFetcher implements DataFetcher<Object>, QueryLogger
     }
 
     /**
-     * Constructor
+     * Constructor.
      * @param nonEntityDictionary Entity dictionary for types that are not Elide models.
      * @param bufferSize Internal buffer for reactive streams.
      */

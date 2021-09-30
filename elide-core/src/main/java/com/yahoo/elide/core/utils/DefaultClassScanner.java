@@ -1,10 +1,13 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.core.utils;
 
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -29,14 +32,20 @@ public class DefaultClassScanner implements ClassScanner {
      */
     private static final String [] CACHE_ANNOTATIONS  = {
             //Elide Core Annotations
-            "com.yahoo.elide.annotation.Include",
-            "com.yahoo.elide.annotation.SecurityCheck",
-            "com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter",
+            Include.class.getCanonicalName(),
+            SecurityCheck.class.getCanonicalName(),
+            ElideTypeConverter.class.getCanonicalName(),
 
-            //Aggregation Store Annotations
+            //GraphQL annotations.  Strings here to avoid dependency.
+            "com.yahoo.elide.graphql.subscriptions.annotations.Subscription",
+            "com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField",
+
+            //Aggregation Store Annotations.  Strings here to avoid dependency.
             "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable",
             "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery",
             "org.hibernate.annotations.Subselect",
+
+            //JPA
             "javax.persistence.Entity",
             "javax.persistence.Table"
     };

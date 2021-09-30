@@ -32,6 +32,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -180,7 +181,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(Arrays.asList(author1, author2));
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
+        Collection<Object> loaded = ImmutableList.copyOf(inMemoryStoreTransaction.loadObjects(projection, scope));
 
         assertEquals(1, loaded.size());
         assertTrue(loaded.contains(author1));
@@ -230,8 +231,8 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(relationship.getProjection()))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
         when(wrappedTransaction.getRelation(eq(inMemoryStoreTransaction), eq(author1), any(), eq(scope))).thenReturn(books);
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.getRelation(
-                inMemoryStoreTransaction, author1, relationship, scope);
+        Collection<Object> loaded = ImmutableList.copyOf((Iterable) inMemoryStoreTransaction.getRelation(
+                inMemoryStoreTransaction, author1, relationship, scope));
 
         verify(wrappedTransaction, times(1)).getRelation(
                 eq(inMemoryStoreTransaction),
@@ -264,7 +265,7 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
+        Collection<Object> loaded = ImmutableList.copyOf(inMemoryStoreTransaction.loadObjects(projection, scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
                 projectionArgument.capture(),
@@ -296,9 +297,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.PARTIAL);
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
-                projection,
-                scope);
+        Collection<Object> loaded = ImmutableList.copyOf(inMemoryStoreTransaction.loadObjects(projection, scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
                 projectionArgument.capture(),

@@ -19,7 +19,7 @@ import javax.jms.JMSConsumer;
 import javax.jms.JMSRuntimeException;
 import javax.jms.TextMessage;
 
-public class MessageIteratorTest {
+public class MessageIterableTest {
 
     @Test
     public void testIteratorMultipleItems() throws Exception {
@@ -37,7 +37,7 @@ public class MessageIteratorTest {
                 .thenReturn(msg3)
                 .thenThrow(new JMSRuntimeException("timeout"));
 
-        Iterator<String> iterator = new MessageIterator(
+        Iterator<String> iterator = new MessageIterable(
                 consumer,
                 1000,
                 new MessageDeserializer(ClassType.of(String.class))).iterator();
@@ -61,7 +61,7 @@ public class MessageIteratorTest {
                 .thenReturn(msg1)
                 .thenReturn(null);
 
-        Iterator<String> iterator = new MessageIterator(
+        Iterator<String> iterator = new MessageIterable(
                 consumer,
                 0,
                 new MessageDeserializer(ClassType.of(String.class))).iterator();
@@ -81,7 +81,7 @@ public class MessageIteratorTest {
                 .thenReturn(msg1)
                 .thenReturn(null);
 
-        Iterator<String> iterator = new MessageIterator(
+        Iterator<String> iterator = new MessageIterable(
                 consumer,
                 -1,
                 new MessageDeserializer(ClassType.of(String.class))).iterator();
