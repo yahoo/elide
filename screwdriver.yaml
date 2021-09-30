@@ -8,7 +8,7 @@ shared:
    annotations:
        screwdriver.cd/cpu: TURBO
        screwdriver.cd/ram: TURBO
-   image: maven:3.6.3-jdk-8
+
    environment:
        #Fetches history so Sonar can assign blame.
        GIT_SHALLOW_CLONE: false
@@ -31,6 +31,7 @@ jobs:
       - build: mvn -B clean verify coveralls:report
 
   elide-5-build:
+    image: maven:3.6.3-jdk-8
     requires: [~pr:elide-5.x, ~commit:elide-5.x]
     secrets:
         - COVERALLS_REPO_TOKEN
@@ -38,6 +39,7 @@ jobs:
       - build: mvn -B clean verify coveralls:report
 
   elide-4-build:
+    image: maven:3.6.3-jdk-8
     requires: [~pr:elide-4.x, ~commit:elide-4.x]
     secrets:
         - COVERALLS_REPO_TOKEN
@@ -45,6 +47,7 @@ jobs:
       - build: mvn -B clean verify coveralls:report
 
   release:
+    image: maven:3.8.2-openjdk-11
     secrets:
         - GPG_KEYNAME
         - GPG_PASSPHRASE
@@ -55,4 +58,17 @@ jobs:
     steps:
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
+      
+  release-elide5:
+    image: maven:3.6.3-jdk-8
+    secrets:
+        - GPG_KEYNAME
+        - GPG_PASSPHRASE
+        - GPG_ENCPHRASE
+        - OSSRH_USER
+        - OSSRH_TOKEN
+    requires: [~tag:elide-5.x, ~release:elide-5.x]
+    steps:
+      - build: "screwdriver/scripts/build.sh"
+      - publish: "screwdriver/scripts/publish.sh"      
 
