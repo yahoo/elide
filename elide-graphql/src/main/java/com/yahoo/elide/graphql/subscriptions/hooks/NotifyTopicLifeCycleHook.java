@@ -53,26 +53,13 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             LifeCycleHookBinding.TransactionPhase phase,
             CRUDEvent event) {
 
-        try (JMSContext context = connectionFactory.createContext()) {
+        PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
 
-            PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
+        Type<?> modelType = resource.getResourceType();
+        TopicType topicType = TopicType.fromOperation(operation);
+        String topicName = topicType.toTopicName(modelType, resource.getDictionary());
 
-            Type<?> modelType = resource.getResourceType();
-
-            TopicType topicType = TopicType.fromOperation(operation);
-            String topicName = topicType.toTopicName(modelType, resource.getDictionary());
-
-            JMSProducer producer = createProducer.apply(context);
-            Destination destination = context.createTopic(topicName);
-
-            try {
-                String message = mapper.writeValueAsString(resource.getObject());
-                log.debug("Serializing {} {}", modelType, message);
-                producer.send(destination, message);
-            } catch (JsonProcessingException e) {
-                throw new IllegalStateException(e);
-            }
-        }
+        publish(resource.getObject(), topicName);
     }
 
     @Override
@@ -83,5 +70,26 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             RequestScope requestScope,
             Optional<ChangeSpec> changes) {
         //NOOP
+    }
+
+    /**
+     * Publishes an object to a JMS topic.
+     * @param object The object to publish.
+     * @param topicName The topic name to publish to.
+     */
+    public void publish(T object, String topicName) {
+        try (JMSContext context = connectionFactory.createContext()) {
+
+            JMSProducer producer = createProducer.apply(context);
+            Destination destination = context.createTopic(topicName);
+
+            try {
+                String message = mapper.writeValueAsString(object);
+                log.debug("Serializing {}", message);
+                producer.send(destination, message);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
+            }
+        }
     }
 }

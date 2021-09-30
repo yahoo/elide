@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import example.Author;
 import example.Book;
+import example.Chat;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
@@ -65,7 +66,8 @@ public class JMSDataStoreTest {
         connectionFactory = new ActiveMQConnectionFactory("vm://0");
         dictionary = EntityDictionary.builder().build();
 
-        store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class)),
+        store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class),
+                ClassType.of(Chat.class)),
                 connectionFactory, dictionary, new ObjectMapper(), 2500);
         store.populateEntityDictionary(dictionary);
     }
@@ -73,6 +75,13 @@ public class JMSDataStoreTest {
     @AfterAll
     public void shutdown() throws Exception {
         embedded.stop();
+    }
+
+    @Test
+    public void testModelLabels() throws Exception {
+        assertFalse(store.models.get(ClassType.of(Book.class)));
+        assertFalse(store.models.get(ClassType.of(Author.class)));
+        assertTrue(store.models.get(ClassType.of(Chat.class)));
     }
 
     @Test

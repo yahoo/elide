@@ -22,20 +22,6 @@ public class SubscriptionEntityProjectionMaker extends GraphQLEntityProjectionMa
     }
 
     @Override
-    protected Type<?> getRootEntity(String entityName, String apiVersion) {
-        String [] suffixes = {"Added", "Deleted", "Updated"};
-
-        for (String suffix : suffixes) {
-            if (entityName.endsWith(suffix)) {
-                entityName = entityName.substring(0, entityName.length() - suffix.length());
-                break;
-            }
-        }
-
-        return entityDictionary.getEntityClass(entityName, apiVersion);
-    }
-
-    @Override
     protected boolean supportsOperationType(OperationDefinition.Operation operation) {
         if (operation != OperationDefinition.Operation.MUTATION) {
             return true;

@@ -18,8 +18,8 @@ import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Builder;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.jms.ConnectionFactory;
@@ -28,14 +28,13 @@ import javax.jms.JMSContext;
 /**
  * Elide datastore that reads models from JMS message topics.
  */
-@Builder
 public class JMSDataStore implements DataStore {
-    protected Set<Type<?>> models;
+    //Maps supported models to whether they are custom or not.
+    protected Map<Type<?>, Boolean> models;
     protected ConnectionFactory connectionFactory;
     protected EntityDictionary dictionary;
     protected ObjectMapper mapper;
 
-    @Builder.Default
     protected long timeoutInMs = -1;
 
     /**
@@ -53,7 +52,15 @@ public class JMSDataStore implements DataStore {
             ObjectMapper mapper,
             long timeoutInMs
     ) {
-        this.models = models;
+        this.models = models.stream().collect(Collectors.toMap(
+                (model) -> model,
+                (model) -> {
+                    Subscription subscription = model.getAnnotation(Subscription.class);
+                    return subscription != null
+                            && (subscription.operations() == null || subscription.operations().length == 0);
+                }
+        ));
+
         this.connectionFactory = connectionFactory;
         this.dictionary = dictionary;
         this.mapper = mapper;
@@ -75,28 +82,30 @@ public class JMSDataStore implements DataStore {
             ObjectMapper mapper,
             long timeoutInMs
     ) {
-        this.models = scanner.getAnnotatedClasses(Subscription.class, SubscriptionField.class).stream()
-                .map(ClassType::of)
-                .collect(Collectors.toSet());
-
-        this.connectionFactory = connectionFactory;
-        this.dictionary = dictionary;
-        this.mapper = mapper;
-        this.timeoutInMs = timeoutInMs;
+        this(
+                scanner.getAnnotatedClasses(Subscription.class, SubscriptionField.class).stream()
+                        .map(ClassType::of)
+                        .collect(Collectors.toSet()),
+                connectionFactory, dictionary, mapper, timeoutInMs);
     }
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        for (Type<?> model : models) {
+        for (Type<?> model : models.keySet()) {
+
+            Boolean isCustom = models.get(model);
+
             dictionary.bindEntity(model);
 
-            //Add topic type argument to each model.
-            dictionary.addArgumentToEntity(model, ArgumentType
-                    .builder()
-                    .name(TOPIC_ARGUMENT)
-                    .defaultValue(TopicType.ADDED)
-                    .type(ClassType.of(TopicType.class))
-                    .build());
+            if (! isCustom) {
+                //Add topic type argument to each model.
+                dictionary.addArgumentToEntity(model, ArgumentType
+                        .builder()
+                        .name(TOPIC_ARGUMENT)
+                        .defaultValue(TopicType.ADDED)
+                        .type(ClassType.of(TopicType.class))
+                        .build());
+            }
         }
     }
 

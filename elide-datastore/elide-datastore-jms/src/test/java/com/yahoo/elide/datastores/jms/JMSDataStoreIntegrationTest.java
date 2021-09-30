@@ -405,6 +405,41 @@ public class JMSDataStoreIntegrationTest {
         }
     }
 
+    @Test
+    public void testCustomSubscription() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(3,
+                List.of("subscription {chat {id message}}"));
+
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
+                                            type("chatBot"),
+                                            id("1"),
+                                            attributes(attr("name", "SocialBot"))
+                                    )
+                            )
+                    )
+                    .post("/chatBot")
+                    .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
+
+            List<ExecutionResult> results = client.waitOnClose(10);
+            assertEquals(3, results.size());
+            assertEquals("{chat={id=1, message=Hello!}}", results.get(0).getData().toString());
+            assertEquals("{chat={id=2, message=How is your day?}}", results.get(1).getData().toString());
+            assertEquals("{chat={id=3, message=My name is SocialBot}}", results.get(2).getData().toString());
+        }
+    }
+
     public static Integer getRestAssuredPort() {
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         return Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");

@@ -16,6 +16,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import example.Author;
 import example.Book;
+import example.ChatBot;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -48,15 +49,18 @@ public class TestBinder extends AbstractBinder {
 
         bind(dictionary).to(EntityDictionary.class);
 
+        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://0");
+
+        bind(connectionFactory).to(ConnectionFactory.class);
+
         // Primary Elide instance for CRUD endpoints.
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
 
-                HashMapDataStore inMemoryStore = new HashMapDataStore(Set.of(Book.class, Author.class));
+                HashMapDataStore inMemoryStore = new HashMapDataStore(Set.of(Book.class, Author.class, ChatBot.class));
                 Elide elide = buildElide(inMemoryStore, dictionary);
 
-                ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://0");
                 SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
                         .connectionFactory(connectionFactory)
                         .mapper(elide.getMapper().getObjectMapper())
