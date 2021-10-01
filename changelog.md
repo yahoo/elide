@@ -1,4 +1,7 @@
 # Change Log
+## 6.0.0-pr4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/0eb1624a401c9099c0e9f1f3fb539144cb3b97a1) Added new flag to enable subscription publishing in a separate service.  Disallow queries in subscription endpoint. (#2320) 
 
 ## 6.0.0-pr3
 Prerelease candidate for Elide 6.  
