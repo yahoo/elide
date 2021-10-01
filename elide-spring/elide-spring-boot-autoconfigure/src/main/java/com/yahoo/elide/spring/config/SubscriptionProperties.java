@@ -14,6 +14,11 @@ import lombok.Data;
 public class SubscriptionProperties extends ControllerProperties {
 
     /**
+     * Whether Elide should publish subscription notifications to JMS on lifecycle events.
+     */
+    protected boolean publishingEnabled = isEnabled();
+
+    /**
      * Websocket sends a PING immediate after receiving a SUBSCRIBE.  Only useful for testing.
      * @see com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient
      */

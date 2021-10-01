@@ -30,6 +30,15 @@ public interface ElideStandaloneSubscriptionSettings {
     }
 
     /**
+     * Enable support for subscriptions.
+     *
+     * @return Default: False
+     */
+    default boolean publishingEnabled() {
+        return enabled();
+    }
+
+    /**
      * Websocket root path for the subscription endpoint.
      *
      * @return Default: /subscription

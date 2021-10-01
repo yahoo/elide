@@ -133,7 +133,7 @@ public class ElideResourceConfig extends ResourceConfig {
             bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
 
             //Bind subscription hooks.
-            if (settings.getSubscriptionProperties().enabled()) {
+            if (settings.getSubscriptionProperties().publishingEnabled()) {
                 settings.getSubscriptionProperties().subscriptionScanner(elide,
                         settings.getSubscriptionProperties().getConnectionFactory());
             }

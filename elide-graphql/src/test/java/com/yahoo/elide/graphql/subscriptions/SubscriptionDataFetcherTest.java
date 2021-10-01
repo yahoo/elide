@@ -143,6 +143,26 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     }
 
     @Test
+    void testRootNonSchemaQuery() {
+        Book book1 = new Book();
+        book1.setTitle("Book 1");
+        book1.setId(1);
+
+        Book book2 = new Book();
+        book2.setTitle("Book 2");
+        book2.setId(2);
+
+        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+
+        List<String> responses = List.of("{\"book\":null}");
+        List<String> errors = List.of("QUERY not supported for subscription models");
+
+        String graphQLRequest = "query {book(topic: ADDED) {id title}}";
+
+        assertSubscriptionEquals(graphQLRequest, responses, errors);
+    }
+
+    @Test
     void testRootSubscriptionWithFilter() {
         Book book1 = new Book();
         book1.setTitle("Book 1");

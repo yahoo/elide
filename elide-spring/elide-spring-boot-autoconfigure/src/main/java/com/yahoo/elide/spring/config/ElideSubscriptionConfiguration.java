@@ -29,12 +29,12 @@ import javax.websocket.server.ServerEndpointConfig;
  */
 @Configuration
 @EnableConfigurationProperties(ElideConfigProperties.class)
-@ConditionalOnExpression("${elide.subscription.enabled:false}")
 public class ElideSubscriptionConfiguration {
     public static final String SUBSCRIPTION_MODELS = "subscriptionModels";
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnExpression("${elide.subscription.enabled:false} or ${elide.subscription.publishingEnabled:false}")
     SubscriptionScanner subscriptionScanner(Elide elide, ConnectionFactory connectionFactory) {
         SubscriptionScanner scanner = SubscriptionScanner.builder()
 
@@ -58,6 +58,7 @@ public class ElideSubscriptionConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnExpression("${elide.subscription.enabled:false}")
     ServerEndpointConfig serverEndpointConfig(
             ElideConfigProperties config,
             SubscriptionWebSocket.UserFactory userFactory,
@@ -86,6 +87,7 @@ public class ElideSubscriptionConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnExpression("${elide.subscription.enabled:false}")
     ServerEndpointExporter serverEndpointExporter() {
         ServerEndpointExporter exporter = new ServerEndpointExporter();
         return exporter;
@@ -93,6 +95,7 @@ public class ElideSubscriptionConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnExpression("${elide.subscription.enabled:false}")
     SubscriptionWebSocket.UserFactory getUserFactory() {
         return DEFAULT_USER_FACTORY;
     }
