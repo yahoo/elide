@@ -23,7 +23,7 @@ public class SubscriptionEntityProjectionMaker extends GraphQLEntityProjectionMa
 
     @Override
     protected boolean supportsOperationType(OperationDefinition.Operation operation) {
-        if (operation != OperationDefinition.Operation.MUTATION) {
+        if (operation == OperationDefinition.Operation.SUBSCRIPTION) {
             return true;
         }
         return false;

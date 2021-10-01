@@ -7,12 +7,14 @@
 package com.yahoo.elide.graphql.subscriptions;
 
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.QueryLogger;
 import com.yahoo.elide.graphql.RelationshipOp;
 import com.yahoo.elide.graphql.subscriptions.containers.SubscriptionNodeContainer;
+import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.reactivex.BackpressureStrategy;
@@ -50,8 +52,14 @@ public class SubscriptionDataFetcher implements DataFetcher<Object>, QueryLogger
 
     @Override
     public Object get(DataFetchingEnvironment environment) throws Exception {
+        OperationDefinition.Operation op = environment.getOperationDefinition().getOperation();
+        if (op != OperationDefinition.Operation.SUBSCRIPTION) {
+            throw new InvalidEntityBodyException(String.format("%s not supported for subscription models.", op));
+        }
+
         /* build environment object, extracts required fields */
         Environment context = new Environment(environment, nonEntityDictionary);
+
 
         /* safe enable debugging */
         if (log.isDebugEnabled()) {
