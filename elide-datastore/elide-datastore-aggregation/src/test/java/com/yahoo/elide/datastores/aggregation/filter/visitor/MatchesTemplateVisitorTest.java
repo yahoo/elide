@@ -13,6 +13,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import example.Player;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class MatchesTemplateVisitorTest {
     private RSQLFilterDialect dialect;
@@ -42,6 +44,32 @@ public class MatchesTemplateVisitorTest {
 
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{foo}}",
                 playerStatsType, false, true);
+
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        Argument expected = Argument.builder()
+                .name("foo")
+                .value(123L)
+                .build();
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+
+        assertEquals(1, extractedArgs.size());
+        assertEquals(extractedArgs.get("foo"), expected);
+    }
+
+    @Test
+    public void predicateWithAliasMatchesTest() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("highScore==123",
+                playerStatsType, true);
+
+        Attribute attribute = Attribute.builder()
+                .type(ClassType.of(Long.class))
+                .name("highScore")
+                .alias("myScore")
+                .build();
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("myScore=={{foo}}",
+                playerStatsType, false, true, Set.of(attribute));
 
         Map<String, Argument> extractedArgs = new HashMap<>();
         Argument expected = Argument.builder()
