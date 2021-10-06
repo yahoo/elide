@@ -101,7 +101,7 @@ public class CSVExportFormatter implements TableExportFormatter {
     public String postFormat(EntityProjection projection, TableExport query) {
         return null;
     }
-    
+
     private String toHeader(Attribute attribute) {
         if (attribute.getArguments() == null || attribute.getArguments().size() == 0) {
             return quote(attribute.getName());
