@@ -207,6 +207,26 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     }
 
     @Test
+    public void testValidRegexColumnValueInFilter() throws ParseException {
+        FilterExpression originalFilter = filterParser.parseFilterExpression("countryIsoCode=in=('*H'),lowScore<45",
+                playerStatsType, false);
+        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
+        FilterConstraints constraints = originalFilter.accept(visitor);
+        FilterExpression whereFilter = constraints.getWhereExpression();
+        FilterExpression havingFilter = constraints.getHavingExpression();
+
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("countryIsoCode"))
+                .whereFilter(whereFilter)
+                .havingFilter(havingFilter)
+                .build();
+
+        validateQueryDoesNotThrow(query);
+    }
+
+    @Test
     public void testHavingFilterOnDimensionTable() throws ParseException {
         FilterExpression originalFilter = filterParser.parseFilterExpression("country.isoCode==USA,lowScore<45",
                 playerStatsType, false);
