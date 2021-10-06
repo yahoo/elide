@@ -402,7 +402,7 @@ public class TableExportIT extends AsyncApiIT {
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        assertEquals("\"bookName\"\n"
+        assertEquals("\"title\"\n"
                 + "\"Ender's Game\"\n"
                 + "\"Song of Ice and Fire\"\n"
                 + "\"For Whom the Bell Tolls\"\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab28e"));
