@@ -9,6 +9,7 @@ import static com.yahoo.elide.datastores.aggregation.query.Queryable.extractFilt
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -22,18 +23,24 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Class that checks whether a constructed {@link Query} object can be executed.
  * Checks include validate sorting, having clause and make sure there is at least 1 metric queried.
  */
 public class DefaultQueryValidator implements QueryValidator {
+    private static final Set<Operator> REGEX_OPERATORS = Stream.of(Operator.INFIX, Operator.INFIX_CASE_INSENSITIVE,
+            Operator.POSTFIX, Operator.POSTFIX_CASE_INSENSITIVE, Operator.PREFIX, Operator.PREFIX_CASE_INSENSITIVE)
+        .collect(Collectors.toCollection(HashSet::new));
+
     protected EntityDictionary dictionary;
 
     public DefaultQueryValidator(EntityDictionary dictionary) {
@@ -117,6 +124,10 @@ public class DefaultQueryValidator implements QueryValidator {
         }
 
         if (column.getValues() == null || column.getValues().isEmpty()) {
+            return;
+        }
+
+        if (REGEX_OPERATORS.contains(predicate.getOperator())) {
             return;
         }
 
