@@ -33,7 +33,7 @@ public class HasMemberJPQLGeneratorTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Chapter.class);
 
-        dialect = new RSQLFilterDialect(dictionary);
+        dialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         aliasGenerator = (path) -> getFieldAlias(getPathAlias(path, dictionary),
                 path.lastElement().map(Path.PathElement::getFieldName).orElse(null));

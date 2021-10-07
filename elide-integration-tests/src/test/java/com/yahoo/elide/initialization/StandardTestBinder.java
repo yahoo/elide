@@ -50,7 +50,7 @@ public class StandardTestBinder extends AbstractBinder {
             @Override
             public Elide provide() {
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
-                RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+                RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
                 MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),

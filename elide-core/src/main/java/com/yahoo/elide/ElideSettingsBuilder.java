@@ -91,16 +91,16 @@ public class ElideSettingsBuilder {
     public ElideSettings build() {
         if (joinFilterDialects.isEmpty()) {
             joinFilterDialects.add(new DefaultFilterDialect(entityDictionary));
-            joinFilterDialects.add(new RSQLFilterDialect(entityDictionary));
+            joinFilterDialects.add(RSQLFilterDialect.builder().dictionary(entityDictionary).build());
         }
 
         if (subqueryFilterDialects.isEmpty()) {
             subqueryFilterDialects.add(new DefaultFilterDialect(entityDictionary));
-            subqueryFilterDialects.add(new RSQLFilterDialect(entityDictionary));
+            subqueryFilterDialects.add(RSQLFilterDialect.builder().dictionary(entityDictionary).build());
         }
 
         if (graphqlFilterDialect == null) {
-            graphqlFilterDialect = new RSQLFilterDialect(entityDictionary);
+            graphqlFilterDialect = RSQLFilterDialect.builder().dictionary(entityDictionary).build();
         }
 
         if (entityDictionary == null) {

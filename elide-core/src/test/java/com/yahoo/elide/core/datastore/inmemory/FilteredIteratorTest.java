@@ -41,7 +41,7 @@ public class FilteredIteratorTest {
         book3.setTitle("foobar");
         List<Book> books = List.of(book1, book2, book3);
 
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         FilterExpression expression =
                 filterDialect.parse(ClassType.of(Book.class), new HashSet<>(), "title==*bar", NO_VERSION);
@@ -65,7 +65,7 @@ public class FilteredIteratorTest {
 
         List<Book> books = List.of();
 
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         FilterExpression expression =
                 filterDialect.parse(ClassType.of(Book.class), new HashSet<>(), "title==*bar", NO_VERSION);

@@ -127,7 +127,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         SQLTable table = new SQLTable(new Namespace(DEFAULT_NAMESPACE), tableType, dictionary);
 
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
         FilterExpression where = filterDialect.parse(tableType, new HashSet<>(),
                 "recordedDate>=2019-07-12T00:00Z;recordedDate<2030-07-12T00:00Z", NO_VERSION);
 
@@ -174,7 +174,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         SQLTable table = new SQLTable(new Namespace(DEFAULT_NAMESPACE), tableType, dictionary);
 
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
         FilterExpression where = filterDialect.parse(tableType, new HashSet<>(),
                 "recordedDate>2019-07-12T00:00Z", NO_VERSION);
 

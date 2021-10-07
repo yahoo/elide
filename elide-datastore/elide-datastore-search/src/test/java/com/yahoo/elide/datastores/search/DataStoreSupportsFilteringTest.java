@@ -53,7 +53,7 @@ public class DataStoreSupportsFilteringTest {
         EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Item.class);
 
-        filterParser = new RSQLFilterDialect(dictionary);
+        filterParser = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         DataStore mockStore = mock(DataStore.class);
         wrappedTransaction = mock(DataStoreTransaction.class);

@@ -58,8 +58,8 @@ public class DefaultAsyncAPIDAOTest {
 
         ElideSettings elideSettings = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
-                .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
 

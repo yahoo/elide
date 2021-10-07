@@ -71,7 +71,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected ElideSettings settings;
 
     public PersistentResourceFetcherTest() {
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         settings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)

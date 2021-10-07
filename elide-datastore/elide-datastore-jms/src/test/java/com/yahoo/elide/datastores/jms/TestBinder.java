@@ -82,7 +82,7 @@ public class TestBinder extends AbstractBinder {
     }
 
     protected Elide buildElide(DataStore store, EntityDictionary dictionary) {
-        RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         return new Elide(new ElideSettingsBuilder(store)
                 .withAuditLogger(auditLogger)

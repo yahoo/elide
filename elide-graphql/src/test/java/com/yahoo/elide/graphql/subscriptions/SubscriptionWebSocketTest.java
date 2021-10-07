@@ -77,7 +77,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     protected ExecutorService executorService = MoreExecutors.newDirectExecutorService();
 
     public SubscriptionWebSocketTest() {
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         //This will be done by the JMS data store.
         dictionary.addArgumentToEntity(ClassType.of(Book.class), ArgumentType
