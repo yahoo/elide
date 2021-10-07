@@ -48,6 +48,9 @@ public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<List<
         }
 
         for (SqlNode node : call.getOperandList()) {
+            if (node == null) {
+                continue;
+            }
             List<List<String>> operandResults = node.accept(this);
             if (operandResults != null) {
                 result.addAll(operandResults);
@@ -60,6 +63,9 @@ public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<List<
     public List<List<String>> visit(SqlNodeList nodeList) {
         List<List<String>> result = new ArrayList<>();
         for (SqlNode node : nodeList) {
+            if (node == null) {
+                continue;
+            }
             List<List<String>> inner = node.accept(this);
             if (inner != null) {
                 result.addAll(inner);
