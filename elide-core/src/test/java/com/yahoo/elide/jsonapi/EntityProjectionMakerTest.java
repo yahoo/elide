@@ -34,6 +34,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -250,6 +252,8 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                        .attribute(Attribute.builder().name("vacationHomes").type(Set.class).build())
+                        .attribute(Attribute.builder().name("stuff").type(Map.class).build())
                         .attribute(Attribute.builder().name("awards").type(Collection.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
@@ -289,6 +293,8 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                        .attribute(Attribute.builder().name("vacationHomes").type(Set.class).build())
+                        .attribute(Attribute.builder().name("stuff").type(Map.class).build())
                         .attribute(Attribute.builder().name("awards").type(Collection.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
@@ -331,6 +337,8 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                        .attribute(Attribute.builder().name("vacationHomes").type(Set.class).build())
+                        .attribute(Attribute.builder().name("stuff").type(Map.class).build())
                         .attribute(Attribute.builder().name("awards").type(Collection.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
@@ -363,6 +371,8 @@ public class EntityProjectionMakerTest {
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                .attribute(Attribute.builder().name("vacationHomes").type(Set.class).build())
+                .attribute(Attribute.builder().name("stuff").type(Map.class).build())
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                 .attribute(Attribute.builder().name("awards").type(Collection.class).build())
@@ -422,6 +432,8 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                .attribute(Attribute.builder().name("vacationHomes").type(Set.class).build())
+                .attribute(Attribute.builder().name("stuff").type(Map.class).build())
                 .attribute(Attribute.builder().name("awards").type(Collection.class).build())
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
@@ -578,6 +590,8 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                .attribute(Attribute.builder().name("vacationHomes").type(Set.class).build())
+                .attribute(Attribute.builder().name("stuff").type(Map.class).build())
                 .attribute(Attribute.builder().name("awards").type(Collection.class).build())
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
@@ -701,6 +715,8 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                        .attribute(Attribute.builder().name("vacationHomes").type(Set.class).build())
+                        .attribute(Attribute.builder().name("stuff").type(Map.class).build())
                         .attribute(Attribute.builder().name("awards").type(Collection.class).build())
                         .filterExpression(new InPredicate(new Path(Author.class, dictionary, "name"), "Foo"))
                         .relationship("books", EntityProjection.builder()
