@@ -8,10 +8,10 @@ package com.yahoo.elide.async.export.formatter;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
-import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -84,20 +84,8 @@ public class CSVExportFormatter implements TableExportFormatter {
         }
 
         return projection.getAttributes().stream()
-        .map(attr -> {
-            StringBuilder column = new StringBuilder();
-            String alias = attr.getAlias();
-            column.append(StringUtils.isNotEmpty(alias) ? alias : attr.getName());
-            return column;
-        })
-        .map(quotable -> {
-            // Quotes at the beginning
-            quotable.insert(0, DOUBLE_QUOTES);
-            // Quotes at the end
-            quotable.append(DOUBLE_QUOTES);
-            return quotable;
-        })
-        .collect(Collectors.joining(COMMA));
+                .map(this::toHeader)
+                .collect(Collectors.joining(COMMA));
     }
 
     @Override
@@ -112,5 +100,27 @@ public class CSVExportFormatter implements TableExportFormatter {
     @Override
     public String postFormat(EntityProjection projection, TableExport query) {
         return null;
+    }
+
+    private String toHeader(Attribute attribute) {
+        if (attribute.getArguments() == null || attribute.getArguments().size() == 0) {
+            return quote(attribute.getName());
+        }
+
+        StringBuilder header = new StringBuilder();
+        header.append(attribute.getName());
+        header.append("(");
+
+        header.append(attribute.getArguments().stream()
+                .map((arg) -> arg.getName() + "=" + arg.getValue())
+                .collect(Collectors.joining(" ")));
+
+        header.append(")");
+
+        return quote(header.toString());
+    }
+
+    private String quote(String toQuote) {
+        return "\"" + toQuote + "\"";
     }
 }
