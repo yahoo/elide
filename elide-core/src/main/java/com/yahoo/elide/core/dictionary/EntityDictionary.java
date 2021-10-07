@@ -82,7 +82,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,6 +104,9 @@ import javax.ws.rs.WebApplicationException;
 @Slf4j
 @SuppressWarnings("static-method")
 public class EntityDictionary {
+
+    public static final EntityBindingLens ALL_MODELS = (entity) -> true;
+    public static final EntityBindingLens PUBLIC_MODELS_ONLY = EntityBinding::isElideModel;
 
     public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
     public static final String NO_VERSION = "";
@@ -136,7 +138,7 @@ public class EntityDictionary {
     protected final ClassScanner scanner;
 
     @Getter
-    protected final Function<Class, Serde> serdeLookup ;
+    protected final Function<Class, Serde> serdeLookup;
 
     @Getter
     private final Set<Type<?>> entitiesToExclude;
@@ -259,6 +261,10 @@ public class EntityDictionary {
         return m;
     }
 
+    public EntityBinding getEntityBinding(Type<?> entityClass) {
+        return getEntityBinding(entityClass, PUBLIC_MODELS_ONLY);
+    }
+
     /**
      * Returns an entity binding if the provided class has been bound in the dictionary.
      * Otherwise the behavior depends on whether the unbound class is an Entity or not.
@@ -266,20 +272,21 @@ public class EntityDictionary {
      * which are entities but not bound.  Otherwise, we throw an exception - which also preserves behavior
      * for unbound non-entities.
      * @param entityClass
+     * @param lens The lens to filter entity bindings by.
      * @return
      */
-    public EntityBinding getEntityBinding(Type<?> entityClass) {
+    public EntityBinding getEntityBinding(Type<?> entityClass, EntityBindingLens lens) {
 
         //Common case of no inheritance.  This lookup is a performance boost so we don't have to do reflection.
-        EntityBinding binding = entityBindings.get(entityClass);
-        if (binding != null) {
+        EntityBinding binding = findBinding(entityClass, lens);
+        if (binding != EMPTY_BINDING) {
             return binding;
         }
 
         Type<?> declaredClass = lookupBoundClass(entityClass);
 
         if (declaredClass != null) {
-            return entityBindings.get(declaredClass);
+            return findBinding(entityClass, lens);
         }
 
         //Will throw an exception if entityClass is not an entity.
@@ -310,6 +317,7 @@ public class EntityDictionary {
             return entityBindings.values().stream()
                     .filter(binding -> binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX))
                     .filter(binding -> binding.jsonApiType.equals(entityName))
+                    .filter(PUBLIC_MODELS_ONLY::filter)
                     .map(EntityBinding::getEntityClass)
                     .findFirst()
                     .orElse(null);
@@ -324,6 +332,7 @@ public class EntityDictionary {
      * @return binding class
      * @see Include
      */
+    @Deprecated
     public String getJsonAliasFor(Type<?> entityClass) {
         return getEntityBinding(entityClass).jsonApiType;
     }
@@ -489,18 +498,18 @@ public class EntityDictionary {
      * @return the bound classes
      */
     public Set<Type<?>> getBoundClasses() {
-        return getBoundClasses(true);
+        return getBoundClasses(PUBLIC_MODELS_ONLY);
     }
 
     /**
      * Get all bound classes.
-     * @param elideModelsOnly Restrict to only Elide models (skip complex embedded types).
+     * @param lens Restrict to models matching the lens.
      *
      * @return the bound classes
      */
-    public Set<Type<?>> getBoundClasses(boolean elideModelsOnly) {
+    public Set<Type<?>> getBoundClasses(EntityBindingLens lens) {
         return entityBindings.values().stream()
-                .filter(binding -> elideModelsOnly ? binding.isElideModel() : true)
+                .filter(lens::filter)
                 .map(EntityBinding::getEntityClass)
                 .collect(Collectors.toSet());
     }
@@ -508,13 +517,13 @@ public class EntityDictionary {
     /**
      * Get all bound classes for a particular API version.
      * @param apiVersion The API version
-     * @param elideModelsOnly Restrict to only Elide models (skip complex embedded types).
+     * @param lens Restrict to models matching the lens.
      *
      * @return the bound classes
      */
-    public Set<Type<?>> getBoundClassesByVersion(String apiVersion, boolean elideModelsOnly) {
+    public Set<Type<?>> getBoundClassesByVersion(String apiVersion, EntityBindingLens lens) {
         return entityBindings.values().stream()
-                .filter(binding -> elideModelsOnly ? binding.isElideModel() : true)
+                .filter(lens::filter)
                 .filter(binding ->
                         binding.getApiVersion().equals(apiVersion)
                                 || binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX)
@@ -530,7 +539,7 @@ public class EntityDictionary {
      * @return the bound classes
      */
     public Set<Type<?>> getBoundClassesByVersion(String apiVersion) {
-        return getBoundClassesByVersion(apiVersion, true);
+        return getBoundClassesByVersion(apiVersion, PUBLIC_MODELS_ONLY);
     }
 
     /**
@@ -539,19 +548,19 @@ public class EntityDictionary {
      * @return the bindings
      */
     public Set<EntityBinding> getBindings() {
-        return getBindings(true);
+        return getBindings(PUBLIC_MODELS_ONLY);
     }
 
     /**
      * Get all bindings.
-     * @param elideModelsOnly Restrict to only Elide models (skip complex embedded types).
+     * @param lens Restrict to models matching the lens.
      *
      * @return the bindings
      */
-    public Set<EntityBinding> getBindings(boolean elideModelsOnly) {
+    public Set<EntityBinding> getBindings(EntityBindingLens lens) {
         return entityBindings.values()
                 .stream()
-                .filter(binding -> elideModelsOnly ? binding.isElideModel() : true)
+                .filter(lens::filter)
                 .collect(Collectors.toSet());
     }
 
@@ -848,16 +857,7 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Type<?> getParameterizedType(Type<?> entityClass, String identifier, int paramIndex) {
-        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = getEntityBinding(entityClass).fieldsToValues;
-        if (fieldOrMethods == null) {
-            return null;
-        }
-        AccessibleObject fieldOrMethod = fieldOrMethods.get(identifier);
-        if (fieldOrMethod == null) {
-            return null;
-        }
-
-        return EntityBinding.getFieldType(entityClass, fieldOrMethod, Optional.of(paramIndex));
+        return getEntityBinding(entityClass).getParameterizedType(identifier, paramIndex);
     }
 
     /**
@@ -1378,7 +1378,7 @@ public class EntityDictionary {
      */
     public Type<?> lookupBoundClass(Type<?> objClass) {
         //Common case - we can avoid reflection by checking the map ...
-        EntityBinding binding = entityBindings.getOrDefault(objClass, EMPTY_BINDING);
+        EntityBinding binding = findBinding(objClass);
         if (binding != EMPTY_BINDING) {
             return binding.entityClass;
         }
@@ -1388,7 +1388,7 @@ public class EntityDictionary {
             return null;
         }
 
-        binding = entityBindings.getOrDefault(declaredClass, EMPTY_BINDING);
+        binding = findBinding(declaredClass);
         if (binding != EMPTY_BINDING) {
             return binding.entityClass;
         }
@@ -1410,7 +1410,7 @@ public class EntityDictionary {
      * @return true if the class is already bound.
      */
     private boolean isClassBound(Type<?> objClass) {
-        return (entityBindings.getOrDefault(objClass, EMPTY_BINDING) != EMPTY_BINDING);
+        return findBinding(objClass) != EMPTY_BINDING;
     }
 
     /**
@@ -1475,12 +1475,14 @@ public class EntityDictionary {
         return fields;
     }
 
+    @Deprecated
     public boolean isRelation(Type<?> entityClass, String relationName) {
         return getEntityBinding(entityClass).apiRelationships.contains(relationName);
     }
 
+    @Deprecated
     public boolean isAttribute(Type<?> entityClass, String attributeName) {
-        return getEntityBinding(entityClass).apiAttributes.contains(attributeName);
+        return getEntityBinding(entityClass, PUBLIC_MODELS_ONLY).isAttribute(attributeName);
     }
 
     /**
@@ -1670,6 +1672,7 @@ public class EntityDictionary {
      */
     public boolean hasBinding(Type<?> cls) {
         return entityBindings.values().stream()
+                .filter(PUBLIC_MODELS_ONLY::filter)
                 .anyMatch(binding -> binding.entityClass.equals(cls));
     }
 
@@ -1925,7 +1928,7 @@ public class EntityDictionary {
      * @return A Set of ArgumentType for the given attribute.
      */
     public Set<ArgumentType> getAttributeArguments(Type<?> cls, String attributeName) {
-        return entityBindings.getOrDefault(cls, EMPTY_BINDING).getAttributeArguments(attributeName);
+        return findBinding(cls).getAttributeArguments(attributeName);
     }
 
     /**
@@ -1934,7 +1937,7 @@ public class EntityDictionary {
      * @return A Set of ArgumentType for the given entity.
      */
     public Set<ArgumentType> getEntityArguments(Type<?> cls) {
-        return entityBindings.getOrDefault(cls, EMPTY_BINDING).getEntityArguments();
+        return findBinding(cls).getEntityArguments();
     }
 
     /**
@@ -2133,7 +2136,7 @@ public class EntityDictionary {
      * @return true if the attribute is 'complex'.
      */
     public boolean isComplexAttribute(Type<?> clazz, String fieldName) {
-        EntityBinding binding = getEntityBinding(clazz);
+        EntityBinding binding = getEntityBinding(clazz, ALL_MODELS);
 
         if (! binding.apiAttributes.contains(fieldName)) {
             return false;
@@ -2201,6 +2204,19 @@ public class EntityDictionary {
         }
 
         return true;
+    }
+
+    private EntityBinding findBinding(Type<?> type) {
+        return findBinding(type, PUBLIC_MODELS_ONLY);
+    }
+
+    private EntityBinding findBinding(Type<?> type, EntityBindingLens lens) {
+        EntityBinding binding = entityBindings.get(type);
+        if (binding == null || !lens.filter(binding)) {
+            return EMPTY_BINDING;
+        }
+
+        return binding;
     }
 
     public static class EntityDictionaryBuilder {

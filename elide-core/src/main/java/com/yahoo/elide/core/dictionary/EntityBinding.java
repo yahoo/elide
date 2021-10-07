@@ -741,6 +741,90 @@ public class EntityBinding {
         return new HashSet<>(entityArguments.values());
     }
 
+    /**
+     * Retrieve the parameterized type for the given field.
+     *
+     * @param identifier  the identifier/field name
+     * @param paramIndex  the index of the parameterization
+     * @return Entity type for field otherwise null.
+     */
+    public Type<?> getParameterizedType(String identifier, int paramIndex) {
+        AccessibleObject fieldOrMethod = fieldsToValues.get(identifier);
+        if (fieldOrMethod == null) {
+            return null;
+        }
+
+        return EntityBinding.getFieldType(entityClass, fieldOrMethod, Optional.of(paramIndex));
+    }
+
+    public boolean isAttribute(String attributeName) {
+        return apiAttributes.contains(attributeName);
+    }
+
+    public boolean isRelation(String relationName) {
+        return apiRelationships.contains(relationName);
+    }
+
+    /**
+     * Get a type for a field on an entity.
+     * <p>
+     * If this method is called on a bean such as the following
+     * <pre>
+     * {@code
+     * public class Address {
+     *     {@literal @}Id
+     *     private Long id
+     *
+     *     private String street1;
+     *
+     *     private String street2;
+     * }
+     * }
+     * </pre>
+     * then
+     * <pre>
+     * {@code
+     * getType(Address.class, "id") = Long.class
+     * getType(Address.class, "street1") = String.class
+     * getType(Address.class, "street2") = String.class
+     * }
+     * </pre>
+     * But if the ID field is not "id" and there is no such non-ID field called "id", i.e.
+     * <pre>
+     * {@code
+     * public class Address {
+     *     {@literal @}Id
+     *     private Long surrogateKey
+     *
+     *     private String street1;
+     *
+     *     private String street2;
+     * }
+     * }
+     * </pre>
+     * then
+     * <pre>
+     * {@code
+     * getType(Address.class, "id") = Long.class
+     * getType(Address.class, "surrogateKey") = Long.class
+     * getType(Address.class, "street1") = String.class
+     * getType(Address.class, "street2") = String.class
+     * }
+     * </pre>
+     * JSON-API spec does not allow "id" as non-ID field name. If, therefore, there is a non-ID field called "id",
+     * calling this method has undefined behavior
+     *
+     * @param identifier  Identifier/Field to lookup type
+     * @return Type of entity
+     */
+    public Type<?> getType(String identifier) {
+        if (identifier.equals(REGULAR_ID_NAME)) {
+            return getIdType();
+        }
+
+        return fieldsToTypes.get(identifier);
+    }
+
     private static boolean isIdField(AccessibleObject field) {
         return (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class));
     }

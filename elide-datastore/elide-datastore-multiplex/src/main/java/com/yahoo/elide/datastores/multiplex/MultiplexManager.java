@@ -66,7 +66,7 @@ public final class MultiplexManager implements DataStore {
                     dictionary.getScanner());
 
             dataStore.populateEntityDictionary(subordinateDictionary);
-            for (EntityBinding binding : subordinateDictionary.getBindings(false)) {
+            for (EntityBinding binding : subordinateDictionary.getBindings(EntityDictionary.ALL_MODELS)) {
                 // route class to this database manager
                 this.dataStoreMap.put(binding.entityClass, dataStore);
 

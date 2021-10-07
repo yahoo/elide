@@ -5,9 +5,11 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.ALL_MODELS;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.getSimpleName;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Argument;
@@ -109,7 +111,8 @@ public class Path {
         Type<?> currentClass = entityClass;
         for (String fieldName : fieldNames) {
             if (needNavigation(currentClass, fieldName, dictionary)) {
-                Type<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
+                Type<?> joinClass = dictionary.getEntityBinding(currentClass, ALL_MODELS)
+                        .getParameterizedType(fieldName, 0);
                 elements.add(new PathElement(currentClass, joinClass, fieldName));
                 currentClass = joinClass;
             } else {
@@ -126,15 +129,16 @@ public class Path {
                                                String alias,
                                                Set<Argument> arguments,
                                                EntityDictionary dictionary) {
-        if (dictionary.isAttribute(entityClass, fieldName)
-                || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
-            Type<?> attributeClass = dictionary.getType(entityClass, fieldName);
+        EntityBinding binding = dictionary.getEntityBinding(entityClass, ALL_MODELS);
+        if (binding.isAttribute(fieldName) || fieldName.equals(binding.getIdFieldName())) {
+            Type<?> attributeClass = binding.getType(fieldName);
+
             return new PathElement(entityClass, attributeClass, fieldName, alias, arguments);
         }
         if ("this".equals(fieldName)) {
             return new PathElement(entityClass, null, fieldName);
         }
-        String entityAlias = dictionary.getJsonAliasFor(entityClass);
+        String entityAlias = binding.getJsonApiType();
         throw new InvalidValueException(entityAlias + " does not contain the field " + fieldName);
     }
 
@@ -147,7 +151,8 @@ public class Path {
      * @return True if the field requires navigation.
      */
     protected boolean needNavigation(Type<?> entityClass, String fieldName, EntityDictionary dictionary) {
-        return dictionary.isRelation(entityClass, fieldName) || dictionary.isComplexAttribute(entityClass, fieldName);
+        EntityBinding binding = dictionary.getEntityBinding(entityClass, ALL_MODELS);
+        return binding.isRelation(fieldName) || !binding.isElideModel();
     }
 
     public Optional<PathElement> lastElement() {
