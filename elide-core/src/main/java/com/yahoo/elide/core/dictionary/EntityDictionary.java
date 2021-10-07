@@ -2139,7 +2139,7 @@ public class EntityDictionary {
             return false;
         }
 
-        Type<?> attributeType = getParameterizedType(clazz, fieldName);
+        Type<?> attributeType = getType(clazz, fieldName);
 
         return canBind(attributeType);
     }
