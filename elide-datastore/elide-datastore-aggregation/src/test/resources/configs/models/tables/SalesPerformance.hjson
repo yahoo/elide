@@ -1,0 +1,28 @@
+{
+  tables:
+  [
+    {
+      name: salesPerformance
+      table: sales_performance
+      dbConnectionName: SalesDBConnection
+      cardinality: small
+      hidden:true
+      measures:
+      [
+        {
+          name: totalSales
+          type: DECIMAL
+          definition: 'SUM({{ $sales }})'
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: employeeId
+          type: INTEGER
+          definition: '{{ $employee_id }}'
+        }
+      ]
+    }
+  ]
+}

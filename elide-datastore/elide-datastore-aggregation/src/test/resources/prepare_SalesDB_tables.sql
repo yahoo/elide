@@ -13,6 +13,13 @@ CREATE TABLE IF NOT EXISTS region_details
   PRIMARY KEY (zip_code)
 );
 
+CREATE TABLE IF NOT EXISTS sales_performance
+(
+   employee_id VARCHAR(255) NOT NULL,
+   sales INT,
+   PRIMARY KEY (employee_id)
+);
+
 INSERT INTO customer_details SELECT 'cust1', 'foo1', 20166 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust1');
 INSERT INTO customer_details SELECT 'cust2', 'foo2', 10002 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust2');
 INSERT INTO customer_details SELECT 'cust3', 'foo3', 20170 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust3');

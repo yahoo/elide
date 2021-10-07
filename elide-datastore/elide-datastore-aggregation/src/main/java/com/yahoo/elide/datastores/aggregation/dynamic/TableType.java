@@ -44,6 +44,8 @@ import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 import org.apache.commons.lang3.StringUtils;
 
+import lombok.EqualsAndHashCode;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
@@ -61,6 +63,7 @@ import javax.persistence.Id;
 /**
  * A dynamic Elide model that wraps a deserialized HJSON table.
  */
+@EqualsAndHashCode
 public class TableType implements Type<DynamicModelInstance> {
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     private static final String SPACE = " ";
@@ -843,6 +846,11 @@ public class TableType implements Type<DynamicModelInstance> {
 
     private static String replaceNewlineWithSpace(String str) {
         return (str == null) ? null : NEWLINE.matcher(str).replaceAll(SPACE);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("TableType{ name=%s }", table.getGlobalName());
     }
 
     private static final class ExcludeAnnotation implements Exclude {
