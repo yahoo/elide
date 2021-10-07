@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>5.0.12-SNAPSHOT</version>
+        <version>6.0.0-pr5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -52,7 +52,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.12-SNAPSHOT</version>
+            <version>6.0.0-pr5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -173,14 +173,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
             </plugin>
         </plugins>
     </build>

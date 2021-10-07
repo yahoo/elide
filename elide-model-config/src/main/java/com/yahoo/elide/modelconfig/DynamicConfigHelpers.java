@@ -30,17 +30,6 @@ import java.util.Map;
 public class DynamicConfigHelpers {
 
     /**
-     * Checks whether input is null or empty.
-     * @param input : input string
-     * @return true or false
-     * @deprecated use {@link StringUtils#isBlank}
-     */
-    @Deprecated
-    public static boolean isNullOrEmpty(String input) {
-        return StringUtils.isBlank(input);
-    }
-
-    /**
      * format config file path.
      * @param basePath : path to hjson config.
      * @return formatted file path.

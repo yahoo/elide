@@ -19,7 +19,6 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -82,23 +81,23 @@ public class DataStoreIT extends IntegrationTest {
     public void setUp() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
 
-            tx.createObject(tx.createNewObject(ClassType.of(Filtered.class)), null);
-            tx.createObject(tx.createNewObject(ClassType.of(Filtered.class)), null);
-            tx.createObject(tx.createNewObject(ClassType.of(Filtered.class)), null);
+            tx.createObject(new Filtered(), null);
+            tx.createObject(new Filtered(), null);
+            tx.createObject(new Filtered(), null);
 
-            Author georgeMartin = tx.createNewObject(ClassType.of(Author.class));
+            Author georgeMartin = new Author();
             tx.createObject(georgeMartin, null);
             georgeMartin.setName("George R. R. Martin");
 
-            Book book1 = tx.createNewObject(ClassType.of(Book.class));
+            Book book1 = new Book();
             tx.createObject(book1, null);
             book1.setTitle(SONG_OF_ICE_AND_FIRE);
             book1.setAuthors(Arrays.asList(georgeMartin));
-            Book book2 = tx.createNewObject(ClassType.of(Book.class));
+            Book book2 = new Book();
             tx.createObject(book2, null);
             book2.setTitle(CLASH_OF_KINGS);
             book2.setAuthors(Arrays.asList(georgeMartin));
-            Book book3 = tx.createNewObject(ClassType.of(Book.class));
+            Book book3 = new Book();
             tx.createObject(book3, null);
             book3.setTitle(STORM_OF_SWORDS);
             book3.setAuthors(Arrays.asList(georgeMartin));
@@ -121,7 +120,7 @@ public class DataStoreIT extends IntegrationTest {
     private static void addChapters(int numberOfChapters, Book book, DataStoreTransaction tx) {
         Set<Chapter> chapters = new HashSet<>();
         for (int idx = 0; idx < numberOfChapters; idx++) {
-            Chapter chapter = tx.createNewObject(ClassType.of(Chapter.class));
+            Chapter chapter = new Chapter();
             tx.createObject(chapter, null);
             chapter.setTitle("Chapter" + idx);
             tx.save(chapter, null);

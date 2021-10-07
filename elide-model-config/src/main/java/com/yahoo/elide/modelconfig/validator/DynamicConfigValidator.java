@@ -556,7 +556,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         for (Table table : elideTableConfig.getTables()) {
 
             validateSql(table.getSql());
-            validateArguments(table, table.getArguments());
+            validateArguments(table, table.getArguments(), table.getFilterTemplate());
             //TODO - once tables support versions - replace NO_VERSION with apiVersion
             validateNamespaceExists(table.getNamespace(), NO_VERSION);
             Set<String> tableFields = new HashSet<>();
@@ -565,14 +565,14 @@ public class DynamicConfigValidator implements DynamicConfiguration {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
                 validateTableSource(dim.getTableSource());
-                validateArguments(table, dim.getArguments());
+                validateArguments(table, dim.getArguments(), dim.getFilterTemplate());
                 extractChecksFromExpr(dim.getReadAccess(), extractedFieldChecks, visitor);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
-                validateArguments(table, measure.getArguments());
+                validateArguments(table, measure.getArguments(), measure.getFilterTemplate());
                 extractChecksFromExpr(measure.getReadAccess(), extractedFieldChecks, visitor);
             });
 
@@ -609,15 +609,12 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return true;
     }
 
-    private void validateArguments(Table table, List<Argument> arguments) {
-
-        String template = table.getFilterTemplate();
-
+    private void validateArguments(Table table, List<Argument> arguments, String requiredFilter) {
         List<Argument> allArguments = new ArrayList<>(arguments);
 
         /* Check for table arguments added in the required filter template */
-        if (template != null) {
-            Matcher matcher = FILTER_VARIABLE_PATTERN.matcher(template);
+        if (requiredFilter != null) {
+            Matcher matcher = FILTER_VARIABLE_PATTERN.matcher(requiredFilter);
             while (matcher.find()) {
                 allArguments.add(Argument.builder()
                         .name(matcher.group(1))

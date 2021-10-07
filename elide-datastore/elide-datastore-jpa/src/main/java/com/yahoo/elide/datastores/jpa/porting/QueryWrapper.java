@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.jpa.porting;
 
-import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.datastores.jpa.ScrollableIterator;
+import com.yahoo.elide.datastores.jpql.porting.Query;
 import lombok.Getter;
 
 import java.util.Collection;

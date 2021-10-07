@@ -1141,7 +1141,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"courierName,deliveryDate,orderTotal\""),
-                                        argument("filter", "\"(deliveryTime>='2020-08-01';deliveryTime<'2020-12-31');(deliveryDate>='2020-09-01',orderTotal>50)\"")
+                                        argument("filter", "\"deliveryYear=='2020';(deliveryTime>='2020-08-01';deliveryTime<'2020-12-31');(deliveryDate>='2020-09-01',orderTotal>50)\"")
                                 ),
                                 selections(
                                         field("courierName"),
@@ -1754,6 +1754,33 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
 
+    /**
+     * Test missing required column filter on deliveryYear.
+     * @throws Exception exception
+     */
+    @Test
+    public void missingRequiredColumnFilter() throws Exception {
+        String graphQLRequest = document(
+                selection(
+
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("deliveryYear")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String errorMessage = "Exception while fetching data (/SalesNamespace_orderDetails) : "
+                + "Querying deliveryYear requires a mandatory filter: deliveryYear=={{deliveryYear}}";
+
+        runQueryWithExpectedError(graphQLRequest, errorMessage);
+    }
 
     //Security
     @Test

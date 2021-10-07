@@ -156,6 +156,46 @@ class ColumnArgumentValidatorTest {
     }
 
     @Test
+    public void testMissingRequiredColumnArgs() {
+        Table mainTable = mainTableBuilder
+               .dimension(Dimension.builder()
+                        .name("dim1")
+                        .type(Type.BOOLEAN)
+                        .values(Collections.emptySet())
+                        .tags(Collections.emptySet())
+                        .definition("start {{$$column.args.mainArg1}} end")
+                        .build())
+                .build();
+
+        Set<Table> tables = new HashSet<>();
+        tables.add(mainTable);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg1' is not defined but found '{{$$column.args.mainArg1}}'.",
+                e.getMessage());
+    }
+
+    @Test
+    public void testRequiredColumnArgsInFilterTemplate() {
+        Table mainTable = mainTableBuilder
+                .dimension(Dimension.builder()
+                        .name("dim1")
+                        .type(Type.BOOLEAN)
+                        .values(Collections.emptySet())
+                        .tags(Collections.emptySet())
+                        .definition("start {{$$column.args.mainArg1}} end")
+                        .filterTemplate("dim1=={{mainArg1}}")
+                        .build())
+                .build();
+
+        Set<Table> tables = new HashSet<>();
+        tables.add(mainTable);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        assertDoesNotThrow(() -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+    }
+
+    @Test
     public void testMissingRequiredColumnArgsForDepenedentColumnCase1() {
         Table mainTable = mainTableBuilder
                         .dimension(Dimension.builder()

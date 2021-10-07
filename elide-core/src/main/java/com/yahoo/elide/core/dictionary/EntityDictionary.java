@@ -123,6 +123,7 @@ public class EntityDictionary {
     protected final CopyOnWriteArrayList<Type<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Type<?>, List<Type<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+    protected final Map<Class<? extends Check>, Check> checkInstances;
     protected final Map<String, UserCheck> roleChecks;
 
     @Getter
@@ -144,163 +145,6 @@ public class EntityDictionary {
     private static final ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
     private static final String ALL_FIELDS = "*";
 
-    /**
-     * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
-     * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
-     * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
-     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
-     * @param checks a map that links the identifiers used in the permission expression strings
-     *               to their implementing classes
-     */
-    @Deprecated
-    public EntityDictionary(Map<String, Class<? extends Check>> checks) {
-        this(
-                checks,
-                Collections.emptyMap(), //role checks
-                DEFAULT_INJECTOR,
-                CoerceUtil::lookup,
-                Collections.emptySet(),
-                DefaultClassScanner.getInstance()
-        );
-    }
-
-    /**
-     * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
-     * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
-     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
-     * @param checks a map that links the identifiers used in the permission expression strings
-     *               to their implementing classes
-     * @param roleChecks a map that links the user check identifiers used in the permission expression strings
-     *                   to their User Check object
-     * @param injector a function typically associated with a dependency injection framework that will
-     *                 initialize Elide models.
-     */
-     @Deprecated
-     public EntityDictionary(Map<String, Class<? extends Check>> checks,
-                             Map<String, UserCheck> roleChecks, Injector injector) {
-         this(
-                 checks,
-                 roleChecks,
-                 injector,
-                 CoerceUtil::lookup,
-                 Collections.emptySet(), //Entities to exclude
-                 DefaultClassScanner.getInstance()
-         );
-     }
-
-    /**
-     * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
-     * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
-     * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
-     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
-     * @param checks a map that links the identifiers used in the permission expression strings
-     *               to their implementing classes.
-     * @param entitiesToExclude Set of Models to exclude from Binding.
-     */
-    @Deprecated
-    public EntityDictionary(Map<String, Class<? extends Check>> checks, Set<Type<?>> entitiesToExclude) {
-        this(
-                checks,
-                Collections.emptyMap(),
-                DEFAULT_INJECTOR,
-                CoerceUtil::lookup,
-                entitiesToExclude,
-                DefaultClassScanner.getInstance()
-        );
-    }
-
-    /**
-     * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
-     * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
-     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
-     * @param checks a map that links the identifiers used in the permission expression strings
-     *               to their implementing classes
-     * @param injector a function typically associated with a dependency injection framework that will
-     *                 initialize Elide models.
-     */
-    @Deprecated
-    public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
-        this(
-                checks,
-                Collections.emptyMap(), //role checks
-                injector,
-                CoerceUtil::lookup,
-                Collections.emptySet(), //Entities to exclude
-                DefaultClassScanner.getInstance()
-        );
-    }
-
-    /**
-     * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
-     * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
-     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
-     * @param checks a map that links the identifiers used in the permission expression strings
-     *               to their implementing classes
-     * @param injector a function typically associated with a dependency injection framework that will
-     *                 initialize Elide models.
-     * @param entitiesToExclude Set of Models to exclude from Binding.
-     */
-    @Deprecated
-    public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector,
-            Set<Type<?>> entitiesToExclude) {
-        this(
-                checks,
-                new HashMap<>(), //role checks
-                injector,
-                CoerceUtil::lookup,
-                entitiesToExclude,
-                DefaultClassScanner.getInstance()
-        );
-    }
-
-    @Deprecated
-    public EntityDictionary(Map<String, Class<? extends Check>> checks,
-                            Injector injector,
-                            Function<Class, Serde> serdeLookup) {
-        this(
-                checks,
-                Collections.emptyMap(), //role checks,
-                injector,
-                serdeLookup,
-                Collections.emptySet(), //entities to Exclude
-                DefaultClassScanner.getInstance()
-        );
-    }
-
-    @Deprecated
-    public EntityDictionary(Map<String, Class<? extends Check>> checks,
-            Injector injector,
-            Function<Class, Serde> serdeLookup,
-            Set<Type<?>> entitiesToExclude) {
-        this(
-                checks,
-                Collections.emptyMap(),  //role checks
-                injector,
-                serdeLookup,
-                entitiesToExclude,
-                DefaultClassScanner.getInstance()
-        );
-    }
-
-    @Deprecated
-    public EntityDictionary(Map<String, Class<? extends Check>> checks,
-                            Map<String, UserCheck> roleChecks,
-                            Injector injector,
-                            Function<Class, Serde> serdeLookup,
-                            Set<Type<?>> entitiesToExclude) {
-        this(
-                checks,
-                roleChecks,
-                injector,
-                serdeLookup,
-                entitiesToExclude,
-                DefaultClassScanner.getInstance()
-        );
-    }
-
     @Builder
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
                             Map<String, UserCheck> roleChecks,
@@ -311,11 +155,17 @@ public class EntityDictionary {
         this.scanner = scanner;
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.checkInstances = new ConcurrentHashMap<>();
         this.roleChecks = roleChecks == null ? new HashMap<>() : new HashMap<>(roleChecks);
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
         this.entitiesToExclude = new HashSet<>(entitiesToExclude);
+
+        //Hydrate check instances at boot.
+        checkNames.keySet().forEach(checkName -> {
+            getCheckInstance(checkName);
+        });
     }
 
     private void initializeChecks() {
@@ -520,10 +370,10 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the check mapped to a particular identifier.
+     * Returns the check class mapped to a particular identifier.
      *
      * @param checkIdentifier the name from the expression string
-     * @return the {@link Check} mapped to the identifier or {@code null} if the given identifer is unmapped
+     * @return the {@link Check} class mapped to the identifier.
      */
     public Class<? extends Check> getCheck(String checkIdentifier) {
         return checkNames.computeIfAbsent(checkIdentifier, cls -> {
@@ -534,6 +384,32 @@ public class EntityDictionary {
                         "Could not instantiate specified check '" + checkIdentifier + "'.", e);
             }
         });
+    }
+
+    /**
+     * Returns the check mapped to a particular identifier.
+     *
+     * @param checkIdentifier the name from the expression string
+     * @return the {@link Check} mapped to the identifier.
+     */
+    public Check getCheckInstance(String checkIdentifier) {
+        //Role checks may contain the same class for different checks.
+        if (roleChecks.containsKey(checkIdentifier)) {
+            return roleChecks.get(checkIdentifier);
+        }
+
+        Class<? extends Check> checkClass = getCheck(checkIdentifier);
+
+        Check check;
+        if (checkInstances.containsKey(checkClass)) {
+            check = checkInstances.get(checkClass);
+        } else {
+            check = injector.instantiate(checkClass);
+            injector.inject(check);
+            checkInstances.put(checkClass, check);
+        }
+
+        return check;
     }
 
     /**
@@ -1644,6 +1520,9 @@ public class EntityDictionary {
             log.debug("Register Elide Check [{}] with expression [{}]",
                     cls.getCanonicalName(), securityCheckMeta.value());
             checkNames.put(securityCheckMeta.value(), cls.asSubclass(Check.class));
+
+            //Populate check instance.
+            getCheckInstance(securityCheckMeta.value());
         } else {
             throw new IllegalStateException("Class annotated with SecurityCheck is not a Check");
         }

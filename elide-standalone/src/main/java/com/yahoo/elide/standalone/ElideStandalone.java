@@ -12,6 +12,7 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
@@ -20,6 +21,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +29,8 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import javax.servlet.DispatcherType;
+import javax.websocket.server.ServerContainer;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * Elide Standalone.
@@ -107,6 +111,16 @@ public class ElideStandalone {
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
+        ElideStandaloneSubscriptionSettings subscriptionSettings = elideStandaloneSettings.getSubscriptionProperties();
+        if (elideStandaloneSettings.enableGraphQL() && subscriptionSettings.enabled()) {
+            // GraphQL subscription endpoint
+            ServerContainer container  = WebSocketServerContainerInitializer.configureContext(context);
+
+            ServerEndpointConfig subscriptionEndpoint =
+                    subscriptionSettings.serverEndpointConfig(elideStandaloneSettings);
+
+            container.addEndpoint(subscriptionEndpoint);
         }
 
         if (elideStandaloneSettings.getAsyncProperties().enableExport()) {

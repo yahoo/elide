@@ -1,4 +1,51 @@
 # Change Log
+## 6.0.0-pr4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/0eb1624a401c9099c0e9f1f3fb539144cb3b97a1) Added new flag to enable subscription publishing in a separate service.  Disallow queries in subscription endpoint. (#2320) 
+
+## 6.0.0-pr3
+Prerelease candidate for Elide 6.  
+
+### New Features in Elide 6.X
+
+Elide 6 introduces several new features:
+ - Elide 6 is built using Java 11 (as opposed to Java 8).
+ - GraphQL subscription support (experimental) is added along with a JMS data store that can read Elide models from JMS topics.
+ - Coming Soon: Quarkus support including Elide native builds with GraalVM.
+
+### API Changes
+
+Prior to Elide 6, updates to complex, embedded attributes in Elide models required every field to be set in the attribute or they would be overwritten with nulls.  Elide 6 is now aware of individual fields in complex, embedded attributes and only changes what has been sent by the client.  See [#2277](https://github.com/yahoo/elide/issues/2277) for more details.
+
+### Interface Changes
+
+ - EntityDictionary is now entirely constructed with a Builder.  All prior constructors have been removed.
+ - Security checks are now instantiated at boot and reused across requests.  This change requires security checks to be thread safe.
+
+### Module & Package Changes
+
+The following packages havea been removed:
+
+ - Legacy datastore packages elide-hibernate-3 and elide-hibernate-5 have been retired and can be replaced with the JPA data store.
+ - The Elide bridgeable datastore has been removed.
+ - The package elide-datastore-hibernate has been renamed to elide-datastore-jpql.   Internal package structure for the module was also changed.
+
+## 5.0.12
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/0b7eb0cb8b9fbb37fa412863a6d6fd1ac5734948) Add ability to retrieve data store properties in life cycle hooks. (#2278) 
+   * [view commit](https://github.com/yahoo/elide/commit/55e61646f17d5bdb94d4519ab210ac56840778db) Aggregation Store: Templated filter table arguments (#2290) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc0dffc51428b5b9ee255896169de91c69af0314) AggregationStore: Templated filter column arguments (#2297) 
+   * [view commit](https://github.com/yahoo/elide/commit/65eaaa12fc2b805135285287d4912d2329bc676d) Add ability to map unknown exceptions to custom exceptions (#2205) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/fe7009353573baf0206f7bb58617db97e067f900) Refactor class scanning for quarkus (#2284) 
+   * [view commit](https://github.com/yahoo/elide/commit/2a477c4fcf16d001e1ab87cc35e54662d77da870) Fixed bug where multiplex manager was not copying complex attributes from subordinate dictionaries (#2285) 
+   * [view commit](https://github.com/yahoo/elide/commit/84ea9f15d9783a981027061c47a2873a59c410f4) Updating screwdriver build for JDK11 and Elide 6 (#2286) 
+   * [view commit](https://github.com/yahoo/elide/commit/6f0435be5f2a4467ecb8be17b5393bbb54b3e690) Bump checkstyle from 8.45.1 to 9.0 (#2289) 
+   * [view commit](https://github.com/yahoo/elide/commit/65fa257e9af0a39fa1a1d23b66085f6edebfca59) Aggregation Store: Fix hjson metric projection maker config (#2295) 
+   * [view commit](https://github.com/yahoo/elide/commit/dc9d533f4a0709c8442a20716b742a1aea95d76d) Bump graphql-java from 17.1 to 17.2 (#2281) 
+   * [view commit](https://github.com/yahoo/elide/commit/ba8776d20bb345fae477f9a83987654087e28c0a) Bump version.jackson from 2.12.4 to 2.12.5 (#2280) 
+
 ## 5.0.11
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/798c66204779a03bb4e34554ae243f9c4ea25bc7) Added support for filtering & sorting on complex model attributes. (#2273) 

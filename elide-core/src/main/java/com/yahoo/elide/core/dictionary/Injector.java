@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core.dictionary;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
+
 /**
  * Abstraction around dependency injection.
  */
@@ -26,8 +29,11 @@ public interface Injector {
      */
     default <T> T instantiate(Class<T> cls) {
         try {
-            return cls.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return Objects.requireNonNull(cls).getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException
+                | InvocationTargetException
+                | IllegalAccessException
+                | InstantiationException e) {
             throw new IllegalStateException(e);
         }
     }

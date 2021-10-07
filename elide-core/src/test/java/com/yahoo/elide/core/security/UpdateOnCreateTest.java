@@ -54,7 +54,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userOneScope)).thenReturn(updateAndCreateNewObject);
 
         com.yahoo.elide.core.PersistentResource<UpdateAndCreate> created = com.yahoo.elide.core.PersistentResource.createObject(ClassType.of(UpdateAndCreate.class), userOneScope, Optional.of("1"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
@@ -66,7 +66,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userThreeScope)).thenReturn(updateAndCreateNewObject);
 
         com.yahoo.elide.core.PersistentResource<UpdateAndCreate> created = com.yahoo.elide.core.PersistentResource.createObject(ClassType.of(UpdateAndCreate.class), userThreeScope, Optional.of("2"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
@@ -78,7 +78,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userFourScope = new TestRequestScope(tx, userFour, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userFourScope)).thenReturn(updateAndCreateNewObject);
         assertThrows(
                 ForbiddenAccessException.class,
                 () -> com.yahoo.elide.core.PersistentResource.createObject(ClassType.of(UpdateAndCreate.class), userFourScope, Optional.of("3")));
@@ -309,7 +309,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userOneScope)).thenReturn(updateAndCreateNewObject);
 
         com.yahoo.elide.core.PersistentResource<UpdateAndCreate> created = com.yahoo.elide.core.PersistentResource.createObject(ClassType.of(UpdateAndCreate.class), userOneScope, Optional.of("4"));
         created.updateAttribute("name", "");
@@ -321,7 +321,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userThreeScope)).thenReturn(updateAndCreateNewObject);
 
         com.yahoo.elide.core.PersistentResource<UpdateAndCreate> created = com.yahoo.elide.core.PersistentResource.createObject(ClassType.of(UpdateAndCreate.class), userThreeScope, Optional.of("5"));
         assertThrows(ForbiddenAccessException.class, () -> created.updateAttribute("name", ""));
@@ -333,7 +333,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userThreeScope)).thenReturn(updateAndCreateNewObject);
 
         com.yahoo.elide.core.PersistentResource<UpdateAndCreate> created = com.yahoo.elide.core.PersistentResource.createObject(ClassType.of(UpdateAndCreate.class), userThreeScope, Optional.of("6"));
         created.updateAttribute("alias", "");
@@ -345,7 +345,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userFourScope = new TestRequestScope(tx, userFour, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userFourScope)).thenReturn(updateAndCreateNewObject);
         assertThrows(
                 ForbiddenAccessException.class, () -> {
                     com.yahoo.elide.core.PersistentResource<UpdateAndCreate> created =
@@ -362,7 +362,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userOneScope)).thenReturn(updateAndCreateNewObject);
 
         when(tx.loadObject(any(),
                 eq(2L),
@@ -386,7 +386,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userThreeScope)).thenReturn(updateAndCreateNewObject);
 
         when(tx.loadObject(any(),
                 eq(2L),
@@ -409,7 +409,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userTwoScope)).thenReturn(updateAndCreateNewObject);
 
         when(tx.loadObject(any(),
                 eq(2L),
@@ -432,7 +432,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         com.yahoo.elide.core.RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
-        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class))).thenReturn(updateAndCreateNewObject);
+        when(tx.createNewObject(ClassType.of(UpdateAndCreate.class), userOneScope)).thenReturn(updateAndCreateNewObject);
 
         when(tx.loadObject(any(),
                 eq(2L),

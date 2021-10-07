@@ -7,11 +7,11 @@ package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.hibernate.JPQLTransaction;
-import com.yahoo.elide.core.hibernate.QueryLogger;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
+import com.yahoo.elide.datastores.jpql.JPQLTransaction;
+import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
 import org.apache.commons.collections4.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
 

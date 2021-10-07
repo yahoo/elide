@@ -9,6 +9,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -99,12 +100,18 @@ public interface DataStoreTransaction extends Closeable {
      * @param <T> the model type to create
      * @return a new instance of type T
      */
-    default <T> T createNewObject(Type<T> entityClass) {
+    default <T> T createNewObject(Type<T> entityClass, RequestScope scope) {
+        Injector injector = scope.getDictionary().getInjector();
+
         T obj;
-        try {
-            obj = entityClass.newInstance();
-        } catch (java.lang.InstantiationException | IllegalAccessException e) {
-            obj = null;
+        if (entityClass.getUnderlyingClass().isPresent()) {
+            obj = injector.instantiate(entityClass.getUnderlyingClass().get());
+        } else {
+            try {
+                obj = entityClass.newInstance();
+            } catch (java.lang.InstantiationException | IllegalAccessException e) {
+                obj = null;
+            }
         }
         return obj;
     }

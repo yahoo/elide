@@ -27,7 +27,7 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
 
             @Override
             public ElideStandaloneAnalyticSettings getAnalyticProperties() {
-                ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
+                ElideStandaloneAnalyticSettings analyticProperties = new ElideStandaloneAnalyticSettings() {
                     @Override
                     public boolean enableDynamicModelConfig() {
                         return true;
@@ -48,7 +48,7 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
                         return "src/test/resources/configs/";
                     }
                 };
-                return analyticPropeties;
+                return analyticProperties;
             }
         });
         elide.start(false);

@@ -37,6 +37,7 @@ import java.util.Set;
     "type",
     "tags",
     "arguments",
+    "filterTemplate"
 })
 @Data
 @EqualsAndHashCode()
@@ -79,6 +80,9 @@ public class Measure implements Named {
     @JsonProperty("arguments")
     @Singular
     private List<Argument> arguments = new ArrayList<>();
+
+    @JsonProperty("filterTemplate")
+    private String filterTemplate;
 
     /**
      * Returns description of the measure.

@@ -7,8 +7,8 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.graphql.subscriptions.Subscription;
-import com.yahoo.elide.graphql.subscriptions.SubscriptionField;
+import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
+import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Singular;

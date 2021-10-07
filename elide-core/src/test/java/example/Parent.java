@@ -13,10 +13,12 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
+
 import lombok.ToString;
 
 import java.util.Optional;
 import java.util.Set;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,11 +36,12 @@ import javax.validation.constraints.NotNull;
 @Entity
 @ToString
 public class Parent extends BaseId {
+    @ReadPermission(expression = "Prefab.Role.None")
+    public transient boolean init = false;
     private Set<Child> children;
     private Set<Parent> spouses;
     private String firstName;
     private String specialAttribute;
-    @ReadPermission(expression = "Prefab.Role.None") public transient boolean init = false;
 
     @PrePersist
     public void doInit() {
@@ -50,7 +53,7 @@ public class Parent extends BaseId {
     // Hibernate
     @ManyToMany(
             targetEntity = Child.class,
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE }
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
     )
     @JoinTable(
             name = "Parent_Child",

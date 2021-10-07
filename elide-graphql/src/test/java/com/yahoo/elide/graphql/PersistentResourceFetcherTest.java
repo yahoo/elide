@@ -89,7 +89,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         );
 
         inMemoryDataStore.populateEntityDictionary(dictionary);
-        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+        NonEntityDictionary nonEntityDictionary =
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
         ModelBuilder builder = new ModelBuilder(dictionary, nonEntityDictionary,
                 new PersistentResourceFetcher(nonEntityDictionary), NO_VERSION);
 
@@ -198,7 +199,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(graphQLRequest)
-                .context(requestScope)
+                .localContext(requestScope)
                 .variables(variables)
                 .build();
 
@@ -230,7 +231,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(graphQLRequest)
-                .context(requestScope)
+                .localContext(requestScope)
                 .build();
 
         ExecutionResult result = api.execute(executionInput);

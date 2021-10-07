@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.generated.parsers.ExpressionLexer;
@@ -38,7 +37,7 @@ import java.util.Map;
  * Extract permissions related annotation data for a model.
  */
 @Slf4j
-public class EntityPermissions implements CheckInstantiator {
+public class EntityPermissions {
     private static final List<Class<? extends Annotation>> PERMISSION_ANNOTATIONS = Arrays.asList(
             ReadPermission.class,
             CreatePermission.class,

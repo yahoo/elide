@@ -7,7 +7,6 @@
 package com.yahoo.elide.core.security.visitors;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.permissions.expressions.AndExpression;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
@@ -21,7 +20,7 @@ import java.util.function.Function;
 /**
  * Expression Visitor.
  */
-public class PermissionExpressionVisitor extends ExpressionBaseVisitor<Expression> implements CheckInstantiator {
+public class PermissionExpressionVisitor extends ExpressionBaseVisitor<Expression> {
     private final EntityDictionary dictionary;
     private final Function<Check, Expression> expressionGenerator;
 
@@ -57,7 +56,7 @@ public class PermissionExpressionVisitor extends ExpressionBaseVisitor<Expressio
 
     @Override
     public Expression visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
-        Check check = getCheck(dictionary, ctx.getText());
+        Check check = dictionary.getCheckInstance(ctx.getText());
 
         return expressionGenerator.apply(check);
     }

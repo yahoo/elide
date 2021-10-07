@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.jpa.transaction;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.hibernate.QueryLogger;
+import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

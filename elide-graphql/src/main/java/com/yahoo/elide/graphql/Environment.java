@@ -37,11 +37,14 @@ public class Environment {
     public final GraphQLType parentType;
     public final GraphQLType outputType;
     public final Field field;
+    public final NonEntityDictionary nonEntityDictionary;
 
-    public Environment(DataFetchingEnvironment environment) {
+    public Environment(DataFetchingEnvironment environment, NonEntityDictionary nonEntityDictionary) {
+        this.nonEntityDictionary = nonEntityDictionary;
+
         Map<String, Object> args = environment.getArguments();
 
-        requestScope = environment.getContext();
+        requestScope = environment.getLocalContext();
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
         offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));

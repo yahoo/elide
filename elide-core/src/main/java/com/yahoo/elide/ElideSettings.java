@@ -9,6 +9,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
@@ -32,6 +33,7 @@ public class ElideSettings {
     @Getter private final DataStore dataStore;
     @Getter private final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
+    @Getter private final ErrorMapper errorMapper;
     @Getter private final Function<RequestScope, PermissionExecutor> permissionExecutor;
     @Getter private final List<JoinFilterDialect> joinFilterDialects;
     @Getter private final List<SubqueryFilterDialect> subqueryFilterDialects;

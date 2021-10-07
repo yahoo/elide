@@ -39,6 +39,22 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testSubscriptionThrowsError() throws Exception {
+        String query = "subscription {\n"
+                + "  book(ids: [\"1\"]) {\n"
+                + "    edges {\n"
+                + "      node {\n"
+                + "        id\n"
+                + "        title\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}";
+
+        assertQueryFailsWith(query, "Schema is not configured for subscriptions.");
+    }
+
+    @Test
     public void testRootSingle() throws Exception {
         runComparisonTest("rootSingle");
     }

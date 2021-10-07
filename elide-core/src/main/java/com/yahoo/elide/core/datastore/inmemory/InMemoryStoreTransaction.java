@@ -13,7 +13,6 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
-import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
@@ -27,11 +26,11 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -140,8 +139,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createNewObject(Type<T> entityClass) {
-        return tx.createNewObject(entityClass);
+    public <T> T createNewObject(Type<T> entityClass, RequestScope scope) {
+        return tx.createNewObject(entityClass, scope);
     }
 
     @Override
@@ -196,15 +195,16 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     private Iterable<Object> filterLoadedData(Iterable<Object> loadedRecords,
                                                 Optional<FilterExpression> filterExpression,
                                                 RequestScope scope) {
+
         if (! filterExpression.isPresent()) {
             return loadedRecords;
         }
-
-        Predicate predicate = filterExpression.get().accept(new InMemoryFilterExecutor(scope));
-
-        return StreamSupport.stream(loadedRecords.spliterator(), false)
-                            .filter(predicate::test)
-                            .collect(Collectors.toList());
+        return new Iterable<Object>() {
+            @Override
+            public Iterator<Object> iterator() {
+                return new FilteredIterator<Object>(filterExpression.get(), scope, loadedRecords.iterator());
+            }
+        };
     }
 
     private Object fetchData(DataFetcher fetcher,

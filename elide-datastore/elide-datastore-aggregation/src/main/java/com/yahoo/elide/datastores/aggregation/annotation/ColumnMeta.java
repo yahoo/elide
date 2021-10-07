@@ -26,6 +26,12 @@ public @interface ColumnMeta {
     String [] values() default {};
 
     /**
+     * Whether or not querying this column requires a client provided filter.
+     * @return The required filter template.
+     */
+    String filterTemplate() default "";
+
+    /**
      * Indicates the cardinality for the column.
      * @return size
      */

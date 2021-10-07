@@ -12,7 +12,11 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+
 import com.google.common.collect.Sets;
+
+import example.Address;
+import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
 import example.models.triggers.Invoice;
@@ -33,7 +37,10 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
                 Invoice.class.getPackage(),
                 Manager.class.getPackage(),
                 BookV2.class.getPackage(),
-                AsyncQuery.class.getPackage()
+                AsyncQuery.class.getPackage(),
+                Company.class.getPackage(),
+                Address.class.getPackage()
+
         );
 
         mapStore = new HashMapDataStore(DefaultClassScanner.getInstance(), beanPackages);

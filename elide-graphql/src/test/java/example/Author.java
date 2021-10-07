@@ -8,8 +8,8 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.graphql.subscriptions.Subscription;
-import com.yahoo.elide.graphql.subscriptions.SubscriptionField;
+import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
+import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import lombok.Builder;
 
 import java.util.ArrayList;

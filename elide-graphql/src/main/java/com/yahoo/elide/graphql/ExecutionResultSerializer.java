@@ -26,6 +26,10 @@ import java.util.Map;
 public class ExecutionResultSerializer extends StdSerializer<ExecutionResult> {
     private final GraphQLErrorSerializer errorSerializer;
 
+    public ExecutionResultSerializer() {
+        this(new GraphQLErrorSerializer());
+    }
+
     public ExecutionResultSerializer(GraphQLErrorSerializer errorSerializer) {
         super(ExecutionResult.class);
         this.errorSerializer = errorSerializer;

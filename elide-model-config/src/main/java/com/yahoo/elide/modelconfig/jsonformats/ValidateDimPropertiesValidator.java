@@ -28,7 +28,7 @@ public class ValidateDimPropertiesValidator extends AbstractKeywordValidator {
 
     public static final Set<String> COMMON_DIM_PROPERTIES = ImmutableSet.of("name", "friendlyName",
                     "description", "category", "hidden", "readAccess", "definition", "cardinality", "tags", "type",
-                    "arguments");
+                    "arguments", "filterTemplate");
     private static final Set<String> ADDITIONAL_DIM_PROPERTIES = ImmutableSet.of("values", "tableSource");
 
     public static final String KEYWORD = "validateDimensionProperties";

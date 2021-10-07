@@ -97,7 +97,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         super(
                 Collections.emptyMap(), //checks
                 Collections.emptyMap(), //role Checks
-                mock(Injector.class),
+                DEFAULT_INJECTOR,
                 CoerceUtil::lookup,
                 Collections.emptySet(),
                 DefaultClassScanner.getInstance()
@@ -156,7 +156,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @SecurityCheck("User is Admin")
-    public class Bar extends UserCheck {
+    public static class Bar extends UserCheck {
 
         @Override
         public boolean ok(com.yahoo.elide.core.security.User user) {
@@ -207,7 +207,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @SecurityCheck("Filter Expression Injection Test")
-    public class Foo extends FilterExpressionCheck {
+    public static class Foo extends FilterExpressionCheck {
 
         @Inject
         Long testLong;
@@ -226,7 +226,9 @@ public class EntityDictionaryTest extends EntityDictionary {
                 .injector(new Injector() {
                     @Override
                     public void inject(Object entity) {
-                        ((Foo) entity).testLong = 123L;
+                        if (entity instanceof Foo) {
+                            ((Foo) entity).testLong = 123L;
+                        }
                     }
                 })
                 .build();
@@ -247,7 +249,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(
                 new HashMap<>(),
                 null,
-                null,
+                DEFAULT_INJECTOR,
                 unused -> new ISO8601DateSerde(),
                 Collections.emptySet(),
                 DefaultClassScanner.getInstance());

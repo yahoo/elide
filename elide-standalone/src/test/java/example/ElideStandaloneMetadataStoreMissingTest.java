@@ -31,7 +31,7 @@ public class ElideStandaloneMetadataStoreMissingTest {
 
             @Override
             public ElideStandaloneAnalyticSettings getAnalyticProperties() {
-                ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
+                ElideStandaloneAnalyticSettings analyticProperties = new ElideStandaloneAnalyticSettings() {
                     @Override
                     public boolean enableDynamicModelConfig() {
                         return true;
@@ -52,7 +52,7 @@ public class ElideStandaloneMetadataStoreMissingTest {
                         return "src/test/resources/configs/";
                     }
                 };
-                return analyticPropeties;
+                return analyticProperties;
             }
 
             @Override

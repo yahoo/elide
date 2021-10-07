@@ -11,14 +11,19 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import example.models.Post;
+
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
 import java.util.Properties;
 import java.util.TimeZone;
+import javax.jms.ConnectionFactory;
 
 /**
  * Settings class extending ElideStandaloneSettings for tests.
@@ -26,19 +31,21 @@ import java.util.TimeZone;
 public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
 
     @Override
-    public ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore) {
+    public ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, JsonApiMapper mapper) {
         String jsonApiBaseUrl = getBaseUrl()
                 + getJsonApiPathSpec().replaceAll("/\\*", "")
                 + "/";
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
+                .withErrorMapper(getErrorMapper())
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                 .withBaseUrl("https://elide.io")
                 .withAuditLogger(getAuditLogger())
                 .withVerboseErrors()
+                .withJsonApiMapper(mapper)
                 .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
                 .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
                 .withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
@@ -94,7 +101,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
 
     @Override
     public ElideStandaloneAsyncSettings getAsyncProperties() {
-        ElideStandaloneAsyncSettings asyncPropeties = new ElideStandaloneAsyncSettings() {
+        ElideStandaloneAsyncSettings asyncProperties = new ElideStandaloneAsyncSettings() {
             @Override
             public boolean enabled() {
                 return true;
@@ -125,12 +132,12 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
                 return false;
             }
         };
-        return asyncPropeties;
+        return asyncProperties;
     }
 
     @Override
     public ElideStandaloneAnalyticSettings getAnalyticProperties() {
-        ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
+        ElideStandaloneAnalyticSettings analyticProperties = new ElideStandaloneAnalyticSettings() {
             @Override
             public boolean enableDynamicModelConfig() {
                 return true;
@@ -156,6 +163,26 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
                 return "src/test/resources/configs/";
             }
         };
-        return analyticPropeties;
+        return analyticProperties;
+    }
+
+    @Override
+    public ElideStandaloneSubscriptionSettings getSubscriptionProperties() {
+        return new ElideStandaloneSubscriptionSettings() {
+            @Override
+            public boolean enabled() {
+                return false;
+            }
+
+            @Override
+            public boolean shouldSendPingOnSubscribe() {
+                return true;
+            }
+
+            @Override
+            public ConnectionFactory getConnectionFactory() {
+                return new ActiveMQConnectionFactory("vm://0");
+            }
+        };
     }
 }

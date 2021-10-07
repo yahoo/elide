@@ -10,9 +10,6 @@ import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getV
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.ParseException;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -25,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Named;
-import org.apache.commons.lang3.StringUtils;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -49,7 +45,7 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Table implements Versioned, Named {
+public abstract class Table implements Versioned, Named, RequiresFilter {
 
     @Id
     private final String id;
@@ -321,18 +317,9 @@ public abstract class Table implements Versioned, Named {
         return getMetric(fieldName) != null;
     }
 
-    public FilterExpression getRequiredFilter(EntityDictionary dictionary) {
-        Type<?> cls = dictionary.getEntityClass(name, version);
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
-
-        if (StringUtils.isNotEmpty(requiredFilter)) {
-            try {
-                return filterDialect.parseFilterExpression(requiredFilter, cls, false, true);
-            } catch (ParseException e) {
-                throw new IllegalStateException(e);
-            }
-        }
-        return null;
+    @Override
+    public Table getTable() {
+        return this;
     }
 
     public boolean hasArgumentDefinition(String argName) {

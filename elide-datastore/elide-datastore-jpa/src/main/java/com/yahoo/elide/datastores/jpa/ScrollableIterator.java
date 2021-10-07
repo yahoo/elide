@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
-import com.yahoo.elide.core.hibernate.ScrollableIteratorBase;
+import com.yahoo.elide.datastores.jpql.porting.ScrollableIteratorBase;
 
 import java.util.Iterator;
 

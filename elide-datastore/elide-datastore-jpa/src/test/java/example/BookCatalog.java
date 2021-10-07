@@ -9,7 +9,6 @@ package example;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-
 import example.hook.BookCatalogOnCreateHook;
 import lombok.Data;
 

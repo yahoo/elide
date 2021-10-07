@@ -6,11 +6,11 @@
 package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.graphql.Environment;
-import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 /**
  * Interface describing how to process GraphQL request at each step.
+ * @param <T> The type returned by the container.
  */
-public interface GraphQLContainer {
-    Object processFetch(Environment context, PersistentResourceFetcher fetcher);
+public interface GraphQLContainer<T> {
+    T processFetch(Environment context);
 }

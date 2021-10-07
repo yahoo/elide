@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>5.0.12-SNAPSHOT</version>
+        <version>6.0.0-pr5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -51,6 +51,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-websocket</artifactId>
+                <version>5.3.10</version>
+            </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>
                 <artifactId>rest-assured</artifactId>
