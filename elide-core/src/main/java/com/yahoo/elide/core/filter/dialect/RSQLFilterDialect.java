@@ -47,6 +47,8 @@ import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+import lombok.Builder;
+import lombok.NonNull;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -95,17 +97,29 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
 
 
     private final RSQLParser parser;
+
+    @NonNull
     private final EntityDictionary dictionary;
     private final CaseSensitivityStrategy caseSensitivityStrategy;
+    private final Boolean addDefaultArguments;
 
-    public RSQLFilterDialect(EntityDictionary dictionary) {
-        this(dictionary, new CaseSensitivityStrategy.UseColumnCollation());
-    }
-
-    public RSQLFilterDialect(EntityDictionary dictionary, CaseSensitivityStrategy caseSensitivityStrategy) {
+    @Builder
+    public RSQLFilterDialect(EntityDictionary dictionary,
+                             CaseSensitivityStrategy caseSensitivityStrategy,
+                             Boolean addDefaultArguments) {
         parser = new RSQLParser(getDefaultOperatorsWithIsnull());
         this.dictionary = dictionary;
-        this.caseSensitivityStrategy = caseSensitivityStrategy;
+        if (caseSensitivityStrategy == null) {
+            this.caseSensitivityStrategy = new CaseSensitivityStrategy.UseColumnCollation();
+        } else {
+            this.caseSensitivityStrategy = caseSensitivityStrategy;
+        }
+
+        if (addDefaultArguments == null) {
+            this.addDefaultArguments = true;
+        } else {
+            this.addDefaultArguments = addDefaultArguments;
+        }
     }
 
     //add rsql isnull op to the default ops
@@ -346,7 +360,10 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     arguments = new HashSet<>();
                 }
 
-                addDefaultArguments(arguments, dictionary.getAttributeArguments(entityType, associationName));
+                if (addDefaultArguments) {
+                    addDefaultArguments(arguments, dictionary.getAttributeArguments(entityType, associationName));
+                }
+
                 String typeName = dictionary.getJsonAliasFor(entityType);
                 Type fieldType = dictionary.getParameterizedType(entityType, associationName);
 

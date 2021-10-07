@@ -30,7 +30,10 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
-        dialect = new RSQLFilterDialect(dictionary, new CaseSensitivityStrategy.FIQLCompliant());
+        dialect = RSQLFilterDialect.builder()
+                .dictionary(dictionary)
+                .caseSensitivityStrategy(new CaseSensitivityStrategy.FIQLCompliant())
+                .build();
     }
 
     @Test

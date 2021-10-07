@@ -71,7 +71,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     protected ElideSettings settings;
 
     public SubscriptionDataFetcherTest() {
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         dataStore = mock(DataStore.class);
         dataStoreTransaction = mock(DataStoreTransaction.class);

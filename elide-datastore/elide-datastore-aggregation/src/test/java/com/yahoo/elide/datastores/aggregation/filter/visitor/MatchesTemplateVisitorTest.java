@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.filter.visitor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -16,6 +17,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import example.Player;
 import example.PlayerStats;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +36,13 @@ public class MatchesTemplateVisitorTest {
         EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(Player.class);
-        dialect = new RSQLFilterDialect(dictionary);
+
+        dictionary.addArgumentToAttribute(
+                dictionary.getEntityClass("playerStats", EntityDictionary.NO_VERSION),
+                "recordedDate",
+                new ArgumentType("grain", ClassType.STRING_TYPE, TimeGrain.DAY));
+
+        dialect = RSQLFilterDialect.builder().dictionary(dictionary).addDefaultArguments(false).build();
     }
 
     @Test
@@ -176,7 +184,20 @@ public class MatchesTemplateVisitorTest {
     }
 
     @Test
-    public void parameterizedFilterDoesNotMatch() throws Exception {
+    public void parameterizedFilterArgumentsDoNotMatch() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("recordedDate[grain:day]=='2020-01-01'",
+                playerStatsType, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("recordedDate[grain:month]=={{day}}",
+                playerStatsType, false, true);
+
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
+    }
+
+    @Test
+    public void parameterizedFilterArgumentsIgnored() throws Exception {
         FilterExpression clientExpression = dialect.parseFilterExpression("recordedDate[grain:day]=='2020-01-01'",
                 playerStatsType, true);
 
@@ -184,8 +205,8 @@ public class MatchesTemplateVisitorTest {
                 playerStatsType, false, true);
 
         Map<String, Argument> extractedArgs = new HashMap<>();
-        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
-        assertEquals(0, extractedArgs.size());
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(1, extractedArgs.size());
     }
 
     @Test

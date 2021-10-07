@@ -184,7 +184,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testShortCircuitReject() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("genre==foo", ClassType.of(Book.class), true);
 
@@ -209,7 +209,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testShortCircuitRejectDeferThenFail() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("authors.homeAddress==main", ClassType.of(Book.class), true);
 
@@ -245,7 +245,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testShortCircuitDeferred() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("genre==foo", ClassType.of(Book.class), true);
 
@@ -272,7 +272,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testShortCircuitPass() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("authors.name==foo", ClassType.of(Book.class), true);
 
@@ -302,7 +302,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testUserChecksDeferred() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("authors.homeAddress==main", ClassType.of(Book.class), true);
 
@@ -346,7 +346,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testBypassReadonlyFilterRestriction() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("authors.name==foo", ClassType.of(Book.class), true);
 
@@ -371,7 +371,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testCustomFilterJoin() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("genre==foo", ClassType.of(Book.class), true);
 

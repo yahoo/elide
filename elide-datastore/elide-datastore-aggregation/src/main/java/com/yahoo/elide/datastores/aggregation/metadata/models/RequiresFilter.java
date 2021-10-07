@@ -23,7 +23,10 @@ public interface RequiresFilter extends Named {
 
     default FilterExpression getRequiredFilter(EntityDictionary dictionary) {
         Type<?> cls = dictionary.getEntityClass(getTable().getName(), getTable().getVersion());
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder()
+                .dictionary(dictionary)
+                .addDefaultArguments(false)
+                .build();
 
         if (StringUtils.isNotEmpty(getRequiredFilter())) {
             try {

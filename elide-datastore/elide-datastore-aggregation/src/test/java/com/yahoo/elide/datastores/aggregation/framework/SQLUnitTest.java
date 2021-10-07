@@ -494,7 +494,7 @@ public abstract class SQLUnitTest {
         dictionary.bindEntity(CountryViewNested.class);
         dictionary.bindEntity(Continent.class);
         dictionary.bindEntity(GameRevenue.class);
-        filterParser = new RSQLFilterDialect(dictionary);
+        filterParser = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         //Manually register the serdes because we are not running a complete Elide service.
         CoerceUtil.register(Day.class, new Day.DaySerde());
