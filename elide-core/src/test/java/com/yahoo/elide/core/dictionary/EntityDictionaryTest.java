@@ -1102,6 +1102,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "authors"));
         //Test enum
         assertFalse(isComplexAttribute(ClassType.of(Author.class), "authorType"));
+        //Test collection of complex type
+        assertFalse(isComplexAttribute(ClassType.of(Author.class), "vacationHomes"));
+        //Test map of objects
+        assertFalse(isComplexAttribute(ClassType.of(Author.class), "stuff"));
     }
 
     @Test
