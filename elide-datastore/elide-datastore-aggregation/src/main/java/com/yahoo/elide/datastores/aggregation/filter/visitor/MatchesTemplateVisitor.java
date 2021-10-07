@@ -132,7 +132,8 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
                 return false;
             }
 
-            if (! aElement.getArguments().equals(bElement.getArguments())) {
+            //We only compare path arguments if Path a (the template) has them.
+            if (aElement.getArguments().size() > 0 && ! aElement.getArguments().equals(bElement.getArguments())) {
                 return false;
             }
         }

@@ -176,7 +176,20 @@ public class MatchesTemplateVisitorTest {
     }
 
     @Test
-    public void parameterizedFilterDoesNotMatch() throws Exception {
+    public void parameterizedFilterArgumentsDoNotMatch() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("recordedDate[grain:day]=='2020-01-01'",
+                playerStatsType, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("recordedDate[grain:month]=={{day}}",
+                playerStatsType, false, true);
+
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
+    }
+
+    @Test
+    public void parameterizedFilterArgumentsIgnored() throws Exception {
         FilterExpression clientExpression = dialect.parseFilterExpression("recordedDate[grain:day]=='2020-01-01'",
                 playerStatsType, true);
 
@@ -184,8 +197,8 @@ public class MatchesTemplateVisitorTest {
                 playerStatsType, false, true);
 
         Map<String, Argument> extractedArgs = new HashMap<>();
-        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
-        assertEquals(0, extractedArgs.size());
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(1, extractedArgs.size());
     }
 
     @Test
