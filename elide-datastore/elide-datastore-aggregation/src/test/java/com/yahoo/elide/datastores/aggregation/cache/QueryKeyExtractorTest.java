@@ -55,7 +55,7 @@ public class QueryKeyExtractorTest {
 
     @Test
     public void testFullQuery() throws Exception {
-        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterParser = RSQLFilterDialect.builder().dictionary(dictionary).build();
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("playerName", Sorting.SortOrder.asc);
         Query query = Query.builder()

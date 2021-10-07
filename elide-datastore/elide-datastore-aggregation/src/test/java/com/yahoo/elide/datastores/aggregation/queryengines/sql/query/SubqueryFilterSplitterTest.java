@@ -58,7 +58,7 @@ public class SubqueryFilterSplitterTest {
         new SQLQueryEngine(metaDataStore, new ConnectionDetails(mockDataSource,
                 SQLDialectFactory.getDefaultDialect()));
 
-        dialect = new RSQLFilterDialect(dictionary);
+        dialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
     }
 
 

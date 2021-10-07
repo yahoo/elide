@@ -54,7 +54,7 @@ public class RSQLFilterDialectTest {
         dictionary.bindEntity(StringId.class);
         dictionary.bindEntity(Job.class);
         dictionary.bindEntity(PrimitiveId.class);
-        dialect = new RSQLFilterDialect(dictionary);
+        dialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
     }
 
     @Test

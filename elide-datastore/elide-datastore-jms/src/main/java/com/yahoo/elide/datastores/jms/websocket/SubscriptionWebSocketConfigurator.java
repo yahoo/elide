@@ -96,7 +96,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     }
 
     protected Elide buildElide(DataStore store, EntityDictionary dictionary) {
-        RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(store)
                 .withAuditLogger(auditLogger)

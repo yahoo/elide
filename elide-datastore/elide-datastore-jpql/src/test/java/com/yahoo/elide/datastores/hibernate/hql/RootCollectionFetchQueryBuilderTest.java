@@ -55,7 +55,10 @@ public class RootCollectionFetchQueryBuilderTest {
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Chapter.class);
         dictionary.bindEntity(Editor.class);
-        filterParser = new RSQLFilterDialect(dictionary, new CaseSensitivityStrategy.UseColumnCollation());
+        filterParser = RSQLFilterDialect.builder()
+                .dictionary(dictionary)
+                .caseSensitivityStrategy(new CaseSensitivityStrategy.UseColumnCollation())
+                .build();
     }
 
     @Test
