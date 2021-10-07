@@ -78,6 +78,7 @@ import org.owasp.encoder.Encode;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -92,7 +93,7 @@ public class ResourceIT extends IntegrationTest {
             type("company"),
             id("abc"),
             attributes(
-                    attr("address", buildAddress("street1", null)),
+                    attr("address", buildAddress("street1", null, Map.of("foo", "bar"))),
                     attr("description", "ABC")
             )
     );
@@ -220,10 +221,11 @@ public class ResourceIT extends IntegrationTest {
     private final JsonParser jsonParser = new JsonParser();
     private final String baseUrl = "http://localhost:8080/api";
 
-    private static Address buildAddress(String street1, String street2) {
+    private static Address buildAddress(String street1, String street2, Map<Object, Object> properties) {
         final Address address = new Address();
         address.setStreet1(street1);
         address.setStreet2(street2);
+        address.setProperties(properties);
         return address;
     }
 
@@ -253,6 +255,12 @@ public class ResourceIT extends IntegrationTest {
         final Company company = new Company();
         company.setId("abc");
         company.setDescription("ABC");
+
+        Address address = new Address();
+        address.setStreet1("foo");
+        address.setProperties(Map.of("boo", "baz"));
+
+        company.setAddress(address);
 
         tx.createObject(company, null);
 
@@ -649,6 +657,8 @@ public class ResourceIT extends IntegrationTest {
 
         final Address update = new Address();
         update.setStreet1("street1");
+        update.setProperties(Map.of("foo", "bar"));
+
         // update company address
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
