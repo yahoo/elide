@@ -473,10 +473,10 @@ public class Elide {
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
+            requestScope.runQueuedPreFlushTriggers();
             if (!isReadOnly) {
                 requestScope.saveOrCreateObjects();
             }
-            requestScope.runQueuedPreFlushTriggers();
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();

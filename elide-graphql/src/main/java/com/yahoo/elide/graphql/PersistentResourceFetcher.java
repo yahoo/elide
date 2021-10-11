@@ -89,9 +89,9 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
 
         /* delegate request */
         switch (operation) {
-            case FETCH:
+            case FETCH: {
                 return fetchObjects(context);
-
+            }
             case UPSERT: {
                 container = upsertObjects(context);
                 break;
@@ -123,8 +123,16 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
                 .subscribeWith(new LifecycleHookInvoker(
                         context.requestScope.getDictionary(),
                         LifeCycleHookBinding.Operation.CREATE,
+                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, false)
+                ).throwOnError();
+
+        Observable.fromIterable(context.eventQueue)
+                .filter(CRUDEvent::isCreateEvent)
+                .subscribeWith(new LifecycleHookInvoker(
+                        context.requestScope.getDictionary(),
+                        LifeCycleHookBinding.Operation.CREATE,
                         LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-        );
+                ).throwOnError();
 
         Observable.fromIterable(context.eventQueue)
                 .filter(CRUDEvent::isDeleteEvent)
@@ -132,7 +140,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
                         context.requestScope.getDictionary(),
                         LifeCycleHookBinding.Operation.DELETE,
                         LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-        );
+                ).throwOnError();
 
         Observable.fromIterable(context.eventQueue)
                 .filter(CRUDEvent::isUpdateEvent)
@@ -140,7 +148,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
                         context.requestScope.getDictionary(),
                         LifeCycleHookBinding.Operation.UPDATE,
                         LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-        );
+                ).throwOnError();
 
         return container;
     }

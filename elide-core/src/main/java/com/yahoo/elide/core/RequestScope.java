@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.ALL_OPERATIONS;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -29,7 +30,6 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.collections.MapUtils;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 import lombok.Getter;
@@ -344,33 +344,21 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * Run queued pre-flush lifecycle triggers.
      */
     public void runQueuedPreFlushTriggers() {
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
-                .throwOnError();
+        runQueuedPreFlushTriggers(ALL_OPERATIONS);
+    }
 
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.UPDATE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.DELETE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.READ,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
-                .throwOnError();
+    /**
+     * Run queued pre-flush lifecycle triggers.
+     * @param operations List of operations to run pre-flush triggers for.
+     */
+    public void runQueuedPreFlushTriggers(LifeCycleHookBinding.Operation[] operations) {
+        for (LifeCycleHookBinding.Operation op : operations) {
+            this.queuedLifecycleEvents
+                    .filter(event -> event.getEventType().equals(op))
+                    .subscribeWith(new LifecycleHookInvoker(dictionary, op,
+                            LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
+                    .throwOnError();
+        }
     }
 
     /**
