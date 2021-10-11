@@ -43,6 +43,8 @@ public class Environment {
     public final GraphQLType outputType;
     public final Field field;
     public final NonEntityDictionary nonEntityDictionary;
+
+    //Queues up lifecycle events as they happen in the current fetch.
     public final Queue<CRUDEvent> eventQueue;
 
     public Environment(DataFetchingEnvironment environment, NonEntityDictionary nonEntityDictionary) {
@@ -57,7 +59,7 @@ public class Environment {
         requestScope.registerLifecycleHookObserver(new Observer<CRUDEvent>() {
             @Override
             public void onSubscribe(Disposable d) {
-
+                //NOOP
             }
 
             @Override
@@ -67,12 +69,12 @@ public class Environment {
 
             @Override
             public void onError(Throwable e) {
-
+                //NOOP
             }
 
             @Override
             public void onComplete() {
-
+                //NOOP
             }
         });
 
