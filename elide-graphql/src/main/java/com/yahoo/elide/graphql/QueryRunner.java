@@ -58,6 +58,7 @@ public class QueryRunner {
     private GraphQL api;
     private String apiVersion;
 
+
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
     private static final String VARIABLES = "variables";
