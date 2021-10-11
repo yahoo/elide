@@ -21,8 +21,6 @@ import example.ParameterizedExample;
 import example.Pseudonym;
 import example.Publisher;
 
-import org.junit.jupiter.api.BeforeEach;
-
 import java.util.HashMap;
 import java.util.Map;
 
