@@ -6,8 +6,12 @@
 
 package com.yahoo.elide.graphql;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.type.ClassType;
 import example.Address;
@@ -17,6 +21,8 @@ import example.ParameterizedExample;
 import example.Pseudonym;
 import example.Publisher;
 
+import org.junit.jupiter.api.BeforeEach;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,12 +31,17 @@ import java.util.Map;
  */
 public abstract class GraphQLTest {
     protected EntityDictionary dictionary;
+    protected Injector injector;
 
     public GraphQLTest() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
         checks.put("Prefab.Role.All", com.yahoo.elide.core.security.checks.prefab.Role.ALL.class);
+        injector = mock(Injector.class);
+        when(injector.instantiate(any())).thenCallRealMethod();
 
-        dictionary = EntityDictionary.builder().checks(checks).build();
+        dictionary = EntityDictionary.builder()
+                .injector(injector)
+                .checks(checks).build();
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);

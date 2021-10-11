@@ -127,6 +127,15 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testInvalidURL() {
+        /* Test Default */
+        given()
+                .get("/assignedIdString/foo%3Abar")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+        @Test
     void testRootFilterInvalidField() {
         /* Test Default */
         given()

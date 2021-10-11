@@ -33,6 +33,7 @@ import example.Pseudonym;
 import example.Publisher;
 import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
 /**
  * Base functionality required to test the PersistentResourceFetcher.
  */
-@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected ObjectMapper mapper = new ObjectMapper();
     protected QueryRunner runner;
@@ -70,7 +71,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected HashMapDataStore hashMapDataStore;
     protected ElideSettings settings;
 
-    public PersistentResourceFetcherTest() {
+    @BeforeAll
+    public void initializeQueryRunner() {
         RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         hashMapDataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage());
@@ -84,9 +86,14 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         settings.getSerdes().forEach(CoerceUtil::register);
 
-        runner = new QueryRunner(new Elide(settings), NO_VERSION);
+        initializeMocks();
+        Elide elide = new Elide(settings);
 
-        initTestData();
+        runner = new QueryRunner(elide, NO_VERSION);
+    }
+
+    protected void initializeMocks() {
+        //NOOP;
     }
 
     @AfterEach
