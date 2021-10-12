@@ -118,7 +118,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     /**
      * Export Table Data.
      * @param exportObj TableExport type object.
-     * @param prevScope RequestScope object.
+     * @param scope RequestScope object.
      * @param projection Entity projection.
      * @return Observable PersistentResource
      */
