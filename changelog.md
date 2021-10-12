@@ -1,4 +1,16 @@
 # Change Log
+## 6.0.0-pr5
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/28c378c0c447923b67ab1674df50793480ed12df) Relaxing filter template matching to ignore aliases (#2322) 
+   * [view commit](https://github.com/yahoo/elide/commit/a4e58460b4a2e9bd04ba4707ad31e62dd1dafe01) Values validation on filters that had operators like contains should not be enforced (#2323) 
+   * [view commit](https://github.com/yahoo/elide/commit/3006b1e3aa672bb97c75d276ed9e3c469518976f) Bump junit-platform-launcher from 1.7.2 to 1.8.1 (#2313) 
+   * [view commit](https://github.com/yahoo/elide/commit/5acec4ea96d5786e9b5118d606de40104a6cb851) Bump dependency-check-maven from 6.2.2 to 6.3.2 (#2318) 
+   * [view commit](https://github.com/yahoo/elide/commit/69eb1e6d362bbd6f91d4ff102131f5a631506bce) No longer using attribute aliases to generate CSV export headers.  In… (#2325) 
+   * [view commit](https://github.com/yahoo/elide/commit/ae5afa1de35760c3603e743e63b8dbaad32b3951) Bump classgraph from 4.8.115 to 4.8.116 (#2296) 
+   * [view commit](https://github.com/yahoo/elide/commit/23d8cde402d17137d40ce92fabb68d10517a3f2c) Fixing bug for complex attributes contain a Map of Object (#2328) 
+   * [view commit](https://github.com/yahoo/elide/commit/64325a03c2d0e965e2543c3c52a9ddc0de570c03) Aggregation Store: Relaxing rules for how filter templates are compared against filter e… (#2329) 
+   * [view commit](https://github.com/yahoo/elide/commit/9ad0d58b66ead60ede9a13e164fbb5a3c736d889) support case statement in Calcite Aggregation Extractor (#2330) 
+
 ## 6.0.0-pr4
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/0eb1624a401c9099c0e9f1f3fb539144cb3b97a1) Added new flag to enable subscription publishing in a separate service.  Disallow queries in subscription endpoint. (#2320) 
