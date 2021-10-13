@@ -5,30 +5,27 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import example.Author;
 import example.Book;
 import org.hibernate.collection.internal.PersistentSet;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -37,8 +34,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
@@ -61,6 +58,8 @@ public class JpaDataStoreTransactionTest {
         entityManager = mock(EntityManager.class);
         query = mock(Query.class);
         when(entityManager.createQuery(any(String.class))).thenReturn(query);
+        when(query.setParameter(any(String.class), any())).thenReturn(query);
+        when(query.setParameter(any(Integer.class), any())).thenReturn(query);
 
         scope = mock(RequestScope.class);
         when(scope.getDictionary()).thenReturn(dictionary);
@@ -99,7 +98,11 @@ public class JpaDataStoreTransactionTest {
 
     @ParameterizedTest
     @MethodSource("getTestArguments")
-    public void testDelegationOnCollectionOfOneFetch(boolean delegateToInMemory, int numberOfAuthors) throws Exception {
+    public void testDelegationOnCollectionOfOneFetch(
+            boolean delegateToInMemory,
+            int numberOfAuthors,
+            FilterExpression filter,
+            boolean usesInMemory) throws Exception {
         AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {
 
         }, DEFAULT_LOGGER, delegateToInMemory, false) {
@@ -141,6 +144,7 @@ public class JpaDataStoreTransactionTest {
                 .name("books")
                 .projection(EntityProjection.builder()
                         .type(Book.class)
+                        .filterExpression(filter)
                         .build())
                 .build();
 
@@ -150,15 +154,22 @@ public class JpaDataStoreTransactionTest {
 
         Iterable<Book> loadedBooks = tx.getRelation(tx, author1, relationship, scope);
 
-        assertTrue(loadedBooks instanceof DataStoreIterable);
+        assertEquals(usesInMemory, loadedBooks instanceof DataStoreIterable);
     }
 
-    private static Stream<Arguments> getTestArguments() {
+    private Stream<Arguments> getTestArguments() throws Exception {
+        RSQLFilterDialect parser = RSQLFilterDialect.builder().dictionary(dictionary).build();
+
+        FilterExpression expression = parser.parse(ClassType.of(Book.class), Collections.emptySet(), "title=='foo'", NO_VERSION);
         return Stream.of(
-                arguments(true, 1),
-                arguments(true, 2),
-                arguments(false, 1),
-                arguments(false, 2)
+                arguments(true, 1, null, true),
+                arguments(true, 2, null, true),
+                arguments(false, 1, null, true),
+                arguments(false, 2, null, true),
+                arguments(true, 1, expression, false),
+                arguments(true, 2, expression, true),
+                arguments(false, 1, expression, false),
+                arguments(false, 2, expression, false)
         );
     }
 }
