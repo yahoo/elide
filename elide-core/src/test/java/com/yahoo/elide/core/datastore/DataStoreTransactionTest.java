@@ -8,7 +8,6 @@ package com.yahoo.elide.core.datastore;
 
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Optional;
 
 public class DataStoreTransactionTest implements DataStoreTransaction {
     private static final String NAME = "name";
@@ -49,24 +47,6 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
     public void testPreCommit() {
         preCommit(scope);
         verify(scope, never()).getDictionary();
-    }
-
-    @Test
-    public void testSupportsSorting() {
-        boolean actual = supportsSorting(null, Optional.empty(), null);
-        assertTrue(actual);
-    }
-
-    @Test
-    public void testSupportsPagination() {
-        boolean actual = supportsPagination(null, Optional.empty(), null);
-        assertTrue(actual);
-    }
-
-    @Test
-    public void testSupportsFiltering() {
-        DataStoreTransaction.FeatureSupport actual = supportsFiltering(null, Optional.empty(), null);
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, actual);
     }
 
     @Test

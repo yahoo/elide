@@ -115,24 +115,6 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
         }
     }
 
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory filtering
-        return FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory sorting
-        return false;
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory pagination
-        return false;
-    }
-
     protected TopicType getTopicType(EntityProjection projection) {
         Set<Argument> arguments = projection.getArguments();
 

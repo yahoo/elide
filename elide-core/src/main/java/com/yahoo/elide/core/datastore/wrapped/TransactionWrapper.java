@@ -16,7 +16,6 @@ import lombok.Data;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -66,21 +65,6 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     @Override
     public <T> void setAttribute(T entity, Attribute attribute, RequestScope scope) {
         tx.setAttribute(entity, attribute, scope);
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return tx.supportsFiltering(scope, parent, projection);
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return tx.supportsSorting(scope, parent, projection);
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return tx.supportsPagination(scope, parent, projection);
     }
 
     @Override

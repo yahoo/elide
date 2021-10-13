@@ -40,11 +40,15 @@ import javax.persistence.Table;
         logExpressions = {"${author.name}"})
 public class Author {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
+
     @Setter
     private Long id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long getId() {
+        return id;
+    }
 
     @Exclude
     private String naturalKey = UUID.randomUUID().toString();

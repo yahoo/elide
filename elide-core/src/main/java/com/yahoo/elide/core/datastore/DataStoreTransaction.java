@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.datastore;
 
+import static com.yahoo.elide.core.datastore.DataStoreIterableBuilder.conditionallyWrap;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -23,21 +24,11 @@ import com.yahoo.elide.core.type.Type;
 import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Set;
 /**
  * Wraps the Database Transaction type.
  */
 public interface DataStoreTransaction extends Closeable {
-
-    /**
-     * The extent to which the transaction supports a particular feature.
-     */
-    public enum FeatureSupport {
-        FULL,
-        PARTIAL,
-        NONE
-    }
     /**
      * Save the updated object.
      *
@@ -191,7 +182,7 @@ public interface DataStoreTransaction extends Closeable {
             Relationship relationship,
             RequestScope scope) {
 
-        return (R) PersistentResource.getValue(entity, relationship.getName(), scope);
+        return (R) conditionallyWrap(PersistentResource.getValue(entity, relationship.getName(), scope));
     }
 
     /**
@@ -268,48 +259,6 @@ public interface DataStoreTransaction extends Closeable {
     default <T> void setAttribute(T entity,
                                   Attribute attribute,
                                   RequestScope scope) {
-    }
-
-    /**
-     * Whether or not the transaction can filter the provided class with the provided expression.
-     * @param scope The request scope
-     * @param projection The projection being loaded
-     * @param parent Are we filtering a root collection or a relationship
-     * @param <T> - The model type of the parent model (if a relationship is being filtered).
-     * @return FULL, PARTIAL, or NONE
-     */
-    default <T> FeatureSupport supportsFiltering(RequestScope scope,
-                                                 Optional<T> parent,
-                                                 EntityProjection projection) {
-        return FeatureSupport.FULL;
-    }
-
-    /**
-     * Whether or not the transaction can sort the provided class.
-     * @param scope The request scope
-     * @param projection The projection being loaded
-     * @param parent Are we filtering a root collection or a relationship
-     * @param <T> - The model type of the parent model (if a relationship is being sorted).
-     * @return true if sorting is possible
-     */
-    default <T> boolean supportsSorting(RequestScope scope,
-                                        Optional<T> parent,
-                                        EntityProjection projection) {
-        return true;
-    }
-
-    /**
-     * Whether or not the transaction can paginate the provided class.
-     * @param scope The request scope
-     * @param projection The projection being loaded
-     * @param parent Are we filtering a root collection or a relationship
-     * @param <T> - The model type of the parent model (if a relationship is being paginated).
-     * @return true if pagination is possible
-     */
-    default <T> boolean supportsPagination(RequestScope scope,
-                                           Optional<T> parent,
-                                           EntityProjection projection) {
-        return true;
     }
 
     /**

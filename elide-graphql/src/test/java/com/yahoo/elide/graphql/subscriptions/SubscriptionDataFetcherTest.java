@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.ArgumentType;
@@ -172,7 +173,8 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         book2.setTitle("Book 2");
         book2.setId(2);
 
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+        when(dataStoreTransaction.loadObjects(any(), any()))
+                .thenReturn(new DataStoreIterableBuilder<>(List.of(book1, book2)).allInMemory().build());
 
         List<String> responses = List.of(
                 "{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}"

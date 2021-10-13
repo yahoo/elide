@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpql;
 
+import static com.yahoo.elide.core.datastore.DataStoreIterableBuilder.conditionallyWrap;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -35,7 +36,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -157,7 +157,9 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
 
         EntityDictionary dictionary = scope.getDictionary();
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relation.getName(), scope);
-        if (val instanceof Collection && isPersistentCollection().test((Collection<?>) val)) {
+
+        //If the query is safe for N+1 and the value is an ORM managed, persistent collection, run a JPQL query...
+        if (doInDatabase(entity) && val instanceof Collection && isPersistentCollection().test((Collection<?>) val)) {
 
             /*
              * If there is no filtering or sorting required in the data store, and the pagination is default,
@@ -165,7 +167,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
              */
             if (filterExpression == null && sorting == null
                     && (pagination == null || (pagination.isDefaultInstance()))) {
-                return addSingleElement((R) val);
+                return (R) conditionallyWrap(addSingleElement(val));
             }
 
             RelationshipImpl relationship = new RelationshipImpl(
@@ -187,7 +189,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                 return addSingleElement((R) query.list());
             }
         }
-        return addSingleElement((R) val);
+        return (R) conditionallyWrap(addSingleElement(val));
     }
 
     protected abstract Predicate<Collection<?>> isPersistentCollection();
@@ -239,27 +241,10 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         return results;
     }
 
-    protected <T> boolean doInDatabase(Optional<T> parent) {
+    protected <T> boolean doInDatabase(T parent) {
         // In-Memory delegation is disabled.
         return !delegateToInMemoryStore
-                // This is a root level load (so always let the DB do as much as possible.
-                || !parent.isPresent()
                 // We are fetching .../book/1/authors so N = 1 in N+1. No harm in the DB running a query.
-                || parent.filter(singleElementLoads::contains).isPresent();
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent) ? FeatureSupport.FULL : FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent);
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent);
+                || singleElementLoads.contains(parent);
     }
 }

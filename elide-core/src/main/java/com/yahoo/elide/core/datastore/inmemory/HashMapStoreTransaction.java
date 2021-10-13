@@ -5,7 +5,9 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
+import static com.yahoo.elide.core.datastore.DataStoreIterableBuilder.conditionallyWrap;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -19,7 +21,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.persistence.GeneratedValue;
 
@@ -129,7 +130,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
                               Object entity,
                               Relationship relationship,
                               RequestScope scope) {
-        return dictionary.getValue(entity, relationship.getName(), scope);
+        return conditionallyWrap(dictionary.getValue(entity, relationship.getName(), scope));
     }
 
     @Override
@@ -137,7 +138,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
                                         RequestScope scope) {
         synchronized (dataStore) {
             Map<String, Object> data = dataStore.get(projection.getType());
-            return data.values();
+            return new DataStoreIterableBuilder<Object>(data.values()).allInMemory().build();
         }
     }
 
@@ -161,21 +162,6 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     @Override
     public void close() throws IOException {
         operations.clear();
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return false;
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return false;
     }
 
     private boolean containsObject(Object obj) {
