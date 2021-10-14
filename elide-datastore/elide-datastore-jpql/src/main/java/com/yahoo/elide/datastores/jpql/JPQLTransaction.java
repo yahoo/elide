@@ -146,7 +146,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
             }
         }
 
-        return new DataStoreIterableBuilder<T>(addSingleElement(results)).allInMemory().build();
+        return new DataStoreIterableBuilder<T>(addSingleElement(results)).build();
     }
 
     @Override

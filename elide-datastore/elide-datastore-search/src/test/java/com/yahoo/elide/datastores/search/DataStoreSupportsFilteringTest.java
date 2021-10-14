@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.search;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -96,9 +97,11 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+        DataStoreIterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
 
-        assertFalse(loaded instanceof DataStoreIterable);
+        assertFalse(loaded.needsInMemoryFilter());
+        assertFalse(loaded.needsInMemoryPagination());
+        assertFalse(loaded.needsInMemorySort());
         verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
@@ -114,9 +117,11 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+        DataStoreIterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
 
-        assertFalse(loaded instanceof DataStoreIterable);
+        assertFalse(loaded.needsInMemoryFilter());
+        assertFalse(loaded.needsInMemoryPagination());
+        assertFalse(loaded.needsInMemorySort());
         verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
@@ -132,9 +137,9 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
-
-        assertFalse(loaded instanceof DataStoreIterable);
+        DataStoreIterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+        //The query was passed to the wrapped transaction which is a mock.
+        assertNull(loaded);
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());
     }
 
@@ -177,9 +182,9 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
-
-        assertFalse(loaded instanceof DataStoreIterable);
+        DataStoreIterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+        //The query was passed to the wrapped transaction which is a mock.
+        assertNull(loaded);
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());
     }
 
@@ -194,9 +199,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
-
-        assertFalse(loaded instanceof DataStoreIterable);
+        DataStoreIterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+        assertFalse(loaded.needsInMemoryFilter());
+        assertFalse(loaded.needsInMemoryPagination());
+        assertFalse(loaded.needsInMemorySort());
         verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
@@ -211,9 +217,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
-
-        assertFalse(loaded instanceof DataStoreIterable);
+        DataStoreIterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+        assertFalse(loaded.needsInMemoryFilter());
+        assertFalse(loaded.needsInMemoryPagination());
+        assertFalse(loaded.needsInMemorySort());
         verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
@@ -228,9 +235,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
-
-        assertTrue(loaded instanceof DataStoreIterable);
+        DataStoreIterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+        assertTrue(loaded.needsInMemoryFilter());
+        assertTrue(loaded.needsInMemoryPagination());
+        assertTrue(loaded.needsInMemorySort());
         verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
@@ -245,9 +253,9 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
-
-        assertFalse(loaded instanceof DataStoreIterable);
+        DataStoreIterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+        //The query was passed to the wrapped transaction which is a mock.
+        assertNull(loaded);
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());
     }
 }

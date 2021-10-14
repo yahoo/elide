@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -59,8 +60,12 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Object getToManyRelation(DataStoreTransaction relationTx, Object entity, Relationship relationship,
-                                    RequestScope scope) {
+    public DataStoreIterable<Object> getToManyRelation(
+            DataStoreTransaction relationTx,
+            Object entity,
+            Relationship relationship,
+            RequestScope scope
+    ) {
         return hashMapDataStores
                         .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
                         .beginTransaction()
@@ -68,7 +73,20 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
+    public Object getToOneRelation(
+            DataStoreTransaction relationTx,
+            Object entity,
+            Relationship relationship,
+            RequestScope scope
+    ) {
+        return hashMapDataStores
+                .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
+                .beginTransaction()
+                .getToOneRelation(relationTx, entity, relationship, scope);
+    }
+
+    @Override
+    public DataStoreIterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
         return hashMapDataStores
                         .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
                         .beginTransaction()

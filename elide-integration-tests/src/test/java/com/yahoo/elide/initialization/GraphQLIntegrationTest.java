@@ -105,7 +105,6 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
                 .header("ApiVersion", apiVersion)
                 .post("/graphQL")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK);
     }
 

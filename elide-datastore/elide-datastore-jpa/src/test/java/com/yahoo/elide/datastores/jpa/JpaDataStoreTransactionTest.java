@@ -91,9 +91,10 @@ public class JpaDataStoreTransactionTest {
                 .type(Book.class)
                 .build();
 
-        Iterable<Book> result = tx.loadObjects(projection, scope);
-
-        assertFalse(result instanceof DataStoreIterable);
+        DataStoreIterable<Book> result = tx.loadObjects(projection, scope);
+        assertFalse(result.needsInMemoryFilter());
+        assertFalse(result.needsInMemorySort());
+        assertFalse(result.needsInMemoryPagination());
     }
 
     @ParameterizedTest
@@ -137,8 +138,10 @@ public class JpaDataStoreTransactionTest {
 
         when (query.getResultList()).thenReturn(authors);
 
-        Iterable<Author> loadedAuthors = tx.loadObjects(projection, scope);
-        assertFalse(loadedAuthors instanceof DataStoreIterable);
+        DataStoreIterable<Author> loadedAuthors = tx.loadObjects(projection, scope);
+        assertFalse(loadedAuthors.needsInMemoryPagination());
+        assertFalse(loadedAuthors.needsInMemorySort());
+        assertFalse(loadedAuthors.needsInMemoryFilter());
 
         Relationship relationship = Relationship.builder()
                 .name("books")
@@ -152,9 +155,11 @@ public class JpaDataStoreTransactionTest {
 
         when(author1.getBooks()).thenReturn(returnCollection);
 
-        Iterable<Book> loadedBooks = tx.getToManyRelation(tx, author1, relationship, scope);
+        DataStoreIterable<Book> loadedBooks = tx.getToManyRelation(tx, author1, relationship, scope);
 
-        assertEquals(usesInMemory, loadedBooks instanceof DataStoreIterable);
+        assertEquals(usesInMemory, loadedBooks.needsInMemoryFilter());
+        assertEquals(usesInMemory, loadedBooks.needsInMemorySort());
+        assertEquals(usesInMemory, loadedBooks.needsInMemoryPagination());
     }
 
     private Stream<Arguments> getTestArguments() throws Exception {
