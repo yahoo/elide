@@ -39,8 +39,6 @@ import javax.persistence.Table;
         logStatement = "{0}",
         logExpressions = {"${author.name}"})
 public class Author {
-
-
     @Setter
     private Long id;
 
@@ -56,13 +54,21 @@ public class Author {
     @Getter @Setter
     private String name;
 
-    @ManyToMany(mappedBy = "authors")
-    @Getter @Setter
+    @Setter
     private Collection<Book> books = new ArrayList<>();
 
-    @Getter @Setter
-    @ReadPermission(expression = "Prefab.Role.None")
+    @ManyToMany(mappedBy = "authors")
+    public Collection<Book> getBooks() {
+        return books;
+    }
+
+    @Setter
     private String homeAddress;
+
+    @ReadPermission(expression = "Prefab.Role.None")
+    public String getHomeAddress() {
+        return homeAddress;
+    }
 
     @Override
     public int hashCode() {

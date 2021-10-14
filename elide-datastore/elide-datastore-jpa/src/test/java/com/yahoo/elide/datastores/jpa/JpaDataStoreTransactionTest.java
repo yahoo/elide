@@ -98,7 +98,7 @@ public class JpaDataStoreTransactionTest {
 
     @ParameterizedTest
     @MethodSource("getTestArguments")
-    public void testDelegationOnCollectionOfOneFetch(
+    public void testGetRelationDelegation(
             boolean delegateToInMemory,
             int numberOfAuthors,
             FilterExpression filter,

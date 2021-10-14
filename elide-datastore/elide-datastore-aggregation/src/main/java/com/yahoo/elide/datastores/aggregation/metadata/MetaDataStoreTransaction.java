@@ -16,7 +16,6 @@ import com.yahoo.elide.core.request.Relationship;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -64,8 +63,8 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
                     RequestScope scope) {
         return hashMapDataStores
                         .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
-                        .getDictionary()
-                        .getValue(entity, relationship.getName(), scope);
+                        .beginTransaction()
+                        .getRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
@@ -87,21 +86,6 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     @Override
     public void close() throws IOException {
         // Do nothing
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return false;
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return false;
     }
 
     @Override

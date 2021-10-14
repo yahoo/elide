@@ -428,7 +428,7 @@ public interface ElideStandaloneSettings {
             EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true));
+                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true));
 
         return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
     }
@@ -441,7 +441,7 @@ public interface ElideStandaloneSettings {
     default DataStore getDataStore(EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true));
+                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true));
 
         return jpaDataStore;
     }

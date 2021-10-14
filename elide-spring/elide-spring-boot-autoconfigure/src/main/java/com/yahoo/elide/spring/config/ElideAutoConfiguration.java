@@ -319,7 +319,7 @@ public class ElideAutoConfiguration {
                 entityManagerFactory::createEntityManager,
                 em -> new NonJtaTransaction(em, txCancel,
                         DEFAULT_LOGGER,
-                        settings.getJpaStore().isDelegateToInMemoryStore()));
+                        settings.getJpaStore().isDelegateToInMemoryStore(), true));
 
         if (isAggregationStoreEnabled(settings)) {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
