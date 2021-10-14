@@ -6,6 +6,7 @@
 package com.yahoo.elide.graphql.subscriptions.containers;
 
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.containers.NodeContainer;
@@ -25,13 +26,26 @@ public class SubscriptionNodeContainer extends NodeContainer {
     }
 
     @Override
-    protected List<SubscriptionNodeContainer> fetchRelationship(Environment context, Relationship relationship) {
-        Set<PersistentResource> resources = (Set<PersistentResource>) context.parentResource
-                .getRelationCheckedFiltered(relationship)
-                .toList(LinkedHashSet::new).blockingGet();
+    protected Object fetchRelationship(Environment context, Relationship relationship) {
+        RelationshipType type = context.parentResource.getRelationshipType(relationship.getName());
 
-        return resources.stream()
-                .map(SubscriptionNodeContainer::new)
-                .collect(Collectors.toList());
+        if (type.isToOne()) {
+            Set<PersistentResource> resources = (Set<PersistentResource>) context.parentResource
+                    .getRelationCheckedFiltered(relationship)
+                    .toList(LinkedHashSet::new).blockingGet();
+            if (resources.size() > 0) {
+                return new SubscriptionNodeContainer(resources.iterator().next());
+            } else {
+                return null;
+            }
+        } else {
+            Set<PersistentResource> resources = (Set<PersistentResource>) context.parentResource
+                    .getRelationCheckedFiltered(relationship)
+                    .toList(LinkedHashSet::new).blockingGet();
+
+            return resources.stream()
+                    .map(SubscriptionNodeContainer::new)
+                    .collect(Collectors.toList());
+        }
     }
 }

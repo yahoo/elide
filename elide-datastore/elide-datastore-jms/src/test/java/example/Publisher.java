@@ -21,24 +21,10 @@ import javax.persistence.ManyToOne;
 @Include
 @Data
 @Subscription
-@ReadPermission(expression = HIDDEN_BOOK)
-public class Book {
+public class Publisher {
     @Id
     private long id;
 
     @SubscriptionField
-    private String title;
-
-    @SubscriptionField
-    @ManyToMany
-    private Set<Author> authors;
-
-    @SubscriptionField
-    @ManyToOne
-    private Publisher publisher;
-
-    //Nobody can read this.
-    @ReadPermission(expression = "NONE")
-    @SubscriptionField
-    private String nope;
+    private String name;
 }

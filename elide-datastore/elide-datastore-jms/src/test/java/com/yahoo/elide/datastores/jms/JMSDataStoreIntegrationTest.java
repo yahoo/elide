@@ -331,17 +331,32 @@ public class JMSDataStoreIntegrationTest {
     public void testCreateUpdateAndDelete() throws Exception {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
-        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(3,
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(4,
                 List.of(
-                        "subscription {book(topic: ADDED) { id title authors { id name }}}",
+                        "subscription {book(topic: ADDED) { id title authors { id name } publisher { id name }}}",
                         "subscription {book(topic: DELETED) { id title }}",
-                        "subscription {book(topic: UPDATED) { id title }}"
+                        "subscription {book(topic: UPDATED) { id title publisher { id name }}}"
                 ));
 
         try (Session session = container.connectToServer(client, new URI("ws://localhost:9999/subscription"))) {
 
             //Wait for the socket to be full established.
             client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
+                                            type("publisher"),
+                                            id("1"),
+                                            attributes(attr("name", "Some Company"))
+                                    )
+                            )
+                    )
+                    .post("/publisher")
+                    .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
             given()
                     .contentType(JSONAPI_CONTENT_TYPE)
@@ -368,7 +383,8 @@ public class JMSDataStoreIntegrationTest {
                                             id("3"),
                                             attributes(attr("title", "foo")),
                                             relationships(
-                                                    relation("authors", linkage(type("author"), id("1")))
+                                                    relation("authors", linkage(type("author"), id("1"))),
+                                                    relation("publisher", linkage(type("publisher"), id("1")))
                                             )
                                     )
                             )
@@ -389,7 +405,21 @@ public class JMSDataStoreIntegrationTest {
                             )
                     )
                     .patch("/book/3")
-                    .then().statusCode(HttpStatus.SC_NO_CONTENT);
+                    .then().log().all().statusCode(HttpStatus.SC_NO_CONTENT);
+
+            given()
+                    .contentType(JSONAPI_CONTENT_TYPE)
+                    .accept(JSONAPI_CONTENT_TYPE)
+                    .body(
+                            data(
+                                    resource(
+                                            type("publisher"),
+                                            id("1")
+                                    )
+                            )
+                    )
+                    .delete("/book/3/relationships/publisher")
+                    .then().log().all().statusCode(HttpStatus.SC_NO_CONTENT);
 
             given()
                     .contentType(JSONAPI_CONTENT_TYPE)
@@ -399,10 +429,11 @@ public class JMSDataStoreIntegrationTest {
 
             List<ExecutionResult> results = client.waitOnClose(300);
 
-            assertEquals(3, results.size());
-            assertEquals("{book={id=3, title=foo, authors=[{id=1, name=Jane Doe}]}}", results.get(0).getData().toString());
-            assertEquals("{book={id=3, title=new title}}", results.get(1).getData().toString());
-            assertEquals("{book={id=3, title=new title}}", results.get(2).getData().toString());
+            assertEquals(4, results.size());
+            assertEquals("{book={id=3, title=foo, authors=[{id=1, name=Jane Doe}], publisher={id=1, name=Some Company}}}", results.get(0).getData().toString());
+            assertEquals("{book={id=3, title=new title, publisher={id=1, name=Some Company}}}", results.get(1).getData().toString());
+            assertEquals("{book={id=3, title=new title, publisher=null}}", results.get(2).getData().toString());
+            assertEquals("{book={id=3, title=new title}}", results.get(3).getData().toString());
         }
     }
 
