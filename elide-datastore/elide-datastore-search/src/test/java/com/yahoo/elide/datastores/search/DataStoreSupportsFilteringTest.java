@@ -6,11 +6,10 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -18,6 +17,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -37,7 +37,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.Date;
-import java.util.Optional;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -63,7 +62,6 @@ public class DataStoreSupportsFilteringTest {
 
         searchStore = new SearchDataStore(mockStore, emf, true, 3, 10);
         searchStore.populateEntityDictionary(dictionary);
-
 
         mockScope = mock(RequestScope.class);
         when(mockScope.getDictionary()).thenReturn(dictionary);
@@ -98,8 +96,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
-                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+
+        assertFalse(loaded instanceof DataStoreIterable);
+        verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
     @Test
@@ -114,8 +114,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
-                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+
+        assertFalse(loaded instanceof DataStoreIterable);
+        verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
     @Test
@@ -130,9 +132,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertNull(testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
-        verify(wrappedTransaction, times(1))
-                .supportsFiltering(eq(mockScope), any(), eq(projection));
+        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+
+        assertFalse(loaded instanceof DataStoreIterable);
+        verify(wrappedTransaction, times(1)).loadObjects(any(), any());
     }
 
     @Test
@@ -146,8 +149,7 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertThrows(InvalidValueException.class,
-                () -> testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        assertThrows(InvalidValueException.class, () -> testTransaction.loadObjects(projection, mockScope));
     }
 
     @Test
@@ -161,8 +163,7 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertThrows(InvalidValueException.class,
-                () -> testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        assertThrows(InvalidValueException.class, () -> testTransaction.loadObjects(projection, mockScope));
     }
 
     @Test
@@ -176,10 +177,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertNull(testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
 
-        verify(wrappedTransaction, times(1))
-                .supportsFiltering(eq(mockScope), any(), eq(projection));
+        assertFalse(loaded instanceof DataStoreIterable);
+        verify(wrappedTransaction, times(1)).loadObjects(any(), any());
     }
 
     @Test
@@ -193,8 +194,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
-                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+
+        assertFalse(loaded instanceof DataStoreIterable);
+        verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
     @Test
@@ -208,8 +211,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
-                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+
+        assertFalse(loaded instanceof DataStoreIterable);
+        verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
     @Test
@@ -223,8 +228,10 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertEquals(DataStoreTransaction.FeatureSupport.PARTIAL,
-                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+
+        assertTrue(loaded instanceof DataStoreIterable);
+        verify(wrappedTransaction, times(0)).loadObjects(any(), any());
     }
 
     @Test
@@ -238,8 +245,9 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertNull(testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
-        verify(wrappedTransaction, times(1))
-                .supportsFiltering(eq(mockScope), any(), eq(projection));
+        Iterable<Object> loaded = testTransaction.loadObjects(projection, mockScope);
+
+        assertFalse(loaded instanceof DataStoreIterable);
+        verify(wrappedTransaction, times(1)).loadObjects(any(), any());
     }
 }

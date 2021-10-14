@@ -142,13 +142,13 @@ public class JMSDataStoreTest {
             assertEquals("Enders Game", receivedBook.getTitle());
             assertEquals(1, receivedBook.getId());
 
-            Set<Author> receivedAuthors = tx.getRelation(tx, receivedBook,
+            Set<Author> receivedAuthors = Sets.newHashSet((Iterable) tx.getRelation(tx, receivedBook,
                     Relationship.builder()
                             .name("authors")
                             .projection(EntityProjection.builder()
                                     .type(Author.class)
                                     .build())
-                            .build(), scope);
+                            .build(), scope));
 
             assertTrue(receivedAuthors.contains(author1));
 

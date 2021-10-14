@@ -6,10 +6,9 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.FULL;
-import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.NONE;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -53,6 +52,12 @@ import java.util.stream.Collectors;
  */
 public class SearchDataTransaction extends TransactionWrapper {
 
+    private enum FilterSupport {
+        FULL,
+        PARTIAL,
+        NONE
+    }
+
     private EntityDictionary dictionary;
     private FullTextEntityManager em;
     private int minNgram;
@@ -76,16 +81,22 @@ public class SearchDataTransaction extends TransactionWrapper {
             return super.loadObjects(projection, requestScope);
         }
 
-        boolean canSearch = (canSearch(projection.getType(), projection.getFilterExpression()) != NONE);
+        FilterSupport filterSupport = canSearch(projection.getType(), projection.getFilterExpression());
+        boolean canSearch = (filterSupport != FilterSupport.NONE);
 
         if (mustSort(Optional.ofNullable(projection.getSorting()))) {
             canSearch = canSearch && canSort(projection.getSorting(), projection.getType());
         }
 
         if (canSearch) {
-            return search(projection.getType(), projection.getFilterExpression(),
+            Iterable<T> result = search(projection.getType(), projection.getFilterExpression(),
                     Optional.ofNullable(projection.getSorting()),
                     Optional.ofNullable(projection.getPagination()));
+            if (filterSupport == FilterSupport.PARTIAL) {
+                result = new DataStoreIterableBuilder(result).allInMemory().build();
+            }
+
+            return result;
         }
 
         return super.loadObjects(projection, requestScope);
@@ -174,32 +185,17 @@ public class SearchDataTransaction extends TransactionWrapper {
         return context.createSort();
     }
 
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        Type<?> entityClass = projection.getType();
-        FilterExpression expression = projection.getFilterExpression();
-
-        /* Return the least support among all the predicates */
-        FeatureSupport support = canSearch(entityClass, expression);
-
-        if (support == NONE) {
-            return super.supportsFiltering(scope, parent, projection);
-        }
-
-        return support;
-    }
-
-    private DataStoreTransaction.FeatureSupport canSearch(Type<?> entityClass, FilterExpression expression) {
+    private FilterSupport canSearch(Type<?> entityClass, FilterExpression expression) {
 
         /* Collapse the filter expression to a list of leaf predicates */
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         /* Return the least support among all the predicates */
-        FeatureSupport support = predicates.stream()
+        FilterSupport support = predicates.stream()
                 .map((predicate) -> canSearch(entityClass, predicate))
-                .max(Comparator.comparing(Enum::ordinal)).orElse(NONE);
+                .max(Comparator.comparing(Enum::ordinal)).orElse(FilterSupport.NONE);
 
-        if (support == NONE) {
+        if (support == FilterSupport.NONE) {
             return support;
         }
 
@@ -217,17 +213,17 @@ public class SearchDataTransaction extends TransactionWrapper {
         return support;
     }
 
-    private DataStoreTransaction.FeatureSupport canSearch(Type<?> entityClass, FilterPredicate predicate) {
+    private FilterSupport canSearch(Type<?> entityClass, FilterPredicate predicate) {
 
         boolean isIndexed = fieldIsIndexed(entityClass, predicate);
 
         if (!isIndexed) {
-            return NONE;
+            return FilterSupport.NONE;
         }
 
         /* We don't support joins to other relationships */
         if (predicate.getPath().getPathElements().size() != 1) {
-            return NONE;
+            return FilterSupport.NONE;
         }
 
         return operatorSupport(entityClass, predicate);
@@ -312,7 +308,7 @@ public class SearchDataTransaction extends TransactionWrapper {
         return indexed;
     }
 
-    private DataStoreTransaction.FeatureSupport operatorSupport(Type<?> entityClass, FilterPredicate predicate)
+    private FilterSupport operatorSupport(Type<?> entityClass, FilterPredicate predicate)
             throws HttpStatusException {
 
         Operator op = predicate.getOperator();
@@ -321,12 +317,12 @@ public class SearchDataTransaction extends TransactionWrapper {
         switch (op) {
             case INFIX:
             case INFIX_CASE_INSENSITIVE:
-                return FULL;
+                return FilterSupport.FULL;
             case PREFIX:
             case PREFIX_CASE_INSENSITIVE:
-                return FeatureSupport.PARTIAL;
+                return FilterSupport.PARTIAL;
             default:
-                return NONE;
+                return FilterSupport.NONE;
         }
     }
 }
