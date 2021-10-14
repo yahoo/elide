@@ -106,17 +106,4 @@ public class DataStoreIterableBuilder<T> {
             }
         };
     }
-
-    /**
-     * Conditionally wraps an object in a DataStoreIterable if the object is iterable.
-     * @param toWrap The object to conditionally wrap.
-     * @return A new DataStoreIterable or the original object.
-     */
-    public static Object conditionallyWrap(Object toWrap) {
-        if (toWrap instanceof Iterable) {
-            return new DataStoreIterableBuilder((Iterable) toWrap).allInMemory().build();
-        }
-
-        return toWrap;
-    }
 }
