@@ -28,6 +28,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.compress.utils.Lists;
 import lombok.ToString;
 
 import java.io.IOException;
@@ -114,7 +115,16 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             if (result == null) {
                 result = queryEngine.executeQuery(query, queryEngineTransaction);
                 if (cacheKey != null) {
-                    cache.put(cacheKey, result);
+
+                    //The query result needs to be streamed into an in memory list before caching.
+                    //TODO - add a cap to how many records can be streamed back.  If this is exceeded, abort caching
+                    //and return the results.
+                    QueryResult cacheableResult = QueryResult.builder()
+                            .data(Lists.newArrayList(result.getData().iterator()))
+                            .pageTotals(result.getPageTotals())
+                            .build();
+                    cache.put(cacheKey, cacheableResult);
+                    result = cacheableResult;
                 }
             }
             if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
