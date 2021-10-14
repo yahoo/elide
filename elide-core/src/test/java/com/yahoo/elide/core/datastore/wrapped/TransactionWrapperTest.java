@@ -13,6 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.Attribute;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        Iterable<Object> expected = mock(Iterable.class);
+        DataStoreIterable<Object> expected = mock(DataStoreIterable.class);
         when(wrapped.loadObjects(any(), any())).thenReturn(expected);
 
         Iterable<Object> actual = wrapper.loadObjects(null, null);
@@ -152,15 +153,29 @@ public class TransactionWrapperTest {
     }
 
     @Test
-    public void testGetRelation() {
+    public void testGetToManyRelation() {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.getRelation(any(), any(), any(), any())).thenReturn(1L);
+        DataStoreIterable expected = mock(DataStoreIterable.class);
+        when(wrapped.getToManyRelation(any(), any(), any(), any())).thenReturn(expected);
 
-        Object actual = wrapper.getRelation(null, null, null, null);
+        DataStoreIterable actual = wrapper.getToManyRelation(null, null, null, null);
 
-        verify(wrapped, times(1)).getRelation(any(), any(), any(), any());
+        verify(wrapped, times(1)).getToManyRelation(any(), any(), any(), any());
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetToOneRelation() {
+        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
+        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
+
+        when(wrapped.getToOneRelation(any(), any(), any(), any())).thenReturn(1L);
+
+        Long actual = wrapper.getToOneRelation(null, null, null, null);
+
+        verify(wrapped, times(1)).getToOneRelation(any(), any(), any(), any());
         assertEquals(1L, actual);
     }
 

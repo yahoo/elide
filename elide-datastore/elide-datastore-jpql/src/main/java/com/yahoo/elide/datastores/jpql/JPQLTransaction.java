@@ -5,9 +5,10 @@
  */
 package com.yahoo.elide.datastores.jpql;
 
-import static com.yahoo.elide.core.datastore.DataStoreIterableBuilder.conditionallyWrap;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -107,11 +108,15 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                 new RootCollectionFetchQueryBuilder(projection, dictionary, sessionWrapper).build();
 
         T loaded = new TimedFunction<T>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
-        return addSingleElement(loaded);
+
+        if (loaded != null) {
+            singleElementLoads.add(loaded);
+        }
+        return loaded;
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(
+    public <T> DataStoreIterable<T> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
 
@@ -141,11 +146,11 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
             }
         }
 
-        return addSingleElement(results);
+        return new DataStoreIterableBuilder<T>(addSingleElement(results)).allInMemory().build();
     }
 
     @Override
-    public <T, R> R getRelation(
+    public <T, R> DataStoreIterable<R> getToManyRelation(
             DataStoreTransaction relationTx,
             T entity,
             Relationship relation,
@@ -156,7 +161,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         Pagination pagination = relation.getProjection().getPagination();
 
         EntityDictionary dictionary = scope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relation.getName(), scope);
+        Iterable val = (Iterable) com.yahoo.elide.core.PersistentResource.getValue(entity, relation.getName(), scope);
 
         //If the query is safe for N+1 and the value is an ORM managed, persistent collection, run a JPQL query...
         if (doInDatabase(entity) && val instanceof Collection && isPersistentCollection().test((Collection<?>) val)) {
@@ -167,7 +172,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
              */
             if (filterExpression == null && sorting == null
                     && (pagination == null || (pagination.isDefaultInstance()))) {
-                return (R) conditionallyWrap(addSingleElement(val));
+                return new DataStoreIterableBuilder<R>(addSingleElement(val)).allInMemory().build();
             }
 
             RelationshipImpl relationship = new RelationshipImpl(
@@ -186,10 +191,24 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                             .build();
 
             if (query != null) {
-                return addSingleElement((R) query.list());
+                return new DataStoreIterableBuilder(addSingleElement(query.list())).build();
             }
         }
-        return (R) conditionallyWrap(addSingleElement(val));
+        return new DataStoreIterableBuilder<R>(addSingleElement(val)).allInMemory().build();
+    }
+
+    @Override
+    public <T, R> R getToOneRelation(
+            DataStoreTransaction relationTx,
+            T entity,
+            Relationship relationship,
+            RequestScope scope
+    ) {
+        R loaded = DataStoreTransaction.super.getToOneRelation(relationTx, entity, relationship, scope);
+        if (loaded != null) {
+            singleElementLoads.add(loaded);
+        }
+        return loaded;
     }
 
     protected abstract Predicate<Collection<?>> isPersistentCollection();
@@ -228,16 +247,13 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         return new TimedFunction<Long>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
     }
 
-    private <R> R addSingleElement(R results) {
-        if (results instanceof Iterable) {
-            if (results instanceof ScrollableIteratorBase) {
-                ((ScrollableIteratorBase<R, ?>) results).singletonElement().ifPresent(singleElementLoads::add);
-            } else if (results instanceof Collection && ((Collection) results).size() == 1) {
-                ((Collection) results).forEach(singleElementLoads::add);
-            }
-        } else if (results != null) {
-            singleElementLoads.add(results);
+    private <R> Iterable<R> addSingleElement(Iterable<R> results) {
+        if (results instanceof ScrollableIteratorBase) {
+            ((ScrollableIteratorBase<R, ?>) results).singletonElement().ifPresent(singleElementLoads::add);
+        } else if (results instanceof Collection && ((Collection) results).size() == 1) {
+            ((Collection) results).forEach(singleElementLoads::add);
         }
+
         return results;
     }
 

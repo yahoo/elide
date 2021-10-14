@@ -152,7 +152,7 @@ public class JpaDataStoreTransactionTest {
 
         when(author1.getBooks()).thenReturn(returnCollection);
 
-        Iterable<Book> loadedBooks = tx.getRelation(tx, author1, relationship, scope);
+        Iterable<Book> loadedBooks = tx.getToManyRelation(tx, author1, relationship, scope);
 
         assertEquals(usesInMemory, loadedBooks instanceof DataStoreIterable);
     }

@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.core.datastore;
 
+import java.util.ArrayList;
+
 /**
  * Constructs DataStoreIterables.
  * @param <T>
@@ -19,10 +21,21 @@ public class DataStoreIterableBuilder<T> {
 
     /**
      * Constructor.
+     */
+    public DataStoreIterableBuilder() {
+        this.wrapped = new ArrayList<>();
+    }
+
+    /**
+     * Constructor.
      * @param wrapped Required iterable to wrap.
      */
     public DataStoreIterableBuilder(Iterable<T> wrapped) {
-        this.wrapped = wrapped;
+        if (wrapped == null) {
+            this.wrapped = new ArrayList<>();
+        } else {
+            this.wrapped = wrapped;
+        }
     }
 
     /**

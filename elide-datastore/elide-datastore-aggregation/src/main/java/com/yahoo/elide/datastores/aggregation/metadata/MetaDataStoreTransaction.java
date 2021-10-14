@@ -59,12 +59,12 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx, Object entity, Relationship relationship,
-                    RequestScope scope) {
+    public Object getToManyRelation(DataStoreTransaction relationTx, Object entity, Relationship relationship,
+                                    RequestScope scope) {
         return hashMapDataStores
                         .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
                         .beginTransaction()
-                        .getRelation(relationTx, entity, relationship, scope);
+                        .getToManyRelation(relationTx, entity, relationship, scope);
     }
 
     @Override

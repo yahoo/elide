@@ -23,6 +23,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -124,7 +125,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         when(dataStore.beginTransaction()).thenReturn(dataStoreTransaction);
         when(dataStore.beginReadTransaction()).thenReturn(dataStoreTransaction);
         when(dataStoreTransaction.getAttribute(any(), any(), any())).thenCallRealMethod();
-        when(dataStoreTransaction.getRelation(any(), any(), any(), any())).thenCallRealMethod();
+        when(dataStoreTransaction.getToManyRelation(any(), any(), any(), any())).thenCallRealMethod();
     }
 
     @Test
@@ -315,7 +316,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         reset(dataStoreTransaction);
         when(dataStoreTransaction.getAttribute(any(), any(), any())).thenThrow(new BadRequestException("Bad Request"));
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+        when(dataStoreTransaction.loadObjects(any(), any()))
+                .thenReturn(new DataStoreIterableBuilder(List.of(book1, book2)).build());
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
@@ -389,7 +391,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         book2.setTitle("Book 2");
         book2.setId(2);
 
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+        when(dataStoreTransaction.loadObjects(any(), any()))
+                .thenReturn(new DataStoreIterableBuilder(List.of(book1, book2)).build());
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);

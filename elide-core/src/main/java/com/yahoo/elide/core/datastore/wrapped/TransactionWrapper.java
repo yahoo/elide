@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.datastore.wrapped;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -38,9 +39,15 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public <T, R> R getRelation(DataStoreTransaction relationTx, T entity,
-                              Relationship relationship, RequestScope scope) {
-        return tx.getRelation(relationTx, entity, relationship, scope);
+    public <T, R> DataStoreIterable<R> getToManyRelation(DataStoreTransaction relationTx, T entity,
+                                                              Relationship relationship, RequestScope scope) {
+        return tx.getToManyRelation(relationTx, entity, relationship, scope);
+    }
+
+    @Override
+    public <T, R> R getToOneRelation(DataStoreTransaction relationTx, T entity,
+                                     Relationship relationship, RequestScope scope) {
+        return tx.getToOneRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
@@ -93,7 +100,7 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(EntityProjection projection, RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection projection, RequestScope scope) {
         return tx.loadObjects(projection, scope);
     }
 

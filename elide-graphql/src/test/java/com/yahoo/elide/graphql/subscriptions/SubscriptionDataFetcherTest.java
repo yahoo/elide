@@ -118,7 +118,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         when(dataStore.beginTransaction()).thenReturn(dataStoreTransaction);
         when(dataStore.beginReadTransaction()).thenReturn(dataStoreTransaction);
         when(dataStoreTransaction.getAttribute(any(), any(), any())).thenCallRealMethod();
-        when(dataStoreTransaction.getRelation(any(), any(), any(), any())).thenCallRealMethod();
+        when(dataStoreTransaction.getToManyRelation(any(), any(), any(), any())).thenCallRealMethod();
     }
 
     @Test
@@ -131,7 +131,8 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         book2.setTitle("Book 2");
         book2.setId(2);
 
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+        when(dataStoreTransaction.loadObjects(any(), any()))
+                .thenReturn(new DataStoreIterableBuilder(List.of(book1, book2)).build());
 
         List<String> responses = List.of(
                 "{\"book\":{\"id\":\"1\",\"title\":\"Book 1\"}}",
@@ -153,7 +154,8 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         book2.setTitle("Book 2");
         book2.setId(2);
 
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+        when(dataStoreTransaction.loadObjects(any(), any()))
+                .thenReturn(new DataStoreIterableBuilder(List.of(book1, book2)).build());
 
         List<String> responses = List.of("{\"book\":null}");
         List<String> errors = List.of("QUERY not supported for subscription models");
@@ -198,7 +200,8 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         address.setStreet2("XYZ");
         author2.setHomeAddress(address);
 
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(author1, author2));
+        when(dataStoreTransaction.loadObjects(any(), any()))
+                .thenReturn(new DataStoreIterableBuilder(List.of(author1, author2)).build());
 
         List<String> responses = List.of(
                 "{\"author\":{\"id\":\"1\",\"homeAddress\":{\"street1\":null,\"street2\":null}}}",
@@ -226,7 +229,8 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         book2.setTitle("Book 2");
         book2.setId(2);
 
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+        when(dataStoreTransaction.loadObjects(any(), any()))
+                .thenReturn(new DataStoreIterableBuilder(List.of(book1, book2)).build());
 
         List<String> responses = List.of(
                 "{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\",\"authors\":[{\"name\":\"Jane Doe\"},{\"name\":null}]}}",
@@ -264,7 +268,8 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
 
         reset(dataStoreTransaction);
         when(dataStoreTransaction.getAttribute(any(), any(), any())).thenThrow(new BadRequestException("Bad Request"));
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+        when(dataStoreTransaction.loadObjects(any(), any()))
+                .thenReturn(new DataStoreIterableBuilder(List.of(book1, book2)).build());
 
         List<String> responses = List.of(
                 "{\"book\":{\"id\":\"1\",\"title\":null}}",

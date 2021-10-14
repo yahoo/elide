@@ -19,15 +19,18 @@ import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 
 public class DataStoreTransactionTest implements DataStoreTransaction {
     private static final String NAME = "name";
+    private static final String NAME2 = "name2";
     private static final Attribute NAME_ATTRIBUTE = Attribute.builder().name(NAME).type(String.class).build();
     private static final String ENTITY = "entity";
     private RequestScope scope;
@@ -41,6 +44,8 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
         when(scope.getDictionary()).thenReturn(dictionary);
         when(dictionary.getIdType(STRING_TYPE)).thenReturn(new ClassType(Long.class));
         when(dictionary.getValue(ENTITY, NAME, scope)).thenReturn(3L);
+        when(dictionary.getValue(ENTITY, NAME2, scope))
+                .thenReturn(new DataStoreIterableBuilder(List.of(1L, 2L, 3L)).build());
     }
 
     @Test
@@ -75,14 +80,27 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
     }
 
     @Test
-    public void testGetRelation() {
-        Object actual = getRelation(this, ENTITY, Relationship.builder()
+    public void testGetToOneRelation() {
+        Long actual = getToOneRelation(this, ENTITY, Relationship.builder()
                 .name(NAME)
                 .projection(EntityProjection.builder()
                         .type(String.class)
                         .build())
                 .build(), scope);
         assertEquals(3L, actual);
+    }
+
+    @Test
+    public void testGetToManyRelation() {
+        DataStoreIterable actual = getToOneRelation(this, ENTITY, Relationship.builder()
+                .name(NAME2)
+                .projection(EntityProjection.builder()
+                        .type(String.class)
+                        .build())
+                .build(), scope);
+        assertEquals(
+                Lists.newArrayList(new DataStoreIterableBuilder(List.of(1L, 2L, 3L)).build()),
+                Lists.newArrayList(actual));
     }
 
     @Test
@@ -98,8 +116,8 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
-        return Arrays.asList(ENTITY);
+    public DataStoreIterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+        return new DataStoreIterableBuilder(Arrays.asList(ENTITY)).build();
     }
 
     @Override

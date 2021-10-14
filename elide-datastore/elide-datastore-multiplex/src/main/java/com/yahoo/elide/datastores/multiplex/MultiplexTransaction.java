@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -60,7 +63,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(
+    public <T> DataStoreIterable<T> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
         return getTransaction(projection.getType()).loadObjects(projection, scope);
@@ -142,45 +145,31 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T, R> R getRelation(DataStoreTransaction tx,
-                              T entity,
-                              Relationship relation,
-                              RequestScope scope) {
-
-        FilterExpression filter = relation.getProjection().getFilterExpression();
-
+    public <T, R> DataStoreIterable<R> getToManyRelation(
+            DataStoreTransaction tx,
+            T entity,
+            Relationship relation,
+            RequestScope scope
+    ) {
         DataStoreTransaction relationTx = getRelationTransaction(entity, relation.getName());
         Type<Object> entityType = EntityDictionary.getType(entity);
         DataStoreTransaction entityTransaction = getTransaction(entityType);
 
-        EntityDictionary dictionary = scope.getDictionary();
-        Type<?> relationClass = dictionary.getParameterizedType(entityType, relation.getName());
-        String idFieldName = dictionary.getIdFieldName(relationClass);
+        return entityTransaction.getToManyRelation(relationTx, entity, relation, scope);
+    }
 
-        // If different transactions, check if bridgeable and try to bridge
-        if (entityTransaction != relationTx && relationTx instanceof BridgeableTransaction) {
-            BridgeableTransaction bridgeableTx = (BridgeableTransaction) relationTx;
-            RelationshipType relationType = dictionary.getRelationshipType(entityType, relation.getName());
-            Serializable id = (filter != null) ? extractId(filter, idFieldName, relationClass) : null;
+    @Override
+    public <T, R> R getToOneRelation(
+            DataStoreTransaction tx,
+            T entity,
+            Relationship relation,
+            RequestScope scope
+    ) {
+        DataStoreTransaction relationTx = getRelationTransaction(entity, relation.getName());
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        DataStoreTransaction entityTransaction = getTransaction(entityType);
 
-            if (relationType.isToMany()) {
-                return id == null ? (R) bridgeableTx.bridgeableLoadObjects(
-                                this, entity, relation.getName(),
-                        Optional.ofNullable(filter),
-                        Optional.ofNullable(relation.getProjection().getSorting()),
-                        Optional.ofNullable(relation.getProjection().getPagination()),
-                        scope)
-                        : (R) bridgeableTx.bridgeableLoadObject(this, entity, relation.getName(),
-                        id, Optional.ofNullable(filter), scope);
-            }
-
-            return (R) bridgeableTx.bridgeableLoadObject(this, entity, relation.getName(), id,
-                    Optional.ofNullable(filter), scope);
-
-        }
-
-        // Otherwise, rely on existing underlying transaction to call correctly into relationTx
-        return entityTransaction.getRelation(relationTx, entity, relation, scope);
+        return entityTransaction.getToOneRelation(relationTx, entity, relation, scope);
     }
 
     @Override

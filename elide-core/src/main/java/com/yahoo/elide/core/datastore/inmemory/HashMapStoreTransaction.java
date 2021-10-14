@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
-import static com.yahoo.elide.core.datastore.DataStoreIterableBuilder.conditionallyWrap;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -126,19 +126,20 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx,
-                              Object entity,
-                              Relationship relationship,
-                              RequestScope scope) {
-        return conditionallyWrap(dictionary.getValue(entity, relationship.getName(), scope));
+    public DataStoreIterable<Object> getToManyRelation(DataStoreTransaction relationTx,
+                                                       Object entity,
+                                                       Relationship relationship,
+                                                       RequestScope scope) {
+        return new DataStoreIterableBuilder(
+                (Iterable) dictionary.getValue(entity, relationship.getName(), scope)).allInMemory().build();
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection projection,
-                                        RequestScope scope) {
+    public DataStoreIterable<Object> loadObjects(EntityProjection projection,
+                                                          RequestScope scope) {
         synchronized (dataStore) {
             Map<String, Object> data = dataStore.get(projection.getType());
-            return new DataStoreIterableBuilder<Object>(data.values()).allInMemory().build();
+            return new DataStoreIterableBuilder<>(data.values()).allInMemory().build();
         }
     }
 

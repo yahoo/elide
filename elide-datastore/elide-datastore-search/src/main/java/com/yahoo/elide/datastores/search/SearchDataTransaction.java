@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.search;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
@@ -75,8 +76,8 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(EntityProjection projection,
-                                        RequestScope requestScope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection projection,
+                                                RequestScope requestScope) {
         if (projection.getFilterExpression() == null) {
             return super.loadObjects(projection, requestScope);
         }
@@ -93,10 +94,10 @@ public class SearchDataTransaction extends TransactionWrapper {
                     Optional.ofNullable(projection.getSorting()),
                     Optional.ofNullable(projection.getPagination()));
             if (filterSupport == FilterSupport.PARTIAL) {
-                result = new DataStoreIterableBuilder(result).allInMemory().build();
+                return new DataStoreIterableBuilder(result).allInMemory().build();
+            } else {
+                return new DataStoreIterableBuilder(result).build();
             }
-
-            return result;
         }
 
         return super.loadObjects(projection, requestScope);

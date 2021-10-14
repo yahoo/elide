@@ -21,6 +21,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.audit.InvalidSyntaxException;
 import com.yahoo.elide.core.audit.LogMessage;
 import com.yahoo.elide.core.audit.LogMessageImpl;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
@@ -1324,19 +1325,21 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                         .build()
                 ).build();
 
-        Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
-
-        if (val == null) {
-            return Observable.empty();
-        }
-
         Observable<PersistentResource> resources;
 
-        if (val instanceof Iterable) {
-            Iterable filteredVal = (Iterable) val;
+        if (type.isToMany()) {
+            DataStoreIterable val = transaction.getToManyRelation(transaction, obj, modifiedRelationship, requestScope);
+
+            if (val == null) {
+                return Observable.empty();
+            }
             resources = Observable.fromIterable(
-                    new PersistentResourceSet(this, relationName, filteredVal, requestScope));
+                    new PersistentResourceSet(this, relationName, val, requestScope));
         } else {
+            Object val = transaction.getToOneRelation(transaction, obj, modifiedRelationship, requestScope);
+            if (val == null) {
+                return Observable.empty();
+            }
             resources = Observable.fromArray(new PersistentResource(val, this, relationName,
                     requestScope.getUUIDFor(val), requestScope));
         }

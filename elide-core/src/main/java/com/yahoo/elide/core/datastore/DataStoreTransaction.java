@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.core.datastore;
 
-import static com.yahoo.elide.core.datastore.DataStoreIterableBuilder.conditionallyWrap;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -161,12 +160,12 @@ public interface DataStoreTransaction extends Closeable {
      * @param <T> - The model type being loaded.
      * @return a collection of the loaded objects
      */
-    <T> Iterable<T> loadObjects(
+    <T> DataStoreIterable<T> loadObjects(
             EntityProjection entityProjection,
             RequestScope scope);
 
     /**
-     * Retrieve a relation from an object.
+     * Retrieve a to-many relation from an object.
      *
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
@@ -176,13 +175,34 @@ public interface DataStoreTransaction extends Closeable {
      * @param <R> - The model type of the relationship.
      * @return the object in the relation
      */
-    default <T, R> R getRelation(
+    default <T, R> DataStoreIterable<R> getToManyRelation(
             DataStoreTransaction relationTx,
             T entity,
             Relationship relationship,
             RequestScope scope) {
 
-        return (R) conditionallyWrap(PersistentResource.getValue(entity, relationship.getName(), scope));
+        return new DataStoreIterableBuilder(
+                (Iterable) PersistentResource.getValue(entity, relationship.getName(), scope)).allInMemory().build();
+    }
+
+    /**
+     * Retrieve a to-one relation from an object.
+     *
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationship - the relationship to fetch.
+     * @param scope - contains request level metadata.
+     * @param <T> - The model type which owns the relationship.
+     * @param <R> - The model type of the relationship.
+     * @return the object in the relation
+     */
+    default <T, R> R getToOneRelation(
+            DataStoreTransaction relationTx,
+            T entity,
+            Relationship relationship,
+            RequestScope scope) {
+
+        return (R) PersistentResource.getValue(entity, relationship.getName(), scope);
     }
 
     /**

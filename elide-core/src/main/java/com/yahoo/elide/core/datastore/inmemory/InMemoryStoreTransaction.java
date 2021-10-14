@@ -65,24 +65,23 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      */
     @FunctionalInterface
     private interface DataFetcher {
-        Object fetch(Optional<FilterExpression> filterExpression,
-                     Optional<Sorting> sorting,
-                     Optional<Pagination> pagination,
-                     RequestScope scope);
+        DataStoreIterable<Object> fetch(Optional<FilterExpression> filterExpression,
+                                        Optional<Sorting> sorting,
+                                        Optional<Pagination> pagination,
+                                        RequestScope scope);
     }
-
 
     public InMemoryStoreTransaction(DataStoreTransaction tx) {
         this.tx = tx;
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx,
-                              Object entity,
-                              Relationship relationship,
-                              RequestScope scope) {
+    public DataStoreIterable<Object> getToManyRelation(DataStoreTransaction relationTx,
+                                    Object entity,
+                                    Relationship relationship,
+                                    RequestScope scope) {
         DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
-                tx.getRelation(relationTx, entity, relationship.copyOf()
+                tx.getToManyRelation(relationTx, entity, relationship.copyOf()
                         .projection(relationship.getProjection().copyOf()
                                 .filterExpression(filterExpression.orElse(null))
                                 .sorting(sorting.orElse(null))
@@ -111,7 +110,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection projection,
+    public DataStoreIterable<Object> loadObjects(EntityProjection projection,
                                         RequestScope scope) {
 
         DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
@@ -121,7 +120,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                         .sorting(sorting.orElse(null))
                         .build(), requestScope);
 
-        return (Iterable<Object>) fetchData(fetcher, projection, false, scope);
+        return fetchData(fetcher, projection, false, scope);
     }
 
     @Override
@@ -142,6 +141,15 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     @Override
     public <T> T createNewObject(Type<T> entityClass, RequestScope scope) {
         return tx.createNewObject(entityClass, scope);
+    }
+
+    @Override
+    public <T, R> R getToOneRelation(
+            DataStoreTransaction relationTx,
+            T entity, Relationship relationship,
+            RequestScope scope
+    ) {
+        return tx.getToOneRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
@@ -229,7 +237,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         };
     }
 
-    private Object fetchData(
+    private DataStoreIterable<Object> fetchData(
             DataFetcher fetcher,
             EntityProjection projection,
             boolean filterInMemory,
@@ -249,18 +257,11 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         Optional<Pagination> dataStorePagination = inMemoryFilter.isPresent()
                 ? Optional.empty() : Optional.ofNullable(projection.getPagination());
 
-        Object result = fetcher.fetch(dataStoreFilter, dataStoreSorting, dataStorePagination, scope);
+        DataStoreIterable<Object> loadedRecords =
+                fetcher.fetch(dataStoreFilter, dataStoreSorting, dataStorePagination, scope);
 
-        if (! (result instanceof Iterable)) {
-            return result;
-        }
-
-        DataStoreIterable<Object> loadedRecords;
-
-        if (result instanceof DataStoreIterable) {
-            loadedRecords = (DataStoreIterable<Object>) result;
-        } else {
-            loadedRecords = new DataStoreIterableBuilder((Iterable) result).filterInMemory(filterInMemory).build();
+        if (loadedRecords == null) {
+            return new DataStoreIterableBuilder().build();
         }
 
         if (inMemoryFilter.isPresent() || (loadedRecords.needsInMemoryFilter()
@@ -275,7 +276,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                     scope);
     }
 
-    private Iterable<Object> sortAndPaginateLoadedData(
+    private DataStoreIterable<Object> sortAndPaginateLoadedData(
             DataStoreIterable<Object> loadedRecords,
             Sorting sorting,
             Pagination pagination,
@@ -306,7 +307,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             results = paginateInMemory(results, pagination);
         }
 
-        return results;
+        return new DataStoreIterableBuilder(results).build();
     }
 
     private List<Object> paginateInMemory(List<Object> records, Pagination pagination) {
