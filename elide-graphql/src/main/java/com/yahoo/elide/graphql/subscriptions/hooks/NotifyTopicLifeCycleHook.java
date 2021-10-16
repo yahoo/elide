@@ -14,7 +14,6 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.type.Type;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,13 +45,12 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
 
     public NotifyTopicLifeCycleHook(
             ConnectionFactory connectionFactory,
-            Function<JMSContext, JMSProducer> createProducer
+            Function<JMSContext, JMSProducer> createProducer,
+            Gson gson
     ) {
         this.connectionFactory = connectionFactory;
         this.createProducer = createProducer;
-
-        gson = new GsonBuilder().addSerializationExclusionStrategy(new SubscriptionExclusionStrategy())
-                .serializeNulls().create();
+        this.gson = gson;
     }
 
     @Override

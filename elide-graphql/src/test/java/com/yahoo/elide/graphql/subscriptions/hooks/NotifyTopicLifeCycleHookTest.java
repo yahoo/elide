@@ -19,6 +19,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
+import com.google.gson.GsonBuilder;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +60,7 @@ public class NotifyTopicLifeCycleHookTest {
 
         NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook<Book>(
                 connectionFactory,
-                JMSContext::createProducer);
+                JMSContext::createProducer, new GsonBuilder().create());
 
         Book book = new Book();
         PersistentResource<Book> resource = new PersistentResource<>(book, "123", scope);
