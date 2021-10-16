@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.jms;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.util.function.Function;
 import javax.jms.JMSException;
@@ -27,10 +26,11 @@ public class MessageDeserializer<T> implements Function<Message, T> {
     /**
      * Constructor.
      * @param type The type to deserialize to.
+     * @param gson Gson serializer to convert Elide models to topic messages.
      */
-    public MessageDeserializer(Type<?> type) {
+    public MessageDeserializer(Type<?> type, Gson gson) {
         this.type = type;
-        gson = new GsonBuilder().create();
+        this.gson = gson;
     }
 
     @Override

@@ -159,7 +159,6 @@ public interface ElideStandaloneSubscriptionSettings {
                         .auditLogger(settings.getAuditLogger())
                         .verboseErrors(settings.verboseErrors())
                         .errorMapper(settings.getErrorMapper())
-                        .mapper(settings.getObjectMapper().getObjectMapper())
                         .build())
                 .build();
 

@@ -79,7 +79,6 @@ public class ElideSubscriptionConfiguration {
                         .auditLogger(new Slf4jLogger())
                         .verboseErrors(config.isVerboseErrors())
                         .errorMapper(errorMapper)
-                        .mapper(mapper.getObjectMapper())
                         .build())
                 .build();
     }
