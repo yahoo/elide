@@ -13,7 +13,6 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import lombok.Builder;
 
@@ -29,7 +28,6 @@ import javax.jms.Message;
 @Builder
 public class SubscriptionScanner {
     private ConnectionFactory connectionFactory;
-    private ObjectMapper mapper;
     private EntityDictionary dictionary;
     private ClassScanner scanner;
 
@@ -70,7 +68,7 @@ public class SubscriptionScanner {
                                 modelType,
                                 LifeCycleHookBinding.Operation.DELETE,
                                 LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                                new NotifyTopicLifeCycleHook(connectionFactory, mapper, producerFactory),
+                                new NotifyTopicLifeCycleHook(connectionFactory, producerFactory),
                                 false
                         );
                         break;
@@ -80,7 +78,7 @@ public class SubscriptionScanner {
                                 modelType,
                                 LifeCycleHookBinding.Operation.CREATE,
                                 LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                                new NotifyTopicLifeCycleHook(connectionFactory, mapper, producerFactory),
+                                new NotifyTopicLifeCycleHook(connectionFactory, producerFactory),
                                 false
                         );
                         break;
@@ -105,7 +103,7 @@ public class SubscriptionScanner {
                         fieldName,
                         LifeCycleHookBinding.Operation.UPDATE,
                         LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                        new NotifyTopicLifeCycleHook(connectionFactory, mapper, producerFactory)
+                        new NotifyTopicLifeCycleHook(connectionFactory, producerFactory)
                 );
             }
         });

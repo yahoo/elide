@@ -41,4 +41,6 @@ public class Book {
     @ReadPermission(expression = "NONE")
     @SubscriptionField
     private String nope;
+
+    private String notSerialized;
 }

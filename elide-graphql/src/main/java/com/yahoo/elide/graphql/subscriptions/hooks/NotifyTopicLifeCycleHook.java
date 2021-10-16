@@ -13,9 +13,8 @@ import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.type.Type;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,7 +33,6 @@ import javax.jms.JMSProducer;
  * @param <T> The model type.
  */
 @Slf4j
-@AllArgsConstructor //For testing
 @NoArgsConstructor  //For injection
 public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
 
@@ -42,10 +40,20 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
     private ConnectionFactory connectionFactory;
 
     @Inject
-    private ObjectMapper mapper;
-
-    @Inject
     private Function<JMSContext, JMSProducer> createProducer;
+
+    private Gson gson;
+
+    public NotifyTopicLifeCycleHook(
+            ConnectionFactory connectionFactory,
+            Function<JMSContext, JMSProducer> createProducer
+    ) {
+        this.connectionFactory = connectionFactory;
+        this.createProducer = createProducer;
+
+        gson = new GsonBuilder().addSerializationExclusionStrategy(new SubscriptionExclusionStrategy())
+                .serializeNulls().create();
+    }
 
     @Override
     public void execute(
@@ -83,13 +91,9 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             JMSProducer producer = createProducer.apply(context);
             Destination destination = context.createTopic(topicName);
 
-            try {
-                String message = mapper.writeValueAsString(object);
-                log.debug("Serializing {}", message);
-                producer.send(destination, message);
-            } catch (JsonProcessingException e) {
-                throw new IllegalStateException(e);
-            }
+            String message = gson.toJson(object);
+            log.debug("Serializing {}", message);
+            producer.send(destination, message);
         }
     }
 }

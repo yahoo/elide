@@ -19,7 +19,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +59,6 @@ public class NotifyTopicLifeCycleHookTest {
 
         NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook<Book>(
                 connectionFactory,
-                new ObjectMapper(),
                 JMSContext::createProducer);
 
         Book book = new Book();
