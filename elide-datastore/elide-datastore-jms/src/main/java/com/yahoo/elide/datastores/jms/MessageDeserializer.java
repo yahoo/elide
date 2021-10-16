@@ -20,8 +20,8 @@ import javax.jms.TextMessage;
  * @param <T> elide model type.
  */
 public class MessageDeserializer<T> implements Function<Message, T> {
-    Type<?> type;
-    Gson gson;
+    private Type<?> type;
+    private Gson gson;
 
     /**
      * Constructor.

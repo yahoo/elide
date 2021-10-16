@@ -9,6 +9,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
@@ -30,6 +31,9 @@ public class SubscriptionFieldSerde<T> implements JsonSerializer<T>, JsonDeseria
 
     @Override
     public JsonElement serialize(T t, Type type, JsonSerializationContext jsonSerializationContext) {
+        if (t == null) {
+            return JsonNull.INSTANCE;
+        }
         return new JsonPrimitive(String.valueOf(elideSerde.serialize(t)));
     }
 
@@ -42,11 +46,7 @@ public class SubscriptionFieldSerde<T> implements JsonSerializer<T>, JsonDeseria
 
         if (jsonElement.isJsonPrimitive()) {
             JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
-            if (primitive.isBoolean()) {
-                return elideSerde.deserialize(primitive.getAsBoolean());
-            } else if (primitive.isNumber()) {
-                return elideSerde.deserialize(primitive.getAsNumber());
-            } else if (primitive.isString()) {
+            if (primitive.isString()) {
                 return elideSerde.deserialize(primitive.getAsString());
             }
         }
