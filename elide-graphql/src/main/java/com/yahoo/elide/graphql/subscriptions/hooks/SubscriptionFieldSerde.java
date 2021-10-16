@@ -19,8 +19,8 @@ import java.lang.reflect.Type;
 
 /**
  * Custom GSON serializer and deserializer that uses an Elide serde to convert a subscription field
- * to and from a primitive type.
- * @param <T>
+ * to and from a primitive type.  The Serde must support deserialization from a String.
+ * @param <T> The object type being serialized or deserialized.
  */
 public class SubscriptionFieldSerde<T> implements JsonSerializer<T>, JsonDeserializer<T> {
     Serde<Object, T> elideSerde;
