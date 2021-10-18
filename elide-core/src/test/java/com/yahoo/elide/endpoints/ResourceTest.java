@@ -41,6 +41,24 @@ public class ResourceTest {
     }
 
     @Test
+    public void verifyAmpersandId() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/abcdef&234")));
+    }
+
+    @Test
+    public void verifySpaceId() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/abcdef 234")));
+    }
+
+    @Test
+    public void verifyColonId() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/abcdef:234")));
+    }
+
+    @Test
     public void parseFailRelationship() {
         assertThrows(
                 ParseCancellationException.class,
@@ -59,6 +77,27 @@ public class ResourceTest {
         assertThrows(
                 ParseCancellationException.class,
                 () -> new CoreBaseVisitor().visit(parse("company/123|apps/2/links/foo")));
+    }
+
+    @Test
+    public void invalidSpaceInPath() {
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("comp any/relationships")));
+    }
+
+    @Test
+    public void invalidColonInPath() {
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("comp:any/relationships")));
+    }
+
+    @Test
+    public void invalidAmpersandInPath() {
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("comp&any/relationships")));
     }
 
     @Test
