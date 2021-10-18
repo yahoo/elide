@@ -278,7 +278,7 @@ public class SQLQueryEngine extends QueryEngine {
         // Run the primary query and log the time spent.
         ResultSet resultSet = runQuery(stmt, queryString, Function.identity());
 
-        resultBuilder.data(new EntityHydrator(resultSet, query, metadataDictionary).hydrate());
+        resultBuilder.data(new EntityHydrator(resultSet, query, metadataDictionary));
         return resultBuilder.build();
     }
 
