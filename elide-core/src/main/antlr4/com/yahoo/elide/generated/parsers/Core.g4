@@ -35,18 +35,18 @@ term: PATHSTR;
 
 RELATIONSHIPS: 'relationships';
 
-PATHSTR: ALPHANUM+;
+PATHSTR: ALPHA ( ALPHANUM | UNDERSCORE | HYPHEN )+;
 IDSTR: UNRESERVED+;
 
 UNRESERVED
     : ALPHANUM
     | MARK
+    | UNDERSCORE
+    | HYPHEN
     ;
 
 MARK
-    : '-'
-    | '_'
-    | '.'
+    : '.'
     | '!'
     | '~'
     | ':'
@@ -59,6 +59,9 @@ MARK
     | '('
     | ')'
     ;
+
+UNDERSCORE : '_';
+HYPHEN : '-';
 
 ALPHANUM
       : ALPHA

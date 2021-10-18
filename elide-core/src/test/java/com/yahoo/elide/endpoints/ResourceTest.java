@@ -35,6 +35,18 @@ public class ResourceTest {
     }
 
     @Test
+    public void verifyUnderscoreInPath() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "foo_bar/")));
+    }
+
+    @Test
+    public void verifyHyphenInPath() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "foo-bar/")));
+    }
+
+    @Test
     public void verifyURLEncodedID() {
         assertNull(new CoreBaseVisitor().visit(parse(
                 "company/abcdef%201234")));
@@ -77,6 +89,14 @@ public class ResourceTest {
         assertThrows(
                 ParseCancellationException.class,
                 () -> new CoreBaseVisitor().visit(parse("company/123|apps/2/links/foo")));
+    }
+
+    @Test
+
+    public void invalidNumberStartingPath() {
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("3company/")));
     }
 
     @Test
