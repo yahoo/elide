@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.sort;
 
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Attribute;
@@ -136,7 +137,9 @@ public class SortingImpl implements Sorting {
     protected static boolean isValidSortRulePath(Path path, EntityDictionary dictionary) {
         //Validate that none of the relationships are to-many
         for (Path.PathElement pathElement : path.getPathElements()) {
-            if (! dictionary.isRelation(pathElement.getType(), pathElement.getFieldName())) {
+            EntityBinding binding = dictionary.getEntityBinding(pathElement.getType(), EntityDictionary.ALL_MODELS);
+
+            if (! binding.isRelation(pathElement.getFieldName())) {
                 continue;
             }
 

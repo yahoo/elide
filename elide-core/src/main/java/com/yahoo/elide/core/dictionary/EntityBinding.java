@@ -7,6 +7,9 @@ package com.yahoo.elide.core.dictionary;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.REGULAR_ID_NAME;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.handleInvocationTargetException;
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
+import static com.yahoo.elide.core.type.ClassType.MAP_TYPE;
 import static com.yahoo.elide.core.type.ClassType.OBJ_METHODS;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -17,21 +20,28 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
 import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.type.AccessibleObject;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Member;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +49,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -766,6 +779,20 @@ public class EntityBinding {
     }
 
     /**
+     * Get the type of relationship from a relation.
+     *
+     * @param relation Name of relationship field
+     * @return Relationship type. RelationshipType.NONE if is none found.
+     */
+    public RelationshipType getRelationshipType(String relation) {
+        if (relationshipTypes == null) {
+            return RelationshipType.NONE;
+        }
+        final RelationshipType type = relationshipTypes.get(relation);
+        return (type == null) ? RelationshipType.NONE : type;
+    }
+
+    /**
      * Get a type for a field on an entity.
      * <p>
      * If this method is called on a bean such as the following
@@ -823,6 +850,214 @@ public class EntityBinding {
         }
 
         return fieldsToTypes.get(identifier);
+    }
+
+    /**
+     * Returns whether or not a given model attribute is a complex (not primitive or String) type.
+     * @param fieldName The attribute name.
+     * @return true if the attribute is 'complex'.
+     */
+    public boolean isComplexAttribute(String fieldName) {
+        if (! apiAttributes.contains(fieldName)) {
+            return false;
+        }
+
+        Type<?> attributeType = getType(fieldName);
+
+        return canBind(attributeType);
+    }
+
+    public boolean canBind(Type<?> type) {
+        if (! type.getUnderlyingClass().isPresent()) {
+            return false;
+        }
+
+        Class<?> clazz = type.getUnderlyingClass().get();
+
+        if (ClassUtils.isPrimitiveOrWrapper(clazz)
+                || clazz.equals(String.class)
+                || clazz.isEnum()
+                || Collection.class.isAssignableFrom(clazz)
+                || Map.class.isAssignableFrom(clazz)
+                || CoerceUtil.lookup(clazz) != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Invoke the get[fieldName] method on the target object OR get the field with the corresponding name.
+     * @param target the object to get
+     * @param fieldName the field name to get or invoke equivalent get method
+     * @return the value
+     */
+    public Object getValue(Object target, String fieldName, RequestScope scope) {
+        AccessibleObject accessor = fieldsToValues.get(fieldName);
+        try {
+            if (accessor instanceof Method) {
+                // Pass RequestScope into @Computed fields if requested
+                if (isMethodRequestScopeable((Method) accessor)) {
+                    return ((Method) accessor).invoke(target, scope);
+                }
+                return ((Method) accessor).invoke(target);
+            }
+            if (accessor instanceof Field) {
+                return ((Field) accessor).get(target);
+            }
+        } catch (IllegalAccessException e) {
+            throw new InvalidAttributeException(fieldName, getJsonApiType(), e);
+        } catch (InvocationTargetException e) {
+            throw handleInvocationTargetException(e);
+        }
+        throw new InvalidAttributeException(fieldName, getJsonApiType());
+    }
+
+    /**
+     * Invoke the set[fieldName] method on the target object OR set the field with the corresponding name.
+     * @param target The object which owns the field to set
+     * @param fieldName the field name to set or invoke equivalent set method
+     * @param value the value to set
+     */
+    public void setValue(Object target, String fieldName, Object value) {
+        Type<?> targetClass = entityClass;
+        String targetType = getJsonApiType();
+
+        String fieldAlias = fieldName;
+        try {
+            Type<?> fieldClass = getType(fieldName);
+            String realName = getNameFromAlias(fieldName);
+            fieldAlias = (realName != null) ? realName : fieldName;
+            String setMethod = "set" + StringUtils.capitalize(fieldAlias);
+            Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
+            method.invoke(target, coerce(target, value, fieldAlias, fieldClass));
+        } catch (IllegalAccessException e) {
+            throw new InvalidAttributeException(fieldAlias, targetType, e);
+        } catch (InvocationTargetException e) {
+            throw handleInvocationTargetException(e);
+        } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
+            AccessibleObject accessor = fieldsToValues.get(fieldAlias);
+            if (accessor != null && accessor instanceof Field) {
+                Field field = (Field) accessor;
+                try {
+                    field.set(target, coerce(target, value, fieldAlias, field.getType()));
+                } catch (IllegalAccessException noField) {
+                    throw new InvalidAttributeException(fieldAlias, targetType, noField);
+                }
+            } else {
+                throw new InvalidAttributeException(fieldAlias, targetType);
+            }
+        }
+    }
+
+    /**
+     * Coerce provided value into expected class type.
+     *
+     * @param target The model instance which owns the field being coerced.
+     * @param value The value being coerced.
+     * @param fieldName the field name in the owning model instance.
+     * @param fieldType expected class type
+     * @return coerced value
+     */
+    public Object coerce(Object target, Object value, String fieldName, Type<?> fieldType) {
+
+        Class<?> fieldClass = null;
+        if (fieldType != null) {
+            Preconditions.checkState(fieldType instanceof ClassType);
+            fieldClass = ((ClassType) fieldType).getCls();
+
+            if (COLLECTION_TYPE.isAssignableFrom(fieldType) && value instanceof Collection) {
+                return coerceCollection((Collection) value, fieldName, fieldClass);
+            }
+
+            if (MAP_TYPE.isAssignableFrom(fieldType) && value instanceof Map) {
+                return coerceMap((Map<?, ?>) value, fieldName);
+            }
+        }
+
+        return CoerceUtil.coerce(value, fieldClass);
+    }
+
+    private Collection coerceCollection(Collection<?> values, String fieldName, Class<?> fieldClass) {
+        ClassType<?> providedType = (ClassType) getParameterizedType(fieldName, 0);
+
+        // check if collection is of and contains the correct types
+        if (fieldClass.isAssignableFrom(values.getClass())) {
+            boolean valid = true;
+            for (Object member : values) {
+                if (member != null && !providedType.isAssignableFrom(EntityDictionary.getType(member))) {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid) {
+                return values;
+            }
+        }
+
+        ArrayList<Object> list = new ArrayList<>(values.size());
+        for (Object member : values) {
+            list.add(CoerceUtil.coerce(member, providedType.getCls()));
+        }
+
+        if (Set.class.isAssignableFrom(fieldClass)) {
+            return new LinkedHashSet<>(list);
+        }
+
+        return list;
+    }
+
+    private Map coerceMap(Map<?, ?> values, String fieldName) {
+        Class<?> keyType = ((ClassType) getParameterizedType(fieldName, 0)).getCls();
+        Class<?> valueType = ((ClassType) getParameterizedType(fieldName, 1)).getCls();
+
+        // Verify the existing Map
+        if (isValidParameterizedMap(values, keyType, valueType)) {
+            return values;
+        }
+
+        LinkedHashMap<Object, Object> result = new LinkedHashMap<>(values.size());
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            result.put(CoerceUtil.coerce(entry.getKey(), keyType), CoerceUtil.coerce(entry.getValue(), valueType));
+        }
+
+        return result;
+    }
+
+    private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if ((key != null && !keyType.isAssignableFrom(key.getClass()))
+                    || (value != null && !valueType.isAssignableFrom(value.getClass()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Get the true field/method name from an alias.
+     *
+     * @param alias       Alias to convert
+     * @return Real field/method name as a string. null if not found.
+     */
+    public String getNameFromAlias(String alias) {
+        if (aliasesToFields != null) {
+            return aliasesToFields.get(alias);
+        }
+        return null;
+    }
+
+
+    /**
+     * Determine whether or not a method is request scopeable.
+     *
+     * @param method  Method on entity to check
+     * @return True if method accepts a RequestScope, false otherwise.
+     */
+    public boolean isMethodRequestScopeable(Method method) {
+        return requestScopeableMethods.getOrDefault(method, false);
     }
 
     private static boolean isIdField(AccessibleObject field) {

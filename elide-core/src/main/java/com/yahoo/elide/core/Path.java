@@ -152,7 +152,7 @@ public class Path {
      */
     protected boolean needNavigation(Type<?> entityClass, String fieldName, EntityDictionary dictionary) {
         EntityBinding binding = dictionary.getEntityBinding(entityClass, ALL_MODELS);
-        return binding.isRelation(fieldName) || !binding.isElideModel();
+        return binding.isRelation(fieldName) || binding.isComplexAttribute(fieldName);
     }
 
     public Optional<PathElement> lastElement() {

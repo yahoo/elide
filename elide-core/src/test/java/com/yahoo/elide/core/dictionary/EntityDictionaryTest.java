@@ -1132,8 +1132,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(hasBinding(ClassType.of((ExcludedBySuperClass.class))));
 
         //Test bindings for complex attribute types
-        assertTrue(hasBinding(ClassType.of(Address.class)));
-        assertTrue(hasBinding(ClassType.of(GeoLocation.class)));
+        assertFalse(hasBinding(ClassType.of(Address.class)));
+        assertTrue(hasBinding(ClassType.of(Address.class), ALL_MODELS));
+        assertFalse(hasBinding(ClassType.of(GeoLocation.class)));
+        assertTrue(hasBinding(ClassType.of(GeoLocation.class), ALL_MODELS));
         assertFalse(hasBinding(ClassType.of(String.class)));
         assertFalse(hasBinding(ClassType.of(Author.AuthorType.class)));
         assertFalse(hasBinding(ClassType.of(Boolean.class)));

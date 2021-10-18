@@ -9,6 +9,8 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.ALL_MODELS;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.getType;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 
 import com.yahoo.elide.annotation.Audit;
@@ -22,6 +24,7 @@ import com.yahoo.elide.core.audit.InvalidSyntaxException;
 import com.yahoo.elide.core.audit.LogMessage;
 import com.yahoo.elide.core.audit.LogMessageImpl;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -42,7 +45,6 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -94,6 +96,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     protected final EntityDictionary dictionary;
     private final Type type;
+    private final EntityBinding binding;
     private final String typeName;
     private final ResourceLineage lineage;
     private final Optional<String> uuid;
@@ -124,7 +127,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             @NonNull RequestScope scope
     ) {
         this.obj = obj;
-        this.type = EntityDictionary.getType(obj);
+        this.type = getType(obj);
+        this.binding = scope.getDictionary().getEntityBinding(type);
         this.uuid = Optional.ofNullable(id);
         this.lineage = parent != null
                 ? new ResourceLineage(parent.lineage, parent, parentRelationship)
@@ -451,7 +455,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return the value
      */
     public static Object getValue(Object target, String fieldName, RequestScope requestScope) {
-        return requestScope.getDictionary().getValue(target, fieldName, requestScope);
+        Type<?> targetClass = getType(target);
+        EntityBinding binding = requestScope.getDictionary().getEntityBinding(targetClass, ALL_MODELS);
+
+        return binding.getValue(target, fieldName, requestScope);
     }
 
     /**
@@ -496,7 +503,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     private static <A extends Annotation> ExpressionResult checkUserPermission(
             Class<A> annotationClass, Object obj, RequestScope requestScope, Set<String> requestedFields) {
         return requestScope.getPermissionExecutor()
-                .checkUserPermissions(EntityDictionary.getType(obj), annotationClass, requestedFields);
+                .checkUserPermissions(getType(obj), annotationClass, requestedFields);
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
@@ -574,24 +581,24 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
         Type<?> fieldClass = dictionary.getType(getResourceType(), fieldName);
-        final Object coercedNewValue = dictionary.coerce(obj, newVal, fieldName, fieldClass);
+        final Object coercedNewValue = binding.coerce(obj, newVal, fieldName, fieldClass);
         Object val = getValueUnchecked(fieldName);
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, coercedNewValue, val);
         if (!Objects.equals(val, coercedNewValue)) {
             if (val == null
                     || coercedNewValue == null
-                    || !dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
+                    || !dictionary.isComplexAttribute(getType(obj), fieldName)) {
                 this.setValueChecked(fieldName, coercedNewValue);
             } else {
                 if (newVal instanceof Map) {
-                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, val, requestScope);
+                    this.updateComplexAttribute(binding, (Map<String, Object>) newVal, val, requestScope);
                 } else {
                     this.setValueChecked(fieldName, coercedNewValue);
                 }
             }
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
-            if (dictionary.isAttribute(EntityDictionary.getType(obj), fieldName)) {
+            if (dictionary.isAttribute(getType(obj), fieldName)) {
                 transaction.setAttribute(obj, Attribute.builder()
                         .name(fieldName)
                         .type(fieldClass)
@@ -605,25 +612,27 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         return false;
     }
 
-    private void updateComplexAttribute(EntityDictionary dictionary,
+    private void updateComplexAttribute(EntityBinding binding,
                                         Map<String, Object> updateValue,
                                         Object currentValue,
                                         RequestScope scope) {
         for (String field : updateValue.keySet()) {
             final Object newValue = updateValue.get(field);
+            final Type<?> fieldType = binding.getType(field);
             final Object coercedNewValue =
-                    dictionary.coerce(currentValue, newValue, field, dictionary.getType(currentValue, field));
-            final Object newOriginal = dictionary.getValue(currentValue, field, scope);
+                    binding.coerce(currentValue, newValue, field, fieldType);
+            final Object newOriginal = binding.getValue(currentValue, field, scope);
             if (!Objects.equals(newOriginal, coercedNewValue)) {
                 if (newOriginal == null
                         || coercedNewValue == null
-                        || !dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
-                    dictionary.setValue(currentValue, field, coercedNewValue);
+                        || !binding.isComplexAttribute(field)) {
+                    binding.setValue(currentValue, field, coercedNewValue);
                 } else {
+                    EntityBinding fieldBinding = dictionary.getEntityBinding(fieldType, EntityDictionary.ALL_MODELS);
                     if (newValue instanceof Map) {
-                        this.updateComplexAttribute(dictionary, (Map<String, Object>) newValue, newOriginal, scope);
+                        this.updateComplexAttribute(fieldBinding, (Map<String, Object>) newValue, newOriginal, scope);
                     } else {
-                        dictionary.setValue(currentValue, field, coercedNewValue);
+                        binding.setValue(currentValue, field, coercedNewValue);
                     }
                 }
             }
@@ -1079,7 +1088,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return Boolean
      */
     public boolean isIdGenerated() {
-        return dictionary.getEntityBinding(type).isIdGenerated();
+        return binding.isIdGenerated();
     }
 
     /**
@@ -1409,7 +1418,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     @Override
     @JsonIgnore
     public Type<T> getResourceType() {
-        return (Type) dictionary.lookupBoundClass(EntityDictionary.getType(obj));
+        return (Type) dictionary.lookupBoundClass(getType(obj));
     }
 
     /**

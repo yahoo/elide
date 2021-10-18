@@ -61,7 +61,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
@@ -286,7 +285,7 @@ public class EntityDictionary {
         Type<?> declaredClass = lookupBoundClass(entityClass);
 
         if (declaredClass != null) {
-            return findBinding(entityClass, lens);
+            return findBinding(declaredClass, lens);
         }
 
         //Will throw an exception if entityClass is not an entity.
@@ -706,12 +705,8 @@ public class EntityDictionary {
      * @return Relationship type. RelationshipType.NONE if is none found.
      */
     public RelationshipType getRelationshipType(Type<?> cls, String relation) {
-        final ConcurrentHashMap<String, RelationshipType> types = getEntityBinding(cls).relationshipTypes;
-        if (types == null) {
-            return RelationshipType.NONE;
-        }
-        final RelationshipType type = types.get(relation);
-        return (type == null) ? RelationshipType.NONE : type;
+        final EntityBinding clsBinding = getEntityBinding(cls);
+        return clsBinding.getRelationshipType(relation);
     }
 
     /**
@@ -818,12 +813,9 @@ public class EntityDictionary {
      * @return Type of entity
      */
     public Type<?> getType(Type<?> entityClass, String identifier) {
-        if (identifier.equals(REGULAR_ID_NAME)) {
-            return getEntityBinding(entityClass).getIdType();
-        }
+        EntityBinding binding = getEntityBinding(entityClass);
 
-        ConcurrentHashMap<String, Type<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
-        return fieldTypes == null ? null : fieldTypes.get(identifier);
+        return binding.getType(identifier);
     }
 
     /**
@@ -1668,6 +1660,18 @@ public class EntityDictionary {
     /**
      * Returns whether or not a class is already bound.
      * @param cls The class to verify.
+     * @param lens The lens to filter entity bindings by.
+     * @return true if the class is bound.  False otherwise.
+     */
+    public boolean hasBinding(Type<?> cls, EntityBindingLens lens) {
+        return entityBindings.values().stream()
+                .filter(lens::filter)
+                .anyMatch(binding -> binding.entityClass.equals(cls));
+    }
+
+    /**
+     * Returns whether or not a class is already bound.
+     * @param cls The class to verify.
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Type<?> cls) {
@@ -1683,24 +1687,10 @@ public class EntityDictionary {
      * @return the value
      */
     public Object getValue(Object target, String fieldName, RequestScope scope) {
-        AccessibleObject accessor = getAccessibleObject(target, fieldName);
-        try {
-            if (accessor instanceof Method) {
-                // Pass RequestScope into @Computed fields if requested
-                if (isMethodRequestScopeable(target, (Method) accessor)) {
-                    return ((Method) accessor).invoke(target, scope);
-                }
-                return ((Method) accessor).invoke(target);
-            }
-            if (accessor instanceof Field) {
-                return ((Field) accessor).get(target);
-            }
-        } catch (IllegalAccessException e) {
-            throw new InvalidAttributeException(fieldName, getJsonAliasFor(getType(target)), e);
-        } catch (InvocationTargetException e) {
-            throw handleInvocationTargetException(e);
-        }
-        throw new InvalidAttributeException(fieldName, getJsonAliasFor(getType(target)));
+        Type<?> targetClass = getType(target);
+        EntityBinding binding = getEntityBinding(targetClass);
+
+        return binding.getValue(target, fieldName, scope);
     }
 
     /**
@@ -1720,33 +1710,9 @@ public class EntityDictionary {
      */
     public void setValue(Object target, String fieldName, Object value) {
         Type<?> targetClass = getType(target);
-        String targetType = getJsonAliasFor(targetClass);
+        EntityBinding binding = getEntityBinding(targetClass);
 
-        String fieldAlias = fieldName;
-        try {
-            Type<?> fieldClass = getType(targetClass, fieldName);
-            String realName = getNameFromAlias(target, fieldName);
-            fieldAlias = (realName != null) ? realName : fieldName;
-            String setMethod = "set" + StringUtils.capitalize(fieldAlias);
-            Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
-            method.invoke(target, coerce(target, value, fieldAlias, fieldClass));
-        } catch (IllegalAccessException e) {
-            throw new InvalidAttributeException(fieldAlias, targetType, e);
-        } catch (InvocationTargetException e) {
-            throw handleInvocationTargetException(e);
-        } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
-            AccessibleObject accessor = getAccessibleObject(target, fieldAlias);
-            if (accessor != null && accessor instanceof Field) {
-                Field field = (Field) accessor;
-                try {
-                    field.set(target, coerce(target, value, fieldAlias, field.getType()));
-                } catch (IllegalAccessException noField) {
-                    throw new InvalidAttributeException(fieldAlias, targetType, noField);
-                }
-            } else {
-                throw new InvalidAttributeException(fieldAlias, targetType);
-            }
-        }
+        binding.setValue(target, fieldName, value);
     }
 
     /**
@@ -1755,87 +1721,13 @@ public class EntityDictionary {
      * @param e Exception the exception encountered while reflecting on an object's field
      * @return Equivalent runtime exception
      */
-    private static RuntimeException handleInvocationTargetException(InvocationTargetException e) {
+    static RuntimeException handleInvocationTargetException(InvocationTargetException e) {
         Throwable exception = e.getTargetException();
         if (exception instanceof HttpStatusException || exception instanceof WebApplicationException) {
             return (RuntimeException) exception;
         }
         log.error("Caught an unexpected exception (rethrowing as internal server error)", e);
         return new InternalServerErrorException("Unexpected exception caught", e);
-    }
-
-    /**
-     * Coerce provided value into expected class type.
-     *
-     * @param target The model instance which owns the field being coerced.
-     * @param value The value being coerced.
-     * @param fieldName the field name in the owning model instance.
-     * @param fieldType expected class type
-     * @return coerced value
-     */
-    public Object coerce(Object target, Object value, String fieldName, Type<?> fieldType) {
-
-        Class<?> fieldClass = null;
-        if (fieldType != null) {
-            Preconditions.checkState(fieldType instanceof ClassType);
-            fieldClass = ((ClassType) fieldType).getCls();
-
-            if (COLLECTION_TYPE.isAssignableFrom(fieldType) && value instanceof Collection) {
-                return coerceCollection(target, (Collection) value, fieldName, fieldClass);
-            }
-
-            if (MAP_TYPE.isAssignableFrom(fieldType) && value instanceof Map) {
-                return coerceMap(target, (Map<?, ?>) value, fieldName);
-            }
-        }
-
-        return CoerceUtil.coerce(value, fieldClass);
-    }
-
-    private Collection coerceCollection(Object target, Collection<?> values, String fieldName, Class<?> fieldClass) {
-        ClassType<?> providedType = (ClassType) getParameterizedType(target, fieldName);
-
-        // check if collection is of and contains the correct types
-        if (fieldClass.isAssignableFrom(values.getClass())) {
-            boolean valid = true;
-            for (Object member : values) {
-                if (member != null && !providedType.isAssignableFrom(getType(member))) {
-                    valid = false;
-                    break;
-                }
-            }
-            if (valid) {
-                return values;
-            }
-        }
-
-        ArrayList<Object> list = new ArrayList<>(values.size());
-        for (Object member : values) {
-            list.add(CoerceUtil.coerce(member, providedType.getCls()));
-        }
-
-        if (Set.class.isAssignableFrom(fieldClass)) {
-            return new LinkedHashSet<>(list);
-        }
-
-        return list;
-    }
-
-    private Map coerceMap(Object target, Map<?, ?> values, String fieldName) {
-        Class<?> keyType = ((ClassType) getParameterizedType(target, fieldName, 0)).getCls();
-        Class<?> valueType = ((ClassType) getParameterizedType(target, fieldName, 1)).getCls();
-
-        // Verify the existing Map
-        if (isValidParameterizedMap(values, keyType, valueType)) {
-            return values;
-        }
-
-        LinkedHashMap<Object, Object> result = new LinkedHashMap<>(values.size());
-        for (Map.Entry<?, ?> entry : values.entrySet()) {
-            result.put(CoerceUtil.coerce(entry.getKey(), keyType), CoerceUtil.coerce(entry.getValue(), valueType));
-        }
-
-        return result;
     }
 
     /**
@@ -1866,18 +1758,6 @@ public class EntityDictionary {
      */
     public boolean isValidField(Type<?> cls, String fieldName) {
         return getAllFields(cls).contains(fieldName);
-    }
-
-    private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
-        for (Map.Entry<?, ?> entry : values.entrySet()) {
-            Object key = entry.getKey();
-            Object value = entry.getValue();
-            if ((key != null && !keyType.isAssignableFrom(key.getClass()))
-                    || (value != null && !valueType.isAssignableFrom(value.getClass()))) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -1974,7 +1854,7 @@ public class EntityDictionary {
 
         toVisit.addAll(binding.getAttributes()
                 .stream()
-                .filter(this::canBind)
+                .filter(binding::canBind)
                 .collect(Collectors.toSet()));
 
         while (! toVisit.isEmpty()) {
@@ -1997,7 +1877,7 @@ public class EntityDictionary {
 
             toVisit.addAll(nextBinding.getAttributes()
                     .stream()
-                    .filter(this::canBind)
+                    .filter(nextBinding::canBind)
                     .collect(Collectors.toSet()));
         }
     }
@@ -2138,13 +2018,7 @@ public class EntityDictionary {
     public boolean isComplexAttribute(Type<?> clazz, String fieldName) {
         EntityBinding binding = getEntityBinding(clazz, ALL_MODELS);
 
-        if (! binding.apiAttributes.contains(fieldName)) {
-            return false;
-        }
-
-        Type<?> attributeType = getType(clazz, fieldName);
-
-        return canBind(attributeType);
+        return binding.isComplexAttribute(fieldName);
     }
 
     private void bindHookMethod(
@@ -2185,25 +2059,6 @@ public class EntityDictionary {
                 throw new IllegalArgumentException(e);
             }
         };
-    }
-
-    private boolean canBind(Type<?> type) {
-        if (! type.getUnderlyingClass().isPresent()) {
-            return false;
-        }
-
-        Class<?> clazz = type.getUnderlyingClass().get();
-
-        if (ClassUtils.isPrimitiveOrWrapper(clazz)
-                || clazz.equals(String.class)
-                || clazz.isEnum()
-                || Collection.class.isAssignableFrom(clazz)
-                || Map.class.isAssignableFrom(clazz)
-                || serdeLookup.apply(clazz) != null) {
-            return false;
-        }
-
-        return true;
     }
 
     private EntityBinding findBinding(Type<?> type) {
