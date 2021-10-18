@@ -32,7 +32,7 @@ import javax.jms.JMSContext;
  * Elide datastore that reads models from JMS message topics.
  */
 public class JMSDataStore implements DataStore {
-    //Maps supported subscription models to whether they are custom or not.
+    //Maps supported subscription models to whether or not they support topics.
     protected Map<Type<?>, Boolean> models;
 
     protected ConnectionFactory connectionFactory;
