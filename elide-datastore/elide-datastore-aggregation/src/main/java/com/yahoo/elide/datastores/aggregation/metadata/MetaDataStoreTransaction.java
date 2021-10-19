@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -16,7 +17,6 @@ import com.yahoo.elide.core.request.Relationship;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -60,16 +60,33 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx, Object entity, Relationship relationship,
-                    RequestScope scope) {
+    public DataStoreIterable<Object> getToManyRelation(
+            DataStoreTransaction relationTx,
+            Object entity,
+            Relationship relationship,
+            RequestScope scope
+    ) {
         return hashMapDataStores
                         .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
-                        .getDictionary()
-                        .getValue(entity, relationship.getName(), scope);
+                        .beginTransaction()
+                        .getToManyRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
+    public Object getToOneRelation(
+            DataStoreTransaction relationTx,
+            Object entity,
+            Relationship relationship,
+            RequestScope scope
+    ) {
+        return hashMapDataStores
+                .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
+                .beginTransaction()
+                .getToOneRelation(relationTx, entity, relationship, scope);
+    }
+
+    @Override
+    public DataStoreIterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
         return hashMapDataStores
                         .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
                         .beginTransaction()
@@ -87,21 +104,6 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     @Override
     public void close() throws IOException {
         // Do nothing
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return false;
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return false;
     }
 
     @Override

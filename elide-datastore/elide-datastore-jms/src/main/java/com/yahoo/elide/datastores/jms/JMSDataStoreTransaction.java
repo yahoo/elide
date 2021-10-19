@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -15,12 +16,12 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
@@ -34,6 +35,7 @@ import javax.jms.JMSRuntimeException;
 public class JMSDataStoreTransaction implements DataStoreTransaction {
     private JMSContext context;
     private EntityDictionary dictionary;
+    private Gson gson;
     private long timeoutInMs;
     private List<JMSConsumer> consumers;
 
@@ -41,10 +43,12 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
      * Constructor.
      * @param context JMS Context
      * @param dictionary Elide Entity Dictionary
+     * @param gson Gson serializer to convert Elide models to topic messages.
      * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
      */
-    public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary, long timeoutInMs) {
+    public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary, Gson gson, long timeoutInMs) {
         this.context = context;
+        this.gson = gson;
         this.dictionary = dictionary;
         this.timeoutInMs = timeoutInMs;
         this.consumers = new ArrayList<>();
@@ -76,7 +80,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         TopicType topicType = getTopicType(entityProjection);
 
         String topicName = topicType.toTopicName(entityProjection.getType(), dictionary);
@@ -91,7 +95,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
         return new MessageIterable<>(
                 consumer,
                 timeoutInMs,
-                new MessageDeserializer<>(entityProjection.getType())
+                new MessageDeserializer<>(entityProjection.getType(), gson)
         );
     }
 
@@ -113,24 +117,6 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
         } catch (JMSRuntimeException e) {
             log.debug("Exception throws while closing context: {}", e.getMessage());
         }
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory filtering
-        return FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory sorting
-        return false;
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory pagination
-        return false;
     }
 
     protected TopicType getTopicType(EntityProjection projection) {

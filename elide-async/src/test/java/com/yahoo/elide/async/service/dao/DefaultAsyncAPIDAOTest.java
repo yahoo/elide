@@ -19,6 +19,7 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -86,7 +87,7 @@ public class DefaultAsyncAPIDAOTest {
    @Test
    public void testUpdateStatusAsyncQueryCollection() {
        Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery);
-       when(tx.loadObjects(any(), any())).thenReturn(loaded);
+       when(tx.loadObjects(any(), any())).thenReturn(new DataStoreIterableBuilder(loaded).build());
        asyncAPIDAO.updateStatusAsyncAPIByFilter(filter, QueryStatus.TIMEDOUT, asyncQuery.getClass());
        verify(tx, times(2)).save(any(AsyncQuery.class), any(RequestScope.class));
        verify(asyncQuery, times(2)).setStatus(QueryStatus.TIMEDOUT);
@@ -95,7 +96,7 @@ public class DefaultAsyncAPIDAOTest {
     @Test
     public void testDeleteAsyncQueryAndResultCollection() {
         Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
-        when(tx.loadObjects(any(), any())).thenReturn(loaded);
+        when(tx.loadObjects(any(), any())).thenReturn(new DataStoreIterableBuilder(loaded).build());
         asyncAPIDAO.deleteAsyncAPIAndResultByFilter(filter, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).loadObjects(any(), any());
@@ -117,7 +118,7 @@ public class DefaultAsyncAPIDAOTest {
     @Test
     public void testLoadAsyncQueryCollection() {
         Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
-        when(tx.loadObjects(any(), any())).thenReturn(loaded);
+        when(tx.loadObjects(any(), any())).thenReturn(new DataStoreIterableBuilder(loaded).build());
         asyncAPIDAO.loadAsyncAPIByFilter(filter, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).loadObjects(any(), any());

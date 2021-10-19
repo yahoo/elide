@@ -39,6 +39,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
@@ -1320,7 +1321,8 @@ public class LifeCycleTest {
                 .name("models")
                 .build();
 
-        when(tx.getRelation(tx, mockModel, relationship, scope)).thenReturn(Arrays.asList(childModel1, childModel2));
+        when(tx.getToManyRelation(tx, mockModel, relationship, scope))
+                .thenReturn(new DataStoreIterableBuilder<Object>(Arrays.asList(childModel1, childModel2)).build());
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1)));
 

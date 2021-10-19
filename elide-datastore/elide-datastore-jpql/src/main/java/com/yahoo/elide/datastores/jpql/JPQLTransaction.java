@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.jpql;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -35,7 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -107,11 +108,15 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                 new RootCollectionFetchQueryBuilder(projection, dictionary, sessionWrapper).build();
 
         T loaded = new TimedFunction<T>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
-        return addSingleElement(loaded);
+
+        if (loaded != null) {
+            singleElementLoads.add(loaded);
+        }
+        return loaded;
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(
+    public <T> DataStoreIterable<T> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
 
@@ -141,11 +146,11 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
             }
         }
 
-        return addSingleElement(results);
+        return new DataStoreIterableBuilder<T>(addSingleElement(results)).build();
     }
 
     @Override
-    public <T, R> R getRelation(
+    public <T, R> DataStoreIterable<R> getToManyRelation(
             DataStoreTransaction relationTx,
             T entity,
             Relationship relation,
@@ -156,8 +161,10 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         Pagination pagination = relation.getProjection().getPagination();
 
         EntityDictionary dictionary = scope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relation.getName(), scope);
-        if (val instanceof Collection && isPersistentCollection().test((Collection<?>) val)) {
+        Iterable val = (Iterable) com.yahoo.elide.core.PersistentResource.getValue(entity, relation.getName(), scope);
+
+        //If the query is safe for N+1 and the value is an ORM managed, persistent collection, run a JPQL query...
+        if (doInDatabase(entity) && val instanceof Collection && isPersistentCollection().test((Collection<?>) val)) {
 
             /*
              * If there is no filtering or sorting required in the data store, and the pagination is default,
@@ -165,7 +172,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
              */
             if (filterExpression == null && sorting == null
                     && (pagination == null || (pagination.isDefaultInstance()))) {
-                return addSingleElement((R) val);
+                return new DataStoreIterableBuilder<R>(addSingleElement(val)).allInMemory().build();
             }
 
             RelationshipImpl relationship = new RelationshipImpl(
@@ -184,10 +191,24 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                             .build();
 
             if (query != null) {
-                return addSingleElement((R) query.list());
+                return new DataStoreIterableBuilder(addSingleElement(query.list())).build();
             }
         }
-        return addSingleElement((R) val);
+        return new DataStoreIterableBuilder<R>(addSingleElement(val)).allInMemory().build();
+    }
+
+    @Override
+    public <T, R> R getToOneRelation(
+            DataStoreTransaction relationTx,
+            T entity,
+            Relationship relationship,
+            RequestScope scope
+    ) {
+        R loaded = DataStoreTransaction.super.getToOneRelation(relationTx, entity, relationship, scope);
+        if (loaded != null) {
+            singleElementLoads.add(loaded);
+        }
+        return loaded;
     }
 
     protected abstract Predicate<Collection<?>> isPersistentCollection();
@@ -226,40 +247,20 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         return new TimedFunction<Long>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
     }
 
-    private <R> R addSingleElement(R results) {
-        if (results instanceof Iterable) {
-            if (results instanceof ScrollableIteratorBase) {
-                ((ScrollableIteratorBase<R, ?>) results).singletonElement().ifPresent(singleElementLoads::add);
-            } else if (results instanceof Collection && ((Collection) results).size() == 1) {
-                ((Collection) results).forEach(singleElementLoads::add);
-            }
-        } else if (results != null) {
-            singleElementLoads.add(results);
+    private <R> Iterable<R> addSingleElement(Iterable<R> results) {
+        if (results instanceof ScrollableIteratorBase) {
+            ((ScrollableIteratorBase<R, ?>) results).singletonElement().ifPresent(singleElementLoads::add);
+        } else if (results instanceof Collection && ((Collection) results).size() == 1) {
+            ((Collection) results).forEach(singleElementLoads::add);
         }
+
         return results;
     }
 
-    protected <T> boolean doInDatabase(Optional<T> parent) {
+    protected <T> boolean doInDatabase(T parent) {
         // In-Memory delegation is disabled.
         return !delegateToInMemoryStore
-                // This is a root level load (so always let the DB do as much as possible.
-                || !parent.isPresent()
                 // We are fetching .../book/1/authors so N = 1 in N+1. No harm in the DB running a query.
-                || parent.filter(singleElementLoads::contains).isPresent();
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent) ? FeatureSupport.FULL : FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent);
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent);
+                || singleElementLoads.contains(parent);
     }
 }
