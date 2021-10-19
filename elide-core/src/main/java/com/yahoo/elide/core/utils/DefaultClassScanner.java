@@ -38,7 +38,6 @@ public class DefaultClassScanner implements ClassScanner {
 
             //GraphQL annotations.  Strings here to avoid dependency.
             "com.yahoo.elide.graphql.subscriptions.annotations.Subscription",
-            "com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField",
 
             //Aggregation Store Annotations.  Strings here to avoid dependency.
             "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable",
