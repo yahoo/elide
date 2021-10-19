@@ -7,6 +7,7 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
@@ -56,6 +57,7 @@ public class QueryRunner {
     private final Elide elide;
     private GraphQL api;
     private String apiVersion;
+
 
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
@@ -277,7 +279,6 @@ public class QueryRunner {
             ExecutionResult result = api.execute(executionInput);
 
             tx.preCommit(requestScope);
-            requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
             if (isMutation) {
                 if (!result.getErrors().isEmpty()) {
@@ -290,7 +291,12 @@ public class QueryRunner {
                 }
                 requestScope.saveOrCreateObjects();
             }
-            requestScope.runQueuedPreFlushTriggers();
+
+            //Only read checks are queued so they can be deduped.  All other flush checks run inline
+            //with GraphQL request processing (after the fetcher completes the operation).
+            LifeCycleHookBinding.Operation [] operations = { LifeCycleHookBinding.Operation.READ };
+            requestScope.runQueuedPreFlushTriggers(operations);
+
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();
