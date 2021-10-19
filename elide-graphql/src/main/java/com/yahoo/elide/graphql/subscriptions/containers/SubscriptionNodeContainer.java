@@ -11,7 +11,6 @@ import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.containers.NodeContainer;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
