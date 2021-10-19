@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -291,6 +292,14 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.zipCodeHidden")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
+
+        //Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/columns")
+                .then()
+                .body("data.id", not(contains("SalesNamespace_orderDetails.zipCodeHidden")))
+                .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
