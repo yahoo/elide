@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
-import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import example.Player;
 import example.PlayerStats;
 import example.PlayerStatsView;
@@ -21,8 +20,6 @@ import example.dimensions.CountryViewNested;
 import example.dimensions.SubCountry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.util.Set;
 
 public class MetaDataStoreTest {
     private static ClassScanner scanner = DefaultClassScanner.getInstance();

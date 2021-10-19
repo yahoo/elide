@@ -73,7 +73,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1031,6 +1030,24 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testIsValidField() {
         assertTrue(isValidField(ClassType.of(Job.class), "title"));
         assertFalse(isValidField(ClassType.of(Job.class), "foo"));
+    }
+
+    @Test
+    public void testBindingHiddenAttribute() {
+        @Include
+        class Book {
+            @Id
+            long id;
+
+            String notHidden;
+
+            String hidden;
+        }
+
+        bindEntity(Book.class, (field) -> field.getName().equals("hidden") ? true : false);
+
+        assertFalse(isAttribute(ClassType.of(Book.class), "hidden"));
+        assertTrue(isAttribute(ClassType.of(Book.class), "notHidden"));
     }
 
     @Test

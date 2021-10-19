@@ -109,7 +109,7 @@ public class HasColumnArgsVisitorTest {
 
         EntityDictionary dictionary = EntityDictionary.builder().build();
 
-        models.stream().forEach(dictionary::bindEntity);
+        //models.stream().forEach(dictionary::bindEntity);
 
         metaDataStore = new MetaDataStore(dictionary.getScanner(), models, true);
         metaDataStore.populateEntityDictionary(dictionary);

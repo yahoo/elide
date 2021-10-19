@@ -63,9 +63,11 @@ public class Dimension implements Named {
     private String category;
 
     @JsonProperty("hidden")
+    @Builder.Default
     private Boolean hidden = false;
 
     @JsonProperty("readAccess")
+    @Builder.Default
     private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("definition")

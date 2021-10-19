@@ -10,10 +10,8 @@ import static com.yahoo.elide.datastores.aggregation.annotation.JoinType.INNER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Field;
@@ -123,10 +121,12 @@ public class TableTypeTest {
 
         TableType testType = new TableType(testTable);
 
-        Exclude exclude = (Exclude) testType.getAnnotation(Exclude.class);
-        assertNotNull(exclude);
         Include include = (Include) testType.getAnnotation(Include.class);
-        assertNull(include);
+        assertNotNull(include);
+
+        TableMeta tableMeta = (TableMeta) testType.getAnnotation(TableMeta.class);
+        assertNotNull(tableMeta);
+        assertTrue(tableMeta.isHidden());
     }
 
     @Test
@@ -416,10 +416,9 @@ public class TableTypeTest {
         Field field = testType.getDeclaredField("dim1");
         assertNotNull(field);
 
-        Exclude exclude = field.getAnnotation(Exclude.class);
-        assertNotNull(exclude);
-        Include include = field.getAnnotation(Include.class);
-        assertNull(include);
+        ColumnMeta columnMeta = field.getAnnotation(ColumnMeta.class);
+        assertNotNull(columnMeta);
+        assertTrue(columnMeta.isHidden());
     }
 
     @Test
@@ -439,10 +438,9 @@ public class TableTypeTest {
         Field field = testType.getDeclaredField("measure1");
         assertNotNull(field);
 
-        Exclude exclude = field.getAnnotation(Exclude.class);
-        assertNotNull(exclude);
-        Include include = field.getAnnotation(Include.class);
-        assertNull(include);
+        ColumnMeta columnMeta = field.getAnnotation(ColumnMeta.class);
+        assertNotNull(columnMeta);
+        assertTrue(columnMeta.isHidden());
     }
 
     @Test

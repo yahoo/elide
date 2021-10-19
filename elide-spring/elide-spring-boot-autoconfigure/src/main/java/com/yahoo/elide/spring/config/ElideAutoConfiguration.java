@@ -241,7 +241,6 @@ public class ElideAutoConfiguration {
                     }
                 },
                 CoerceUtil::lookup, //Serde Lookup
-                entitiesToExclude,
                 scanner);
 
         dictionary.scanForSecurityChecks();

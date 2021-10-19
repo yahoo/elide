@@ -20,6 +20,7 @@ import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -56,8 +57,9 @@ public class AggregationDataStore implements DataStore {
 
     public static final Predicate<AccessibleObject> IS_FIELD_HIDDEN = (field -> {
         ColumnMeta meta = field.getAnnotation(ColumnMeta.class);
+        Join join = field.getAnnotation(Join.class);
 
-        return (meta != null && meta.isHidden());
+        return (join != null || (meta != null && meta.isHidden()));
     });
 
     private final Function<RequestScope, PermissionExecutor> aggPermissionExecutor =

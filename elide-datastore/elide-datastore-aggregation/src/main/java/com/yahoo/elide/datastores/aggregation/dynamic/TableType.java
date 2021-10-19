@@ -349,7 +349,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public boolean isHidden() {
-                return table.getHidden();
+                return table.getHidden() != null && table.getHidden();
             }
 
             @Override
@@ -470,7 +470,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public boolean isHidden() {
-                return measure.getHidden();
+                return measure.getHidden() != null && measure.getHidden();
             }
 
             @Override
@@ -612,7 +612,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public boolean isHidden() {
-                return dimension.getHidden();
+                return dimension.getHidden() != null && dimension.getHidden();
             }
 
             @Override
