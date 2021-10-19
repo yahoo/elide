@@ -139,6 +139,9 @@ public class EntityDictionary {
     @Getter
     protected final Function<Class, Serde> serdeLookup ;
 
+    @Getter
+    private final Set<Type<?>> entitiesToExclude;
+
     public static final String REGULAR_ID_NAME = "id";
     private static final ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
     private static final String ALL_FIELDS = "*";
@@ -148,6 +151,7 @@ public class EntityDictionary {
                             Map<String, UserCheck> roleChecks,
                             Injector injector,
                             Function<Class, Serde> serdeLookup,
+                            Set<Type<?>> entitiesToExclude,
                             ClassScanner scanner) {
         this.scanner = scanner;
         this.serdeLookup = serdeLookup;
@@ -157,6 +161,7 @@ public class EntityDictionary {
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
+        this.entitiesToExclude = new HashSet<>(entitiesToExclude);
 
         //Hydrate check instances at boot.
         checkNames.keySet().forEach(checkName -> {
@@ -983,6 +988,11 @@ public class EntityDictionary {
     public void bindEntity(Type<?> cls, Predicate<AccessibleObject> isFieldHidden) {
         Type<?> declaredClass = lookupIncludeClass(cls);
 
+        if (entitiesToExclude.contains(declaredClass)) {
+            //Exclude Entity
+            return;
+        }
+
         if (declaredClass == null) {
             log.trace("Missing include or excluded class {}", cls.getName());
             return;
@@ -1017,6 +1027,11 @@ public class EntityDictionary {
      */
     public void bindEntity(EntityBinding entityBinding) {
         Type<?> declaredClass = entityBinding.entityClass;
+
+        if (entitiesToExclude.contains(declaredClass)) {
+            //Exclude Entity
+            return;
+        }
 
         if (isClassBound(declaredClass)) {
             //Ignore duplicate bindings.
@@ -2212,11 +2227,16 @@ public class EntityDictionary {
                 injector = DEFAULT_INJECTOR;
             }
 
+            if (entitiesToExclude == null) {
+                entitiesToExclude = Collections.emptySet();
+            }
+
             return new EntityDictionary(
                     checks,
                     roleChecks,
                     injector,
                     serdeLookup,
+                    entitiesToExclude,
                     scanner
             );
         }

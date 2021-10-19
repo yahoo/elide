@@ -75,6 +75,7 @@ public class InMemoryFilterExecutorTest {
                     Collections.emptyMap(),  //role checks
                     EntityDictionary.DEFAULT_INJECTOR,
                     CoerceUtil::lookup,
+                    new HashSet<>(),
                     DefaultClassScanner.getInstance()
             );
         }

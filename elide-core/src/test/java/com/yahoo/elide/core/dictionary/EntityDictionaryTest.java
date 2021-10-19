@@ -73,6 +73,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,6 +99,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 Collections.emptyMap(), //role Checks
                 DEFAULT_INJECTOR,
                 CoerceUtil::lookup,
+                new HashSet<>(),
                 DefaultClassScanner.getInstance()
         );
         init();
@@ -225,6 +227,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 null,
                 DEFAULT_INJECTOR,
                 unused -> new ISO8601DateSerde(),
+                new HashSet<>(),
                 DefaultClassScanner.getInstance());
 
         testDictionary.bindEntity(EntityWithDateId.class);

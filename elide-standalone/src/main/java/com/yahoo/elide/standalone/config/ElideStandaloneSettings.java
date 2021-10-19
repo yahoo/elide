@@ -487,6 +487,7 @@ public interface ElideStandaloneSettings {
                     }
                 },
                 CoerceUtil::lookup, //Serde Lookup
+                entitiesToExclude,
                 scanner);
 
         dictionary.scanForSecurityChecks();

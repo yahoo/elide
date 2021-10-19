@@ -18,6 +18,7 @@ import com.google.inject.name.Names;
 import example.TestCheckMappings;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -37,6 +38,7 @@ public class TestDictionary extends EntityDictionary {
                 Collections.emptyMap(), //role Checks
                 injector,
                 CoerceUtil::lookup,
+                new HashSet<>(),
                 DefaultClassScanner.getInstance()
         );
     }
