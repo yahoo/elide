@@ -17,7 +17,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.function.Function;
 
 /**
@@ -32,7 +31,7 @@ public class NonEntityDictionary extends EntityDictionary {
                 Collections.emptyMap(), //Role checks
                 DEFAULT_INJECTOR,
                 serdeLookup,
-                new HashSet<>(),
+                Collections.emptySet(),
                 scanner);
     }
 

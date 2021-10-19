@@ -174,7 +174,6 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/namespace/default")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .log().all()
                 .body("data.attributes.name", equalTo("default"))
                 .body("data.attributes.friendlyName", equalTo("DEFAULT")) // Overridden value
                 .body("data.attributes.description", equalTo("Default Namespace")) // Overridden value
