@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.jms;
 
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
@@ -17,7 +19,7 @@ import javax.jms.Message;
  * Converts a JMS message consumer into an Iterable.
  * @param <T> The type to convert a Message into.
  */
-public class MessageIterable<T> implements Iterable<T> {
+public class MessageIterable<T> implements DataStoreIterable<T> {
 
     private JMSConsumer consumer;
     private long timeout;
@@ -37,6 +39,11 @@ public class MessageIterable<T> implements Iterable<T> {
         this.consumer = consumer;
         this.timeout = timeout;
         this.messageConverter = messageConverter;
+    }
+
+    @Override
+    public Iterable<T> getWrappedIterable() {
+        return this;
     }
 
     @Override
@@ -82,5 +89,20 @@ public class MessageIterable<T> implements Iterable<T> {
                 }
             }
         };
+    }
+
+    @Override
+    public boolean needsInMemoryFilter() {
+        return true;
+    }
+
+    @Override
+    public boolean needsInMemorySort() {
+        return true;
+    }
+
+    @Override
+    public boolean needsInMemoryPagination() {
+        return true;
     }
 }

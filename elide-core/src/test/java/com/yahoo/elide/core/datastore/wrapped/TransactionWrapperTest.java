@@ -7,18 +7,16 @@
 package com.yahoo.elide.core.datastore.wrapped;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.Attribute;
 import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
 
 public class TransactionWrapperTest {
 
@@ -52,7 +50,7 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        Iterable<Object> expected = mock(Iterable.class);
+        DataStoreIterable<Object> expected = mock(DataStoreIterable.class);
         when(wrapped.loadObjects(any(), any())).thenReturn(expected);
 
         Iterable<Object> actual = wrapper.loadObjects(null, null);
@@ -112,42 +110,6 @@ public class TransactionWrapperTest {
     }
 
     @Test
-    public void testSupportsSorting() {
-        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
-        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
-
-        when(wrapped.supportsSorting(any(), any(), any())).thenReturn(true);
-        boolean actual = wrapper.supportsSorting(null, Optional.empty(), null);
-
-        verify(wrapped, times(1)).supportsSorting(any(), any(), any());
-        assertTrue(actual);
-    }
-
-    @Test
-    public void testSupportsPagination() {
-        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
-        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
-
-        when(wrapped.supportsPagination(any(), any(), any())).thenReturn(true);
-        boolean actual = wrapper.supportsPagination(null, Optional.empty(), null);
-
-        verify(wrapped, times(1)).supportsPagination(any(), any(), any());
-        assertTrue(actual);
-    }
-
-    @Test
-    public void testSupportsFiltering() {
-        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
-        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
-
-        when(wrapped.supportsFiltering(any(), any(), any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        DataStoreTransaction.FeatureSupport actual = wrapper.supportsFiltering(null, Optional.empty(), null);
-
-        verify(wrapped, times(1)).supportsFiltering(any(), any(), any());
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, actual);
-    }
-
-    @Test
     public void testGetAttribute() {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
@@ -191,15 +153,29 @@ public class TransactionWrapperTest {
     }
 
     @Test
-    public void testGetRelation() {
+    public void testGetToManyRelation() {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.getRelation(any(), any(), any(), any())).thenReturn(1L);
+        DataStoreIterable expected = mock(DataStoreIterable.class);
+        when(wrapped.getToManyRelation(any(), any(), any(), any())).thenReturn(expected);
 
-        Object actual = wrapper.getRelation(null, null, null, null);
+        DataStoreIterable actual = wrapper.getToManyRelation(null, null, null, null);
 
-        verify(wrapped, times(1)).getRelation(any(), any(), any(), any());
+        verify(wrapped, times(1)).getToManyRelation(any(), any(), any(), any());
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetToOneRelation() {
+        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
+        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
+
+        when(wrapped.getToOneRelation(any(), any(), any(), any())).thenReturn(1L);
+
+        Long actual = wrapper.getToOneRelation(null, null, null, null);
+
+        verify(wrapped, times(1)).getToOneRelation(any(), any(), any(), any());
         assertEquals(1L, actual);
     }
 

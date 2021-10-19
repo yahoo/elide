@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -20,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
@@ -76,7 +76,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         TopicType topicType = getTopicType(entityProjection);
 
         String topicName = topicType.toTopicName(entityProjection.getType(), dictionary);
@@ -113,24 +113,6 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
         } catch (JMSRuntimeException e) {
             log.debug("Exception throws while closing context: {}", e.getMessage());
         }
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory filtering
-        return FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory sorting
-        return false;
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        //Delegate to in-memory pagination
-        return false;
     }
 
     protected TopicType getTopicType(EntityProjection projection) {
