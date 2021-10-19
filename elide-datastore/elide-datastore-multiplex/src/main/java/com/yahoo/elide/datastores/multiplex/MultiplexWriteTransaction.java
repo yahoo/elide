@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -113,13 +115,17 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
         clonedObjects.put(entity, NEWLY_CREATED_OBJECT);
     }
 
-    private <T> Iterable<T> hold(DataStoreTransaction transaction, Iterable<T> list) {
+    private <T> DataStoreIterable<T> hold(DataStoreTransaction transaction, DataStoreIterable<T> list) {
         ArrayList<T> newList = new ArrayList<>();
         list.forEach(newList::add);
         for (T object : newList) {
             hold(transaction, object);
         }
-        return newList;
+        return new DataStoreIterableBuilder<T>(newList)
+                .paginateInMemory(list.needsInMemoryPagination())
+                .filterInMemory(list.needsInMemoryFilter())
+                .sortInMemory(list.needsInMemorySort())
+                .build();
     }
 
     /**
@@ -174,25 +180,30 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(
-            EntityProjection projection,
-            RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection projection, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(projection.getType());
         return hold(transaction, transaction.loadObjects(projection, scope));
     }
 
     @Override
-    public <T, R> R getRelation(DataStoreTransaction relationTx,
-                              T entity,
-                              Relationship relationship,
-                              RequestScope scope) {
+    public <T, R> DataStoreIterable<R> getToManyRelation(DataStoreTransaction relationTx,
+                                                         T entity,
+                                                         Relationship relationship,
+                                                         RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
-        Object relation = super.getRelation(relationTx, entity, relationship, scope);
+        DataStoreIterable<R> relation = super.getToManyRelation(relationTx, entity, relationship, scope);
 
-        if (relation instanceof Iterable) {
-            return (R) hold(transaction, (Iterable<R>) relation);
-        }
+        return hold(transaction, relation);
+    }
 
-        return (R) hold(transaction, relation);
+    @Override
+    public <T, R> R getToOneRelation(DataStoreTransaction relationTx,
+                                     T entity,
+                                     Relationship relationship,
+                                     RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
+        R relation = super.getToOneRelation(relationTx, entity, relationship, scope);
+
+        return hold(transaction, relation);
     }
 }

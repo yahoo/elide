@@ -130,7 +130,6 @@ public interface ElideStandaloneSubscriptionSettings {
                 .scanner(elide.getScanner())
                 .dictionary(elide.getElideSettings().getDictionary())
                 .connectionFactory(connectionFactory)
-                .mapper(elide.getMapper().getObjectMapper())
                 .build();
 
         scanner.bindLifecycleHooks();
@@ -160,7 +159,6 @@ public interface ElideStandaloneSubscriptionSettings {
                         .auditLogger(settings.getAuditLogger())
                         .verboseErrors(settings.verboseErrors())
                         .errorMapper(settings.getErrorMapper())
-                        .mapper(settings.getObjectMapper().getObjectMapper())
                         .build())
                 .build();
 

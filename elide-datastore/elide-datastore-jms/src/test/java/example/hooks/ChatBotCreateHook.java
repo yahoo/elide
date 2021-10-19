@@ -12,7 +12,7 @@ import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.graphql.subscriptions.hooks.NotifyTopicLifeCycleHook;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.GsonBuilder;
 import example.Chat;
 import example.ChatBot;
 
@@ -39,8 +39,8 @@ public class ChatBotCreateHook implements LifeCycleHook<ChatBot> {
 
         NotifyTopicLifeCycleHook<Chat> publisher = new NotifyTopicLifeCycleHook<>(
                 connectionFactory,
-                new ObjectMapper(),
-                JMSContext::createProducer
+                JMSContext::createProducer,
+                new GsonBuilder().create()
         );
 
         publisher.publish(new Chat(1, "Hello!"), CHAT);

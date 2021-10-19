@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.datastore.wrapped;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -16,7 +17,6 @@ import lombok.Data;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -39,9 +39,15 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public <T, R> R getRelation(DataStoreTransaction relationTx, T entity,
-                              Relationship relationship, RequestScope scope) {
-        return tx.getRelation(relationTx, entity, relationship, scope);
+    public <T, R> DataStoreIterable<R> getToManyRelation(DataStoreTransaction relationTx, T entity,
+                                                              Relationship relationship, RequestScope scope) {
+        return tx.getToManyRelation(relationTx, entity, relationship, scope);
+    }
+
+    @Override
+    public <T, R> R getToOneRelation(DataStoreTransaction relationTx, T entity,
+                                     Relationship relationship, RequestScope scope) {
+        return tx.getToOneRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
@@ -66,21 +72,6 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     @Override
     public <T> void setAttribute(T entity, Attribute attribute, RequestScope scope) {
         tx.setAttribute(entity, attribute, scope);
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return tx.supportsFiltering(scope, parent, projection);
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return tx.supportsSorting(scope, parent, projection);
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return tx.supportsPagination(scope, parent, projection);
     }
 
     @Override
@@ -109,7 +100,7 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(EntityProjection projection, RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection projection, RequestScope scope) {
         return tx.loadObjects(projection, scope);
     }
 

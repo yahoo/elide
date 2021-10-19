@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.type.ClassType;
+import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
@@ -40,7 +41,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 1000,
-                new MessageDeserializer(ClassType.of(String.class))).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new GsonBuilder().create())).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());
@@ -64,7 +65,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 0,
-                new MessageDeserializer(ClassType.of(String.class))).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new GsonBuilder().create())).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());
@@ -84,7 +85,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 -1,
-                new MessageDeserializer(ClassType.of(String.class))).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new GsonBuilder().create())).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());

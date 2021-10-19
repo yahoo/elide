@@ -23,21 +23,11 @@ import com.yahoo.elide.core.type.Type;
 import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Set;
 /**
  * Wraps the Database Transaction type.
  */
 public interface DataStoreTransaction extends Closeable {
-
-    /**
-     * The extent to which the transaction supports a particular feature.
-     */
-    public enum FeatureSupport {
-        FULL,
-        PARTIAL,
-        NONE
-    }
     /**
      * Save the updated object.
      *
@@ -170,12 +160,12 @@ public interface DataStoreTransaction extends Closeable {
      * @param <T> - The model type being loaded.
      * @return a collection of the loaded objects
      */
-    <T> Iterable<T> loadObjects(
+    <T> DataStoreIterable<T> loadObjects(
             EntityProjection entityProjection,
             RequestScope scope);
 
     /**
-     * Retrieve a relation from an object.
+     * Retrieve a to-many relation from an object.
      *
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
@@ -185,7 +175,28 @@ public interface DataStoreTransaction extends Closeable {
      * @param <R> - The model type of the relationship.
      * @return the object in the relation
      */
-    default <T, R> R getRelation(
+    default <T, R> DataStoreIterable<R> getToManyRelation(
+            DataStoreTransaction relationTx,
+            T entity,
+            Relationship relationship,
+            RequestScope scope) {
+
+        return new DataStoreIterableBuilder(
+                (Iterable) PersistentResource.getValue(entity, relationship.getName(), scope)).allInMemory().build();
+    }
+
+    /**
+     * Retrieve a to-one relation from an object.
+     *
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationship - the relationship to fetch.
+     * @param scope - contains request level metadata.
+     * @param <T> - The model type which owns the relationship.
+     * @param <R> - The model type of the relationship.
+     * @return the object in the relation
+     */
+    default <T, R> R getToOneRelation(
             DataStoreTransaction relationTx,
             T entity,
             Relationship relationship,
@@ -268,48 +279,6 @@ public interface DataStoreTransaction extends Closeable {
     default <T> void setAttribute(T entity,
                                   Attribute attribute,
                                   RequestScope scope) {
-    }
-
-    /**
-     * Whether or not the transaction can filter the provided class with the provided expression.
-     * @param scope The request scope
-     * @param projection The projection being loaded
-     * @param parent Are we filtering a root collection or a relationship
-     * @param <T> - The model type of the parent model (if a relationship is being filtered).
-     * @return FULL, PARTIAL, or NONE
-     */
-    default <T> FeatureSupport supportsFiltering(RequestScope scope,
-                                                 Optional<T> parent,
-                                                 EntityProjection projection) {
-        return FeatureSupport.FULL;
-    }
-
-    /**
-     * Whether or not the transaction can sort the provided class.
-     * @param scope The request scope
-     * @param projection The projection being loaded
-     * @param parent Are we filtering a root collection or a relationship
-     * @param <T> - The model type of the parent model (if a relationship is being sorted).
-     * @return true if sorting is possible
-     */
-    default <T> boolean supportsSorting(RequestScope scope,
-                                        Optional<T> parent,
-                                        EntityProjection projection) {
-        return true;
-    }
-
-    /**
-     * Whether or not the transaction can paginate the provided class.
-     * @param scope The request scope
-     * @param projection The projection being loaded
-     * @param parent Are we filtering a root collection or a relationship
-     * @param <T> - The model type of the parent model (if a relationship is being paginated).
-     * @return true if pagination is possible
-     */
-    default <T> boolean supportsPagination(RequestScope scope,
-                                           Optional<T> parent,
-                                           EntityProjection projection) {
-        return true;
     }
 
     /**
