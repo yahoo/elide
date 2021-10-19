@@ -264,9 +264,10 @@ public class MetaDataStore implements DataStore {
         String version = table.getVersion();
         EntityDictionary dictionary = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR).getDictionary();
         tables.put(dictionary.getEntityClass(table.getName(), version), table);
-        addMetaData(table, version);
-        table.getColumns().stream()
-                .filter(column -> !column.isHidden())
+        if (! table.isHidden()) {
+            addMetaData(table, version);
+        }
+        table.getAllColumns().stream()
                 .forEach(this::addColumn);
 
         table.getArgumentDefinitions().forEach(arg -> addArgument(arg, version));
@@ -377,7 +378,9 @@ public class MetaDataStore implements DataStore {
      */
     private void addColumn(Column column) {
         String version = column.getVersion();
-        addMetaData(column, version);
+        if (! column.isHidden()) {
+            addMetaData(column, version);
+        }
 
         if (column instanceof TimeDimension) {
             TimeDimension timeDimension = (TimeDimension) column;

@@ -222,7 +222,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public List<ColumnProjection> getColumnProjections() {
-        return super.getColumns()
+        return super.getAllColumns()
                 .stream()
                 .map(column -> getColumnProjection(column.getName()))
                 .collect(Collectors.toList());

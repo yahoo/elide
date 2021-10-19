@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
 import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getValueType;
+import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -72,8 +73,9 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
     @ManyToOne
     private final Namespace namespace;
 
-    @OneToMany
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Exclude
     private final Set<Column> columns;
 
     @OneToMany
@@ -179,6 +181,16 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
             this.cardinality = CardinalitySize.UNKNOWN;
             this.arguments = new HashSet<>();
         }
+    }
+
+    @OneToMany
+    @ComputedRelationship
+    public Set<Column> getColumns() {
+        return columns.stream().filter(column -> !column.isHidden()).collect(Collectors.toSet());
+    }
+
+    public Set<Column> getAllColumns() {
+        return columns;
     }
 
     private boolean isFact(Type<?> cls, TableMeta meta) {

@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import com.yahoo.elide.annotation.ApiVersion;
+import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -17,6 +18,7 @@ import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -43,10 +45,16 @@ public class Namespace {
     @Exclude
     private final NamespacePackage pkg;
 
-    @OneToMany
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Exclude
     private Set<Table> tables;
+
+    @OneToMany
+    @ComputedRelationship
+    public Set<Table> getTables() {
+        return tables.stream().filter(table -> !table.isHidden()).collect(Collectors.toSet());
+    }
 
     public Namespace(NamespacePackage pkg) {
         this.pkg = pkg;

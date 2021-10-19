@@ -114,7 +114,7 @@ public class AggregationDataStore implements DataStore {
             }
 
             /* Add argument to each Column */
-            for (Column col : table.getColumns()) {
+            for (Column col : table.getAllColumns()) {
                 for (ArgumentDefinition arg : col.getArgumentDefinitions()) {
                     dictionary.addArgumentToAttribute(
                             dictionary.getEntityClass(table.getName(), table.getVersion()),

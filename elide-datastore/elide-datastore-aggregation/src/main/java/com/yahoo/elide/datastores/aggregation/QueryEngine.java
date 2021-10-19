@@ -164,7 +164,6 @@ public abstract class QueryEngine {
 
         metaDataStore.getModelsToBind().stream()
                 .map(model -> constructTable(metaDataStore.getNamespace(model), model, metadataDictionary))
-                .filter((table) -> ! table.isHidden())
                 .forEach(metaDataStore::addTable);
 
         //Populate table sources.
@@ -177,7 +176,7 @@ public abstract class QueryEngine {
                 ));
             });
 
-            table.getColumns().forEach(column -> {
+            table.getAllColumns().forEach(column -> {
 
                 //Populate column sources.
                 column.setTableSource(TableSource.fromDefinition(
