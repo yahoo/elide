@@ -62,7 +62,6 @@ public final class MultiplexManager implements DataStore {
                     dictionary.getRoleChecks(),
                     dictionary.getInjector(),
                     dictionary.getSerdeLookup(),
-                    dictionary.getEntitiesToExclude(),
                     dictionary.getScanner());
 
             dataStore.populateEntityDictionary(subordinateDictionary);

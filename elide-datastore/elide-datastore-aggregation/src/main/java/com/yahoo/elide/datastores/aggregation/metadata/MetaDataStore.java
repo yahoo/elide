@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
+import static com.yahoo.elide.datastores.aggregation.AggregationDataStore.IS_FIELD_HIDDEN;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.EMPTY;
@@ -153,8 +154,8 @@ public class MetaDataStore implements DataStore {
             String version = EntityDictionary.getModelVersion(table);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                     getHashMapDataStoreInitializer(scanner));
-            hashMapDataStore.getDictionary().bindEntity(table, Collections.singleton(Join.class));
-            this.metadataDictionary.bindEntity(table, Collections.singleton(Join.class));
+            hashMapDataStore.getDictionary().bindEntity(table, IS_FIELD_HIDDEN);
+            this.metadataDictionary.bindEntity(table, IS_FIELD_HIDDEN);
             this.modelsToBind.add(table);
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
         });
@@ -211,8 +212,8 @@ public class MetaDataStore implements DataStore {
             String version = EntityDictionary.getModelVersion(cls);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                     getHashMapDataStoreInitializer(scanner));
-            hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
-            this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
+            hashMapDataStore.getDictionary().bindEntity(cls, IS_FIELD_HIDDEN);
+            this.metadataDictionary.bindEntity(cls, IS_FIELD_HIDDEN);
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
 
             Include include = (Include) EntityDictionary.getFirstPackageAnnotation(cls, Arrays.asList(Include.class));
@@ -241,7 +242,7 @@ public class MetaDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         if (enableMetaDataStore) {
             metadataModelClasses.forEach(
-                cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
+                cls -> dictionary.bindEntity(cls, IS_FIELD_HIDDEN)
             );
         }
     }

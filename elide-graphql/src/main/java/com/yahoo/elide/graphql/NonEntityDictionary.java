@@ -31,7 +31,6 @@ public class NonEntityDictionary extends EntityDictionary {
                 Collections.emptyMap(), //Role checks
                 DEFAULT_INJECTOR,
                 serdeLookup,
-                Collections.emptySet(), //Entity excludes
                 scanner);
     }
 

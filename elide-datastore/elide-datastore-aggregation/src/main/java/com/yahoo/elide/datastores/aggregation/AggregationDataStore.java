@@ -16,9 +16,10 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.executors.AggregationStorePermissionExecutor;
+import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -36,7 +37,6 @@ import lombok.ToString;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -53,6 +53,12 @@ public class AggregationDataStore implements DataStore {
     private final Cache cache;
     private final Set<Type<?>> dynamicCompiledClasses;
     private final QueryLogger queryLogger;
+
+    public static final Predicate<AccessibleObject> IS_FIELD_HIDDEN = (field -> {
+        ColumnMeta meta = field.getAnnotation(ColumnMeta.class);
+
+        return (meta != null && meta.isHidden());
+    });
 
     private final Function<RequestScope, PermissionExecutor> aggPermissionExecutor =
             AggregationStorePermissionExecutor::new;
@@ -72,14 +78,14 @@ public class AggregationDataStore implements DataStore {
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
             dynamicCompiledClasses.forEach(dynamicLoadedClass -> {
-                dictionary.bindEntity(dynamicLoadedClass, Collections.singleton(Join.class));
+                dictionary.bindEntity(dynamicLoadedClass, IS_FIELD_HIDDEN);
                 validateModelExpressionChecks(dictionary, dynamicLoadedClass);
                 dictionary.bindPermissionExecutor(dynamicLoadedClass, aggPermissionExecutor);
             });
         }
 
         dictionary.getScanner().getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(cls -> {
-                    dictionary.bindEntity(cls, Collections.singleton(Join.class));
+                    dictionary.bindEntity(cls, IS_FIELD_HIDDEN);
                     validateModelExpressionChecks(dictionary, ClassType.of(cls));
                     dictionary.bindPermissionExecutor(cls, aggPermissionExecutor);
                 }

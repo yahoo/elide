@@ -99,7 +99,6 @@ public class EntityDictionaryTest extends EntityDictionary {
                 Collections.emptyMap(), //role Checks
                 DEFAULT_INJECTOR,
                 CoerceUtil::lookup,
-                Collections.emptySet(),
                 DefaultClassScanner.getInstance()
         );
         init();
@@ -174,30 +173,6 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
-    public void testBindingExcludeSet() {
-        Set<Type<?>> entitiesToExclude = new HashSet<>();
-        entitiesToExclude.add(ClassType.of(Employee.class));
-
-        EntityDictionary testDictionary = EntityDictionary.builder().entitiesToExclude(entitiesToExclude).build();
-        testDictionary.bindEntity(Employee.class);
-        // Does not find the Binding
-        assertNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));
-    }
-
-    @Test
-    public void testEntityBindingExcludeSet() {
-
-        Set<Type<?>> entitiesToExclude = new HashSet<>();
-        entitiesToExclude.add(ClassType.of(Employee.class));
-
-        EntityDictionary testDictionary = EntityDictionary.builder().entitiesToExclude(entitiesToExclude).build();
-        testDictionary.bindEntity(new EntityBinding(testDictionary.getInjector(),
-                ClassType.of(Employee.class), "employee"));
-        // Does not find the Binding
-        assertNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));
-    }
-
-    @Test
     public void testCheckScan() {
 
         EntityDictionary testDictionary = EntityDictionary.builder().build();
@@ -251,7 +226,6 @@ public class EntityDictionaryTest extends EntityDictionary {
                 null,
                 DEFAULT_INJECTOR,
                 unused -> new ISO8601DateSerde(),
-                Collections.emptySet(),
                 DefaultClassScanner.getInstance());
 
         testDictionary.bindEntity(EntityWithDateId.class);

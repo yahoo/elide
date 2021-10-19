@@ -88,6 +88,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
@@ -138,9 +139,6 @@ public class EntityDictionary {
     @Getter
     protected final Function<Class, Serde> serdeLookup ;
 
-    @Getter
-    private final Set<Type<?>> entitiesToExclude;
-
     public static final String REGULAR_ID_NAME = "id";
     private static final ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
     private static final String ALL_FIELDS = "*";
@@ -150,7 +148,6 @@ public class EntityDictionary {
                             Map<String, UserCheck> roleChecks,
                             Injector injector,
                             Function<Class, Serde> serdeLookup,
-                            Set<Type<?>> entitiesToExclude,
                             ClassScanner scanner) {
         this.scanner = scanner;
         this.serdeLookup = serdeLookup;
@@ -160,7 +157,6 @@ public class EntityDictionary {
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
-        this.entitiesToExclude = new HashSet<>(entitiesToExclude);
 
         //Hydrate check instances at boot.
         checkNames.keySet().forEach(checkName -> {
@@ -965,31 +961,26 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Type<?> cls) {
-        bindEntity(cls, new HashSet<>());
+        bindEntity(cls, unused -> false);
     }
 
     /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
-    public void bindEntity(Class<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
-        bindEntity(ClassType.of(cls), hiddenAnnotations);
+    public void bindEntity(Class<?> cls, Predicate<AccessibleObject> isFieldHidden) {
+        bindEntity(ClassType.of(cls), isFieldHidden);
     }
 
     /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
-    public void bindEntity(Type<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
-        if (entitiesToExclude.contains(cls)) {
-            //Exclude Entity
-            return;
-        }
-
+    public void bindEntity(Type<?> cls, Predicate<AccessibleObject> isFieldHidden) {
         Type<?> declaredClass = lookupIncludeClass(cls);
 
         if (declaredClass == null) {
@@ -1007,7 +998,7 @@ public class EntityDictionary {
 
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
-        EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, hiddenAnnotations);
+        EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, isFieldHidden);
         entityBindings.put(declaredClass, binding);
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
@@ -1026,11 +1017,6 @@ public class EntityDictionary {
      */
     public void bindEntity(EntityBinding entityBinding) {
         Type<?> declaredClass = entityBinding.entityClass;
-
-        if (entitiesToExclude.contains(declaredClass)) {
-            //Exclude Entity
-            return;
-        }
 
         if (isClassBound(declaredClass)) {
             //Ignore duplicate bindings.
@@ -1988,7 +1974,7 @@ public class EntityDictionary {
                     next.getSimpleName(),
                     binding.getApiVersion(),
                     false,
-                    new HashSet<>());
+                    (unused) -> false);
 
             entityBindings.put(next, nextBinding);
 
@@ -2222,10 +2208,6 @@ public class EntityDictionary {
                 serdeLookup = CoerceUtil::lookup;
             }
 
-            if (entitiesToExclude == null) {
-                entitiesToExclude = Collections.emptySet();
-            }
-
             if (injector == null) {
                 injector = DEFAULT_INJECTOR;
             }
@@ -2235,7 +2217,6 @@ public class EntityDictionary {
                     roleChecks,
                     injector,
                     serdeLookup,
-                    entitiesToExclude,
                     scanner
             );
         }

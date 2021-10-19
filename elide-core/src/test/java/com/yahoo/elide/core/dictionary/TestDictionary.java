@@ -37,7 +37,6 @@ public class TestDictionary extends EntityDictionary {
                 Collections.emptyMap(), //role Checks
                 injector,
                 CoerceUtil::lookup,
-                Collections.emptySet(),
                 DefaultClassScanner.getInstance()
         );
     }
