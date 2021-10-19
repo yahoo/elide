@@ -10,7 +10,9 @@ import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getV
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -78,16 +80,18 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
     @Exclude
     private final Set<Column> columns;
 
-    @OneToMany
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Exclude
     private final Set<Metric> metrics;
 
-    @OneToMany
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Exclude
     private final Set<Dimension> dimensions;
 
-    @OneToMany
-    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Exclude
     private final Set<TimeDimension> timeDimensions;
 
     @ToString.Exclude
@@ -189,8 +193,38 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
         return columns.stream().filter(column -> !column.isHidden()).collect(Collectors.toSet());
     }
 
+    @OneToMany
+    @ComputedRelationship
+    public Set<Dimension> getDimensions() {
+        return dimensions.stream().filter(dimension -> !dimension.isHidden()).collect(Collectors.toSet());
+    }
+
+    @OneToMany
+    @ComputedRelationship
+    public Set<Metric> getMetrics() {
+        return metrics.stream().filter(metric -> !metric.isHidden()).collect(Collectors.toSet());
+    }
+
+    @OneToMany
+    @ComputedRelationship
+    public Set<TimeDimension> getTimeDimensions() {
+        return timeDimensions.stream().filter(timeDimension -> !timeDimension.isHidden()).collect(Collectors.toSet());
+    }
+
     public Set<Column> getAllColumns() {
         return columns;
+    }
+
+    public Set<Dimension> getAllDimensions() {
+        return dimensions;
+    }
+
+    public Set<Metric> getAllMetrics() {
+        return metrics;
+    }
+
+    public Set<TimeDimension> getAllTimeDimensions() {
+        return timeDimensions;
     }
 
     private boolean isFact(Type<?> cls, TableMeta meta) {
@@ -213,21 +247,29 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
      * @return all resolved column metadata
      */
     private Set<Column> constructColumns(Type<?> cls, EntityDictionary dictionary) {
-        Set<Column> columns =  dictionary.getAllFields(cls).stream()
-                .filter(field -> {
-                    ValueType valueType = getValueType(cls, field, dictionary);
-                    return valueType != ValueType.UNKNOWN;
-                })
-                .map(field -> {
-                    if (isMetricField(dictionary, cls, field)) {
-                        return constructMetric(field, dictionary);
-                    }
-                    if (dictionary.attributeOrRelationAnnotationExists(cls, field, Temporal.class)) {
-                        return constructTimeDimension(field, dictionary);
-                    }
-                    return constructDimension(field, dictionary);
-                })
-                .collect(Collectors.toSet());
+        EntityBinding binding = dictionary.getEntityBinding(cls);
+
+        Set<Column> columns = new HashSet<>();
+
+        //TODO - refactor entity binding to have classes for attributes & relationships.
+        binding.fieldsToValues.forEach((name, field) -> {
+            if (EntityBinding.isIdField(field)) {
+                return;
+            }
+
+            ValueType valueType = getValueType(cls, name, dictionary);
+            if (valueType == ValueType.UNKNOWN) {
+                return;
+            }
+
+            if (isMetricField(dictionary, cls, name)) {
+                columns.add(constructMetric(name, dictionary));
+            } else if (dictionary.attributeOrRelationAnnotationExists(cls, name, Temporal.class)) {
+                columns.add(constructTimeDimension(name, dictionary));
+            } else {
+                columns.add(constructDimension(name, dictionary));
+            }
+        });
 
         // add id field if exists
         if (dictionary.getIdFieldName(cls) != null) {

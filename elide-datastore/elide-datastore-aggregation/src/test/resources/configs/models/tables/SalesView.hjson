@@ -107,6 +107,14 @@
         {
           name: zipCode
           type: INTEGER
+          definition: '{{zipCodeHidden}}'
+          readAccess: operator
+        }
+
+        {
+          name: zipCodeHidden
+          type: INTEGER
+          hidden: true
           definition: '{{customer.zipCode}}'
           readAccess: operator
         }

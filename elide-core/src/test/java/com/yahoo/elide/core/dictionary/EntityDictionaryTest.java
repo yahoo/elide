@@ -268,7 +268,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         LifeCycleHook<Foo2> trigger = mock(LifeCycleHook.class);
 
         bindTrigger(Foo2.class, "bar", UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger);
-        assertEquals(1, getAllFields(ClassType.of(Foo2.class)).size());
+        assertEquals(1, getAllExposedFields(ClassType.of(Foo2.class)).size());
     }
 
     @Test
@@ -285,7 +285,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         LifeCycleHook<Foo3> trigger = mock(LifeCycleHook.class);
 
         bindTrigger(Foo3.class, UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger, true);
-        assertEquals(1, getAllFields(ClassType.of(Foo3.class)).size());
+        assertEquals(1, getAllExposedFields(ClassType.of(Foo3.class)).size());
     }
 
     @Test
@@ -302,7 +302,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         LifeCycleHook<Foo4> trigger = mock(LifeCycleHook.class);
 
         bindTrigger(Foo4.class, UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger, false);
-        assertEquals(1, getAllFields(ClassType.of(Foo4.class)).size());
+        assertEquals(1, getAllExposedFields(ClassType.of(Foo4.class)).size());
     }
 
     @Test
@@ -336,7 +336,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertEquals(AccessType.FIELD, getAccessType(ClassType.of(FieldLevelTest.class)));
 
-        List<String> fields = getAllFields(ClassType.of(FieldLevelTest.class));
+        List<String> fields = getAllExposedFields(ClassType.of(FieldLevelTest.class));
         assertEquals(3, fields.size());
         assertTrue(fields.contains("bar"));
         assertTrue(fields.contains("computedField"));
@@ -381,7 +381,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertEquals(AccessType.PROPERTY, getAccessType(ClassType.of(PropertyLevelTest.class)));
 
-        List<String> fields = getAllFields(ClassType.of(PropertyLevelTest.class));
+        List<String> fields = getAllExposedFields(ClassType.of(PropertyLevelTest.class));
         assertEquals(2, fields.size());
         assertTrue(fields.contains("bar"));
         assertTrue(fields.contains("computedProperty"));

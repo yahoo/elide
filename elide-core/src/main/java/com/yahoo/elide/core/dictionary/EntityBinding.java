@@ -735,6 +735,15 @@ public class EntityBinding {
     }
 
     /**
+     * Returns a list of fields filtered by a given predicate.
+     * @param filter The filter predicate.
+     * @return All fields that satisfy the predicate.
+     */
+    public Set<AccessibleObject> getAllFields(Predicate<AccessibleObject> filter) {
+        return fieldsToValues.values().stream().filter(filter).collect(Collectors.toSet());
+    }
+
+    /**
      * Returns the Collection of all attributes of an Entity.
      * @return A Set of ArgumentType for the given entity.
      */
@@ -742,7 +751,7 @@ public class EntityBinding {
         return new HashSet<>(entityArguments.values());
     }
 
-    private static boolean isIdField(AccessibleObject field) {
+    public static boolean isIdField(AccessibleObject field) {
         return (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class));
     }
 }

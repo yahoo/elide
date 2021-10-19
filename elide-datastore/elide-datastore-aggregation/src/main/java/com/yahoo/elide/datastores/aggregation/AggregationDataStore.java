@@ -106,7 +106,7 @@ public class AggregationDataStore implements DataStore {
 
         for (Table table : queryEngine.getMetaDataStore().getMetaData(ClassType.of(Table.class))) {
             /* Add 'grain' argument to each TimeDimensionColumn */
-            for (TimeDimension timeDim : table.getTimeDimensions()) {
+            for (TimeDimension timeDim : table.getAllTimeDimensions()) {
                 dictionary.addArgumentToAttribute(
                         dictionary.getEntityClass(table.getName(), table.getVersion()),
                         timeDim.getName(),
@@ -156,7 +156,7 @@ public class AggregationDataStore implements DataStore {
                     + "Operation Checks Not allowed. given - %s");
         }
 
-        dictionary.getAllFields(clz).stream()
+        dictionary.getAllExposedFields(clz).stream()
                 .map(field -> dictionary.getPermissionsForField(clz, field, ReadPermission.class))
                 .filter(Objects::nonNull)
                 .forEach(tree ->

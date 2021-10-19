@@ -105,7 +105,7 @@ public class SubscriptionScanner {
             Function<JMSContext, JMSProducer> producerFactory,
             Gson gson
     ) {
-        dictionary.getAllFields(model).stream().forEach(fieldName -> {
+        dictionary.getAllExposedFields(model).stream().forEach(fieldName -> {
             SubscriptionField subscriptionField =
                     dictionary.getAttributeOrRelationAnnotation(model, SubscriptionField.class, fieldName);
 

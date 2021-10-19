@@ -57,6 +57,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -658,12 +659,12 @@ public class EntityDictionary {
     }
 
     /**
-     * Get a list of all fields including both relationships and attributes.
+     * Get a list of all fields including both relationships and attributes (but excluding hidden fields).
      *
      * @param entityClass entity name
-     * @return List of all fields.
+     * @return List of all exposed fields.
      */
-    public List<String> getAllFields(Type<?> entityClass) {
+    public List<String> getAllExposedFields(Type<?> entityClass) {
         List<String> fields = new ArrayList<>();
 
         List<String> attrs = getAttributes(entityClass);
@@ -686,8 +687,8 @@ public class EntityDictionary {
      * @param entity entity
      * @return List of all fields.
      */
-    public List<String> getAllFields(Object entity) {
-        return getAllFields(getType(entity));
+    public List<String> getAllExposedFields(Object entity) {
+        return getAllExposedFields(getType(entity));
     }
 
     /**
@@ -1468,7 +1469,7 @@ public class EntityDictionary {
      */
     public Set<String> getFieldsOfType(Type<?> targetClass, Type<?> targetType) {
         HashSet<String> fields = new HashSet<>();
-        for (String field : getAllFields(targetClass)) {
+        for (String field : getAllExposedFields(targetClass)) {
             if (getParameterizedType(targetClass, field).equals(targetType)) {
                 fields.add(field);
             }
@@ -1863,7 +1864,7 @@ public class EntityDictionary {
      * @return {@code true} if the field exists in the entity
      */
     public boolean isValidField(Type<?> cls, String fieldName) {
-        return getAllFields(cls).contains(fieldName);
+        return getAllExposedFields(cls).contains(fieldName);
     }
 
     private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {

@@ -276,6 +276,24 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    public void hiddenDimensionTest() {
+
+        //Non Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.zipCode")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        //Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.zipCodeHidden")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
     public void dimensionMetaDataTest() {
 
         given()

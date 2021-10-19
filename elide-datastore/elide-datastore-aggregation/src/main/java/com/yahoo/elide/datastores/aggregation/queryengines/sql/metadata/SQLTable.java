@@ -141,7 +141,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public List<MetricProjection> getMetricProjections() {
-        return super.getMetrics().stream()
+        return super.getAllMetrics().stream()
                 .map(metric -> getMetricProjection(metric, metric.getName(),
                                 prepareArgMap(metric.getArgumentDefinitions())))
                 .collect(Collectors.toList());
@@ -175,7 +175,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public List<DimensionProjection> getDimensionProjections() {
-        return super.getDimensions()
+        return super.getAllDimensions()
                 .stream()
                 .map(dimension -> getDimensionProjection(dimension, dimension.getName(),
                                 prepareArgMap(dimension.getArgumentDefinitions())))
@@ -213,7 +213,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public List<TimeDimensionProjection> getTimeDimensionProjections() {
-        return super.getTimeDimensions()
+        return super.getAllTimeDimensions()
                 .stream()
                 .map(dimension -> getTimeDimensionProjection(dimension, dimension.getName(),
                                 prepareArgMap(dimension.getArgumentDefinitions())))
