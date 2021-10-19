@@ -7,6 +7,7 @@
       dbConnectionName: SalesDBConnection
       cardinality: small
       hidden:true
+      namespace: SalesNamespace
       measures:
       [
         {
