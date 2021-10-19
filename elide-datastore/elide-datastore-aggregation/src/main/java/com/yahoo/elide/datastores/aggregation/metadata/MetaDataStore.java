@@ -266,7 +266,9 @@ public class MetaDataStore implements DataStore {
         EntityDictionary dictionary = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR).getDictionary();
         tables.put(dictionary.getEntityClass(table.getName(), version), table);
         addMetaData(table, version);
-        table.getColumns().forEach(this::addColumn);
+        table.getColumns().stream()
+                .filter(column -> !column.isHidden())
+                .forEach(this::addColumn);
 
         table.getArgumentDefinitions().forEach(arg -> addArgument(arg, version));
     }

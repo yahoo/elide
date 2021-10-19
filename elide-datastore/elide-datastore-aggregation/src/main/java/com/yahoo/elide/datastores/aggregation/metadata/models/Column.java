@@ -58,6 +58,8 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
 
     private final CardinalitySize cardinality;
 
+    private final boolean hidden;
+
     @ToOne
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -113,6 +115,7 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
             this.tableSourceDefinition = meta.tableSource();
             this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSourceDefinition);
             this.cardinality = meta.size();
+            this.hidden = meta.isHidden();
             this.requiredFilter = meta.filterTemplate();
         } else {
             this.friendlyName = name;
@@ -123,6 +126,7 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
             this.tableSourceDefinition = null;
             this.valueSourceType = ValueSourceType.NONE;
             this.cardinality = CardinalitySize.UNKNOWN;
+            this.hidden = false;
             this.requiredFilter = null;
         }
 

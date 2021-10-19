@@ -67,6 +67,8 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
 
     private final boolean isFact;
 
+    private final boolean hidden;
+
     @ManyToOne
     private final Namespace namespace;
 
@@ -154,6 +156,7 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
                     : name;
             this.description = meta.description();
             this.category = meta.category();
+            this.hidden = meta.isHidden();
             this.requiredFilter = meta.filterTemplate();
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
             this.hints = new LinkedHashSet<>(Arrays.asList(meta.hints()));
@@ -169,6 +172,7 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
             this.friendlyName = name;
             this.description = null;
             this.category = null;
+            this.hidden = false;
             this.requiredFilter = null;
             this.tags = new HashSet<>();
             this.hints = new LinkedHashSet<>();
