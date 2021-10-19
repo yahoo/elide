@@ -67,6 +67,8 @@ import javax.persistence.Transient;
  * @see com.yahoo.elide.annotation.Include#name
  */
 public class EntityBinding {
+    public static final List<Class<? extends Annotation>> ID_ANNOTATIONS = List.of(Id.class, EmbeddedId.class);
+
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);

@@ -68,7 +68,6 @@ public class TestBinder extends AbstractBinder {
 
                 SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
                         .connectionFactory(connectionFactory)
-                        .mapper(elide.getMapper().getObjectMapper())
                         .dictionary(elide.getElideSettings().getDictionary())
                         .scanner(elide.getScanner())
                         .build();
