@@ -624,7 +624,7 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>6.2.2</version>
                 <configuration>
-                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <failBuildOnCVSS>10</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
                     <skipTestScope>true</skipTestScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
