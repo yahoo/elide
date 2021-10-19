@@ -21,6 +21,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -62,6 +63,12 @@ public class AggregationDataStore implements DataStore {
         return (join != null || (meta != null && meta.isHidden()));
     });
 
+    public static final Predicate<Type<?>> IS_TYPE_HIDDEN = (type -> {
+        TableMeta meta = type.getAnnotation(TableMeta.class);
+
+        return (meta != null && meta.isHidden());
+    });
+
     private final Function<RequestScope, PermissionExecutor> aggPermissionExecutor =
             AggregationStorePermissionExecutor::new;
 
@@ -79,14 +86,18 @@ public class AggregationDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            dynamicCompiledClasses.forEach(dynamicLoadedClass -> {
+            dynamicCompiledClasses.stream()
+                    .filter((type) -> ! IS_TYPE_HIDDEN.test(type))
+                    .forEach(dynamicLoadedClass -> {
                 dictionary.bindEntity(dynamicLoadedClass, IS_FIELD_HIDDEN);
                 validateModelExpressionChecks(dictionary, dynamicLoadedClass);
                 dictionary.bindPermissionExecutor(dynamicLoadedClass, aggPermissionExecutor);
             });
         }
 
-        dictionary.getScanner().getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(cls -> {
+        dictionary.getScanner().getAnnotatedClasses(AGGREGATION_STORE_CLASSES).stream()
+                .filter((type) -> ! IS_TYPE_HIDDEN.test(ClassType.of(type)))
+                .forEach(cls -> {
                     dictionary.bindEntity(cls, IS_FIELD_HIDDEN);
                     validateModelExpressionChecks(dictionary, ClassType.of(cls));
                     dictionary.bindPermissionExecutor(cls, aggPermissionExecutor);
