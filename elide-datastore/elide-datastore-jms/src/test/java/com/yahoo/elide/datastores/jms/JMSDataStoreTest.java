@@ -80,9 +80,9 @@ public class JMSDataStoreTest {
 
     @Test
     public void testModelLabels() throws Exception {
-        assertFalse(store.models.get(ClassType.of(Book.class)));
-        assertFalse(store.models.get(ClassType.of(Author.class)));
-        assertTrue(store.models.get(ClassType.of(Chat.class)));
+        assertTrue(store.models.get(ClassType.of(Book.class)));
+        assertTrue(store.models.get(ClassType.of(Author.class)));
+        assertFalse(store.models.get(ClassType.of(Chat.class)));
     }
 
     @Test

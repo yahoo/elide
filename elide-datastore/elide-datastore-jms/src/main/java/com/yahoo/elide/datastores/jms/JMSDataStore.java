@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.ArgumentType;
@@ -16,7 +17,6 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
-import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionFieldSerde;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.google.gson.Gson;
@@ -32,8 +32,9 @@ import javax.jms.JMSContext;
  * Elide datastore that reads models from JMS message topics.
  */
 public class JMSDataStore implements DataStore {
-    //Maps supported models to whether they are custom or not.
+    //Maps supported subscription models to whether or not they support topics.
     protected Map<Type<?>, Boolean> models;
+
     protected ConnectionFactory connectionFactory;
     protected EntityDictionary dictionary;
 
@@ -60,7 +61,8 @@ public class JMSDataStore implements DataStore {
                 (model) -> {
                     Subscription subscription = model.getAnnotation(Subscription.class);
                     return subscription != null
-                            && (subscription.operations() == null || subscription.operations().length == 0);
+                            && subscription.operations() != null
+                            && subscription.operations().length > 0;
                 }
         ));
 
@@ -89,7 +91,7 @@ public class JMSDataStore implements DataStore {
             long timeoutInMs
     ) {
         this(
-                scanner.getAnnotatedClasses(Subscription.class, SubscriptionField.class).stream()
+                scanner.getAnnotatedClasses(Subscription.class, Include.class).stream()
                         .map(ClassType::of)
                         .collect(Collectors.toSet()),
                 connectionFactory, dictionary, timeoutInMs);
@@ -99,11 +101,11 @@ public class JMSDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         for (Type<?> model : models.keySet()) {
 
-            Boolean isCustom = models.get(model);
+            Boolean supportsTopics = models.get(model);
 
             dictionary.bindEntity(model);
 
-            if (! isCustom) {
+            if (supportsTopics) {
                 //Add topic type argument to each model.
                 dictionary.addArgumentToEntity(model, ArgumentType
                         .builder()
