@@ -21,6 +21,13 @@ import java.lang.annotation.Target;
 @Repeatable(LifeCycleHookBindings.class)
 public @interface LifeCycleHookBinding {
 
+    Operation [] ALL_OPERATIONS = {
+            Operation.CREATE,
+            Operation.READ,
+            Operation.UPDATE,
+            Operation.DELETE
+    };
+
     enum Operation {
         CREATE,
         READ,
