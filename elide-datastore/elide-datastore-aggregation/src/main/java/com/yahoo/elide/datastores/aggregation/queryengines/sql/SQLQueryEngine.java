@@ -186,7 +186,7 @@ public class SQLQueryEngine extends QueryEngine {
             TableArgumentValidator tableArgValidator = new TableArgumentValidator(metaDataStore, sqlTable);
             tableArgValidator.validate();
 
-            sqlTable.getColumns().forEach(column -> {
+            sqlTable.getAllColumns().forEach(column -> {
                 ColumnArgumentValidator colArgValidator = new ColumnArgumentValidator(metaDataStore, sqlTable, column);
                 colArgValidator.validate();
             });

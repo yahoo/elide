@@ -303,7 +303,7 @@ public class PermissionExpressionBuilder {
         Expression entityExpression = normalizedExpressionFromParseTree(classPermissions, checkFn);
 
         OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
-        List<String> fields = entityDictionary.getAllFields(resourceClass);
+        List<String> fields = entityDictionary.getAllExposedFields(resourceClass);
 
         boolean entityExpressionUsed = false;
         boolean fieldExpressionUsed = false;
@@ -363,7 +363,7 @@ public class PermissionExpressionBuilder {
         Class<? extends Annotation> annotationClass = condition.getPermission();
 
         OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
-        List<String> fields = entityDictionary.getAllFields(resourceClass);
+        List<String> fields = entityDictionary.getAllExposedFields(resourceClass);
 
         boolean fieldExpressionUsed = false;
 
@@ -416,7 +416,7 @@ public class PermissionExpressionBuilder {
         }
 
         FilterExpression allFieldsFilterExpression = entityFilter;
-        List<String> fields = entityDictionary.getAllFields(forType).stream()
+        List<String> fields = entityDictionary.getAllExposedFields(forType).stream()
                 .filter(field -> requestedFields == null || requestedFields.contains(field))
                 .collect(Collectors.toList());
 

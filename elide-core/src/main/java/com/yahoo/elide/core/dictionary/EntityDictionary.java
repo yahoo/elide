@@ -88,6 +88,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
@@ -657,12 +658,12 @@ public class EntityDictionary {
     }
 
     /**
-     * Get a list of all fields including both relationships and attributes.
+     * Get a list of all fields including both relationships and attributes (but excluding hidden fields).
      *
      * @param entityClass entity name
-     * @return List of all fields.
+     * @return List of all exposed fields.
      */
-    public List<String> getAllFields(Type<?> entityClass) {
+    public List<String> getAllExposedFields(Type<?> entityClass) {
         List<String> fields = new ArrayList<>();
 
         List<String> attrs = getAttributes(entityClass);
@@ -685,8 +686,8 @@ public class EntityDictionary {
      * @param entity entity
      * @return List of all fields.
      */
-    public List<String> getAllFields(Object entity) {
-        return getAllFields(getType(entity));
+    public List<String> getAllExposedFields(Object entity) {
+        return getAllExposedFields(getType(entity));
     }
 
     /**
@@ -965,32 +966,32 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Type<?> cls) {
-        bindEntity(cls, new HashSet<>());
+        bindEntity(cls, unused -> false);
     }
 
     /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
-    public void bindEntity(Class<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
-        bindEntity(ClassType.of(cls), hiddenAnnotations);
+    public void bindEntity(Class<?> cls, Predicate<AccessibleObject> isFieldHidden) {
+        bindEntity(ClassType.of(cls), isFieldHidden);
     }
 
     /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
-    public void bindEntity(Type<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
-        if (entitiesToExclude.contains(cls)) {
+    public void bindEntity(Type<?> cls, Predicate<AccessibleObject> isFieldHidden) {
+        Type<?> declaredClass = lookupIncludeClass(cls);
+
+        if (entitiesToExclude.contains(declaredClass)) {
             //Exclude Entity
             return;
         }
-
-        Type<?> declaredClass = lookupIncludeClass(cls);
 
         if (declaredClass == null) {
             log.trace("Missing include or excluded class {}", cls.getName());
@@ -1007,7 +1008,7 @@ public class EntityDictionary {
 
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
-        EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, hiddenAnnotations);
+        EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, isFieldHidden);
         entityBindings.put(declaredClass, binding);
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
@@ -1467,7 +1468,7 @@ public class EntityDictionary {
      */
     public Set<String> getFieldsOfType(Type<?> targetClass, Type<?> targetType) {
         HashSet<String> fields = new HashSet<>();
-        for (String field : getAllFields(targetClass)) {
+        for (String field : getAllExposedFields(targetClass)) {
             if (getParameterizedType(targetClass, field).equals(targetType)) {
                 fields.add(field);
             }
@@ -1862,7 +1863,7 @@ public class EntityDictionary {
      * @return {@code true} if the field exists in the entity
      */
     public boolean isValidField(Type<?> cls, String fieldName) {
-        return getAllFields(cls).contains(fieldName);
+        return getAllExposedFields(cls).contains(fieldName);
     }
 
     private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
@@ -1988,7 +1989,7 @@ public class EntityDictionary {
                     next.getSimpleName(),
                     binding.getApiVersion(),
                     false,
-                    new HashSet<>());
+                    (unused) -> false);
 
             entityBindings.put(next, nextBinding);
 
@@ -2222,12 +2223,12 @@ public class EntityDictionary {
                 serdeLookup = CoerceUtil::lookup;
             }
 
-            if (entitiesToExclude == null) {
-                entitiesToExclude = Collections.emptySet();
-            }
-
             if (injector == null) {
                 injector = DEFAULT_INJECTOR;
+            }
+
+            if (entitiesToExclude == null) {
+                entitiesToExclude = Collections.emptySet();
             }
 
             return new EntityDictionary(
