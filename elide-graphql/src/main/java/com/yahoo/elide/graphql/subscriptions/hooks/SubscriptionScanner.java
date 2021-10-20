@@ -11,10 +11,12 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.Builder;
 
 import java.util.function.Function;
@@ -29,7 +31,6 @@ import javax.jms.Message;
 @Builder
 public class SubscriptionScanner {
     private ConnectionFactory connectionFactory;
-    private ObjectMapper mapper;
     private EntityDictionary dictionary;
     private ClassScanner scanner;
 
@@ -43,6 +44,14 @@ public class SubscriptionScanner {
     private int messagePriority = Message.DEFAULT_PRIORITY;
 
     public void bindLifecycleHooks() {
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        CoerceUtil.getSerdes().forEach((cls, serde) -> {
+            gsonBuilder.registerTypeAdapter(cls, new SubscriptionFieldSerde(serde));
+        });
+        gsonBuilder.addSerializationExclusionStrategy(new SubscriptionExclusionStrategy()).serializeNulls();
+
+        Gson gson = gsonBuilder.create();
 
         Function<JMSContext, JMSProducer> producerFactory = (context) -> {
             JMSProducer producer = context.createProducer();
@@ -62,7 +71,7 @@ public class SubscriptionScanner {
             for (Subscription.Operation operation : operations) {
                 switch (operation) {
                     case UPDATE: {
-                        addUpdateHooks(ClassType.of(modelType), dictionary, producerFactory);
+                        addUpdateHooks(ClassType.of(modelType), dictionary, producerFactory, gson);
                         break;
                     }
                     case DELETE: {
@@ -70,7 +79,7 @@ public class SubscriptionScanner {
                                 modelType,
                                 LifeCycleHookBinding.Operation.DELETE,
                                 LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                                new NotifyTopicLifeCycleHook(connectionFactory, mapper, producerFactory),
+                                new NotifyTopicLifeCycleHook(connectionFactory, producerFactory, gson),
                                 false
                         );
                         break;
@@ -80,7 +89,7 @@ public class SubscriptionScanner {
                                 modelType,
                                 LifeCycleHookBinding.Operation.CREATE,
                                 LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                                new NotifyTopicLifeCycleHook(connectionFactory, mapper, producerFactory),
+                                new NotifyTopicLifeCycleHook(connectionFactory, producerFactory, gson),
                                 false
                         );
                         break;
@@ -93,7 +102,8 @@ public class SubscriptionScanner {
     protected void addUpdateHooks(
             Type<?> model,
             EntityDictionary dictionary,
-            Function<JMSContext, JMSProducer> producerFactory
+            Function<JMSContext, JMSProducer> producerFactory,
+            Gson gson
     ) {
         dictionary.getAllFields(model).stream().forEach(fieldName -> {
             SubscriptionField subscriptionField =
@@ -105,7 +115,7 @@ public class SubscriptionScanner {
                         fieldName,
                         LifeCycleHookBinding.Operation.UPDATE,
                         LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                        new NotifyTopicLifeCycleHook(connectionFactory, mapper, producerFactory)
+                        new NotifyTopicLifeCycleHook(connectionFactory, producerFactory, gson)
                 );
             }
         });

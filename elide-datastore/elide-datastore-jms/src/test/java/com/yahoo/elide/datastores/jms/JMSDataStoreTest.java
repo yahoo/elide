@@ -69,7 +69,7 @@ public class JMSDataStoreTest {
 
         store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class),
                 ClassType.of(Chat.class)),
-                connectionFactory, dictionary, new ObjectMapper(), 2500);
+                connectionFactory, dictionary, 2500);
         store.populateEntityDictionary(dictionary);
     }
 
@@ -80,9 +80,9 @@ public class JMSDataStoreTest {
 
     @Test
     public void testModelLabels() throws Exception {
-        assertFalse(store.models.get(ClassType.of(Book.class)));
-        assertFalse(store.models.get(ClassType.of(Author.class)));
-        assertTrue(store.models.get(ClassType.of(Chat.class)));
+        assertTrue(store.models.get(ClassType.of(Book.class)));
+        assertTrue(store.models.get(ClassType.of(Author.class)));
+        assertFalse(store.models.get(ClassType.of(Chat.class)));
     }
 
     @Test
