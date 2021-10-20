@@ -139,6 +139,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             exportRequestScope.setEntityProjection(projection);
 
             if (projection != null) {
+                projection.setPagination(null);
                 results = PersistentResource.loadRecords(projection, Collections.emptyList(), exportRequestScope);
             }
 
