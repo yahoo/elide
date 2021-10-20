@@ -167,7 +167,6 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.friendlyName", equalTo("Sales"))
                 .body("data.relationships.tables.data.id", contains(
                         "SalesNamespace_orderDetails",
-                        "SalesNamespace_customerDetails",
                         "SalesNamespace_deliveryDetails"));
         given()
                 .accept("application/vnd.api+json")

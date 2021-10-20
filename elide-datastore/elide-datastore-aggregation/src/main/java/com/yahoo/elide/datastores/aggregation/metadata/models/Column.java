@@ -103,6 +103,13 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
         this.id = constructColumnName(tableClass, fieldName, dictionary);
         this.name = fieldName;
 
+        String idField = dictionary.getIdFieldName(tableClass);
+        if (idField != null && idField.equals(fieldName)) {
+            this.hidden = false;
+        } else {
+            this.hidden = !dictionary.getAllExposedFields(tableClass).contains(fieldName);
+        }
+
         ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, ColumnMeta.class, fieldName);
         if (meta != null) {
             this.friendlyName = meta.friendlyName() != null && !meta.friendlyName().isEmpty()
@@ -115,7 +122,6 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
             this.tableSourceDefinition = meta.tableSource();
             this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSourceDefinition);
             this.cardinality = meta.size();
-            this.hidden = meta.isHidden();
             this.requiredFilter = meta.filterTemplate();
         } else {
             this.friendlyName = name;
@@ -126,7 +132,6 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
             this.tableSourceDefinition = null;
             this.valueSourceType = ValueSourceType.NONE;
             this.cardinality = CardinalitySize.UNKNOWN;
-            this.hidden = false;
             this.requiredFilter = null;
         }
 

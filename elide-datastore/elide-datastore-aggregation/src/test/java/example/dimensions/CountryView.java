@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import lombok.Data;
 
 import javax.persistence.Column;
+import javax.persistence.Id;
 
 /**
  * A view version of table countries.

@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;

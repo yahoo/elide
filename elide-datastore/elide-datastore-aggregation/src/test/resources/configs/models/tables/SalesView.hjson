@@ -207,10 +207,10 @@
           readAccess: guest user
         }
       ]
-    }
-    {
+    } {
       name: customerDetails
       table: customer_details
+      hidden: true
       dbConnectionName: SalesDBConnection
       cardinality: small
       readAccess: guest user

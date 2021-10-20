@@ -30,6 +30,7 @@ import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -436,6 +437,29 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertTrue(isIdGenerated(ClassType.of(GeneratedIdModel.class)));
         assertFalse(isIdGenerated(ClassType.of(NonGeneratedIdModel.class)));
+    }
+
+    @Test
+    public void testHiddenFields() {
+        @Include
+        class Model {
+            @Id
+            private long id;
+
+            private String field1;
+            private String field2;
+        }
+
+        bindEntity(Model.class, (field) -> field.getName().equals("field1"));
+
+        Type<?> modelType = ClassType.of(Model.class);
+
+        assertEquals(List.of("field2"), getAllExposedFields(modelType));
+
+        EntityBinding binding = getEntityBinding(modelType);
+        assertEquals(List.of("id", "field1", "field2"), binding.getAllFields().stream()
+                .map(AccessibleObject::getName)
+                .collect(Collectors.toList()));
     }
 
     @Test
