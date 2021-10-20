@@ -1,5 +1,11 @@
 # Change Log
 
+## 4.8.0
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/233591723cd04a3b6da54c5234a824712ca613b4) (Similar to https://github.com/yahoo/elide/pull/2342) Revised JSON-API path grammar to accept colon, space, and ampersand in ID fields (#2344) 
+   * [view commit](https://github.com/yahoo/elide/commit/f68bbce9a535e320929440b2408ea74b4c9edffc) Updating screwdriver build 
+   * [view commit](https://github.com/yahoo/elide/commit/69b3edc7f935a39133ced3a97a9a496d58cfafcc) Disabling OWASP checks for legacy build (Elide 4) 
+
 ## 4.7.2
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/eeab22ce7cc591c9747b40e509fea4a77e56c8af) Removed elide-example module 
