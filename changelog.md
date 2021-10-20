@@ -1,4 +1,10 @@
 # Change Log
+## 5.1.0
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/2bd8e22fba35aeabc8f00b9836364b06a5abeea0) UPdating screwdriver build 
+   * [view commit](https://github.com/yahoo/elide/commit/40d1413a725d61689892044e0ba6f21716cd5a84) Disabling OWASP checks for legacy build (Elide 5) 
+   * [view commit](https://github.com/yahoo/elide/commit/cad5a714fd4eb3ce7dc6e95d8b1dba5a7ebbd379) (Similar to https://github.com/yahoo/elide/pull/2342) Revised JSON-API path grammar to accept colon, space, and ampersand in ID fields (#2343) 
+
 ## 5.0.12
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/0b7eb0cb8b9fbb37fa412863a6d6fd1ac5734948) Add ability to retrieve data store properties in life cycle hooks. (#2278) 
