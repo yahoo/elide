@@ -33,7 +33,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -68,7 +70,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
         TableExportResult exportResult = new TableExportResult();
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
 
-            RequestScope requestScope = getRequestScope(exportObj, scope, tx);
+            RequestScope requestScope = getRequestScope(exportObj, scope, tx, Collections.emptyMap());
             Collection<EntityProjection> projections = getProjections(exportObj, requestScope);
             validateProjections(projections);
             EntityProjection projection = projections.iterator().next();
@@ -133,9 +135,13 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             DataStoreTransaction tx = scope.getTransaction();
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
 
+            // Do Not Cache Export Results
+            Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
+            requestHeaders.put("bypasscache", new ArrayList<String>(Arrays.asList("true")));
+
             //TODO - we need to add the baseUrlEndpoint to the queryObject.
             //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(exportObj, scope, tx);
+            RequestScope exportRequestScope = getRequestScope(exportObj, scope, tx, requestHeaders);
             exportRequestScope.setEntityProjection(projection);
 
             if (projection != null) {
@@ -171,9 +177,11 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param exportObj TableExport type object.
      * @param scope RequestScope from the original submission.
      * @param tx DataStoreTransaction.
+     * @param additionalRequestHeaders Additional Request Headers.
      * @return RequestScope Type Object
      */
-    public abstract RequestScope getRequestScope(TableExport exportObj, RequestScope scope, DataStoreTransaction tx);
+    public abstract RequestScope getRequestScope(TableExport exportObj, RequestScope scope, DataStoreTransaction tx,
+            Map<String, List<String>> additionalRequestHeaders);
 
     /**
      * Generate Download URL.
