@@ -30,6 +30,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.collections.MapUtils;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.functions.Predicate;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 import lombok.Getter;
@@ -522,8 +523,9 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                         LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
     }
 
-    public void registerLifecycleHookObserver(Observer<CRUDEvent> observer) {
+    public void registerLifecycleHookObserver(Observer<CRUDEvent> observer, Predicate<CRUDEvent> filter) {
         this.distinctLifecycleEvents
+                .filter(filter)
                 .subscribeWith(observer);
     }
 

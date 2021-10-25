@@ -44,39 +44,12 @@ public class Environment {
     public final Field field;
     public final NonEntityDictionary nonEntityDictionary;
 
-    //Queues up lifecycle events as they happen in the current fetch.
-    public final Queue<CRUDEvent> eventQueue;
-
     public Environment(DataFetchingEnvironment environment, NonEntityDictionary nonEntityDictionary) {
         this.nonEntityDictionary = nonEntityDictionary;
 
         Map<String, Object> args = environment.getArguments();
 
         requestScope = environment.getLocalContext();
-
-        eventQueue = new ArrayDeque<>();
-
-        requestScope.registerLifecycleHookObserver(new Observer<CRUDEvent>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-                //NOOP
-            }
-
-            @Override
-            public void onNext(CRUDEvent crudEvent) {
-                eventQueue.add(crudEvent);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                //NOOP
-            }
-
-            @Override
-            public void onComplete() {
-                //NOOP
-            }
-        });
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
         offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));

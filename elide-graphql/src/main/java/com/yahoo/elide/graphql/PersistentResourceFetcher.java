@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
+import static com.yahoo.elide.graphql.RelationshipOp.FETCH;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -66,7 +67,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
         Map<String, Object> args = environment.getArguments();
 
         /* fetch current operation */
-        RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, RelationshipOp.FETCH);
+        RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, FETCH);
 
         /* build environment object, extracts required fields */
         Environment context = new Environment(environment, nonEntityDictionary);
@@ -76,13 +77,17 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             logContext(log, operation, context);
         }
 
-        if (operation != RelationshipOp.FETCH) {
+        LifeCycleHookObserver eventObserver = new LifeCycleHookObserver(context.requestScope.getDictionary());
+
+        if (operation != FETCH) {
             /* Don't allow write operations in a non-mutation request. */
             if (environment.getOperationDefinition().getOperation() != OperationDefinition.Operation.MUTATION) {
                 throw new BadRequestException("Data model writes are only allowed in mutations");
             }
             /* sanity check for pagination/filtering/sorting arguments w any operation other than FETCH */
             filterSortPaginateSanityCheck(context);
+
+            context.requestScope.registerLifecycleHookObserver(eventObserver, event -> !event.isReadEvent());
         }
 
         GraphQLContainer container;
@@ -108,7 +113,6 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
                 container = removeObjects(context);
                 break;
             }
-
             case REPLACE: {
                 container = replaceObjects(context);
                 break;
@@ -118,37 +122,9 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
                 throw new UnsupportedOperationException("Unknown operation: " + operation);
         }
 
-        Observable.fromIterable(context.eventQueue)
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(
-                        context.requestScope.getDictionary(),
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, false)
-                ).throwOnError();
-
-        Observable.fromIterable(context.eventQueue)
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(
-                        context.requestScope.getDictionary(),
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-                ).throwOnError();
-
-        Observable.fromIterable(context.eventQueue)
-                .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(
-                        context.requestScope.getDictionary(),
-                        LifeCycleHookBinding.Operation.DELETE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-                ).throwOnError();
-
-        Observable.fromIterable(context.eventQueue)
-                .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(
-                        context.requestScope.getDictionary(),
-                        LifeCycleHookBinding.Operation.UPDATE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-                ).throwOnError();
+        if (operation != FETCH) {
+            eventObserver.processQueuedEvents();
+        }
 
         return container;
     }
