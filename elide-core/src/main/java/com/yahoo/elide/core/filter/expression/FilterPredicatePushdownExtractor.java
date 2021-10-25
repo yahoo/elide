@@ -26,16 +26,7 @@ public class FilterPredicatePushdownExtractor implements FilterExpressionVisitor
     @Override
     public FilterExpression visitPredicate(FilterPredicate filterPredicate) {
 
-        boolean filterInMemory = false;
-        for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
-            Type<?> entityClass = pathElement.getType();
-            String fieldName = pathElement.getFieldName();
-
-            if (dictionary.isComputed(entityClass, fieldName)) {
-                filterInMemory = true;
-            }
-        }
-
+        boolean filterInMemory = filterPredicate.getPath().isComputed(dictionary);
         return (filterInMemory) ? null : filterPredicate;
     }
 

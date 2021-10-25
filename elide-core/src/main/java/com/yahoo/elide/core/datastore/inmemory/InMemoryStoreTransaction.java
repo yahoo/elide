@@ -377,6 +377,31 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      * @param filterInMemory Whether or not the transaction requires in memory filtering.
      * @return A pair of filter expressions (data store expression, in memory expression)
      */
+    private Pair<Optional<Sorting>, Optional<Sorting>> splitSorting(
+            RequestScope scope,
+            EntityProjection projection,
+            boolean filterInMemory
+    ) {
+        Sorting sorting = projection.getSorting();
+        if (filterInMemory) {
+            return Pair.of(Optional.empty(), Optional.ofNullable(sorting));
+        }
+        Map<Path, Sorting.SortOrder> sortRules = sorting == null ? new HashMap<>() : sorting.getSortingPaths();
+        sorting.getType()
+
+
+
+    }
+
+    /**
+     * Splits a filter expression into two components.  They are:
+     *  - a component that should be pushed down to the data store
+     *  - a component that should be executed in memory
+     * @param scope The request context
+     * @param projection The projection being loaded.
+     * @param filterInMemory Whether or not the transaction requires in memory filtering.
+     * @return A pair of filter expressions (data store expression, in memory expression)
+     */
     private Pair<Optional<FilterExpression>, Optional<FilterExpression>> splitFilterExpression(
             RequestScope scope,
             EntityProjection projection,

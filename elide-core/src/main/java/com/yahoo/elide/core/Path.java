@@ -92,6 +92,18 @@ public class Path {
         pathElements = Lists.newArrayList(resolvePathAttribute(entityClass, fieldName, alias, arguments, dictionary));
     }
 
+    public boolean isComputed(EntityDictionary dictionary) {
+        for (Path.PathElement pathElement : getPathElements()) {
+            Type<?> entityClass = pathElement.getType();
+            String fieldName = pathElement.getFieldName();
+
+            if (dictionary.isComputed(entityClass, fieldName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Resolve a dot separated path into list of path elements.
      *

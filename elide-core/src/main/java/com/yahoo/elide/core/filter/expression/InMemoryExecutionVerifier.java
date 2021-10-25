@@ -25,15 +25,7 @@ public class InMemoryExecutionVerifier implements FilterExpressionVisitor<Boolea
 
     @Override
     public Boolean visitPredicate(FilterPredicate filterPredicate) {
-        for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
-            Type<?> entityClass = pathElement.getType();
-            String fieldName = pathElement.getFieldName();
-
-            if (dictionary.isComputed(entityClass, fieldName)) {
-                return true;
-            }
-        }
-        return false;
+        return filterPredicate.getPath().isComputed(dictionary);
     }
 
     @Override
