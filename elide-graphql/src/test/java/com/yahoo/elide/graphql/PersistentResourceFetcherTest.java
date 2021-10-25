@@ -7,25 +7,21 @@ package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideResponse;
+import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import example.Author;
 import example.Book;
 import example.Price;
@@ -33,13 +29,15 @@ import example.Pseudonym;
 import example.Publisher;
 import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import graphql.ExecutionInput;
+import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.execution.AsyncSerialExecutionStrategy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,29 +53,27 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * Base functionality required to test the PersistentResourceFetcher.
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public abstract class PersistentResourceFetcherTest extends GraphQLTest {
+    protected GraphQL api;
     protected ObjectMapper mapper = new ObjectMapper();
-    protected QueryRunner runner;
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
     private final String baseUrl = "http://localhost:8080/graphql";
-    protected User user = mock(User.class);
 
     protected HashMapDataStore hashMapDataStore;
+    protected InMemoryDataStore inMemoryDataStore;
     protected ElideSettings settings;
 
-    @BeforeAll
-    public void initializeQueryRunner() {
+    public PersistentResourceFetcherTest() {
         RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
-        hashMapDataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage());
-
-        settings = new ElideSettingsBuilder(hashMapDataStore)
+        settings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(filterDialect)
                 .withSubqueryFilterDialect(filterDialect)
@@ -86,14 +82,23 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         settings.getSerdes().forEach(CoerceUtil::register);
 
-        initializeMocks();
-        Elide elide = new Elide(settings);
+        hashMapDataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage());
 
-        runner = new QueryRunner(elide, NO_VERSION);
-    }
+        inMemoryDataStore = new InMemoryDataStore(
+                new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage())
+        );
 
-    protected void initializeMocks() {
-        //NOOP;
+        inMemoryDataStore.populateEntityDictionary(dictionary);
+        NonEntityDictionary nonEntityDictionary =
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
+        ModelBuilder builder = new ModelBuilder(dictionary, nonEntityDictionary,
+                new PersistentResourceFetcher(nonEntityDictionary), NO_VERSION);
+
+        api = GraphQL.newGraphQL(builder.build())
+                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
+                .build();
+
+        initTestData();
     }
 
     @AfterEach
@@ -103,7 +108,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
     @BeforeEach
     public void initTestData() {
-        DataStoreTransaction tx = hashMapDataStore.beginTransaction();
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
 
         Publisher publisher1 = new Publisher();
         publisher1.setId(1L);
@@ -184,46 +189,92 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         assertQueryEquals(graphQLRequest, expectedResponse, Collections.emptyMap());
     }
 
-    protected void assertQueryEquals(String graphQLRequest, String expectedResponse, Map<String, Object> variables)
-            throws Exception {
-        ElideResponse response = runGraphQLRequest(graphQLRequest, variables);
+    protected void assertQueryEquals(String graphQLRequest, String expectedResponse, Map<String, Object> variables) throws Exception {
+        boolean isMutation = graphQLRequest.startsWith("mutation");
 
-        JsonNode data = mapper.readTree(response.getBody()).get("data");
-        assertNotNull(data);
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        GraphQLProjectionInfo projectionInfo =
+                new GraphQLEntityProjectionMaker(settings, variables, NO_VERSION).make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID(), null);
 
-        assertEquals(
-                mapper.readTree(expectedResponse),
-                mapper.readTree(data.toString())
-        );
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(graphQLRequest)
+                .localContext(requestScope)
+                .variables(variables)
+                .build();
+
+        ExecutionResult result = api.execute(executionInput);
+        // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
+        //       failure.
+        if (isMutation) {
+            requestScope.saveOrCreateObjects();
+        }
+        requestScope.getTransaction().commit(requestScope);
+        assertEquals(0, result.getErrors().size(), "Errors [" + errorsToString(result.getErrors()) + "]:");
+        try {
+            LOG.info(mapper.writeValueAsString(result.getData()));
+            assertEquals(
+                    mapper.readTree(expectedResponse),
+                    mapper.readTree(mapper.writeValueAsString(result.getData()))
+            );
+        } catch (JsonProcessingException e) {
+            fail("JSON parsing exception", e);
+        }
     }
 
     protected void assertQueryFailsWith(String graphQLRequest, String expectedMessage) throws Exception {
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        boolean isMutation = graphQLRequest.startsWith("mutation");
 
-        JsonNode errors = mapper.readTree(response.getBody()).get("errors");
-        assertNotNull(errors);
-        assertTrue(errors.size() > 0);
-        JsonNode message = errors.get(0).get("message");
-        assertNotNull(message);
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID(), null);
 
-        assertEquals('"' + expectedMessage + '"', message.toString());
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(graphQLRequest)
+                .localContext(requestScope)
+                .build();
+
+        ExecutionResult result = api.execute(executionInput);
+        if (isMutation) {
+            requestScope.saveOrCreateObjects();
+        }
+        requestScope.getTransaction().commit(requestScope);
+        assertNotEquals(result.getErrors().size(), 0, "Expected errors. Received none.");
+        try {
+            String message = result.getErrors().get(0).getMessage();
+            LOG.info(mapper.writeValueAsString(result.getErrors()));
+            assertEquals(expectedMessage, message);
+        } catch (JsonProcessingException e) {
+            fail("JSON parsing exception", e);
+        }
     }
 
-    protected void assertQueryFails(String graphQLRequest) throws IOException {
-        ElideResponse result = runGraphQLRequest(graphQLRequest, new HashMap<>());
+    protected void assertQueryFails(String graphQLRequest) {
+        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
-        assertTrue(result.getBody().contains("errors"));
+        //debug for errors
+        LOG.debug("Errors = [" + errorsToString(result.getErrors()) + "]");
+
+        assertNotEquals(result.getErrors().size(), 0);
     }
 
     protected void assertParsingFails(String graphQLRequest) {
         assertThrows(Exception.class, () -> new GraphQLEntityProjectionMaker(settings).make(graphQLRequest));
     }
 
-    protected ElideResponse runGraphQLRequest(String graphQLRequest, Map<String, Object> variables)
-            throws IOException {
-        String requestWithEnvelope = toGraphQLQuery(graphQLRequest, variables);
+    protected ExecutionResult runGraphQLRequest(String graphQLRequest, Map<String, Object> variables) {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings,
+                projectionInfo, UUID.randomUUID(), null);
 
-        return runner.run(baseUrl, requestWithEnvelope, user);
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(graphQLRequest)
+                .context(requestScope)
+                .variables(variables)
+                .build();
+
+        return api.execute(executionInput);
     }
 
     protected String errorsToString(List<GraphQLError> errors) {
@@ -263,15 +314,6 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         String graphQLRequest = loadGraphQLRequest(testName + ".graphql");
         String graphQLResponse = loadGraphQLResponse(testName + ".json");
         evalFn.evaluate(graphQLRequest, graphQLResponse);
-    }
-
-    protected String toGraphQLQuery(String query, Map<String, Object> variables) throws IOException {
-        ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
-        graphqlNode.put("query", query);
-        if (variables != null) {
-            graphqlNode.set("variables", mapper.valueToTree(variables));
-        }
-        return mapper.writeValueAsString(graphqlNode);
     }
 
     @FunctionalInterface

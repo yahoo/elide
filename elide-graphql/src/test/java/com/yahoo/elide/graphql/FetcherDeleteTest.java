@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
  */
 public class FetcherDeleteTest extends PersistentResourceFetcherTest {
     @Test
-    public void testRootBadInput() throws Exception {
+    public void testRootBadInput() {
         String graphQLRequest = "mutation { "
                     + "author(op:DELETE) { "
                     + "edges { node { id } } "
@@ -41,7 +41,7 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootIdWithBadData() throws Exception {
+    public void testRootIdWithBadData() {
         String graphQLRequest = "mutation { "
                     + "author(op:DELETE, ids: [\"1\"], data: {id: \"2\"}) { "
                     + "edges { node { id } } "
@@ -70,7 +70,7 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedBadInput() throws Exception {
+    public void testNestedBadInput() {
         String graphQLRequest = "mutation { "
                 + "author(id: \"1\") { "
                 + "books(op:DELETE) { "

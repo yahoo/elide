@@ -7,21 +7,17 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.lifecycle.CRUDEvent;
-import com.yahoo.elide.core.lifecycle.LifecycleHookInvoker;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
-import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
 import graphql.language.OperationDefinition;
@@ -85,72 +81,29 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             filterSortPaginateSanityCheck(context);
         }
 
-        GraphQLContainer container;
-
         /* delegate request */
         switch (operation) {
-            case FETCH: {
+            case FETCH:
                 return fetchObjects(context);
-            }
-            case UPSERT: {
-                container = upsertObjects(context);
-                break;
-            }
-            case UPDATE: {
-                container = updateObjects(context);
-                break;
-            }
-            case DELETE: {
-                container = deleteObjects(context);
-                break;
-            }
-            case REMOVE: {
-                container = removeObjects(context);
-                break;
-            }
 
-            case REPLACE: {
-                container = replaceObjects(context);
-                break;
-            }
+            case UPSERT:
+                return upsertObjects(context);
+
+            case UPDATE:
+                return updateObjects(context);
+
+            case DELETE:
+                return deleteObjects(context);
+
+            case REMOVE:
+                return removeObjects(context);
+
+            case REPLACE:
+                return replaceObjects(context);
 
             default:
                 throw new UnsupportedOperationException("Unknown operation: " + operation);
         }
-
-        Observable.fromIterable(context.eventQueue)
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(
-                        context.requestScope.getDictionary(),
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, false)
-                ).throwOnError();
-
-        Observable.fromIterable(context.eventQueue)
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(
-                        context.requestScope.getDictionary(),
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-                ).throwOnError();
-
-        Observable.fromIterable(context.eventQueue)
-                .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(
-                        context.requestScope.getDictionary(),
-                        LifeCycleHookBinding.Operation.DELETE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-                ).throwOnError();
-
-        Observable.fromIterable(context.eventQueue)
-                .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(
-                        context.requestScope.getDictionary(),
-                        LifeCycleHookBinding.Operation.UPDATE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false)
-                ).throwOnError();
-
-        return container;
     }
 
     /**
@@ -496,7 +449,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
      * @param context Environment encapsulating graphQL's request environment
      * @return set of deleted {@link PersistentResource} object(s)
      */
-    private ConnectionContainer deleteObjects(Environment context) {
+    private Object deleteObjects(Environment context) {
         /* sanity check for id and data argument w DELETE */
         if (context.data.isPresent()) {
             throw new BadRequestException("DELETE must not include data argument");
@@ -522,7 +475,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
      * @param context Environment encapsulating graphQL's request environment
      * @return set of removed {@link PersistentResource} object(s)
      */
-    private ConnectionContainer removeObjects(Environment context) {
+    private Object removeObjects(Environment context) {
         /* sanity check for id and data argument w REPLACE */
         if (context.data.isPresent()) {
             throw new BadRequestException("REPLACE must not include data argument");

@@ -7,8 +7,9 @@
 package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.yahoo.elide.ElideResponse;
 import org.junit.jupiter.api.Test;
+import graphql.ExecutionResult;
+
 import java.util.HashMap;
 
 /**
@@ -278,7 +279,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testSchemaIntrospection() throws Exception {
+    public void testSchemaIntrospection() {
         String graphQLRequest = "{"
                 + "__schema {"
                 + "types {"
@@ -287,13 +288,13 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}"
                 + "}";
 
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
-        assertTrue(! response.getBody().contains("errors"));
+        assertTrue(result.getErrors().isEmpty());
     }
 
     @Test
-    public void testTypeIntrospection() throws Exception {
+    public void testTypeIntrospection() {
         String graphQLRequest = "{"
             + "__type(name: \"Author\") {"
             + "   name"
@@ -303,10 +304,9 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
             + "   }"
             + "}"
             + "}";
+        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
-
-        assertTrue(! response.getBody().contains("errors"));
+        assertTrue(result.getErrors().isEmpty());
     }
 
     @Override
