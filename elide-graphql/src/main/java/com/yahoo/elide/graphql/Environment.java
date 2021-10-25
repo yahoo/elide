@@ -7,22 +7,17 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.lifecycle.CRUDEvent;
 import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.PersistentResourceContainer;
 import com.yahoo.elide.graphql.containers.RootContainer;
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 
 /**
  * Encapsulates GraphQL's DataFetchingEnvironment.
