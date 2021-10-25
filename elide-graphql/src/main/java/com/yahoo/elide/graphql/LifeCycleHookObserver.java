@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class LifeCycleHookObserver implements Observer<CRUDEvent> {
     private final ConcurrentLinkedQueue<CRUDEvent> events;
     private final EntityDictionary dictionary;
-    private volatile Throwable error = null;
     private volatile Disposable disposable;
 
     public LifeCycleHookObserver(EntityDictionary dictionary) {
@@ -45,12 +44,12 @@ public class LifeCycleHookObserver implements Observer<CRUDEvent> {
 
     @Override
     public void onError(Throwable e) {
-        error = e;
+        disposable.dispose();
     }
 
     @Override
     public void onComplete() {
-        //noop
+        disposable.dispose();
     }
 
     public Iterable<CRUDEvent> getEvents() {
@@ -92,13 +91,6 @@ public class LifeCycleHookObserver implements Observer<CRUDEvent> {
 
         if (this.disposable != null) {
             disposable.dispose();
-        }
-
-        if (error != null) {
-            if (error instanceof RuntimeException) {
-                throw ((RuntimeException) error);
-            }
-            throw new IllegalStateException(error);
         }
     }
 }
