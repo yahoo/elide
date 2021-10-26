@@ -6,10 +6,8 @@
 
 package com.yahoo.elide.core.filter.expression;
 
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.type.Type;
 
 /**
  * Intended to specify whether the expression must be evaluated in memory or can be pushed to the DataStore.
