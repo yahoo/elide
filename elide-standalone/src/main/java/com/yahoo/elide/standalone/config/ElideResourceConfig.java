@@ -6,8 +6,8 @@
 package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
@@ -182,7 +182,7 @@ public class ElideResourceConfig extends ResourceConfig {
                 // Binding TableExport LifeCycleHook
                 TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
                         asyncProperties, supportedFormatters, resultStorageEngine);
-                dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
+                dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
                 dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                 dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
             }
@@ -191,7 +191,7 @@ public class ElideResourceConfig extends ResourceConfig {
             AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
                     asyncProperties.getMaxAsyncAfterSeconds());
 
-            dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
+            dictionary.bindTrigger(AsyncQuery.class, CREATE, PREFLUSH, asyncQueryHook, false);
             dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
             dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
 
