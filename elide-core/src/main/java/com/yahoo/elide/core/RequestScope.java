@@ -386,13 +386,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                         LifeCycleHookBinding.Operation.DELETE,
                         LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
                 .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.READ,
-                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
-                .throwOnError();
     }
 
     /**
@@ -417,13 +410,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 .filter(CRUDEvent::isDeleteEvent)
                 .subscribeWith(new LifecycleHookInvoker(dictionary,
                         LifeCycleHookBinding.Operation.DELETE,
-                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.READ,
                         LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
                 .throwOnError();
     }
@@ -503,13 +489,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     }
 
     private void registerPreSecurityObservers() {
-
-        this.distinctLifecycleEvents
-                .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.READ,
-                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
-
         this.distinctLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
                 .subscribeWith(new LifecycleHookInvoker(dictionary,

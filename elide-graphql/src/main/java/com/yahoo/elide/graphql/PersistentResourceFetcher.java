@@ -84,7 +84,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             /* sanity check for pagination/filtering/sorting arguments w any operation other than FETCH */
             filterSortPaginateSanityCheck(context);
 
-            context.requestScope.registerLifecycleHookObserver(eventObserver, event -> !event.isReadEvent());
+            context.requestScope.registerLifecycleHookObserver(eventObserver, (event) -> true);
         }
 
         GraphQLContainer container;
