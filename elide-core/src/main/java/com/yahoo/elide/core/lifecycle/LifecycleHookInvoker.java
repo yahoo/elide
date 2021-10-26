@@ -21,7 +21,8 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
     private EntityDictionary dictionary;
     private LifeCycleHookBinding.Operation op;
     private LifeCycleHookBinding.TransactionPhase phase;
-    private Optional<RuntimeException> exception;
+    private volatile Optional<RuntimeException> exception;
+    private volatile Disposable disposable;
     private boolean throwsExceptions;
 
     public LifecycleHookInvoker(EntityDictionary dictionary,
@@ -37,7 +38,7 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
 
     @Override
     public void onSubscribe(Disposable disposable) {
-        //NOOP
+        this.disposable = disposable;
     }
 
     @Override
@@ -67,12 +68,12 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
 
     @Override
     public void onError(Throwable throwable) {
-        //NOOP
+        disposable.dispose();
     }
 
     @Override
     public void onComplete() {
-        //NOOP
+        disposable.dispose();
     }
 
     public void throwOnError() {
