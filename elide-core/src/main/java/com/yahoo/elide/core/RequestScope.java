@@ -320,15 +320,13 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
             LifeCycleHookBinding.Operation operation,
             LifeCycleHookBinding.TransactionPhase phase
     ) {
-        LifecycleHookInvoker invoker = new LifecycleHookInvoker(dictionary, operation, phase, false);
+        LifecycleHookInvoker invoker = new LifecycleHookInvoker(dictionary, operation, phase);
 
         this.eventQueue.stream()
                 .filter(event -> event.getEventType().equals(operation))
                 .forEach(event -> {
                     invoker.onNext(event);
                 });
-
-        invoker.throwOnError();
     }
 
     /**
@@ -405,10 +403,9 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
 
                 LifecycleHookInvoker invoker = new LifecycleHookInvoker(dictionary,
                         event.getEventType(),
-                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, false);
+                        LifeCycleHookBinding.TransactionPhase.PRESECURITY);
 
                 invoker.onNext(event);
-                invoker.throwOnError();
             }
 
             eventQueue.add(event);
