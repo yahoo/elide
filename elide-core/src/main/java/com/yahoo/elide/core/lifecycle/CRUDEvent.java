@@ -8,7 +8,6 @@ package com.yahoo.elide.core.lifecycle;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -39,9 +38,5 @@ public class CRUDEvent {
 
     public boolean isDeleteEvent() {
         return eventType == DELETE;
-    }
-
-    public boolean isReadEvent() {
-        return eventType == READ;
     }
 }

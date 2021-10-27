@@ -6,8 +6,8 @@
 package com.yahoo.elide.async.hooks;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.async.models.AsyncAPI;
@@ -58,16 +58,12 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
      */
     protected void executeHook(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
             AsyncAPI query, RequestScope requestScope, Callable<AsyncAPIResult> queryWorker) {
-        if (operation.equals(READ) && phase.equals(PRESECURITY)) {
-            validateOptions(query, requestScope);
-            //We populate the result object when the initial mutation is executed, and then even after executing
-            //the hooks we return the same object back. QueryRunner.java#L190.
-            //In GraphQL, the only part of the body that is lazily returned is the ID.
-            //ReadPreSecurityHook - Those hooks get evaluated in line with the request processing.
-            executeAsync(query, queryWorker);
-            return;
-        }
         if (operation.equals(CREATE)) {
+            if (phase.equals(PREFLUSH)) {
+                validateOptions(query, requestScope);
+                executeAsync(query, queryWorker);
+                return;
+            }
             if (phase.equals(POSTCOMMIT)) {
                 completeAsync(query, requestScope);
                 return;

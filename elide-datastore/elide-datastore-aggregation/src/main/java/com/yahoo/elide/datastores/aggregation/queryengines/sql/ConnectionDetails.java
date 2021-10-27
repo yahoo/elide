@@ -6,14 +6,17 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import lombok.Value;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import javax.sql.DataSource;
 
 /**
  * Custom class to abstract {@link DataSource} and {@link SQLDialect}.
  */
-@Value
+@Data
+@AllArgsConstructor
 public class ConnectionDetails {
     private DataSource dataSource;
     private SQLDialect dialect;

@@ -433,7 +433,7 @@ public class SwaggerBuilder {
          */
         private Parameter getSparseFieldsParameter() {
             String typeName = dictionary.getJsonAliasFor(type);
-            List<String> fieldNames = dictionary.getAllFields(type);
+            List<String> fieldNames = dictionary.getAllExposedFields(type);
 
             return new QueryParameter()
                     .type("array")

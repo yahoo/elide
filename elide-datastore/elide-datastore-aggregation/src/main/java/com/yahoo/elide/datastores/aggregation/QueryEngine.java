@@ -176,7 +176,7 @@ public abstract class QueryEngine {
                 ));
             });
 
-            table.getColumns().forEach(column -> {
+            table.getAllColumns().forEach(column -> {
 
                 //Populate column sources.
                 column.setTableSource(TableSource.fromDefinition(

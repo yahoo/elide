@@ -16,9 +16,12 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.executors.AggregationStorePermissionExecutor;
+import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -36,7 +39,6 @@ import lombok.ToString;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -53,6 +55,19 @@ public class AggregationDataStore implements DataStore {
     private final Cache cache;
     private final Set<Type<?>> dynamicCompiledClasses;
     private final QueryLogger queryLogger;
+
+    public static final Predicate<AccessibleObject> IS_FIELD_HIDDEN = (field -> {
+        ColumnMeta meta = field.getAnnotation(ColumnMeta.class);
+        Join join = field.getAnnotation(Join.class);
+
+        return (join != null || (meta != null && meta.isHidden()));
+    });
+
+    public static final Predicate<Type<?>> IS_TYPE_HIDDEN = (type -> {
+        TableMeta meta = type.getAnnotation(TableMeta.class);
+
+        return (meta != null && meta.isHidden());
+    });
 
     private final Function<RequestScope, PermissionExecutor> aggPermissionExecutor =
             AggregationStorePermissionExecutor::new;
@@ -71,15 +86,19 @@ public class AggregationDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            dynamicCompiledClasses.forEach(dynamicLoadedClass -> {
-                dictionary.bindEntity(dynamicLoadedClass, Collections.singleton(Join.class));
+            dynamicCompiledClasses.stream()
+                    .filter((type) -> ! IS_TYPE_HIDDEN.test(type))
+                    .forEach(dynamicLoadedClass -> {
+                dictionary.bindEntity(dynamicLoadedClass, IS_FIELD_HIDDEN);
                 validateModelExpressionChecks(dictionary, dynamicLoadedClass);
                 dictionary.bindPermissionExecutor(dynamicLoadedClass, aggPermissionExecutor);
             });
         }
 
-        dictionary.getScanner().getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(cls -> {
-                    dictionary.bindEntity(cls, Collections.singleton(Join.class));
+        dictionary.getScanner().getAnnotatedClasses(AGGREGATION_STORE_CLASSES).stream()
+                .filter((type) -> ! IS_TYPE_HIDDEN.test(ClassType.of(type)))
+                .forEach(cls -> {
+                    dictionary.bindEntity(cls, IS_FIELD_HIDDEN);
                     validateModelExpressionChecks(dictionary, ClassType.of(cls));
                     dictionary.bindPermissionExecutor(cls, aggPermissionExecutor);
                 }
@@ -87,7 +106,7 @@ public class AggregationDataStore implements DataStore {
 
         for (Table table : queryEngine.getMetaDataStore().getMetaData(ClassType.of(Table.class))) {
             /* Add 'grain' argument to each TimeDimensionColumn */
-            for (TimeDimension timeDim : table.getTimeDimensions()) {
+            for (TimeDimension timeDim : table.getAllTimeDimensions()) {
                 dictionary.addArgumentToAttribute(
                         dictionary.getEntityClass(table.getName(), table.getVersion()),
                         timeDim.getName(),
@@ -95,7 +114,7 @@ public class AggregationDataStore implements DataStore {
             }
 
             /* Add argument to each Column */
-            for (Column col : table.getColumns()) {
+            for (Column col : table.getAllColumns()) {
                 for (ArgumentDefinition arg : col.getArgumentDefinitions()) {
                     dictionary.addArgumentToAttribute(
                             dictionary.getEntityClass(table.getName(), table.getVersion()),
@@ -137,7 +156,7 @@ public class AggregationDataStore implements DataStore {
                     + "Operation Checks Not allowed. given - %s");
         }
 
-        dictionary.getAllFields(clz).stream()
+        dictionary.getAllExposedFields(clz).stream()
                 .map(field -> dictionary.getPermissionsForField(clz, field, ReadPermission.class))
                 .filter(Objects::nonNull)
                 .forEach(tree ->
