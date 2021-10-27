@@ -39,11 +39,6 @@ import javax.persistence.Id;
         operation = LifeCycleHookBinding.Operation.DELETE,
         phase = LifeCycleHookBinding.TransactionPhase.PREFLUSH
 )
-@LifeCycleHookBinding(
-        hook = JobLifeCycleHook.class,
-        operation = LifeCycleHookBinding.Operation.READ,
-        phase = LifeCycleHookBinding.TransactionPhase.PREFLUSH
-)
 public class Job {
     @Id
     private long id;

@@ -23,7 +23,6 @@ public class JobLifeCycleHook implements LifeCycleHook<Job> {
 
     public interface JobService {
         void jobDeleted(Job job);
-        void jobRead(Job job);
     }
 
     @Inject
@@ -39,10 +38,6 @@ public class JobLifeCycleHook implements LifeCycleHook<Job> {
             Optional<ChangeSpec> changes
     ) {
         switch (operation) {
-            case READ : {
-                jobService.jobRead(job);
-                return;
-            }
             case DELETE: {
                 jobService.jobDeleted(job);
             }

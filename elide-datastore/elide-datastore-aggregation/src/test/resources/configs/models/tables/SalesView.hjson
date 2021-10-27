@@ -95,6 +95,12 @@
           cardinality: small
         }
         {
+          name: customerRegionType
+          type: TEXT
+          definition: '{{customer.region.placeType}}'
+          readAccess: guest user
+        }
+        {
           name: customerRegionRegion
           type: TEXT
           definition: '{{customer.region.region}}'

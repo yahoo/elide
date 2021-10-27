@@ -7,22 +7,17 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.lifecycle.CRUDEvent;
 import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.PersistentResourceContainer;
 import com.yahoo.elide.graphql.containers.RootContainer;
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 
 /**
  * Encapsulates GraphQL's DataFetchingEnvironment.
@@ -44,39 +39,12 @@ public class Environment {
     public final Field field;
     public final NonEntityDictionary nonEntityDictionary;
 
-    //Queues up lifecycle events as they happen in the current fetch.
-    public final Queue<CRUDEvent> eventQueue;
-
     public Environment(DataFetchingEnvironment environment, NonEntityDictionary nonEntityDictionary) {
         this.nonEntityDictionary = nonEntityDictionary;
 
         Map<String, Object> args = environment.getArguments();
 
         requestScope = environment.getLocalContext();
-
-        eventQueue = new ArrayDeque<>();
-
-        requestScope.registerLifecycleHookObserver(new Observer<CRUDEvent>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-                //NOOP
-            }
-
-            @Override
-            public void onNext(CRUDEvent crudEvent) {
-                eventQueue.add(crudEvent);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                //NOOP
-            }
-
-            @Override
-            public void onComplete() {
-                //NOOP
-            }
-        });
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
         offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));
