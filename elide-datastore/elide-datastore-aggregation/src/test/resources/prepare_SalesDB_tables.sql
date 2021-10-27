@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS region_details
 (
   zip_code INT NOT NULL,
   region VARCHAR(255) NOT NULL,
+  type VARCHAR(255) NOT NULL,
   PRIMARY KEY (zip_code)
 );
 
@@ -24,9 +25,9 @@ INSERT INTO customer_details SELECT 'cust1', 'foo1', 20166 from dual WHERE NOT E
 INSERT INTO customer_details SELECT 'cust2', 'foo2', 10002 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust2');
 INSERT INTO customer_details SELECT 'cust3', 'foo3', 20170 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust3');
 
-INSERT INTO region_details SELECT 20166, 'Virginia' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 20166);
-INSERT INTO region_details SELECT 20170, 'Virginia' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 20170);
-INSERT INTO region_details SELECT 10002, 'NewYork' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 10002);
+INSERT INTO region_details SELECT 20166, 'Virginia', 'State' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 20166);
+INSERT INTO region_details SELECT 20170, 'Virginia', 'State' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 20170);
+INSERT INTO region_details SELECT 10002, 'NewYork', 'State' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 10002);
 
 CREATE TABLE IF NOT EXISTS order_details
 (
