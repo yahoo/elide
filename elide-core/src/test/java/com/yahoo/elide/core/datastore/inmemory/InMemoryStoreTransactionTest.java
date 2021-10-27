@@ -190,6 +190,41 @@ public class InMemoryStoreTransactionTest {
     }
 
     @Test
+    public void testSortOnComputedAttribute() {
+        Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
+        sortOrder.put("fullName", Sorting.SortOrder.desc);
+
+        Editor editor1 = new Editor();
+        editor1.setFirstName("A");
+        editor1.setLastName("X");
+        Editor editor2 = new Editor();
+        editor2.setFirstName("B");
+        editor2.setLastName("Y");
+
+        Sorting sorting = new SortingImpl(sortOrder, Editor.class, dictionary);
+
+        EntityProjection projection = EntityProjection.builder()
+                .type(Editor.class)
+                .sorting(sorting)
+                .build();
+
+        DataStoreIterable iterable =
+                new DataStoreIterableBuilder(Arrays.asList(editor1, editor2)).sortInMemory(false).build();
+
+        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        when(wrappedTransaction.loadObjects(projectionArgument.capture(), eq(scope))).thenReturn(iterable);
+
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(projection, scope));
+
+        assertNull(projectionArgument.getValue().getSorting());
+        assertEquals(2, loaded.size());
+
+        Object[] sorted = loaded.toArray();
+        assertEquals(editor2, sorted[0]);
+        assertEquals(editor1, sorted[1]);
+    }
+
+    @Test
     public void testSortOnComplexAttribute() {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("homeAddress.street1", Sorting.SortOrder.asc);

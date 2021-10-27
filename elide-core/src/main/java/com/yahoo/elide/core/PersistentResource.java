@@ -7,7 +7,6 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 
@@ -1222,12 +1221,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     private Observable<PersistentResource> getRelation(com.yahoo.elide.core.request.Relationship relationship,
                                                        boolean checked) {
-        if (checked) {
-            //All getRelation calls funnel to here.  We only publish events for actions triggered directly
-            //by the API client.
-            requestScope.publishLifecycleEvent(this, READ);
-            requestScope.publishLifecycleEvent(this, relationship.getName(), READ, Optional.empty());
-        }
 
         if (checked && !checkRelation(relationship)) {
             return Observable.empty();
@@ -1680,8 +1673,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return value value
      */
     protected Object getValueChecked(Attribute attribute) {
-        requestScope.publishLifecycleEvent(this, READ);
-        requestScope.publishLifecycleEvent(this, attribute.getName(), READ, Optional.empty());
         checkFieldAwareDeferPermissions(ReadPermission.class, attribute.getName(), null, null);
         return transaction.getAttribute(getObject(), attribute, requestScope);
     }

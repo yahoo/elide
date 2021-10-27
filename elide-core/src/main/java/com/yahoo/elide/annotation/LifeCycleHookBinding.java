@@ -23,14 +23,12 @@ public @interface LifeCycleHookBinding {
 
     Operation [] ALL_OPERATIONS = {
             Operation.CREATE,
-            Operation.READ,
             Operation.UPDATE,
             Operation.DELETE
     };
 
     enum Operation {
         CREATE,
-        READ,
         UPDATE,
         DELETE
     };

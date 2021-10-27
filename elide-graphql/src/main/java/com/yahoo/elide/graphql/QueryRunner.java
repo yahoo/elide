@@ -7,7 +7,6 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
@@ -291,11 +290,6 @@ public class QueryRunner {
                 }
                 requestScope.saveOrCreateObjects();
             }
-
-            //Only read checks are queued so they can be deduped.  All other flush checks run inline
-            //with GraphQL request processing (after the fetcher completes the operation).
-            LifeCycleHookBinding.Operation [] operations = { LifeCycleHookBinding.Operation.READ };
-            requestScope.runQueuedPreFlushTriggers(operations);
 
             tx.flush(requestScope);
 
