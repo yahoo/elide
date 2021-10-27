@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class JavaClassNameFormatAttr extends AbstractFormatAttribute {
     private static final String ID_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
-    private static final Pattern CLASS_NAME_FORMAT_PATTERN = Pattern.compile(ID_PATTERN + "(\\." + ID_PATTERN + ")*");
+    public static final Pattern CLASS_NAME_FORMAT_PATTERN = Pattern.compile(ID_PATTERN + "(\\." + ID_PATTERN + ")*");
 
     public static final String FORMAT_NAME = "javaClassName";
     public static final String FORMAT_KEY = "javaClassName.error.format";

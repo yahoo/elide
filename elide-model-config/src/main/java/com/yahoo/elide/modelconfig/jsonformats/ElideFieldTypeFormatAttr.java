@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.modelconfig.jsonformats;
 
+import static com.yahoo.elide.modelconfig.jsonformats.JavaClassNameFormatAttr.CLASS_NAME_FORMAT_PATTERN;
 import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
@@ -27,7 +28,7 @@ public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
     public static final String FORMAT_NAME = "elideFieldType";
     public static final String TYPE_KEY = "elideFieldType.error.enum";
     public static final String TYPE_MSG = "Field type [%s] is not allowed. Supported value is one of "
-            + "[Integer, Decimal, Money, Text, Coordinate, Boolean].";
+            + "[Integer, Decimal, Money, Text, Coordinate, Boolean] or a valid Java class name.";
 
     public ElideFieldTypeFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
@@ -38,7 +39,7 @@ public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
             throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!FIELD_TYPE_PATTERN.matcher(input).matches()) {
+        if (!FIELD_TYPE_PATTERN.matcher(input).matches() && !CLASS_NAME_FORMAT_PATTERN.matcher(input).matches()) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }
