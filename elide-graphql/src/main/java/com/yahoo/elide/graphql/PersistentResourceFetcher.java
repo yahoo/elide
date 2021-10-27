@@ -74,8 +74,6 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             logContext(log, operation, context);
         }
 
-        LifeCycleHookObserver eventObserver = new LifeCycleHookObserver(context.requestScope.getDictionary());
-
         if (operation != FETCH) {
             /* Don't allow write operations in a non-mutation request. */
             if (environment.getOperationDefinition().getOperation() != OperationDefinition.Operation.MUTATION) {
@@ -83,8 +81,6 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             }
             /* sanity check for pagination/filtering/sorting arguments w any operation other than FETCH */
             filterSortPaginateSanityCheck(context);
-
-            context.requestScope.registerLifecycleHookObserver(eventObserver, event -> !event.isReadEvent());
         }
 
         GraphQLContainer container;
@@ -120,7 +116,8 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
         }
 
         if (operation != FETCH) {
-            eventObserver.processQueuedEvents();
+            context.requestScope.runQueuedPreSecurityTriggers();
+            context.requestScope.runQueuedPreFlushTriggers();
         }
 
         return container;

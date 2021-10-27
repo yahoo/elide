@@ -78,27 +78,6 @@ public class LifecycleHookTest extends PersistentResourceFetcherTest {
         verify(jobService, times(1)).jobDeleted(any(Job.class));
     }
 
-    @Test
-    public void testRead() throws Exception {
-        testCreate();
-
-        String query = "query {\n"
-                + "  job(ids: [\"1\"]) {\n"
-                + "    edges {\n"
-                + "      node {\n"
-                + "        id\n"
-                + "        status\n"
-                + "      }\n"
-                + "    }\n"
-                + "  }\n"
-                + "}";
-
-        assertQueryEquals(query, "{\"job\":{\"edges\":[{\"node\":{\"id\":\"1\",\"status\":1}}]}}");
-
-        //Called once for create and once for subsequent read...
-        verify(jobService, times(2)).jobRead(any(Job.class));
-    }
-
     @Override
     protected void initializeMocks() {
         super.initializeMocks();

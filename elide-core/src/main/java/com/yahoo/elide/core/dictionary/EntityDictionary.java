@@ -23,9 +23,6 @@ import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnDeletePostCommit;
 import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
@@ -1531,10 +1528,10 @@ public class EntityDictionary {
 
     /**
      * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
-     * single time per request per field READ, CREATE, or UPDATE.
+     * single time per request per field CREATE, or UPDATE.
      * @param entityClass The entity that triggers the lifecycle hook.
      * @param fieldOrMethodName The name of the field or method.
-     * @param operation CREATE, READ, or UPDATE
+     * @param operation CREATE, or UPDATE
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      */
@@ -1548,10 +1545,10 @@ public class EntityDictionary {
 
     /**
      * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
-     * single time per request per field READ, CREATE, or UPDATE.
+     * single time per request per field CREATE, or UPDATE.
      * @param entityClass The entity that triggers the lifecycle hook.
      * @param fieldOrMethodName The name of the field or method.
-     * @param operation CREATE, READ, or UPDATE
+     * @param operation CREATE, or UPDATE
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      */
@@ -1567,12 +1564,12 @@ public class EntityDictionary {
 
     /**
      * Binds a lifecycle hook to a particular entity class.  The hook will either be called:
-     *  - A single time single time per request per class READ, CREATE, UPDATE, or DELETE.
-     *  - Multiple times per request per field READ, CREATE, or UPDATE.
+     *  - A single time single time per request per class CREATE, UPDATE, or DELETE.
+     *  - Multiple times per request per field CREATE, or UPDATE.
      *
      * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param operation CREATE, READ, or UPDATE
+     * @param operation CREATE, or UPDATE
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
@@ -1588,12 +1585,12 @@ public class EntityDictionary {
 
     /**
      * Binds a lifecycle hook to a particular entity class.  The hook will either be called:
-     *  - A single time single time per request per class READ, CREATE, UPDATE, or DELETE.
-     *  - Multiple times per request per field READ, CREATE, or UPDATE.
+     *  - A single time single time per request per class CREATE, UPDATE, or DELETE.
+     *  - Multiple times per request per field CREATE, or UPDATE.
      *
      * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param operation CREATE, READ, or UPDATE
+     * @param operation CREATE, or UPDATE
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
@@ -2102,18 +2099,6 @@ public class EntityDictionary {
                     if (method.isAnnotationPresent(OnUpdatePreSecurity.class)) {
                         bindHookMethod(binding, method, method.getAnnotation(OnUpdatePreSecurity.class).value(),
                                 TransactionPhase.PRESECURITY, Operation.UPDATE);
-                    }
-                    if (method.isAnnotationPresent(OnReadPostCommit.class)) {
-                        bindHookMethod(binding, method, method.getAnnotation(OnReadPostCommit.class).value(),
-                                TransactionPhase.POSTCOMMIT, Operation.READ);
-                    }
-                    if (method.isAnnotationPresent(OnReadPreCommit.class)) {
-                        bindHookMethod(binding, method, method.getAnnotation(OnReadPreCommit.class).value(),
-                                TransactionPhase.PRECOMMIT, Operation.READ);
-                    }
-                    if (method.isAnnotationPresent(OnReadPreSecurity.class)) {
-                        bindHookMethod(binding, method, method.getAnnotation(OnReadPreSecurity.class).value(),
-                                TransactionPhase.PRESECURITY, Operation.READ);
                     }
                     if (method.isAnnotationPresent(OnDeletePostCommit.class)) {
                         bindHookMethod(binding, method, null, TransactionPhase.POSTCOMMIT, Operation.DELETE);
