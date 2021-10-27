@@ -75,6 +75,25 @@ public class LifeCycleTest {
         dictionary.bindEntity(FieldTestModel.class);
         dictionary.bindEntity(PropertyTestModel.class);
         dictionary.bindEntity(LegacyTestModel.class);
+        dictionary.bindEntity(ErrorTestModel.class);
+    }
+
+    @Test
+    public void testLifecycleError() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        ErrorTestModel mockModel = mock(ErrorTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = "{\"data\": {\"type\":\"errorTestModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
+
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(eq(ClassType.of(ErrorTestModel.class)), any())).thenReturn(mockModel);
+
+        ElideResponse response = elide.post(baseUrl, "/errorTestModel", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        assertEquals("{\"errors\":[{\"detail\":\"Invalid\"}]}", response.getBody());
     }
 
     @Test
