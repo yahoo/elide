@@ -68,8 +68,11 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
         Elide elide = service.getElide();
         TableExportResult exportResult = new TableExportResult();
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+            // Do Not Cache Export Results
+            Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
+            requestHeaders.put("bypasscache", new ArrayList<String>(Arrays.asList("true")));
 
-            RequestScope requestScope = getRequestScope(exportObj, scope, tx, Collections.emptyMap());
+            RequestScope requestScope = getRequestScope(exportObj, scope, tx, requestHeaders);
             Collection<EntityProjection> projections = getProjections(exportObj, requestScope);
             validateProjections(projections);
             EntityProjection projection = projections.iterator().next();
@@ -134,32 +137,27 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             DataStoreTransaction tx = scope.getTransaction();
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
 
-            // Do Not Cache Export Results
-            Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
-            requestHeaders.put("bypasscache", new ArrayList<String>(Arrays.asList("true")));
-
             //TODO - we need to add the baseUrlEndpoint to the queryObject.
             //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(exportObj, scope, tx, requestHeaders);
-            exportRequestScope.setEntityProjection(projection);
+            scope.setEntityProjection(projection);
 
             if (projection != null) {
                 projection.setPagination(null);
-                results = PersistentResource.loadRecords(projection, Collections.emptyList(), exportRequestScope);
+                results = PersistentResource.loadRecords(projection, Collections.emptyList(), scope);
             }
 
-            tx.preCommit(exportRequestScope);
-            exportRequestScope.runQueuedPreSecurityTriggers();
-            exportRequestScope.getPermissionExecutor().executeCommitChecks();
+            tx.preCommit(scope);
+            scope.runQueuedPreSecurityTriggers();
+            scope.getPermissionExecutor().executeCommitChecks();
 
-            tx.flush(exportRequestScope);
+            tx.flush(scope);
 
-            exportRequestScope.runQueuedPreCommitTriggers();
+            scope.runQueuedPreCommitTriggers();
 
             elide.getAuditLogger().commit();
-            tx.commit(exportRequestScope);
+            tx.commit(scope);
 
-            exportRequestScope.runQueuedPostCommitTriggers();
+            scope.runQueuedPostCommitTriggers();
         } catch (IOException e) {
             log.error("IOException during TableExport", e);
             throw new TransactionException(e);
