@@ -1923,4 +1923,34 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         runQueryWithExpectedError(graphQLRequest, expected);
 
     }
+
+    @Test
+    public void testEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
+                                ),
+                                selections(
+                                        field("customerRegionType")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("customerRegionType", "State")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
 }

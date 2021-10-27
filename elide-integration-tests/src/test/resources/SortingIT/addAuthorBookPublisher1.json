@@ -101,5 +101,17 @@
         "name": "Super Publisher"
       }
     }
+  },
+  {
+    "op": "add",
+    "path": "/book/12345678-1234-1234-1234-1234567890ad/publisher/12345678-1234-1234-1234-1234567890af/editor",
+    "value": {
+      "type": "editor",
+      "id": "12345678-1234-1234-1234-1234567890ba",
+      "attributes": {
+        "firstName": "John",
+        "lastName": "Doe"
+      }
+    }
   }
 ]

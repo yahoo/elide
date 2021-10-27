@@ -6,11 +6,9 @@
 
 package com.yahoo.elide.core.filter.expression;
 
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
-import com.yahoo.elide.core.type.Type;
 
 /**
  * Examines a FilterExpression to determine if some or all of it can be pushed to the data store.
@@ -26,16 +24,7 @@ public class FilterPredicatePushdownExtractor implements FilterExpressionVisitor
     @Override
     public FilterExpression visitPredicate(FilterPredicate filterPredicate) {
 
-        boolean filterInMemory = false;
-        for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
-            Type<?> entityClass = pathElement.getType();
-            String fieldName = pathElement.getFieldName();
-
-            if (dictionary.isComputed(entityClass, fieldName)) {
-                filterInMemory = true;
-            }
-        }
-
+        boolean filterInMemory = filterPredicate.getPath().isComputed(dictionary);
         return (filterInMemory) ? null : filterPredicate;
     }
 
