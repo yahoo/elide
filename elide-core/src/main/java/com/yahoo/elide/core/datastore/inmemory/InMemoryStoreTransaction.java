@@ -251,10 +251,11 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         Optional<FilterExpression> dataStoreFilter = expressionSplit.getLeft();
         Optional<FilterExpression> inMemoryFilter = expressionSplit.getRight();
 
-        Optional<Sorting> dataStoreSorting = inMemoryFilter.isPresent()
-                ? Optional.empty() : Optional.ofNullable(projection.getSorting());
+        Optional<Sorting> dataStoreSorting = getDataStoreSorting(scope, projection, filterInMemory);
 
-        Optional<Pagination> dataStorePagination = inMemoryFilter.isPresent()
+        boolean sortingInMemory = dataStoreSorting.isEmpty() && projection.getSorting() != null;
+
+        Optional<Pagination> dataStorePagination = inMemoryFilter.isPresent() || sortingInMemory
                 ? Optional.empty() : Optional.ofNullable(projection.getPagination());
 
         DataStoreIterable<Object> loadedRecords =
@@ -271,6 +272,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
         return sortAndPaginateLoadedData(
                     loadedRecords,
+                    sortingInMemory,
                     projection.getSorting(),
                     projection.getPagination(),
                     scope);
@@ -278,21 +280,22 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
     private DataStoreIterable<Object> sortAndPaginateLoadedData(
             DataStoreIterable<Object> loadedRecords,
+            boolean sortingInMemory,
             Sorting sorting,
             Pagination pagination,
             RequestScope scope
     ) {
 
-        //Try to skip the data copy if possible
-        if ((sorting == null || ! loadedRecords.needsInMemorySort())
-                && (pagination == null || ! loadedRecords.needsInMemoryPagination())) {
-            return loadedRecords;
-        }
-
         Map<Path, Sorting.SortOrder> sortRules = sorting == null ? new HashMap<>() : sorting.getSortingPaths();
 
-        // No sorting required for this type & no pagination.
-        if (sortRules.isEmpty() && (pagination == null || ! loadedRecords.needsInMemoryPagination())) {
+        boolean mustSortInMemory = ! sortRules.isEmpty()
+                && (sortingInMemory || loadedRecords.needsInMemorySort());
+
+        boolean mustPaginateInMemory = pagination != null
+                && (mustSortInMemory || loadedRecords.needsInMemoryPagination());
+
+        //Try to skip the data copy if possible
+        if (! mustSortInMemory && ! mustPaginateInMemory) {
             return loadedRecords;
         }
 
@@ -366,6 +369,41 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             }
             return NULL_SAFE_COMPARE.compare(rightCompare, leftCompare);
         };
+    }
+
+    /**
+     * Returns the sorting (if any) that should be pushed to the datastore.
+     * @param scope The request context
+     * @param projection The projection being loaded.
+     * @param filterInMemory Whether or not the transaction requires in memory filtering.
+     * @return An optional sorting.
+     */
+    private Optional<Sorting> getDataStoreSorting(
+            RequestScope scope,
+            EntityProjection projection,
+            boolean filterInMemory
+    ) {
+        Sorting sorting = projection.getSorting();
+        if (filterInMemory) {
+            return Optional.empty();
+        }
+        Map<Path, Sorting.SortOrder> sortRules = sorting == null ? new HashMap<>() : sorting.getSortingPaths();
+
+        boolean sortingOnComputedAttribute = false;
+        for (Path path: sortRules.keySet()) {
+            if (path.isComputed(scope.getDictionary())) {
+                Type<?> pathType = path.getPathElements().get(0).getType();
+                if (projection.getType().equals(pathType)) {
+                    sortingOnComputedAttribute = true;
+                    break;
+                }
+            }
+        }
+        if (sortingOnComputedAttribute) {
+            return Optional.empty();
+        } else {
+            return Optional.ofNullable(sorting);
+        }
     }
 
     /**
