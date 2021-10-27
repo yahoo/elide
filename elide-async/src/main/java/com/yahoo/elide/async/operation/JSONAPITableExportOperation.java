@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -63,8 +64,13 @@ public class JSONAPITableExportOperation extends TableExportOperation {
                     queryParams, additionalRequestHeaders, requestId, getService().getElide().getElideSettings());
         }
 
-        // Populate additionalRequestHeaders into existing scope's request headers
-        additionalRequestHeaders.forEach((entry, value) -> scope.getRequestHeaders().put(entry, value));
+        // Combine additionalRequestHeaders and existing scope's request headers
+        Map<String, List<String>> finalRequestHeaders = new HashMap<String, List<String>>();
+        scope.getRequestHeaders().forEach((entry, value) -> finalRequestHeaders.put(entry, value));
+
+        //additionalRequestHeaders will override any headers in scope.getRequestHeaders()
+        additionalRequestHeaders.forEach((entry, value) -> finalRequestHeaders.put(entry, value));
+
         return new RequestScope("", JSONAPIAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user, queryParams,
                 scope.getRequestHeaders(), requestId, getService().getElide().getElideSettings());
     }

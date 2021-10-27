@@ -64,7 +64,6 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
     @Override
     public AsyncAPIResult call() {
-        String apiVersion = scope.getApiVersion();
         log.debug("TableExport Object from request: {}", exportObj);
         Elide elide = service.getElide();
         TableExportResult exportResult = new TableExportResult();
