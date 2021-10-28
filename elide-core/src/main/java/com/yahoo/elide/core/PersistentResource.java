@@ -888,7 +888,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 return;
             }
             modifyCollection((Collection) relation, fieldName, Collections.emptySet(),
-                    Set.of(removeResource.getObject()), false);
+                    Set.of(removeResource.getObject()), true);
         } else {
             if (relation == null || removeResource == null || !relation.equals(removeResource.getObject())) {
                 //Nothing to do

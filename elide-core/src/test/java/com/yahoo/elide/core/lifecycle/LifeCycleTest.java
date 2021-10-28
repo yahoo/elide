@@ -52,9 +52,11 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.validation.ConstraintViolationException;
@@ -1205,7 +1207,13 @@ public class LifeCycleTest {
         scope.runQueuedPostCommitTriggers();
 
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
-        verify(mockModel, times(2)).relationCallback(eq(CREATE), eq(POSTCOMMIT), notNull());
+
+        ArgumentCaptor<ChangeSpec> changes = ArgumentCaptor.forClass(ChangeSpec.class);
+        verify(mockModel, times(1)).relationCallback(eq(CREATE),
+                eq(POSTCOMMIT), changes.capture());
+
+        changes.getValue().getModified().equals(List.of(childModel1, childModel2));
+        changes.getValue().getOriginal().equals(List.of());
 
         //Build another resource, scope & reset the mock to do a pure update (no create):
         scope = buildRequestScope(dictionary, tx);
@@ -1221,6 +1229,7 @@ public class LifeCycleTest {
         when(tx.getToManyRelation(tx, mockModel, relationship, scope))
                 .thenReturn(new DataStoreIterableBuilder<Object>(Arrays.asList(childModel1, childModel2)).build());
 
+        when(mockModel.getModels()).thenReturn(new HashSet<>(Arrays.asList(childModel1, childModel2)));
         resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1)));
 
         scope.runQueuedPreSecurityTriggers();
