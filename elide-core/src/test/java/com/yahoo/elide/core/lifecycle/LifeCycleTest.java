@@ -1192,13 +1192,16 @@ public class LifeCycleTest {
 
         PropertyTestModel childModel1 = mock(PropertyTestModel.class);
         PropertyTestModel childModel2 = mock(PropertyTestModel.class);
+        PropertyTestModel childModel3 = mock(PropertyTestModel.class);
         when(childModel1.getId()).thenReturn("2");
         when(childModel2.getId()).thenReturn("3");
+        when(childModel3.getId()).thenReturn("4");
 
         //First we test removing from a newly created object.
         PersistentResource resource = PersistentResource.createObject(ClassType.of(PropertyTestModel.class), scope, Optional.of("1"));
         PersistentResource childResource1 = new PersistentResource(childModel1, "2", scope);
         PersistentResource childResource2 = new PersistentResource(childModel2, "3", scope);
+        PersistentResource childResource3 = new PersistentResource(childModel3, "3", scope);
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1, childResource2)));
 
@@ -1230,14 +1233,18 @@ public class LifeCycleTest {
                 .thenReturn(new DataStoreIterableBuilder<Object>(Arrays.asList(childModel1, childModel2)).build());
 
         when(mockModel.getModels()).thenReturn(new HashSet<>(Arrays.asList(childModel1, childModel2)));
-        resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1)));
+        resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1, childResource3)));
 
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
         scope.runQueuedPostCommitTriggers();
 
         verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
-        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
+
+        changes = ArgumentCaptor.forClass(ChangeSpec.class);
+        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), changes.capture());
+        changes.getValue().getModified().equals(List.of(childModel1, childModel3));
+        changes.getValue().getOriginal().equals(List.of(childModel1, childModel2));
     }
 
     @Test
