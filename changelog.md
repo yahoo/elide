@@ -1,4 +1,22 @@
 # Change Log
+## 6.0.0-pr7
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f652404f0a26657addc821e911a6c61f8159a500) Only check preflush hooks for GraphQL mutations (#2371) 
+   * [view commit](https://github.com/yahoo/elide/commit/1bec9a04edb9917b34a9d168a3bec98f04fa8cad) Changing to Create Preflush (#2379) 
+   * [view commit](https://github.com/yahoo/elide/commit/6a54e45f4e0ebd214003a169b7eaa7244051d366) Sort in memory for computed properties (#2380) 
+   * [view commit](https://github.com/yahoo/elide/commit/5026c6bed03affed67f395a6bb9e4b6206dc62e5) Removing READ life cycle hooks. (#2381)
+   * [view commit](https://github.com/yahoo/elide/commit/844329422ed1edbcc563222b7e58c2ff861dd503) Adding test for #2376 (#2378) 
+   * [view commit](https://github.com/yahoo/elide/commit/fa377c038f5f1bfd11bbd26d6a16a1691afd91e5) Bump spring-core from 5.3.9 to 5.3.12 (#2375) 
+   * [view commit](https://github.com/yahoo/elide/commit/bcff59867ec1d1d36cd696fca34ad1df66088f59) Bump mockito-core from 3.12.4 to 4.0.0 (#2369) 
+   * [view commit](https://github.com/yahoo/elide/commit/4598a96a3c67f3ba1ace62e9daa35aaf7dd0cb32) Bump maven-javadoc-plugin from 3.3.0 to 3.3.1 (#2298) 
+   * [view commit](https://github.com/yahoo/elide/commit/b55cc49652543c18600a616174032d855d3a34a3) Bump hibernate5.version from 5.5.5.Final to 5.6.1.Final (#2384) 
+   * [view commit](https://github.com/yahoo/elide/commit/37ca4cb76545968f32e75bba490452ac1e119e2e) Bump dependency-check-maven from 6.3.2 to 6.4.1 (#2367) 
+   * [view commit](https://github.com/yahoo/elide/commit/63edada62c36bf004aa6920a31036b6b1cea116a) Bump spring-websocket from 5.3.11 to 5.3.12 (#2383) 
+   * [view commit](https://github.com/yahoo/elide/commit/eac97d952e0cb291651c339d84555617edf0f4c0) Bump spring.boot.version from 2.5.5 to 2.5.6 (#2386) 
+   * [view commit](https://github.com/yahoo/elide/commit/f87d43d0f891238dfe7c3b7fe677c3504eac5e3e) Bump jansi from 2.3.4 to 2.4.0 (#2385) 
+   * [view commit](https://github.com/yahoo/elide/commit/1906a6ead98423b52741f7f849f8946b019e1063) set bypasscache true for Async Export (#2387) 
+   * [view commit](https://github.com/yahoo/elide/commit/3815a731a36a49eb452cb787916ab09c07dd1c12) Bump commons-cli from 1.4 to 1.5.0 (#2388) 
+   
 ## 6.0.0-pr6
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/b88c19ef352c7bff44d4375d4a5f3e6b55054c3e) Aggregation Store: Make EntityHydrator stream results. (#2333) 
