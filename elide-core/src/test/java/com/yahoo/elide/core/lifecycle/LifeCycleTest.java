@@ -38,6 +38,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -52,9 +53,11 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.validation.ConstraintViolationException;
@@ -432,6 +435,43 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void testElidePatchRelationshipAddMultiple() {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel parent = mock(FieldTestModel.class);
+        FieldTestModel child1 = mock(FieldTestModel.class);
+        FieldTestModel child2 = mock(FieldTestModel.class);
+        FieldTestModel child3 = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"relationships\": { \"models\": { \"data\": [ { \"type\": \"testModel\", \"id\": \"2\" }, {\"type\": \"testModel\", \"id\": \"3\" } ] } } } }";
+
+        dictionary.setValue(parent, "id", "1");
+        dictionary.setValue(child1, "id", "2");
+        dictionary.setValue(child2, "id", "3");
+        dictionary.setValue(child3, "id", "4");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(isA(EntityProjection.class), eq("1"), isA(RequestScope.class))).thenReturn(parent);
+        when(tx.loadObject(isA(EntityProjection.class), eq("2"), isA(RequestScope.class))).thenReturn(child1);
+        when(tx.loadObject(isA(EntityProjection.class), eq("3"), isA(RequestScope.class))).thenReturn(child2);
+        when(tx.loadObject(isA(EntityProjection.class), eq("4"), isA(RequestScope.class))).thenReturn(child3);
+
+        DataStoreIterable iterable = new DataStoreIterableBuilder(List.of(child3)).build();
+        when(tx.getToManyRelation(any(), any(), isA(Relationship.class), isA(RequestScope.class))).thenReturn(iterable);
+
+        String contentType = JSONAPI_CONTENT_TYPE;
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/testModel/1", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+
+        verify(parent, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
+
+        verify(parent, times(4)).classCallback(eq(UPDATE), any());
+        verify(parent, never()).classAllFieldsCallback(any(), any());
+        verify(parent, never()).attributeCallback(any(), any(), any());
+    }
+
+    @Test
     public void testLegacyElidePatch() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
@@ -560,8 +600,6 @@ public class LifeCycleTest {
         verify(tx).commit(isA(RequestScope.class));
         verify(tx).close();
     }
-
-//TODO - these need to be rewritten for Elide 5.
 
     @Test
     public void testElidePatchExtensionCreate() throws Exception {
@@ -1094,9 +1132,8 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
 
-        //TODO - this should be only called once.  THis is called twice because the mock has a null collection.
-        verify(mockModel, times(2)).relationCallback(any(), any(), any());
-        verify(mockModel, times(2)).relationCallback(eq(UPDATE), eq(PRESECURITY), notNull());
+        verify(mockModel, times(1)).relationCallback(any(), any(), any());
+        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(PRESECURITY), notNull());
 
         verify(mockModel, never()).attributeCallback(any(), any(), any());
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
@@ -1114,9 +1151,8 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PREFLUSH));
 
-        //TODO - this should be only called once.  THis is called twice because the mock has a null collection.
-        verify(mockModel, times(2)).relationCallback(any(), any(), any());
-        verify(mockModel, times(2)).relationCallback(eq(UPDATE), eq(PREFLUSH), notNull());
+        verify(mockModel, times(1)).relationCallback(any(), any(), any());
+        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(PREFLUSH), notNull());
 
         clearInvocations(mockModel);
         scope.runQueuedPreCommitTriggers();
@@ -1126,9 +1162,8 @@ public class LifeCycleTest {
 
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
-        //TODO - this should be only called once.
-        verify(mockModel, times(2)).relationCallback(any(), any(), any());
-        verify(mockModel, times(2)).relationCallback(eq(UPDATE), eq(PRECOMMIT), notNull());
+        verify(mockModel, times(1)).relationCallback(any(), any(), any());
+        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(PRECOMMIT), notNull());
 
         clearInvocations(mockModel);
         scope.getPermissionExecutor().executeCommitChecks();
@@ -1139,9 +1174,8 @@ public class LifeCycleTest {
 
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-        //TODO - this should be only called once.
-        verify(mockModel, times(2)).relationCallback(any(), any(), any());
-        verify(mockModel, times(2)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
+        verify(mockModel, times(1)).relationCallback(any(), any(), any());
+        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
     }
 
     @Test
@@ -1151,13 +1185,15 @@ public class LifeCycleTest {
         RequestScope scope = buildRequestScope(dictionary, tx);
         when(tx.createNewObject(ClassType.of(PropertyTestModel.class), scope)).thenReturn(mockModel);
 
-        PropertyTestModel modelToAdd = mock(PropertyTestModel.class);
+        PropertyTestModel modelToAdd1 = mock(PropertyTestModel.class);
+        PropertyTestModel modelToAdd2 = mock(PropertyTestModel.class);
 
         //First we test adding to a newly created object.
         PersistentResource resource = PersistentResource.createObject(ClassType.of(PropertyTestModel.class), scope, Optional.of("1"));
-        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resourceToAdd1 = new PersistentResource(modelToAdd1, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resourceToAdd2 = new PersistentResource(modelToAdd2, scope.getUUIDFor(mockModel), scope);
 
-        resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
+        resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd1, resourceToAdd2)));
 
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
@@ -1171,7 +1207,7 @@ public class LifeCycleTest {
         resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
 
-        resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
+        resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd1, resourceToAdd2)));
 
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
@@ -1190,13 +1226,16 @@ public class LifeCycleTest {
 
         PropertyTestModel childModel1 = mock(PropertyTestModel.class);
         PropertyTestModel childModel2 = mock(PropertyTestModel.class);
+        PropertyTestModel childModel3 = mock(PropertyTestModel.class);
         when(childModel1.getId()).thenReturn("2");
         when(childModel2.getId()).thenReturn("3");
+        when(childModel3.getId()).thenReturn("4");
 
         //First we test removing from a newly created object.
         PersistentResource resource = PersistentResource.createObject(ClassType.of(PropertyTestModel.class), scope, Optional.of("1"));
         PersistentResource childResource1 = new PersistentResource(childModel1, "2", scope);
         PersistentResource childResource2 = new PersistentResource(childModel2, "3", scope);
+        PersistentResource childResource3 = new PersistentResource(childModel3, "3", scope);
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1, childResource2)));
 
@@ -1205,7 +1244,13 @@ public class LifeCycleTest {
         scope.runQueuedPostCommitTriggers();
 
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
-        verify(mockModel, times(2)).relationCallback(eq(CREATE), eq(POSTCOMMIT), notNull());
+
+        ArgumentCaptor<ChangeSpec> changes = ArgumentCaptor.forClass(ChangeSpec.class);
+        verify(mockModel, times(1)).relationCallback(eq(CREATE),
+                eq(POSTCOMMIT), changes.capture());
+
+        changes.getValue().getModified().equals(List.of(childModel1, childModel2));
+        changes.getValue().getOriginal().equals(List.of());
 
         //Build another resource, scope & reset the mock to do a pure update (no create):
         scope = buildRequestScope(dictionary, tx);
@@ -1221,14 +1266,19 @@ public class LifeCycleTest {
         when(tx.getToManyRelation(tx, mockModel, relationship, scope))
                 .thenReturn(new DataStoreIterableBuilder<Object>(Arrays.asList(childModel1, childModel2)).build());
 
-        resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1)));
+        when(mockModel.getModels()).thenReturn(new HashSet<>(Arrays.asList(childModel1, childModel2)));
+        resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1, childResource3)));
 
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
         scope.runQueuedPostCommitTriggers();
 
         verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
-        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
+
+        changes = ArgumentCaptor.forClass(ChangeSpec.class);
+        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), changes.capture());
+        changes.getValue().getModified().equals(List.of(childModel1, childModel3));
+        changes.getValue().getOriginal().equals(List.of(childModel1, childModel2));
     }
 
     @Test

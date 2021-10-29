@@ -724,30 +724,23 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         checkTransferablePermission(added);
 
-        Collection collection = (Collection) this.getValueUnchecked(fieldName);
-
-        if (collection == null) {
-            this.setValue(fieldName, mine);
-        }
-
         Set<Object> newRelationships = new LinkedHashSet<>();
         Set<Object> deletedRelationships = new LinkedHashSet<>();
 
         deleted
                 .stream()
                 .forEach(toDelete -> {
-                    delFromCollection(collection, fieldName, toDelete, false);
-                    deleteInverseRelation(fieldName, toDelete.getObject());
                     deletedRelationships.add(toDelete.getObject());
                 });
 
         added
                 .stream()
                 .forEach(toAdd -> {
-                    addToCollection(collection, fieldName, toAdd);
-                    addInverseRelation(fieldName, toAdd.getObject());
                     newRelationships.add(toAdd.getObject());
                 });
+
+        Collection collection = (Collection) this.getValueUnchecked(fieldName);
+        modifyCollection(collection, fieldName, newRelationships, deletedRelationships, true);
 
         if (!updated.isEmpty()) {
             this.markDirty();
@@ -830,14 +823,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         RelationshipType type = getRelationshipType(relationName);
 
-        mine.stream()
-                .forEach(toDelete -> {
-                    if (hasInverseRelation(relationName)) {
-                        deleteInverseRelation(relationName, toDelete.getObject());
-                        toDelete.markDirty();
-                    }
-                });
-
         if (type.isToOne()) {
             PersistentResource oldValue = IterableUtils.first(mine);
             if (oldValue != null && oldValue.getObject() != null) {
@@ -854,12 +839,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 Set<Object> deletedRelationships = new LinkedHashSet<>();
                 mine.stream()
                         .forEach(toDelete -> {
-                            delFromCollection(collection, relationName, toDelete, false);
-                            if (hasInverseRelation(relationName)) {
-                                toDelete.markDirty();
-                            }
                             deletedRelationships.add(toDelete.getObject());
                         });
+                modifyCollection(collection, relationName, Collections.emptySet(), deletedRelationships, true);
                 this.markDirty();
                 //hook for updateToManyRelation
                 transaction.updateToManyRelation(transaction, obj, relationName,
@@ -900,18 +882,19 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 //Nothing to do
                 return;
             }
-            delFromCollection((Collection) relation, fieldName, removeResource, false);
+            modifyCollection((Collection) relation, fieldName, Collections.emptySet(),
+                    Set.of(removeResource.getObject()), true);
         } else {
             if (relation == null || removeResource == null || !relation.equals(removeResource.getObject())) {
                 //Nothing to do
                 return;
             }
             this.nullValue(fieldName, removeResource);
-        }
 
-        if (hasInverseRelation(fieldName)) {
-            deleteInverseRelation(fieldName, removeResource.getObject());
-            removeResource.markDirty();
+            if (hasInverseRelation(fieldName)) {
+                deleteInverseRelation(fieldName, removeResource.getObject());
+                removeResource.markDirty();
+            }
         }
 
         if (!Objects.equals(original, modified)) {
@@ -965,7 +948,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Object relation = this.getValueUnchecked(fieldName);
 
         if (relation instanceof Collection) {
-            if (addToCollection((Collection) relation, fieldName, newRelation)) {
+            if (modifyCollection((Collection) relation, fieldName,
+                    Set.of(newRelation.getObject()), Collections.emptySet(), true)) {
                 this.markDirty();
             }
             //Hook for updateToManyRelation
@@ -1687,94 +1671,47 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         return getValue(getObject(), fieldName, requestScope);
     }
 
-    /**
-     * Adds a new element to a collection and tests update permission.
-     *
-     * @param collection     the collection
-     * @param collectionName the collection name
-     * @param toAdd          the to add
-     * @return True if added to collection false otherwise (i.e. element already in collection)
-     */
-    protected boolean addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
-        final Collection singleton = Collections.singleton(toAdd.getObject());
-        final Collection original = copyCollection(collection);
-        checkFieldAwareDeferPermissions(
-                UpdatePermission.class,
-                collectionName,
-                CollectionUtils.union(CollectionUtils.emptyIfNull(collection), singleton),
-                original);
-        if (collection == null) {
-            collection = Collections.singleton(toAdd.getObject());
-            Object value = getValueUnchecked(collectionName);
-            if (!Objects.equals(value, toAdd.getObject())) {
-                this.setValueChecked(collectionName, collection);
-                return true;
-            }
-        } else {
-            if (!collection.contains(toAdd.getObject())) {
-                collection.add(toAdd.getObject());
-
-                triggerUpdate(collectionName, original, collection);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Deletes an existing element in a collection and tests update and delete permissions.
-     *
-     * @param collection     the collection
-     * @param collectionName the collection name
-     * @param toDelete       the to delete
-     * @param isInverseCheck Whether or not the deletion is already coming from cleaning up an inverse.
-     *                       Without this parameter, we could find ourselves in a loop of checks.
-     *                       TODO: This is a band-aid for a quick fix. This should certainly be refactored.
-     */
-    protected void delFromCollection(
-            Collection collection,
+    protected boolean modifyCollection(
+            Collection toModify,
             String collectionName,
-            PersistentResource toDelete,
-            boolean isInverseCheck) {
-        final Collection original = copyCollection(collection);
+            Collection toAdd,
+            Collection toRemove,
+            boolean updateInverse) {
+
+        Collection copyOfOriginal = copyCollection(toModify);
+
+        Collection modified = CollectionUtils.union(CollectionUtils.emptyIfNull(toModify), toAdd);
+        modified = CollectionUtils.subtract(modified, toRemove);
+
         checkFieldAwareDeferPermissions(
                 UpdatePermission.class,
                 collectionName,
-                CollectionUtils.disjunction(collection, Collections.singleton(toDelete.getObject())),
-                original
-        );
+                modified,
+                copyOfOriginal);
 
-        String inverseField = getInverseRelationField(collectionName);
-        if (!isInverseCheck && !inverseField.isEmpty()) {
-            // Compute the ChangeSpec for the inverse relation and check whether or not we have access
-            // to apply this change to that field.
-            final Object originalValue = toDelete.getValueUnchecked(inverseField);
-            final Collection originalBidirectional;
-
-            if (originalValue instanceof Collection) {
-                originalBidirectional = copyCollection((Collection) originalValue);
-            } else {
-                originalBidirectional = Collections.singleton(originalValue);
+        if (updateInverse) {
+            for (Object adding : toAdd) {
+                addInverseRelation(collectionName, adding);
             }
 
-            final Collection removedBidrectional = CollectionUtils
-                    .disjunction(Collections.singleton(this.getObject()), originalBidirectional);
-
-            toDelete.checkFieldAwareDeferPermissions(
-                    UpdatePermission.class,
-                    inverseField,
-                    removedBidrectional,
-                    originalBidirectional
-            );
+            for (Object removing : toRemove) {
+                deleteInverseRelation(collectionName, removing);
+            }
         }
 
-        if (collection == null) {
-            return;
+        if (toModify == null) {
+            this.setValueChecked(collectionName, modified);
+            return true;
+        } else {
+            if (copyOfOriginal.equals(modified)) {
+                return false;
+            }
+            toModify.addAll(toAdd);
+            toModify.removeAll(toRemove);
+
+            triggerUpdate(collectionName, copyOfOriginal, modified);
+            return true;
         }
-
-        collection.remove(toDelete.getObject());
-
-        triggerUpdate(collectionName, original, collection);
     }
 
     /**
@@ -1814,7 +1751,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             }
 
             if (inverseRelation instanceof Collection) {
-                inverseResource.delFromCollection((Collection) inverseRelation, inverseField, this, true);
+                inverseResource.modifyCollection((Collection) inverseRelation, inverseField,
+                        Collections.emptySet(), Set.of(this.getObject()), false);
             } else if (inverseType.isAssignableFrom(this.getResourceType())) {
                 inverseResource.nullValue(inverseField, this);
             } else {
@@ -1864,7 +1802,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
             if (COLLECTION_TYPE.isAssignableFrom(inverseType)) {
                 if (inverseRelation != null) {
-                    inverseResource.addToCollection((Collection) inverseRelation, inverseName, this);
+                    inverseResource.modifyCollection((Collection) inverseRelation, inverseName,
+                            Set.of(this.getObject()), Collections.emptySet(), false);
                 } else {
                     inverseResource.setValueChecked(inverseName, Collections.singleton(this.getObject()));
                 }
