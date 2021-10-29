@@ -721,6 +721,160 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
          */
     }
 
+    @Test
+    /*
+     * The following are ids for a hypothetical relationship.
+     * GIVEN:
+     * all (all the ids in the DB) = 1,2,3,4,5
+     * mine (everything the current user has access to) = 1,2,3
+     * requested (what the user wants to change to) = 1,2,3
+     * THEN:
+     * deleted (what gets removed from the DB) = nothing
+     * final (what get stored in the relationship) = 1,2,3,4,5
+     * BECAUSE:
+     * notMine = all - mine
+     * updated = (requested UNION mine) - (requested INTERSECT mine)
+     * deleted = (mine - requested)
+     * final = (notMine) UNION requested
+     */
+    public void testSuccessfulManyToManyRelationshipNoopUpdate() throws Exception {
+        Parent parent = new Parent();
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+
+        Child child1 = newChild(1);
+        Child child2 = newChild(2);
+        Child child3 = newChild(3);
+        Child child4 = newChild(-4); //Not accessible to goodUser
+        Child child5 = newChild(-5); //Not accessible to goodUser
+
+        //All = (1,2,3,4,5)
+        //Mine = (1,2,3)
+        Set<Child> allChildren = new HashSet<>();
+        allChildren.add(child1);
+        allChildren.add(child2);
+        allChildren.add(child3);
+        allChildren.add(child4);
+        allChildren.add(child5);
+        parent.setChildren(allChildren);
+        parent.setSpouses(Sets.newHashSet());
+
+        when(tx.getToManyRelation(any(), eq(parent), any(), any())).thenReturn(new DataStoreIterableBuilder(allChildren).build());
+
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+
+        //Requested = (1,2,3)
+        List<Resource> idList = new ArrayList<>();
+        idList.add(new ResourceIdentifier("child", "3").castToResource());
+        idList.add(new ResourceIdentifier("child", "2").castToResource());
+        idList.add(new ResourceIdentifier("child", "1").castToResource());
+        Relationship ids = new Relationship(null, new Data<>(idList));
+
+        when(tx.loadObject(any(), eq(1L), any())).thenReturn(child1);
+        when(tx.loadObject(any(), eq(2L), any())).thenReturn(child2);
+        when(tx.loadObject(any(), eq(3L), any())).thenReturn(child3);
+        when(tx.loadObject(any(), eq(-4L), any())).thenReturn(child4);
+        when(tx.loadObject(any(), eq(-5L), any())).thenReturn(child5);
+
+        //Final set after operation = (1,2,3,4,5)
+        Set<Child> expected = new HashSet<>();
+        expected.add(child1);
+        expected.add(child2);
+        expected.add(child3);
+        expected.add(child4);
+        expected.add(child5);
+
+        boolean updated = parentResource.updateRelation("children", ids.toPersistentResources(goodScope));
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, never()).save(parent, goodScope);
+        verify(tx, never()).save(child1, goodScope);
+        verify(tx, never()).save(child2, goodScope);
+        verify(tx, never()).save(child4, goodScope);
+        verify(tx, never()).save(child5, goodScope);
+        verify(tx, never()).save(child3, goodScope);
+
+        assertFalse(updated, "Many-2-many relationship should not be updated.");
+        assertTrue(parent.getChildren().containsAll(expected), "All expected members were updated");
+        assertTrue(expected.containsAll(parent.getChildren()), "All expected members were updated");
+
+        /*
+         * No tests for reference integrity since the parent is the owner and
+         * this is a many to many relationship.
+         */
+    }
+
+    @Test
+    /*
+     * The following are ids for a hypothetical relationship.
+     * GIVEN:
+     * all (all the ids in the DB) = null
+     * mine (everything the current user has access to) = null
+     * requested (what the user wants to change to) = 1,2,3
+     * THEN:
+     * deleted (what gets removed from the DB) = nothing
+     * final (what get stored in the relationship) = 1,2,3
+     * BECAUSE:
+     * notMine = all - mine
+     * updated = (requested UNION mine) - (requested INTERSECT mine)
+     * deleted = (mine - requested)
+     * final = (notMine) UNION requested
+     */
+    public void testSuccessfulManyToManyRelationshipNullUpdate() throws Exception {
+        Parent parent = new Parent();
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+
+        Child child1 = newChild(1);
+        Child child2 = newChild(2);
+        Child child3 = newChild(3);
+
+        //All = null
+        //Mine = null
+        Set<Child> allChildren = new HashSet<>();
+        allChildren.add(child1);
+        allChildren.add(child2);
+        allChildren.add(child3);
+        parent.setChildren(null);
+        parent.setSpouses(Sets.newHashSet());
+
+        when(tx.getToManyRelation(any(), eq(parent), any(), any())).thenReturn(null);
+
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+
+        //Requested = (1,2,3)
+        List<Resource> idList = new ArrayList<>();
+        idList.add(new ResourceIdentifier("child", "3").castToResource());
+        idList.add(new ResourceIdentifier("child", "2").castToResource());
+        idList.add(new ResourceIdentifier("child", "1").castToResource());
+        Relationship ids = new Relationship(null, new Data<>(idList));
+
+        when(tx.loadObject(any(), eq(1L), any())).thenReturn(child1);
+        when(tx.loadObject(any(), eq(2L), any())).thenReturn(child2);
+        when(tx.loadObject(any(), eq(3L), any())).thenReturn(child3);
+
+        //Final set after operation = (1,2,3)
+        Set<Child> expected = new HashSet<>();
+        expected.add(child1);
+        expected.add(child2);
+        expected.add(child3);
+
+        boolean updated = parentResource.updateRelation("children", ids.toPersistentResources(goodScope));
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(child1, goodScope);
+        verify(tx, times(1)).save(child2, goodScope);
+        verify(tx, times(1)).save(child3, goodScope);
+
+        assertTrue(updated, "Many-2-many relationship should be updated.");
+        assertTrue(parent.getChildren().containsAll(expected), "All expected members were updated");
+        assertTrue(expected.containsAll(parent.getChildren()), "All expected members were updated");
+
+        /*
+         * No tests for reference integrity since the parent is the owner and
+         * this is a many to many relationship.
+         */
+    }
+
     /**
      * Verify that Relationship toMany cannot contain null resources, but toOne can.
      *
