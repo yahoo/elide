@@ -39,7 +39,22 @@ public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
             throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!FIELD_TYPE_PATTERN.matcher(input).matches() && !CLASS_NAME_FORMAT_PATTERN.matcher(input).matches()) {
+
+        boolean matches = false;
+        if (!FIELD_TYPE_PATTERN.matcher(input).matches()) {
+            if (CLASS_NAME_FORMAT_PATTERN.matcher(input).matches()) {
+                try {
+                    Class.forName(input);
+                    matches = true;
+                } catch (ClassNotFoundException e) {
+
+                }
+            }
+        } else {
+            matches = true;
+        }
+
+        if (!matches) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }

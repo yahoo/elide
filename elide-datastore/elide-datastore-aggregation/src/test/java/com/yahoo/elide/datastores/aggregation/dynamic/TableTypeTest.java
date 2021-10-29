@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
@@ -461,5 +462,20 @@ public class TableTypeTest {
         MetricFormula metricFormula = field.getAnnotation(MetricFormula.class);
 
         assertThrows(IllegalStateException.class, () -> metricFormula.maker());
+    }
+
+    @Test
+    void testEnumField() throws Exception {
+        Table testTable = Table.builder()
+                .dimension(Dimension.builder()
+                        .name("dim1")
+                        .type("com.yahoo.elide.modelconfig.model.Grain$GrainType")
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("dim1");
+        assertEquals(ClassType.of(Grain.GrainType.class), field.getType());
     }
 }

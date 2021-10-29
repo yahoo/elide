@@ -82,7 +82,7 @@
          },
          {
            name : teamRegion
-           type : TEXT
+           type : com.yahoo.elide.modelconfig.models.PlaceType
            definition : '{{playerTeam.region}}'
            tableSource: {
               table: PlayerStatsChild
