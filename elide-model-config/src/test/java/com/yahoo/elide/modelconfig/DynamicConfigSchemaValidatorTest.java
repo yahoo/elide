@@ -39,6 +39,15 @@ public class DynamicConfigSchemaValidatorTest {
     }
 
     @Test
+    public void testInvalidColumnType() throws Exception {
+        String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/invalid_column_type.hjson");
+        Exception e = assertThrows(IllegalStateException.class,
+                () -> testClass.verifySchema(Config.TABLE, jsonConfig, "invalid_column_type.hjson"));
+        String expectedMessage = "Field type [com.yahoo.elide.modelconfig.models.NoSuchType] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean] or a valid Java class name.";
+        assertTrue(e.getMessage().contains(expectedMessage));
+    }
+
+    @Test
     public void testValidVariableSchema() throws Exception {
         String jsonConfig = loadHjsonFromClassPath("/validator/valid/models/variables.hjson");
         assertTrue(testClass.verifySchema(Config.MODELVARIABLE, jsonConfig, "variables.hjson"));

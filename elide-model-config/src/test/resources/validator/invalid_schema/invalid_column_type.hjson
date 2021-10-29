@@ -1,0 +1,51 @@
+{
+  tables: [{
+      name: PlayerStats
+      namespace: PlayerNamespace
+      friendlyName: Player Statistics
+      table: player_stats
+      schema: gamedb
+
+      measures : [
+          {
+          name : highScore
+          friendlyName : High Score
+          type : INteGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          tags: ['PUBLIC']
+          },
+          {
+          name : newHighScore
+          type : INteGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          tags: ['PUBLIC']
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           friendlyName : Country ISO Code
+           type : TEXT
+           category : country detail
+           definition : '{{playerCountry.isoCode}}'
+           values : ['US', 'HK']
+           tags: ['PRIVATE']
+           cardinality: Small
+         },
+         {
+           name : teamRegion
+
+           //Should blow up here.
+           type : com.yahoo.elide.modelconfig.models.NoSuchType
+           definition : '{{playerTeam.region}}'
+           tableSource: {
+              table: PlayerStatsChild
+              namespace: PlayerNamespace
+              column: teamRegion
+           }
+         }
+      ]
+  }]
+}
