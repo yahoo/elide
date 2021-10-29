@@ -1934,7 +1934,9 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
                                 ),
                                 selections(
-                                        field("customerRegionType")
+                                        field("customerRegionType"),
+                                        field("customerRegionType2"),
+                                        field("customerRegionType3")
                                 )
                         )
                 )
@@ -1945,7 +1947,9 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 selections(
-                                        field("customerRegionType", "State")
+                                        field("customerRegionType", "STATE"),
+                                        field("customerRegionType2", "STATE"),
+                                        field("customerRegionType3", "STATE")
                                 )
                         )
                 )

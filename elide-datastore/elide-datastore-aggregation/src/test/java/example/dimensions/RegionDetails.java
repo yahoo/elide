@@ -31,17 +31,10 @@ import javax.persistence.Id;
 @Include(name = "regionDetails")
 public class RegionDetails {
 
-    enum PlaceType {
-        COUNTRY,
-        STATE,
-        COUNTY,
-        TOWN,
-        PLACE
-    }
-
     private String id;
     private String region;
     private PlaceType placeType;
+    private PlaceType ordinalPlaceType;
 
     @Id
     public String getId() {
@@ -70,5 +63,14 @@ public class RegionDetails {
 
     public void setPlaceType(PlaceType placeType) {
         this.placeType = placeType;
+    }
+
+    @Column(name = "ordinal_type")
+    public PlaceType getOrdinalPlaceType() {
+        return ordinalPlaceType;
+    }
+
+    public void setOrdinalPlaceType(PlaceType placeType) {
+        this.ordinalPlaceType = ordinalPlaceType;
     }
 }
