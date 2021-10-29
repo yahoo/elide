@@ -15,6 +15,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.security.ChangeSpec;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,6 +44,8 @@ import javax.persistence.OneToMany;
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreFlushHook.class, operation = UPDATE, phase = PREFLUSH)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
+
+@EqualsAndHashCode
 public class FieldTestModel {
 
     @Id

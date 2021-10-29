@@ -724,12 +724,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         checkTransferablePermission(added);
 
-        Collection collection = (Collection) this.getValueUnchecked(fieldName);
-
-        if (collection == null) {
-            this.setValue(fieldName, mine);
-        }
-
         Set<Object> newRelationships = new LinkedHashSet<>();
         Set<Object> deletedRelationships = new LinkedHashSet<>();
 
@@ -745,6 +739,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                     newRelationships.add(toAdd.getObject());
                 });
 
+        Collection collection = (Collection) this.getValueUnchecked(fieldName);
         modifyCollection(collection, fieldName, newRelationships, deletedRelationships, true);
 
         if (!updated.isEmpty()) {
