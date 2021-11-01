@@ -7,6 +7,7 @@ package com.yahoo.elide.modelconfig;
 
 import com.yahoo.elide.modelconfig.jsonformats.ElideArgumentNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideCardinalityFormatAttr;
+import com.yahoo.elide.modelconfig.jsonformats.ElideCustomFieldTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideGrainTypeFormatAttr;
@@ -40,6 +41,8 @@ public class DraftV4LibraryWithElideFormatAttr {
                         .addFormatAttribute(ElideArgumentNameFormatAttr.FORMAT_NAME, new ElideArgumentNameFormatAttr())
                         .addFormatAttribute(ElideCardinalityFormatAttr.FORMAT_NAME, new ElideCardinalityFormatAttr())
                         .addFormatAttribute(ElideFieldTypeFormatAttr.FORMAT_NAME, new ElideFieldTypeFormatAttr())
+                        .addFormatAttribute(ElideCustomFieldTypeFormatAttr.FORMAT_NAME,
+                                new ElideCustomFieldTypeFormatAttr())
                         .addFormatAttribute(ElideGrainTypeFormatAttr.FORMAT_NAME, new ElideGrainTypeFormatAttr())
                         .addFormatAttribute(ElideJoinTypeFormatAttr.FORMAT_NAME, new ElideJoinTypeFormatAttr())
                         .addFormatAttribute(ElideJoinKindFormatAttr.FORMAT_NAME, new ElideJoinKindFormatAttr())

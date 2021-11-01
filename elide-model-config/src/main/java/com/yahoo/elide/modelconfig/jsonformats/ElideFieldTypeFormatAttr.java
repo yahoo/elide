@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.modelconfig.jsonformats;
 
-import static com.yahoo.elide.modelconfig.jsonformats.JavaClassNameFormatAttr.CLASS_NAME_FORMAT_PATTERN;
 import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
@@ -22,16 +21,20 @@ import java.util.regex.Pattern;
  * </p>
  */
 public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
-    private static final Pattern FIELD_TYPE_PATTERN =
+    public static final Pattern FIELD_TYPE_PATTERN =
             Pattern.compile("^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean)$");
 
     public static final String FORMAT_NAME = "elideFieldType";
     public static final String TYPE_KEY = "elideFieldType.error.enum";
     public static final String TYPE_MSG = "Field type [%s] is not allowed. Supported value is one of "
-            + "[Integer, Decimal, Money, Text, Coordinate, Boolean] or a valid Java class name.";
+            + "[Integer, Decimal, Money, Text, Coordinate, Boolean].";
 
     public ElideFieldTypeFormatAttr() {
-        super(FORMAT_NAME, NodeType.STRING);
+        this(FORMAT_NAME);
+    }
+
+    public ElideFieldTypeFormatAttr(String formatName) {
+        super(formatName, NodeType.STRING);
     }
 
     @Override
@@ -39,22 +42,7 @@ public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
             throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-
-        boolean matches = false;
         if (!FIELD_TYPE_PATTERN.matcher(input).matches()) {
-            if (CLASS_NAME_FORMAT_PATTERN.matcher(input).matches()) {
-                try {
-                    Class.forName(input);
-                    matches = true;
-                } catch (ClassNotFoundException e) {
-
-                }
-            }
-        } else {
-            matches = true;
-        }
-
-        if (!matches) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }
