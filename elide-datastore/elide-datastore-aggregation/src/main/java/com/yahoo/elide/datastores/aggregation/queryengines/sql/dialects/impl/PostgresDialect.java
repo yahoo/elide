@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.dialect.PostgresqlSqlDialect;
-import org.apache.calcite.sql.dialect.RedshiftSqlDialect;
 
 /**
  * Postgres SQLDialect.
