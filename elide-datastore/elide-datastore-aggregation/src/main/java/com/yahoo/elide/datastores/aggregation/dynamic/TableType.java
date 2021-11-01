@@ -410,7 +410,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public ValueType type() {
-                    return ValueType.valueOf(argument.getType().toString());
+                    return ValueType.valueOf(argument.getType().toUpperCase(Locale.ROOT));
                 }
 
                 @Override
@@ -669,7 +669,7 @@ public class TableType implements Type<DynamicModelInstance> {
             });
         }
 
-        if (dimension.getType() == TIME) {
+        if (dimension.getType().toUpperCase(Locale.ROOT).equals(TIME)) {
             annotations.put(Temporal.class, new Temporal() {
 
                 @Override
@@ -822,7 +822,7 @@ public class TableType implements Type<DynamicModelInstance> {
     }
 
     private static Type getFieldType(String inputType) {
-        switch (inputType.toUpperCase(Locale.ROOT)  ) {
+        switch (inputType.toUpperCase(Locale.ROOT)) {
             case TIME:
                 return TIME_TYPE;
             case TEXT:
