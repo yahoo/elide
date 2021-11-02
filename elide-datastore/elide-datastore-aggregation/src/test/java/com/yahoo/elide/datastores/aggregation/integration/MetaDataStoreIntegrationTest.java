@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -166,7 +167,6 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.friendlyName", equalTo("Sales"))
                 .body("data.relationships.tables.data.id", contains(
                         "SalesNamespace_orderDetails",
-                        "SalesNamespace_customerDetails",
                         "SalesNamespace_deliveryDetails"));
         given()
                 .accept("application/vnd.api+json")
@@ -272,6 +272,50 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.relationships.arguments.data.id",
                         containsInAnyOrder("SalesNamespace_orderDetails.denominator"));
+    }
+
+    @Test
+    public void hiddenDimensionTest() {
+
+        //Non Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.zipCode")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        //Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.zipCodeHidden")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+
+        //Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/columns")
+                .then()
+                .body("data.id", not(contains("SalesNamespace_orderDetails.zipCodeHidden")))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void hiddenTableTest() {
+
+        //Non Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        //Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_performance")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test

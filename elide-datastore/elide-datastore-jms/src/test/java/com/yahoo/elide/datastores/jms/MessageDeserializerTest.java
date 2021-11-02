@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.type.ClassType;
+import com.google.gson.GsonBuilder;
 import example.Book;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,8 @@ public class MessageDeserializerTest {
         TextMessage message = mock(TextMessage.class);
         when(message.getText()).thenReturn("{ \"title\": \"Foo\", \"id\" : 123 }");
 
-        MessageDeserializer<Book> deserializer = new MessageDeserializer(ClassType.of(Book.class));
+        MessageDeserializer<Book> deserializer = new MessageDeserializer(ClassType.of(Book.class),
+                new GsonBuilder().create());
 
         Book book = deserializer.apply(message);
         assertEquals("Foo", book.getTitle());

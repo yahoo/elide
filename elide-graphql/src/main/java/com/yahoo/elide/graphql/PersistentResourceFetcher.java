@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
+import static com.yahoo.elide.graphql.RelationshipOp.FETCH;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -18,6 +19,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
 import graphql.language.OperationDefinition;
@@ -62,7 +64,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
         Map<String, Object> args = environment.getArguments();
 
         /* fetch current operation */
-        RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, RelationshipOp.FETCH);
+        RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, FETCH);
 
         /* build environment object, extracts required fields */
         Environment context = new Environment(environment, nonEntityDictionary);
@@ -72,7 +74,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             logContext(log, operation, context);
         }
 
-        if (operation != RelationshipOp.FETCH) {
+        if (operation != FETCH) {
             /* Don't allow write operations in a non-mutation request. */
             if (environment.getOperationDefinition().getOperation() != OperationDefinition.Operation.MUTATION) {
                 throw new BadRequestException("Data model writes are only allowed in mutations");
@@ -81,29 +83,44 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             filterSortPaginateSanityCheck(context);
         }
 
+        GraphQLContainer container;
+
         /* delegate request */
         switch (operation) {
-            case FETCH:
+            case FETCH: {
                 return fetchObjects(context);
-
-            case UPSERT:
-                return upsertObjects(context);
-
-            case UPDATE:
-                return updateObjects(context);
-
-            case DELETE:
-                return deleteObjects(context);
-
-            case REMOVE:
-                return removeObjects(context);
-
-            case REPLACE:
-                return replaceObjects(context);
+            }
+            case UPSERT: {
+                container = upsertObjects(context);
+                break;
+            }
+            case UPDATE: {
+                container = updateObjects(context);
+                break;
+            }
+            case DELETE: {
+                container = deleteObjects(context);
+                break;
+            }
+            case REMOVE: {
+                container = removeObjects(context);
+                break;
+            }
+            case REPLACE: {
+                container = replaceObjects(context);
+                break;
+            }
 
             default:
                 throw new UnsupportedOperationException("Unknown operation: " + operation);
         }
+
+        if (operation != FETCH) {
+            context.requestScope.runQueuedPreSecurityTriggers();
+            context.requestScope.runQueuedPreFlushTriggers();
+        }
+
+        return container;
     }
 
     /**
@@ -449,7 +466,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
      * @param context Environment encapsulating graphQL's request environment
      * @return set of deleted {@link PersistentResource} object(s)
      */
-    private Object deleteObjects(Environment context) {
+    private ConnectionContainer deleteObjects(Environment context) {
         /* sanity check for id and data argument w DELETE */
         if (context.data.isPresent()) {
             throw new BadRequestException("DELETE must not include data argument");
@@ -475,7 +492,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
      * @param context Environment encapsulating graphQL's request environment
      * @return set of removed {@link PersistentResource} object(s)
      */
-    private Object removeObjects(Environment context) {
+    private ConnectionContainer removeObjects(Environment context) {
         /* sanity check for id and data argument w REPLACE */
         if (context.data.isPresent()) {
             throw new BadRequestException("REPLACE must not include data argument");

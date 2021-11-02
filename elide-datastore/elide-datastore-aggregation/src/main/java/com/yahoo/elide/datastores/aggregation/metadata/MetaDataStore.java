@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
+import static com.yahoo.elide.datastores.aggregation.AggregationDataStore.IS_FIELD_HIDDEN;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.EMPTY;
@@ -22,7 +23,6 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
@@ -45,7 +45,6 @@ import lombok.Getter;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -153,8 +152,8 @@ public class MetaDataStore implements DataStore {
             String version = EntityDictionary.getModelVersion(table);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                     getHashMapDataStoreInitializer(scanner));
-            hashMapDataStore.getDictionary().bindEntity(table, Collections.singleton(Join.class));
-            this.metadataDictionary.bindEntity(table, Collections.singleton(Join.class));
+            hashMapDataStore.getDictionary().bindEntity(table, IS_FIELD_HIDDEN);
+            this.metadataDictionary.bindEntity(table, IS_FIELD_HIDDEN);
             this.modelsToBind.add(table);
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
         });
@@ -211,8 +210,8 @@ public class MetaDataStore implements DataStore {
             String version = EntityDictionary.getModelVersion(cls);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                     getHashMapDataStoreInitializer(scanner));
-            hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
-            this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
+            hashMapDataStore.getDictionary().bindEntity(cls, IS_FIELD_HIDDEN);
+            this.metadataDictionary.bindEntity(cls, IS_FIELD_HIDDEN);
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
 
             Include include = (Include) EntityDictionary.getFirstPackageAnnotation(cls, Arrays.asList(Include.class));
@@ -241,7 +240,7 @@ public class MetaDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         if (enableMetaDataStore) {
             metadataModelClasses.forEach(
-                cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
+                cls -> dictionary.bindEntity(cls, IS_FIELD_HIDDEN)
             );
         }
     }
@@ -265,8 +264,11 @@ public class MetaDataStore implements DataStore {
         String version = table.getVersion();
         EntityDictionary dictionary = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR).getDictionary();
         tables.put(dictionary.getEntityClass(table.getName(), version), table);
-        addMetaData(table, version);
-        table.getColumns().forEach(this::addColumn);
+        if (! table.isHidden()) {
+            addMetaData(table, version);
+        }
+        table.getAllColumns().stream()
+                .forEach(this::addColumn);
 
         table.getArgumentDefinitions().forEach(arg -> addArgument(arg, version));
     }
@@ -376,7 +378,9 @@ public class MetaDataStore implements DataStore {
      */
     private void addColumn(Column column) {
         String version = column.getVersion();
-        addMetaData(column, version);
+        if (! column.isHidden()) {
+            addMetaData(column, version);
+        }
 
         if (column instanceof TimeDimension) {
             TimeDimension timeDimension = (TimeDimension) column;

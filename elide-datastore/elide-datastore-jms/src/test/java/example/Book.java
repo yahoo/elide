@@ -16,6 +16,7 @@ import lombok.Data;
 import java.util.Set;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 
 @Include
 @Data
@@ -31,6 +32,10 @@ public class Book {
     @SubscriptionField
     @ManyToMany
     private Set<Author> authors;
+
+    @SubscriptionField
+    @ManyToOne
+    private Publisher publisher;
 
     //Nobody can read this.
     @ReadPermission(expression = "NONE")

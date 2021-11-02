@@ -22,7 +22,6 @@ import com.yahoo.elide.graphql.ExecutionResultSerializer;
 import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
 import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import graphql.ExecutionResult;
@@ -41,9 +40,6 @@ import javax.websocket.server.ServerEndpointConfig;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Configurator {
-
-    @Builder.Default
-    protected ObjectMapper mapper = new ObjectMapper();
 
     protected ConnectionFactory connectionFactory;
 
@@ -115,20 +111,18 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     }
 
     protected DataStore buildDataStore(EntityDictionary dictionary) {
-        mapper.registerModule(new SimpleModule("ExecutionResult")
-                .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())
-                .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())
-                .addSerializer(GraphQLError.class, new GraphQLErrorSerializer())
-                .addSerializer(ExecutionResult.class, new ExecutionResultSerializer(new GraphQLErrorSerializer()))
-        );
-
         return new JMSDataStore(
                 dictionary.getScanner(),
-                connectionFactory, dictionary,
-                mapper, -1);
+                connectionFactory, dictionary, -1);
     }
 
     protected SubscriptionWebSocket buildWebSocket(Elide elide) {
+        elide.getMapper().getObjectMapper().registerModule(new SimpleModule("ExecutionResult")
+            .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())
+            .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())
+            .addSerializer(GraphQLError.class, new GraphQLErrorSerializer())
+            .addSerializer(ExecutionResult.class, new ExecutionResultSerializer(new GraphQLErrorSerializer())));
+
         return SubscriptionWebSocket.builder()
                 .elide(elide)
                 .connectTimeoutMs(connectionTimeoutMs)

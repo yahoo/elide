@@ -75,10 +75,11 @@ public class InMemoryFilterExecutorTest {
                     Collections.emptyMap(),  //role checks
                     EntityDictionary.DEFAULT_INJECTOR,
                     CoerceUtil::lookup,
-                    Collections.emptySet(),  //excluded entities
+                    Collections.emptySet(), //excluded entities
                     DefaultClassScanner.getInstance()
             );
         }
+
         @Override
         public Type<?> lookupBoundClass(Type<?> objClass) {
             // Special handling for mocked Book class which has Entity annotation

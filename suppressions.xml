@@ -23,10 +23,8 @@
         <cve>CVE-2020-0822</cve>
     </suppress>
 
-    <!-- Tomcat - currently under analysis -->
-    <suppress until="2022-01-01Z">
+    <!-- Tomcat - Memory leak with websockets" -->
+    <suppress until="2021-12-31">
         <cve>CVE-2021-42340</cve>
     </suppress>
-
-
 </suppressions>

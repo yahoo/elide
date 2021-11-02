@@ -26,6 +26,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import example.dimensions.Country;
 import example.dimensions.SubCountry;
 import lombok.EqualsAndHashCode;
@@ -151,6 +152,13 @@ public class PlayerStats extends ParameterizedModel {
 
     public void setHighScore(final long highScore) {
         this.highScore = highScore;
+    }
+
+    @JsonIgnore
+    @MetricFormula("MAX({{$highScore}})")
+    @ColumnMeta(isHidden = true, description = "hidden metric", category = "Score Category")
+    public long getHiddenHighScore() {
+        return fetch("hiddenHighScore", highScore);
     }
 
     @MetricFormula("MIN({{$lowScore}})")
@@ -319,6 +327,24 @@ public class PlayerStats extends ParameterizedModel {
     public void setRecordedDate(final Time recordedDate) {
         this.recordedDate = recordedDate;
     }
+
+    /**
+     * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
+     *
+     * @return the date of the player session.
+     */
+    @JsonIgnore
+    @Temporal(grains = {
+            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.QUARTER, expression = QUARTER_FORMAT)
+    }, timeZone = "UTC")
+    @ColumnMeta(isHidden = true)
+    @DimensionFormula("{{$recordedDate}}")
+    public Time getHiddenRecordedDate() {
+        return fetch("hiddenRecordedDate", recordedDate);
+    }
+
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      *

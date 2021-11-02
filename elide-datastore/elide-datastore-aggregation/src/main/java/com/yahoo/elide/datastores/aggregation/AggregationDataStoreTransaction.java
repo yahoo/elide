@@ -6,6 +6,8 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -83,7 +85,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         QueryResult result = null;
         QueryResponse response = null;
         String cacheKey = null;
@@ -131,7 +133,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 entityProjection.getPagination().setPageTotals(result.getPageTotals());
             }
             response = new QueryResponse(HttpStatus.SC_OK, result.getData(), null);
-            return result.getData();
+            return new DataStoreIterableBuilder(result.getData()).build();
         } catch (HttpStatusException e) {
             response = new QueryResponse(e.getStatus(), null, e.getMessage());
             throw e;

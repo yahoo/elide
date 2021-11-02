@@ -48,7 +48,6 @@ public class ElideSubscriptionConfiguration {
                 .scanner(elide.getScanner())
                 .dictionary(elide.getElideSettings().getDictionary())
                 .connectionFactory(connectionFactory)
-                .mapper(elide.getMapper().getObjectMapper())
                 .build();
 
         scanner.bindLifecycleHooks();
@@ -80,7 +79,6 @@ public class ElideSubscriptionConfiguration {
                         .auditLogger(new Slf4jLogger())
                         .verboseErrors(config.isVerboseErrors())
                         .errorMapper(errorMapper)
-                        .mapper(mapper.getObjectMapper())
                         .build())
                 .build();
     }

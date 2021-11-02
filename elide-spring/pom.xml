@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>6.0.0-pr6-SNAPSHOT</version>
+        <version>6.0.0-pr8-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -40,8 +40,8 @@
 
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
-        <spring.boot.version>2.5.4</spring.boot.version>
-        <groovy.version>3.0.8</groovy.version>
+        <spring.boot.version>2.5.6</spring.boot.version>
+        <groovy.version>3.0.9</groovy.version>
     </properties>
 
     <modules>
@@ -54,7 +54,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-websocket</artifactId>
-                <version>5.3.10</version>
+                <version>5.3.12</version>
             </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>

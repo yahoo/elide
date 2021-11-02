@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.ALL_OPERATIONS;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -27,9 +28,6 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.collections.MapUtils;
-import io.reactivex.Observable;
-import io.reactivex.subjects.PublishSubject;
-import io.reactivex.subjects.ReplaySubject;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -76,9 +74,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final UUID requestId;
     private final Map<String, FilterExpression> expressionsByType;
 
-    private PublishSubject<CRUDEvent> lifecycleEvents;
-    private Observable<CRUDEvent> distinctLifecycleEvents;
-    private ReplaySubject<CRUDEvent> queuedLifecycleEvents;
+    private LinkedHashSet<CRUDEvent> eventQueue;
 
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
@@ -107,10 +103,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                         UUID requestId,
                         ElideSettings elideSettings) {
         this.apiVersion = apiVersion;
-        this.lifecycleEvents = PublishSubject.create();
-        this.distinctLifecycleEvents = lifecycleEvents.distinct();
-        this.queuedLifecycleEvents = ReplaySubject.create();
-        this.distinctLifecycleEvents.subscribe(queuedLifecycleEvents);
+        this.eventQueue = new LinkedHashSet<>();
 
         this.path = path;
         this.baseUrlEndPoint = baseUrlEndPoint;
@@ -137,7 +130,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.requestHeaders = MapUtils.isEmpty(requestHeaders)
                 ? Collections.emptyMap()
                 : requestHeaders;
-        registerPreSecurityObservers();
 
         this.sparseFields = parseSparseFields(getQueryParams());
 
@@ -218,10 +210,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
         this.elideSettings = outerRequestScope.elideSettings;
-        this.lifecycleEvents = outerRequestScope.lifecycleEvents;
-        this.distinctLifecycleEvents = outerRequestScope.distinctLifecycleEvents;
+        this.eventQueue = outerRequestScope.eventQueue;
         this.updateStatusCode = outerRequestScope.updateStatusCode;
-        this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
         this.requestId = outerRequestScope.requestId;
         this.sparseFields = outerRequestScope.sparseFields;
     }
@@ -326,115 +316,59 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         return returnMap;
     }
 
+    private void notifySubscribers(
+            LifeCycleHookBinding.Operation operation,
+            LifeCycleHookBinding.TransactionPhase phase
+    ) {
+        LifecycleHookInvoker invoker = new LifecycleHookInvoker(dictionary, operation, phase);
+
+        this.eventQueue.stream()
+                .filter(event -> event.getEventType().equals(operation))
+                .forEach(event -> {
+                    invoker.onNext(event);
+                });
+    }
+
     /**
      * Run queued pre-security lifecycle triggers.
      */
     public void runQueuedPreSecurityTriggers() {
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, false))
-                .throwOnError();
+        notifySubscribers(LifeCycleHookBinding.Operation.CREATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY);
     }
 
     /**
      * Run queued pre-flush lifecycle triggers.
      */
     public void runQueuedPreFlushTriggers() {
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
-                .throwOnError();
+        runQueuedPreFlushTriggers(ALL_OPERATIONS);
+    }
 
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.UPDATE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.DELETE,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.READ,
-                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
-                .throwOnError();
+    /**
+     * Run queued pre-flush lifecycle triggers.
+     * @param operations List of operations to run pre-flush triggers for.
+     */
+    public void runQueuedPreFlushTriggers(LifeCycleHookBinding.Operation[] operations) {
+        for (LifeCycleHookBinding.Operation op : operations) {
+            notifySubscribers(op, LifeCycleHookBinding.TransactionPhase.PREFLUSH);
+        }
     }
 
     /**
      * Run queued pre-commit lifecycle triggers.
      */
     public void runQueuedPreCommitTriggers() {
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.UPDATE,
-                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.DELETE,
-                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.READ,
-                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
-                .throwOnError();
+        for (LifeCycleHookBinding.Operation op : ALL_OPERATIONS) {
+            notifySubscribers(op, LifeCycleHookBinding.TransactionPhase.PRECOMMIT);
+        }
     }
 
     /**
      * Run queued post-commit lifecycle triggers.
      */
     public void runQueuedPostCommitTriggers() {
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.UPDATE,
-                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.DELETE,
-                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
-                .throwOnError();
-
-        this.queuedLifecycleEvents
-                .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.READ,
-                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
-                .throwOnError();
+        for (LifeCycleHookBinding.Operation op : ALL_OPERATIONS) {
+            notifySubscribers(op, LifeCycleHookBinding.TransactionPhase.POSTCOMMIT);
+        }
     }
 
     /**
@@ -444,9 +378,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param crudAction CRUD action
      */
     protected void publishLifecycleEvent(PersistentResource<?> resource, LifeCycleHookBinding.Operation crudAction) {
-        lifecycleEvents.onNext(
-                    new CRUDEvent(crudAction, resource, PersistentResource.CLASS_NO_FIELD, Optional.empty())
-        );
+        publishLifecycleEvent(new CRUDEvent(crudAction, resource, PersistentResource.CLASS_NO_FIELD, Optional.empty()));
     }
 
     /**
@@ -461,9 +393,23 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                                          String fieldName,
                                          LifeCycleHookBinding.Operation crudAction,
                                          Optional<ChangeSpec> changeSpec) {
-        lifecycleEvents.onNext(
-                    new CRUDEvent(crudAction, resource, fieldName, changeSpec)
-        );
+        publishLifecycleEvent(new CRUDEvent(crudAction, resource, fieldName, changeSpec));
+    }
+
+    protected void publishLifecycleEvent(CRUDEvent event) {
+        if (! eventQueue.contains(event)) {
+            if (event.getEventType().equals(LifeCycleHookBinding.Operation.DELETE)
+                    || event.getEventType().equals(LifeCycleHookBinding.Operation.UPDATE)) {
+
+                LifecycleHookInvoker invoker = new LifecycleHookInvoker(dictionary,
+                        event.getEventType(),
+                        LifeCycleHookBinding.TransactionPhase.PRESECURITY);
+
+                invoker.onNext(event);
+            }
+
+            eventQueue.add(event);
+        }
     }
 
     public void saveOrCreateObjects() {
@@ -509,27 +455,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
 
     private String getInheritanceKey(String subClass, String superClass) {
         return subClass + "!" + superClass;
-    }
-
-    private void registerPreSecurityObservers() {
-
-        this.distinctLifecycleEvents
-                .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.READ,
-                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
-
-        this.distinctLifecycleEvents
-                .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.UPDATE,
-                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
-
-        this.distinctLifecycleEvents
-                .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary,
-                        LifeCycleHookBinding.Operation.DELETE,
-                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
     }
 
     @Override

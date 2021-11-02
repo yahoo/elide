@@ -116,7 +116,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
         store = new JpaDataStore(
                 () -> emf.createEntityManager(),
-                entityManager -> new NonJtaTransaction(entityManager, txCancel, logger, delegateToInMemoryStore)
+                entityManager -> new NonJtaTransaction(entityManager, txCancel, logger, delegateToInMemoryStore, false)
         );
     }
 

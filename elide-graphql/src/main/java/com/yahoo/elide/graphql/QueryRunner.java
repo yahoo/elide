@@ -57,6 +57,7 @@ public class QueryRunner {
     private GraphQL api;
     private String apiVersion;
 
+
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
     private static final String VARIABLES = "variables";
@@ -237,14 +238,18 @@ public class QueryRunner {
                                                 String graphQLDocument, GraphQLQuery query, UUID requestId,
                                                 Map<String, List<String>> requestHeaders) {
         boolean isVerbose = false;
-        try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+        String queryText = query.getQuery();
+        boolean isMutation = isMutation(queryText);
+
+        try (DataStoreTransaction tx = isMutation
+                ? elide.getDataStore().beginTransaction()
+                : elide.getDataStore().beginReadTransaction()) {
+
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (query.getQuery() == null || query.getQuery().isEmpty()) {
                 return ElideResponse.builder().responseCode(HttpStatus.SC_BAD_REQUEST)
                         .body("A `query` key is required.").build();
             }
-
-            String queryText = query.getQuery();
 
             // get variables from request for constructing entityProjections
             Map<String, Object> variables = query.getVariables();
@@ -273,9 +278,8 @@ public class QueryRunner {
             ExecutionResult result = api.execute(executionInput);
 
             tx.preCommit(requestScope);
-            requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            if (isMutation(queryText)) {
+            if (isMutation) {
                 if (!result.getErrors().isEmpty()) {
                     HashMap<String, Object> abortedResponseObject = new HashMap<>();
                     abortedResponseObject.put("errors", result.getErrors());
@@ -286,7 +290,7 @@ public class QueryRunner {
                 }
                 requestScope.saveOrCreateObjects();
             }
-            requestScope.runQueuedPreFlushTriggers();
+
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();

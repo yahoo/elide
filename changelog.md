@@ -1,4 +1,57 @@
 # Change Log
+## 6.0.0-pr7
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f652404f0a26657addc821e911a6c61f8159a500) Only check preflush hooks for GraphQL mutations (#2371) 
+   * [view commit](https://github.com/yahoo/elide/commit/1bec9a04edb9917b34a9d168a3bec98f04fa8cad) Changing to Create Preflush (#2379) 
+   * [view commit](https://github.com/yahoo/elide/commit/6a54e45f4e0ebd214003a169b7eaa7244051d366) Sort in memory for computed properties (#2380) 
+   * [view commit](https://github.com/yahoo/elide/commit/5026c6bed03affed67f395a6bb9e4b6206dc62e5) Removing READ life cycle hooks. (#2381)
+   * [view commit](https://github.com/yahoo/elide/commit/844329422ed1edbcc563222b7e58c2ff861dd503) Adding test for #2376 (#2378) 
+   * [view commit](https://github.com/yahoo/elide/commit/fa377c038f5f1bfd11bbd26d6a16a1691afd91e5) Bump spring-core from 5.3.9 to 5.3.12 (#2375) 
+   * [view commit](https://github.com/yahoo/elide/commit/bcff59867ec1d1d36cd696fca34ad1df66088f59) Bump mockito-core from 3.12.4 to 4.0.0 (#2369) 
+   * [view commit](https://github.com/yahoo/elide/commit/4598a96a3c67f3ba1ace62e9daa35aaf7dd0cb32) Bump maven-javadoc-plugin from 3.3.0 to 3.3.1 (#2298) 
+   * [view commit](https://github.com/yahoo/elide/commit/b55cc49652543c18600a616174032d855d3a34a3) Bump hibernate5.version from 5.5.5.Final to 5.6.1.Final (#2384) 
+   * [view commit](https://github.com/yahoo/elide/commit/37ca4cb76545968f32e75bba490452ac1e119e2e) Bump dependency-check-maven from 6.3.2 to 6.4.1 (#2367) 
+   * [view commit](https://github.com/yahoo/elide/commit/63edada62c36bf004aa6920a31036b6b1cea116a) Bump spring-websocket from 5.3.11 to 5.3.12 (#2383) 
+   * [view commit](https://github.com/yahoo/elide/commit/eac97d952e0cb291651c339d84555617edf0f4c0) Bump spring.boot.version from 2.5.5 to 2.5.6 (#2386) 
+   * [view commit](https://github.com/yahoo/elide/commit/f87d43d0f891238dfe7c3b7fe677c3504eac5e3e) Bump jansi from 2.3.4 to 2.4.0 (#2385) 
+   * [view commit](https://github.com/yahoo/elide/commit/1906a6ead98423b52741f7f849f8946b019e1063) set bypasscache true for Async Export (#2387) 
+   * [view commit](https://github.com/yahoo/elide/commit/3815a731a36a49eb452cb787916ab09c07dd1c12) Bump commons-cli from 1.4 to 1.5.0 (#2388) 
+   
+## 6.0.0-pr6
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/b88c19ef352c7bff44d4375d4a5f3e6b55054c3e) Aggregation Store: Make EntityHydrator stream results. (#2333) 
+   * [view commit](https://github.com/yahoo/elide/commit/6f26ba6377010a22403698d48d49ef2a4f897fde) Changing Oath to Yahoo in Copyright messages (#2340) 
+   * [view commit](https://github.com/yahoo/elide/commit/5064f8a5a351b1f77b8025f68b20efc1b76d101e) Elide 6 : Refactor DataStoreTransaction Interface. (#2334) 
+   * [view commit](https://github.com/yahoo/elide/commit/9a63da30302650b557d0b85059494ff8e8220b7b) Fixing toOne relationship bug for GraphQL subscriptions (#2335) 
+   * [view commit](https://github.com/yahoo/elide/commit/0183fe7fe8c5933f82a4ffc3000b7ee638f5f14c) Subscription serialization (#2339) 
+   * [view commit](https://github.com/yahoo/elide/commit/bc9729f22c40de5b864c52186ca2e130daba4637) Issue2337 (#2341) 
+   * [view commit](https://github.com/yahoo/elide/commit/8455b9b8531b2ce031ac5912c96c2c07ce0360bf) Change GraphQL Preflush Hook Invocation (#2332) 
+   * [view commit](https://github.com/yahoo/elide/commit/ca04a4a3c7da52734e31b134c5edbae7efd25a55) Revised JSON-API path grammar to accept colon, space, and ampersand i… (#2342) 
+   * [view commit](https://github.com/yahoo/elide/commit/91d7022c76c673da76df1614617709b7c593d60a) Bump caffeine from 3.0.3 to 3.0.4 (#2327) 
+   * [view commit](https://github.com/yahoo/elide/commit/cd5a7dcac2e525f2c1a2570efe686eb81c135a8d) Bump graphql-java from 17.2 to 17.3 (#2346) 
+   * [view commit](https://github.com/yahoo/elide/commit/47c56d0c2ebbd5410a50fdd39a652b8eeb581138) Bump groovy.version from 3.0.8 to 3.0.9 (#2293) 
+   * [view commit](https://github.com/yahoo/elide/commit/caca78e6bbbba3416cd6892d30c258bfabc0de54) Bump version.logback from 1.2.5 to 1.2.6 (#2324) 
+   * [view commit](https://github.com/yahoo/elide/commit/5dfa639152cb75e689c4b9b52db8bf4953843b1a) Bump artemis-server from 2.18.0 to 2.19.0 (#2349) 
+   * [view commit](https://github.com/yahoo/elide/commit/064d5a86fbbcc5ab927bd3645d5c85ea4139c59e) Bump artemis-jms-server from 2.18.0 to 2.19.0 (#2348) 
+   * [view commit](https://github.com/yahoo/elide/commit/374ffd8ba987171a08d10a0f6655dc4a67918963) Bump spring.boot.version from 2.5.4 to 2.5.5 (#2350) 
+   * [view commit](https://github.com/yahoo/elide/commit/1addd8824d337b690ec5e595a5c94b1fbd87d641) Bump swagger-core from 1.6.2 to 1.6.3 (#2351) 
+   * [view commit](https://github.com/yahoo/elide/commit/6bc5f42fb18b04e926064418268e6c9335150ef1) Bump ant from 1.10.11 to 1.10.12 (#2352) 
+   * [view commit](https://github.com/yahoo/elide/commit/e19227b84e5a372c4831dee7c52e6122c6ceec56) Bump artemis-jms-client-all from 2.18.0 to 2.19.0 (#2354) 
+   * [view commit](https://github.com/yahoo/elide/commit/0e4ee93ab2f55fb91abc34cd55271f60ea613da5) Bump calcite-core from 1.27.0 to 1.28.0 (#2355) 
+   * [view commit](https://github.com/yahoo/elide/commit/b5514565b12f35a6fcaa1216d2cba1b5afdad7a8) Bump metrics.version from 4.2.3 to 4.2.4 (#2356) 
+   * [view commit](https://github.com/yahoo/elide/commit/cbf6efaa0795cf3484ee2dc9789c519a916dd99b) Bump maven-scm-provider-gitexe from 1.11.3 to 1.12.0 (#2353) 
+   * [view commit](https://github.com/yahoo/elide/commit/0d6b0753567d86fca4f06d9bedfacf51816922ae) Bump checkstyle from 9.0 to 9.0.1 (#2358) 
+   * [view commit](https://github.com/yahoo/elide/commit/196db51c342cc129ab37df9b7727217c9e3b8814) Bump handlebars-helpers from 4.2.0 to 4.3.0 (#2359) 
+   * [view commit](https://github.com/yahoo/elide/commit/c4f422a2946de88e961be64b5f67821c5c41b137) Remove export pagination limit (#2362) 
+   * [view commit](https://github.com/yahoo/elide/commit/9660cad7a1479d6ce9d7698e57cbf7b40e6ad92c) Bump classgraph from 4.8.116 to 4.8.128 (#2363) 
+   * [view commit](https://github.com/yahoo/elide/commit/20b4961ecc51a2819a54e42e50746ed612a3dc5d) Bump spring-websocket from 5.3.10 to 5.3.11 (#2360) 
+   * [view commit](https://github.com/yahoo/elide/commit/40481bee942e3a2ba2cfb90b6350f00da76ed190) Bump maven-scm-api from 1.11.3 to 1.12.0 (#2361) 
+   * [view commit](https://github.com/yahoo/elide/commit/830b9f2a997eefcd677090875bede2e21e19f1f4) Support 'hidden' flag for analytic models and fields. (#2357) 
+   * [view commit](https://github.com/yahoo/elide/commit/c3ea3c6a165df84449d717979466b85db5e0a575) Bump micrometer-core from 1.7.3 to 1.7.5 (#2366) 
+   * [view commit](https://github.com/yahoo/elide/commit/db01f98dbec1f78d99d44880dc048a47ab74ba96) Bump lombok from 1.18.20 to 1.18.22 (#2364) 
+   * [view commit](https://github.com/yahoo/elide/commit/cca1dcc92cc1ff37a026d5bd08fd5f747d5b59cb) Bump guava from 30.1.1-jre to 31.0.1-jre (#2365) 
+
+
 ## 6.0.0-pr5
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/28c378c0c447923b67ab1674df50793480ed12df) Relaxing filter template matching to ignore aliases (#2322) 
@@ -41,6 +94,12 @@ The following packages havea been removed:
  - Legacy datastore packages elide-hibernate-3 and elide-hibernate-5 have been retired and can be replaced with the JPA data store.
  - The Elide bridgeable datastore has been removed.
  - The package elide-datastore-hibernate has been renamed to elide-datastore-jpql.   Internal package structure for the module was also changed.
+
+## 5.1.0
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/2bd8e22fba35aeabc8f00b9836364b06a5abeea0) UPdating screwdriver build 
+   * [view commit](https://github.com/yahoo/elide/commit/40d1413a725d61689892044e0ba6f21716cd5a84) Disabling OWASP checks for legacy build (Elide 5) 
+   * [view commit](https://github.com/yahoo/elide/commit/cad5a714fd4eb3ce7dc6e95d8b1dba5a7ebbd379) (Similar to https://github.com/yahoo/elide/pull/2342) Revised JSON-API path grammar to accept colon, space, and ampersand in ID fields (#2343) 
 
 ## 5.0.12
 **Features**
@@ -538,6 +597,12 @@ Because Elide 5 is a major release, we took time to reorganize the module & pack
    * elide-annotations has been absorbed into elide-core.
    * New modules were created for elide-async (async API), elide-model-config (the semantic layer), and elide-datastore/elide-datastore-aggregation (the analytics module).
    * Some classes in elide-core were reorganized into new packages.
+
+## 4.8.0
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/233591723cd04a3b6da54c5234a824712ca613b4) (Similar to https://github.com/yahoo/elide/pull/2342) Revised JSON-API path grammar to accept colon, space, and ampersand in ID fields (#2344) 
+   * [view commit](https://github.com/yahoo/elide/commit/f68bbce9a535e320929440b2408ea74b4c9edffc) Updating screwdriver build 
+   * [view commit](https://github.com/yahoo/elide/commit/69b3edc7f935a39133ced3a97a9a496d58cfafcc) Disabling OWASP checks for legacy build (Elide 4) 
 
 ## 4.7.2
 **Fixes**

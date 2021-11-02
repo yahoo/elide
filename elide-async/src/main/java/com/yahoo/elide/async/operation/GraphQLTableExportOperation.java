@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,12 +44,13 @@ public class GraphQLTableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public RequestScope getRequestScope(TableExport export, RequestScope scope, DataStoreTransaction tx) {
+    public RequestScope getRequestScope(TableExport export, RequestScope scope, DataStoreTransaction tx,
+            Map<String, List<String>> additionalRequestHeaders) {
         UUID requestId = UUID.fromString(export.getRequestId());
         User user = scope.getUser();
         String apiVersion = scope.getApiVersion();
         return new GraphQLRequestScope("", tx, user, apiVersion, getService().getElide().getElideSettings(),
-                null, requestId, Collections.emptyMap());
+                null, requestId, additionalRequestHeaders);
     }
 
     @Override
