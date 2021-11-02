@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.search;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -59,7 +60,7 @@ public class DataStoreLoadTest {
         dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Item.class);
 
-        filterParser = new RSQLFilterDialect(dictionary);
+        filterParser = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         DataStore mockStore = mock(DataStore.class);
         wrappedTransaction = mock(DataStoreTransaction.class);
@@ -105,7 +106,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, Lists.newArrayList());
+        assertNull(loaded);
 
         /* This query should hit the underlying store */
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());
@@ -240,7 +241,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, Lists.newArrayList());
+        assertNull(loaded);
 
         /* This query should hit the underlying store */
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());

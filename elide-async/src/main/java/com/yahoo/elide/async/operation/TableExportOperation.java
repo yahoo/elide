@@ -33,7 +33,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -62,13 +64,15 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
     @Override
     public AsyncAPIResult call() {
-        String apiVersion = scope.getApiVersion();
         log.debug("TableExport Object from request: {}", exportObj);
         Elide elide = service.getElide();
         TableExportResult exportResult = new TableExportResult();
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+            // Do Not Cache Export Results
+            Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
+            requestHeaders.put("bypasscache", new ArrayList<String>(Arrays.asList("true")));
 
-            RequestScope requestScope = getRequestScope(exportObj, scope, tx);
+            RequestScope requestScope = getRequestScope(exportObj, scope, tx, requestHeaders);
             Collection<EntityProjection> projections = getProjections(exportObj, requestScope);
             validateProjections(projections);
             EntityProjection projection = projections.iterator().next();
@@ -118,7 +122,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     /**
      * Export Table Data.
      * @param exportObj TableExport type object.
-     * @param prevScope RequestScope object.
+     * @param scope RequestScope object.
      * @param projection Entity projection.
      * @return Observable PersistentResource
      */
@@ -135,25 +139,25 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
             //TODO - we need to add the baseUrlEndpoint to the queryObject.
             //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(exportObj, scope, tx);
-            exportRequestScope.setEntityProjection(projection);
+            scope.setEntityProjection(projection);
 
             if (projection != null) {
-                results = PersistentResource.loadRecords(projection, Collections.emptyList(), exportRequestScope);
+                projection.setPagination(null);
+                results = PersistentResource.loadRecords(projection, Collections.emptyList(), scope);
             }
 
-            tx.preCommit(exportRequestScope);
-            exportRequestScope.runQueuedPreSecurityTriggers();
-            exportRequestScope.getPermissionExecutor().executeCommitChecks();
+            tx.preCommit(scope);
+            scope.runQueuedPreSecurityTriggers();
+            scope.getPermissionExecutor().executeCommitChecks();
 
-            tx.flush(exportRequestScope);
+            tx.flush(scope);
 
-            exportRequestScope.runQueuedPreCommitTriggers();
+            scope.runQueuedPreCommitTriggers();
 
             elide.getAuditLogger().commit();
-            tx.commit(exportRequestScope);
+            tx.commit(scope);
 
-            exportRequestScope.runQueuedPostCommitTriggers();
+            scope.runQueuedPostCommitTriggers();
         } catch (IOException e) {
             log.error("IOException during TableExport", e);
             throw new TransactionException(e);
@@ -170,9 +174,11 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param exportObj TableExport type object.
      * @param scope RequestScope from the original submission.
      * @param tx DataStoreTransaction.
+     * @param additionalRequestHeaders Additional Request Headers.
      * @return RequestScope Type Object
      */
-    public abstract RequestScope getRequestScope(TableExport exportObj, RequestScope scope, DataStoreTransaction tx);
+    public abstract RequestScope getRequestScope(TableExport exportObj, RequestScope scope, DataStoreTransaction tx,
+            Map<String, List<String>> additionalRequestHeaders);
 
     /**
      * Generate Download URL.

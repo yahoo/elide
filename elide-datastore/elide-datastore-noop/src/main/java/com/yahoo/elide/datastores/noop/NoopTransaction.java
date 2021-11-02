@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.noop;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.EntityProjection;
 import lombok.extern.slf4j.Slf4j;
@@ -104,10 +106,11 @@ public class NoopTransaction implements DataStoreTransaction {
      * @return a {@link Collections#singletonList} with a new persistent resource with id 1
      */
     @Override
-    public <T> Iterable<T> loadObjects(EntityProjection projection,
-                                        RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection projection,
+                                                RequestScope scope) {
         // Default behavior: load object 1 and return as an array
-        return Collections.singletonList(this.loadObject(projection, 1L, scope));
+        return new DataStoreIterableBuilder(
+                Collections.singletonList(this.loadObject(projection, 1L, scope))).build();
     }
 
     /**

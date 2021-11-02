@@ -26,6 +26,12 @@ public @interface ColumnMeta {
     String [] values() default {};
 
     /**
+     * Controls whether this column is exposed through the Metadata store.
+     * @return true or false.
+     */
+    boolean isHidden() default false;
+
+    /**
      * Whether or not querying this column requires a client provided filter.
      * @return The required filter template.
      */

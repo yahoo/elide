@@ -248,7 +248,7 @@ public class CanPaginateVisitor
             canPaginateClass = visitor.visit(classPermissions);
         }
 
-        List<String> fields = dictionary.getAllFields(resourceClass);
+        List<String> fields = dictionary.getAllExposedFields(resourceClass);
 
         boolean canPaginate = true;
         for (String field : fields) {

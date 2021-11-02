@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.0.0-pr5-SNAPSHOT</version>
+        <version>6.0.0-pr8-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,12 +44,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.0.0-pr5-SNAPSHOT</version>
+            <version>6.0.0-pr8-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.0.0-pr5-SNAPSHOT</version>
+            <version>6.0.0-pr8-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -59,12 +59,19 @@
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
-            <version>17.2</version>
+            <version>17.3</version>
         </dependency>
         <dependency>
             <groupId>javax.websocket</groupId>
             <artifactId>javax.websocket-api</artifactId>
             <version>1.1</version>
+        </dependency>
+
+        <!-- Subscription serialization -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.9</version>
         </dependency>
 
         <dependency>
@@ -89,7 +96,7 @@
          <dependency>
              <groupId>org.apache.ant</groupId>
              <artifactId>ant</artifactId>
-             <version>1.10.11</version>
+             <version>1.10.12</version>
             <scope>test</scope>
          </dependency>
 
@@ -113,6 +120,7 @@
             <artifactId>javax.persistence-api</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
@@ -124,7 +132,6 @@
             <version>1.5.0</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

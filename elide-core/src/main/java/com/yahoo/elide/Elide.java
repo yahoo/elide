@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Oath Inc.
+ * Copyright 2018, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -473,10 +473,10 @@ public class Elide {
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
+            requestScope.runQueuedPreFlushTriggers();
             if (!isReadOnly) {
                 requestScope.saveOrCreateObjects();
             }
-            requestScope.runQueuedPreFlushTriggers();
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();

@@ -17,6 +17,7 @@ import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import example.Author;
 import example.Book;
 import example.ChatBot;
+import example.Publisher;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -60,12 +61,13 @@ public class TestBinder extends AbstractBinder {
             @Override
             public Elide provide() {
 
-                HashMapDataStore inMemoryStore = new HashMapDataStore(Set.of(Book.class, Author.class, ChatBot.class));
+                HashMapDataStore inMemoryStore = new HashMapDataStore(
+                        Set.of(Book.class, Author.class, Publisher.class, ChatBot.class)
+                );
                 Elide elide = buildElide(inMemoryStore, dictionary);
 
                 SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
                         .connectionFactory(connectionFactory)
-                        .mapper(elide.getMapper().getObjectMapper())
                         .dictionary(elide.getElideSettings().getDictionary())
                         .scanner(elide.getScanner())
                         .build();
@@ -82,7 +84,7 @@ public class TestBinder extends AbstractBinder {
     }
 
     protected Elide buildElide(DataStore store, EntityDictionary dictionary) {
-        RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         return new Elide(new ElideSettingsBuilder(store)
                 .withAuditLogger(auditLogger)

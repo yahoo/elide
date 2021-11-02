@@ -7,6 +7,7 @@
 package com.yahoo.elide.async.integration.tests;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -27,7 +28,7 @@ public class AsyncDelayStoreTransaction extends TransactionWrapper {
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+    public DataStoreIterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         try {
             log.debug("LoadObjects Sleep for delay test");
 

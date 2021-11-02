@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -124,8 +124,8 @@ public interface ElideStandaloneSettings {
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withErrorMapper(getErrorMapper())
-                .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .withBaseUrl(getBaseUrl())
                 .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
                 .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
@@ -428,7 +428,7 @@ public interface ElideStandaloneSettings {
             EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true));
+                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true));
 
         return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
     }
@@ -441,7 +441,7 @@ public interface ElideStandaloneSettings {
     default DataStore getDataStore(EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true));
+                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true));
 
         return jpaDataStore;
     }

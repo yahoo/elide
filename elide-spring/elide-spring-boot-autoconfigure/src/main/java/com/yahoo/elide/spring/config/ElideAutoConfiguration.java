@@ -148,8 +148,8 @@ public class ElideAutoConfiguration {
                 .withJsonApiMapper(mapper)
                 .withDefaultMaxPageSize(settings.getMaxPageSize())
                 .withDefaultPageSize(settings.getPageSize())
-                .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .withAuditLogger(new Slf4jLogger())
                 .withBaseUrl(settings.getBaseUrl())
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
@@ -319,7 +319,7 @@ public class ElideAutoConfiguration {
                 entityManagerFactory::createEntityManager,
                 em -> new NonJtaTransaction(em, txCancel,
                         DEFAULT_LOGGER,
-                        settings.getJpaStore().isDelegateToInMemoryStore()));
+                        settings.getJpaStore().isDelegateToInMemoryStore(), true));
 
         if (isAggregationStoreEnabled(settings)) {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =

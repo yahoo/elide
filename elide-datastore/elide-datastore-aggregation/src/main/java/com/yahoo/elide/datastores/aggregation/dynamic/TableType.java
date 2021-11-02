@@ -13,7 +13,6 @@ import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DE
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
-import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Field;
@@ -44,6 +43,8 @@ import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 import org.apache.commons.lang3.StringUtils;
 
+import lombok.EqualsAndHashCode;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
@@ -61,6 +62,7 @@ import javax.persistence.Id;
 /**
  * A dynamic Elide model that wraps a deserialized HJSON table.
  */
+@EqualsAndHashCode
 public class TableType implements Type<DynamicModelInstance> {
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     private static final String SPACE = " ";
@@ -258,11 +260,7 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (Boolean.TRUE.equals(table.getHidden())) {
-            annotations.put(Exclude.class, new ExcludeAnnotation());
-        } else {
-            annotations.put(Include.class, getIncludeAnnotation(table));
-        }
+        annotations.put(Include.class, getIncludeAnnotation(table));
 
         if (table.getSql() != null && !table.getSql().isEmpty()) {
             annotations.put(FromSubquery.class, new FromSubquery() {
@@ -350,6 +348,11 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public boolean isHidden() {
+                return table.getHidden() != null && table.getHidden();
+            }
+
+            @Override
             public CardinalitySize size() {
                 if (table.getCardinality() == null || table.getCardinality().isEmpty()) {
                     return CardinalitySize.UNKNOWN;
@@ -429,10 +432,6 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Measure measure) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (Boolean.TRUE.equals(measure.getHidden())) {
-            annotations.put(Exclude.class, new ExcludeAnnotation());
-        }
-
         annotations.put(ColumnMeta.class, new ColumnMeta() {
             @Override
             public Class<? extends Annotation> annotationType() {
@@ -467,6 +466,11 @@ public class TableType implements Type<DynamicModelInstance> {
             @Override
             public String[] values() {
                 return new String[0];
+            }
+
+            @Override
+            public boolean isHidden() {
+                return measure.getHidden() != null && measure.getHidden();
             }
 
             @Override
@@ -570,10 +574,6 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (Boolean.TRUE.equals(dimension.getHidden())) {
-            annotations.put(Exclude.class, new ExcludeAnnotation());
-        }
-
         annotations.put(ColumnMeta.class, new ColumnMeta() {
             @Override
             public Class<? extends Annotation> annotationType() {
@@ -608,6 +608,11 @@ public class TableType implements Type<DynamicModelInstance> {
             @Override
             public String[] values() {
                 return dimension.getValues().toArray(new String[0]);
+            }
+
+            @Override
+            public boolean isHidden() {
+                return dimension.getHidden() != null && dimension.getHidden();
             }
 
             @Override
@@ -791,6 +796,11 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public boolean isHidden() {
+                return false;
+            }
+
+            @Override
             public String filterTemplate() {
                 return "";
             }
@@ -845,11 +855,9 @@ public class TableType implements Type<DynamicModelInstance> {
         return (str == null) ? null : NEWLINE.matcher(str).replaceAll(SPACE);
     }
 
-    private static final class ExcludeAnnotation implements Exclude {
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return Exclude.class;
-        }
+    @Override
+    public String toString() {
+        return String.format("TableType{ name=%s }", table.getGlobalName());
     }
 
     private static Include getIncludeAnnotation(Table table) {

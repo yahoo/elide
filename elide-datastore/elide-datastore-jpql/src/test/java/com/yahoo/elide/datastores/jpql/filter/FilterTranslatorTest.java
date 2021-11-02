@@ -43,7 +43,7 @@ public class FilterTranslatorTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
 
-        dialect = new RSQLFilterDialect(dictionary);
+        dialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
     }
 
     @Test

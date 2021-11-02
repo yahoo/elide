@@ -64,9 +64,9 @@ public class DependencyBinder extends ResourceConfig {
                         .withDefaultMaxPageSize(PaginationImpl.MAX_PAGE_LIMIT)
                         .withDefaultPageSize(PaginationImpl.DEFAULT_PAGE_LIMIT)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
-                        .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                         .withJoinFilterDialect(new DefaultFilterDialect(dictionary))
-                        .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                         .withSubqueryFilterDialect(new DefaultFilterDialect(dictionary))
                         .build());
 
