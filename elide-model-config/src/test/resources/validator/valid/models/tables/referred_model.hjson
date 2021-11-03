@@ -22,7 +22,7 @@
       [
         {
           name: region
-          type: TEXT
+          type: com.yahoo.elide.modelconfig.models.PlaceType
           definition: '{{region}}'
         }
       ]

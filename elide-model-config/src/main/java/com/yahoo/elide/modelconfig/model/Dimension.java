@@ -77,7 +77,7 @@ public class Dimension implements Named {
     private String cardinality;
 
     @JsonProperty("type")
-    private Type type;
+    private String type;
 
     @JsonProperty("grains")
     @Singular

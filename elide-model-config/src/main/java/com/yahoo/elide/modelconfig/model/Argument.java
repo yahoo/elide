@@ -44,7 +44,7 @@ public class Argument implements Named {
     private String description;
 
     @JsonProperty("type")
-    private Type type;
+    private String type;
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)

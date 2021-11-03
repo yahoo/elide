@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * </p>
  */
 public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
-    private static final Pattern FIELD_TYPE_PATTERN =
+    public static final Pattern FIELD_TYPE_PATTERN =
             Pattern.compile("^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean)$");
 
     public static final String FORMAT_NAME = "elideFieldType";
@@ -30,7 +30,11 @@ public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
             + "[Integer, Decimal, Money, Text, Coordinate, Boolean].";
 
     public ElideFieldTypeFormatAttr() {
-        super(FORMAT_NAME, NodeType.STRING);
+        this(FORMAT_NAME);
+    }
+
+    public ElideFieldTypeFormatAttr(String formatName) {
+        super(formatName, NodeType.STRING);
     }
 
     @Override

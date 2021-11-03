@@ -107,7 +107,7 @@ public class HandlebarsHydratorTest {
             + "         },\n"
             + "         {\n"
             + "           name : teamRegion\n"
-            + "           type : TEXT\n"
+            + "           type : com.yahoo.elide.modelconfig.models.PlaceType\n"
             + "           definition : '{{playerTeam.region}}'\n"
             + "           tableSource: {\n"
             + "              table: PlayerStatsChild\n"

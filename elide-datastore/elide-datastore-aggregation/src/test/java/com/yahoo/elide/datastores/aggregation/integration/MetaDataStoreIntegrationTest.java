@@ -560,4 +560,32 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueSourceType", equalTo("TABLE"))
                 .body("data.relationships.tableSource.data.id", equalTo("regionDetails.region"));
     }
+
+    @Test
+    public void testEnumDimensionTypes() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionType")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("customerRegionType"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionType2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("customerRegionType2"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionType3")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("customerRegionType3"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
+    }
 }

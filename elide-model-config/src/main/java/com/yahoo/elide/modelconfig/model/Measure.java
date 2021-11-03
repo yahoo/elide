@@ -70,7 +70,7 @@ public class Measure implements Named {
     private String definition;
 
     @JsonProperty("type")
-    private Type type;
+    private String type;
 
     @JsonProperty("maker")
     private String maker;

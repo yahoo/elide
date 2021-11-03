@@ -12,9 +12,16 @@ import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
+import static com.yahoo.elide.modelconfig.model.Type.BOOLEAN;
+import static com.yahoo.elide.modelconfig.model.Type.COORDINATE;
+import static com.yahoo.elide.modelconfig.model.Type.DECIMAL;
+import static com.yahoo.elide.modelconfig.model.Type.INTEGER;
+import static com.yahoo.elide.modelconfig.model.Type.MONEY;
+import static com.yahoo.elide.modelconfig.model.Type.TEXT;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Package;
@@ -403,7 +410,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public ValueType type() {
-                    return ValueType.valueOf(argument.getType().toString());
+                    return ValueType.valueOf(argument.getType().toUpperCase(Locale.ROOT));
                 }
 
                 @Override
@@ -662,7 +669,7 @@ public class TableType implements Type<DynamicModelInstance> {
             });
         }
 
-        if (dimension.getType() == TIME) {
+        if (dimension.getType().toUpperCase(Locale.ROOT).equals(TIME)) {
             annotations.put(Temporal.class, new Temporal() {
 
                 @Override
@@ -814,8 +821,8 @@ public class TableType implements Type<DynamicModelInstance> {
         return new FieldType("id", LONG_TYPE, annotations);
     }
 
-    private static Type getFieldType(com.yahoo.elide.modelconfig.model.Type inputType) {
-        switch (inputType) {
+    private static Type getFieldType(String inputType) {
+        switch (inputType.toUpperCase(Locale.ROOT)) {
             case TIME:
                 return TIME_TYPE;
             case TEXT:
@@ -831,7 +838,12 @@ public class TableType implements Type<DynamicModelInstance> {
             case COORDINATE:
                 return STRING_TYPE;
             default:
-                return STRING_TYPE;
+                try {
+                    Class<?> inputClass = Class.forName(inputType);
+                    return new ClassType(inputClass);
+                } catch (ClassNotFoundException e) {
+                    return STRING_TYPE;
+                }
         }
     }
 

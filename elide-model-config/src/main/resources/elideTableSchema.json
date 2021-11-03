@@ -326,7 +326,7 @@
                             "title": "Dimension field type",
                             "description": "The data type of the dimension field",
                             "type": "string",
-                            "format": "elideFieldType"
+                            "format": "elideCustomFieldType"
                         },
                         "values": {
                             "title": "Dimension values",

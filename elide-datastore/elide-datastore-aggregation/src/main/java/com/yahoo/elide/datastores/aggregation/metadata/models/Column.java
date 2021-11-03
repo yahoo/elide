@@ -198,6 +198,10 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
             return ValueType.TIME;
         }
 
+        if (fieldClass.isEnum()) {
+            return ValueType.TEXT;
+        }
+
         return ValueType.getScalarType(fieldClass);
     }
 

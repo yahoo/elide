@@ -73,7 +73,7 @@ public enum ValueType {
         .build();
 
     public static ValueType getScalarType(Type<?> fieldClass) {
-        return SCALAR_TYPES.get(fieldClass);
+        return SCALAR_TYPES.getOrDefault(fieldClass, TEXT);
     }
 
     public static Type<?> getType(ValueType valueType) {
