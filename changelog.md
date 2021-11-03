@@ -1,4 +1,18 @@
 # Change Log
+## 6.0.0
+**Overview**
+Official Elide 6 Release.  Changes since Elide 5 are summarized here [here](https://elide.io/pages/guide/v6/17-migration.html).
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/3d6107a429a60bb273675eb55aec35c4387f5636) Lifecycle events should trigger once for relationship updates (#2389) 
+   * [view commit](https://github.com/yahoo/elide/commit/7fcbc3ec80fb40bf267cd3a33074dce8e5d8e10b) Added a few additional tests around updating relationships (#2391) 
+   * [view commit](https://github.com/yahoo/elide/commit/e2c15ca498e105b501d63c7d295deeb80c61ab73) Bump gson from 2.8.8 to 2.8.9 (#2394) 
+   * [view commit](https://github.com/yahoo/elide/commit/3939bc4f1fdae70dd3cb8a92f962be544b81f39c) Bump classgraph from 4.8.128 to 4.8.129 (#2396) 
+   * [view commit](https://github.com/yahoo/elide/commit/27d2e82bbcd79d197265b6e7dd976344f02e43ed) Bump checkstyle from 9.0.1 to 9.1 (#2395) 
+   * [view commit](https://github.com/yahoo/elide/commit/5a63aad4d642d63fb8a398c31700b19eb4e3669f) Bump version.junit from 5.7.2 to 5.8.1 (#2326) 
+   * [view commit](https://github.com/yahoo/elide/commit/868f08abb047012f0bc08e1693a7b7cef8a273f0) Bump mockito-junit-jupiter from 3.12.1 to 3.12.4 (#2282) 
+   * [view commit](https://github.com/yahoo/elide/commit/4ce344f9bc00daddae70d77a6a5a6d1642de832b) Issue2376 (#2393) 
+
 ## 6.0.0-pr7
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/f652404f0a26657addc821e911a6c61f8159a500) Only check preflush hooks for GraphQL mutations (#2371) 
