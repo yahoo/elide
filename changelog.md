@@ -1,7 +1,7 @@
 # Change Log
 ## 6.0.0
 **Overview**
-Official Elide 6 Release.  Changes since Elide 5 are summarized here [here](https://elide.io/pages/guide/v6/17-migration.html).
+Official Elide 6 Release.  Elide 6 is compiled with Java 11 (as opposed to 8).  GraphQL subscription support has been added.  Other changes since Elide 5 are summarized here [here](https://elide.io/pages/guide/v6/17-migration.html).
 
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/3d6107a429a60bb273675eb55aec35c4387f5636) Lifecycle events should trigger once for relationship updates (#2389) 
