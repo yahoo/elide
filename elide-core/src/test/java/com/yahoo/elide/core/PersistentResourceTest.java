@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,6 +37,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.lifecycle.CRUDEvent;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -1805,7 +1808,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testUpdateComplexAttributeClone1() {
+    public void testUpdateComplexAttributeCloneWithHook() {
+        reset(bookUpdatePrice);
         Book book = new Book();
 
         Price originalPrice = new Price();
@@ -1831,10 +1835,17 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(book, goodScope);
+
+        ArgumentCaptor<CRUDEvent> eventCapture = ArgumentCaptor.forClass(CRUDEvent.class);
+        verify(bookUpdatePrice, times(1)).execute(eq(UPDATE), eq(PRESECURITY),
+                eventCapture.capture());
+
+        assertEquals(originalPrice, eventCapture.getValue().getChanges().get().getOriginal());
+        assertEquals(book.getPrice(), eventCapture.getValue().getChanges().get().getModified());
     }
 
     @Test
-    public void testUpdateComplexAttributeClone2() {
+    public void testUpdateNestedComplexAttributeClone() {
         Company company = newCompany("abc");
         Address originalAddress = new Address();
         originalAddress.setStreet1("street1");
