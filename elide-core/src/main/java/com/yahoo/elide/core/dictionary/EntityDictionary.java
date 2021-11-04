@@ -2130,6 +2130,37 @@ public class EntityDictionary {
         return canBind(attributeType);
     }
 
+    public Object deepCopy(Object object, RequestScope scope) {
+        if (object == null) {
+            return null;
+        }
+
+        Type<?> type = getType(object);
+        EntityBinding binding = getEntityBinding(type);
+
+        Preconditions.checkState(! binding.equals(EMPTY_BINDING), "Model not found.");
+        Preconditions.checkState(binding.apiRelationships.isEmpty(), "Deep copy of relationships not supported");
+
+        Object copy;
+        try {
+            copy = type.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("Cannot perform deep copy of " + type.getName(), e);
+        }
+
+        binding.apiAttributes.forEach(attribute -> {
+            Object newValue;
+            if (! isComplexAttribute(type, attribute)) {
+                newValue = getValue(object, attribute, scope);
+            } else {
+                newValue = deepCopy(getValue(object, attribute, scope), scope);
+            }
+            setValue(copy, attribute, newValue);
+        });
+
+        return copy;
+    }
+
     private void bindHookMethod(
             EntityBinding binding,
             Method method,

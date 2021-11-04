@@ -8,6 +8,7 @@ package com.yahoo.elide.core;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 
 import com.yahoo.elide.annotation.Audit;
@@ -22,6 +23,7 @@ import com.yahoo.elide.core.audit.LogMessage;
 import com.yahoo.elide.core.audit.LogMessageImpl;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -584,7 +586,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 this.setValueChecked(fieldName, coercedNewValue);
             } else {
                 if (newVal instanceof Map) {
-                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, val, requestScope);
+                    Object copy = deepCopy(val);
+                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, copy, requestScope);
+
+                    dictionary.setValue(obj, fieldName, copy);
+                    triggerUpdate(fieldName, val, copy);
                 } else {
                     this.setValueChecked(fieldName, coercedNewValue);
                 }
@@ -628,6 +634,37 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 }
             }
         }
+    }
+
+    private Object deepCopy(Object object) {
+        if (object == null) {
+            return null;
+        }
+
+        Type<?> type = dictionary.getType(object);
+        EntityBinding binding = dictionary.getEntityBinding(type);
+
+        Preconditions.checkState(! binding.equals(EMPTY_BINDING), "Model not found.");
+        Preconditions.checkState(binding.apiRelationships.isEmpty(), "Deep copy of relationships not supported");
+
+        Object copy;
+        try {
+            copy = type.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("Cannot perform deep copy of " + type.getName(), e);
+        }
+
+        binding.apiAttributes.forEach(attribute -> {
+            Object newValue;
+            if (! dictionary.isComplexAttribute(type, attribute)) {
+                newValue = dictionary.getValue(object, attribute, requestScope);
+            } else {
+                newValue = deepCopy(getValue(object, attribute, requestScope));
+            }
+            dictionary.setValue(copy, attribute, newValue);
+        });
+
+        return copy;
     }
 
     /**
