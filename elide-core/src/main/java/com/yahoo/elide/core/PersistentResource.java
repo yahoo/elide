@@ -9,6 +9,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.getType;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 
 import com.yahoo.elide.annotation.Audit;
@@ -126,7 +127,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             @NonNull RequestScope scope
     ) {
         this.obj = obj;
-        this.type = EntityDictionary.getType(obj);
+        this.type = getType(obj);
         this.uuid = Optional.ofNullable(id);
         this.lineage = parent != null
                 ? new ResourceLineage(parent.lineage, parent, parentRelationship)
@@ -498,7 +499,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     private static <A extends Annotation> ExpressionResult checkUserPermission(
             Class<A> annotationClass, Object obj, RequestScope requestScope, Set<String> requestedFields) {
         return requestScope.getPermissionExecutor()
-                .checkUserPermissions(EntityDictionary.getType(obj), annotationClass, requestedFields);
+                .checkUserPermissions(getType(obj), annotationClass, requestedFields);
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
@@ -582,13 +583,22 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         if (!Objects.equals(val, coercedNewValue)) {
             if (val == null
                     || coercedNewValue == null
-                    || !dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
+                    || !dictionary.isComplexAttribute(getType(obj), fieldName)) {
                 this.setValueChecked(fieldName, coercedNewValue);
             } else {
                 if (newVal instanceof Map) {
-                    Object copy = deepCopy(val);
+
+                    //We perform a copy here for two reasons:
+                    //1. We want the original so we can dispatch update life cycle hooks.
+                    //2. Some stores (Hibernate) won't notice changes to an attribute if the attribute
+                    //has a @TypeDef annotation unless we modify the reference in the parent object.  This rules
+                    //out an update in place strategy.
+                    Object copy = copyComplexAttribute(val);
+
+                    //Update the copy.
                     this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, copy, requestScope);
 
+                    //Set the copy.
                     dictionary.setValue(obj, fieldName, copy);
                     triggerUpdate(fieldName, val, copy);
                 } else {
@@ -597,7 +607,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             }
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
-            if (dictionary.isAttribute(EntityDictionary.getType(obj), fieldName)) {
+            if (dictionary.isAttribute(getType(obj), fieldName)) {
                 transaction.setAttribute(obj, Attribute.builder()
                         .name(fieldName)
                         .type(fieldClass)
@@ -636,12 +646,17 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         }
     }
 
-    private Object deepCopy(Object object) {
+    /**
+     * Copies a complex attribute.  If the attribute fields are complex, recurses to perform a deep copy.
+     * @param object The attribute to copy.
+     * @return The copy.
+     */
+    private Object copyComplexAttribute(Object object) {
         if (object == null) {
             return null;
         }
 
-        Type<?> type = dictionary.getType(object);
+        Type<?> type = getType(object);
         EntityBinding binding = dictionary.getEntityBinding(type);
 
         Preconditions.checkState(! binding.equals(EMPTY_BINDING), "Model not found.");
@@ -656,10 +671,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         binding.apiAttributes.forEach(attribute -> {
             Object newValue;
+            Object oldValue = dictionary.getValue(object, attribute, requestScope);
             if (! dictionary.isComplexAttribute(type, attribute)) {
-                newValue = dictionary.getValue(object, attribute, requestScope);
+                newValue = oldValue;
             } else {
-                newValue = deepCopy(getValue(object, attribute, requestScope));
+                newValue = copyComplexAttribute(oldValue);
             }
             dictionary.setValue(copy, attribute, newValue);
         });
@@ -1426,7 +1442,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     @Override
     @JsonIgnore
     public Type<T> getResourceType() {
-        return (Type) dictionary.lookupBoundClass(EntityDictionary.getType(obj));
+        return (Type) dictionary.lookupBoundClass(getType(obj));
     }
 
     /**
