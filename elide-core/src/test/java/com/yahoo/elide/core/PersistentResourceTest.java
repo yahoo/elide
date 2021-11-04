@@ -72,6 +72,7 @@ import example.NoReadEntity;
 import example.NoShareEntity;
 import example.NoUpdateEntity;
 import example.Parent;
+import example.Price;
 import example.Right;
 import example.Shape;
 import example.nontransferable.ContainerWithPackageShare;
@@ -90,10 +91,12 @@ import org.mockito.ArgumentCaptor;
 import io.reactivex.Observable;
 import nocreate.NoCreateEntity;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -1796,6 +1799,76 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parentResource.updateAttribute("address", address);
 
         assertEquals(address, company.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(company, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeClone1() {
+        Book book = new Book();
+
+        Price originalPrice = new Price();
+        originalPrice.setUnits(new BigDecimal(1.0));
+        originalPrice.setCurrency(Currency.getInstance("USD"));
+        book.setPrice(originalPrice);
+
+        Map<String, Object> newPrice = new HashMap<>();
+        newPrice.put("units", new BigDecimal(2.0));
+        newPrice.put("currency", Currency.getInstance("CNY"));
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Book> bookResource = new PersistentResource<>(book, "1", goodScope);
+        bookResource.updateAttribute("price", newPrice);
+
+        //check that original value was unmodified.
+        assertEquals(Currency.getInstance("USD"), originalPrice.getCurrency());
+        assertEquals(new BigDecimal(1.0), originalPrice.getUnits());
+
+        //check that new value matches expected.
+        assertEquals(Currency.getInstance("CNY"), book.getPrice().getCurrency());
+        assertEquals(new BigDecimal(2.0), book.getPrice().getUnits());
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(book, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeClone2() {
+        Company company = newCompany("abc");
+        Address originalAddress = new Address();
+        originalAddress.setStreet1("street1");
+        originalAddress.setStreet2("street2");
+
+        GeoLocation originalGeo = new GeoLocation();
+        originalGeo.setLatitude("1");
+        originalGeo.setLongitude("2");
+        originalAddress.setGeo(originalGeo);
+
+        Map<String, Object> newAddress = new HashMap<>();
+        newAddress.put("street1", "Elm");
+        newAddress.put("street2", "Maple");
+        Map<String, Object> newGeo = new HashMap<>();
+        newGeo.put("latitude", "X");
+        newGeo.put("longitude", "Y");
+        newAddress.put("geo", newGeo);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
+
+        parentResource.updateAttribute("address", newAddress);
+
+        //check that original value was unmodified.
+        assertEquals("street1", originalAddress.getStreet1());
+        assertEquals("street2", originalAddress.getStreet2());
+        assertEquals("1", originalAddress.getGeo().getLatitude());
+        assertEquals("2", originalAddress.getGeo().getLongitude());
+
+        //check the new value matches the expected.
+        assertEquals("Elm", company.getAddress().getStreet1());
+        assertEquals("Maple", company.getAddress().getStreet2());
+        assertEquals("X", company.getAddress().getGeo().getLatitude());
+        assertEquals("Y", company.getAddress().getGeo().getLongitude());
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(company, goodScope);

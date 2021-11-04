@@ -41,6 +41,7 @@ import example.Address;
 import example.Author;
 import example.Book;
 import example.Editor;
+import example.Price;
 import example.Publisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,7 +114,8 @@ public class InMemoryStoreTransactionTest {
                 System.currentTimeMillis(),
                 Sets.newHashSet(author1),
                 publisher1,
-                Arrays.asList("Prize1"));
+                Arrays.asList("Prize1"),
+                new Price());
 
         book2 = new Book(2,
                 "Book 2",
@@ -122,7 +124,8 @@ public class InMemoryStoreTransactionTest {
                 System.currentTimeMillis(),
                 Sets.newHashSet(author1),
                 publisher1,
-                Arrays.asList("Prize1", "Prize2"));
+                Arrays.asList("Prize1", "Prize2"),
+                new Price());
 
         book3 = new Book(3,
                 "Book 3",
@@ -131,7 +134,8 @@ public class InMemoryStoreTransactionTest {
                 System.currentTimeMillis(),
                 Sets.newHashSet(author1),
                 publisher2,
-                Arrays.asList());
+                Arrays.asList(),
+                new Price());
 
         books.add(book1);
         books.add(book2);
