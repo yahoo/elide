@@ -28,6 +28,7 @@ import example.Address;
 import example.Author;
 import example.Book;
 import example.Editor;
+import example.Price;
 import example.Publisher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("language").type(String.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                .attribute(Attribute.builder().name("price").type(Price.class).build())
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
                         .build())
@@ -129,6 +131,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("language").type(String.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                .attribute(Attribute.builder().name("price").type(Price.class).build())
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
                         .build())
@@ -288,6 +291,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("language").type(String.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                .attribute(Attribute.builder().name("price").type(Price.class).build())
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
                         .attribute(Attribute.builder().name("name").type(String.class).build())
@@ -332,6 +336,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("language").type(String.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                .attribute(Attribute.builder().name("price").type(Price.class).build())
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
                         .attribute(Attribute.builder().name("name").type(String.class).build())
@@ -384,6 +389,7 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("language").type(String.class).build())
                         .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                         .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                        .attribute(Attribute.builder().name("price").type(Price.class).build())
                         .relationship("editor", EntityProjection.builder()
                                 .type(Editor.class)
                                 .attribute(Attribute.builder().name("firstName").type(String.class).build())
@@ -443,6 +449,7 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("language").type(String.class).build())
                         .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                         .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                        .attribute(Attribute.builder().name("price").type(Price.class).build())
                         .relationship("publisher", EntityProjection.builder()
                                 .type(Publisher.class)
                                 .attribute(Attribute.builder().name("name").type(String.class).build())
@@ -500,6 +507,7 @@ public class EntityProjectionMakerTest {
                                         .attribute(Attribute.builder().name("language").type(String.class).build())
                                         .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                                         .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                                        .attribute(Attribute.builder().name("price").type(Price.class).build())
                                         .relationship("authors", EntityProjection.builder()
                                                 .type(Author.class)
                                                 .build())
@@ -547,6 +555,7 @@ public class EntityProjectionMakerTest {
                                         .attribute(Attribute.builder().name("language").type(String.class).build())
                                         .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                                         .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                                        .attribute(Attribute.builder().name("price").type(Price.class).build())
                                         .relationship("authors", EntityProjection.builder()
                                                 .type(Author.class)
                                                 .build())
@@ -633,6 +642,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("awards").type(Collection.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                .attribute(Attribute.builder().name("price").type(Price.class).build())
                 .filterExpression(expression)
                 .relationship("publisher", EntityProjection.builder()
                         .type(Publisher.class)
@@ -755,6 +765,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("language").type(String.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .attribute(Attribute.builder().name("authorTypes").type(Collection.class).build())
+                .attribute(Attribute.builder().name("price").type(Price.class).build())
                 .filterExpression(expression)
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
