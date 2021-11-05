@@ -425,7 +425,8 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public String defaultValue() {
-                    return argument.getDefaultValue().toString();
+                    Object value = argument.getDefaultValue();
+                    return value == null ? null : value.toString();
                 }
 
                 @Override

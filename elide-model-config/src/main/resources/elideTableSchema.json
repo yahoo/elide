@@ -47,7 +47,8 @@
             },
             "required": [
                 "name",
-                "type"
+                "type",
+                "default"
             ],
             "validateArgumentProperties": true,
             "additionalProperties": false
