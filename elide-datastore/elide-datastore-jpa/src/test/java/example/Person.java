@@ -6,7 +6,10 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,25 +21,22 @@ import javax.persistence.Id;
 @Entity
 @Include
 @Audited // Ensure envers does not cause any issues
+@Data
 public class Person {
-    @Setter
+    @Id
     private long id;
 
-    @Setter
-    @Getter
     private String name;
 
-    @Setter
-    private AddressFragment address;
-
-    @Id
-    public long getId() {
-        return id;
-    }
-
+    //For testing Convert annotation
     @Column(name = "address", columnDefinition = "TEXT")
     @Convert(converter = AddressFragment.Converter.class)
-    public AddressFragment getAddress() {
-        return address;
-    }
+    private AddressFragment address;
+
+    //For testing Type annotation
+    @Column(name = "addressAlternate", columnDefinition = "TEXT")
+    @Type(type = "com.yahoo.elide.datastores.jpa.usertypes.JsonType", parameters = {
+            @Parameter(name = "class", value = "example.AddressFragment")
+    })
+    private AddressFragment alternateAddress;
 }
