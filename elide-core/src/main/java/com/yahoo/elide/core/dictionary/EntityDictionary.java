@@ -2177,11 +2177,22 @@ public class EntityDictionary {
 
         Class<?> clazz = type.getUnderlyingClass().get();
 
+        boolean hasNoArgConstructor =
+                Arrays.stream(clazz.getConstructors()).anyMatch(constructor -> constructor.getParameterCount() == 0);
+
+        //We don't bind primitives.
         if (ClassUtils.isPrimitiveOrWrapper(clazz)
                 || clazz.equals(String.class)
                 || clazz.isEnum()
+
+                //We don't bind collections.
                 || Collection.class.isAssignableFrom(clazz)
                 || Map.class.isAssignableFrom(clazz)
+
+                //We can't bind an attribute type if Elide can't create it...
+                || ! hasNoArgConstructor
+
+                //If there is a Serde, we assume the type is opaque to Elide....
                 || serdeLookup.apply(clazz) != null) {
             return false;
         }

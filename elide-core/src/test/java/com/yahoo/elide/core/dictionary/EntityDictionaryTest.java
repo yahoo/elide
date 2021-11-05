@@ -51,6 +51,7 @@ import example.GeoLocation;
 import example.Job;
 import example.Left;
 import example.Parent;
+import example.Price;
 import example.Publisher;
 import example.Right;
 import example.StringId;
@@ -1107,6 +1108,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(isComplexAttribute(ClassType.of(Author.class), "homeAddress"));
         //Test nested complex attribute
         assertTrue(isComplexAttribute(ClassType.of(Address.class), "geo"));
+        //Test another complex attribute.
+        assertTrue(isComplexAttribute(ClassType.of(Book.class), "price"));
+        //Test Java Type with no default constructor.
+        assertFalse(isComplexAttribute(ClassType.of(Price.class), "currency"));
         //Test String
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "title"));
         //Test primitive

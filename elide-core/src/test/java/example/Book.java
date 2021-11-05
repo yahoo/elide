@@ -58,6 +58,7 @@ public class Book {
     private Collection<Author> authors = new ArrayList<>();
     private Publisher publisher = null;
     private Collection<String> awards = new ArrayList<>();
+    private Price price;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -132,6 +133,14 @@ public class Book {
 
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
+    }
+
+    public Price getPrice() {
+        return price;
+    }
+
+    public void setPrice(Price price) {
+        this.price = price;
     }
 
     @Transient
