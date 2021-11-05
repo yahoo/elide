@@ -1,4 +1,10 @@
 # Change Log
+## 6.0.1
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/85a20be1bd489054abcc5f4c7ed3314d3b0dd03a) Fixing bug where Hibernate is not detecting updates to complex attrib… (#2402) 
+   * [view commit](https://github.com/yahoo/elide/commit/2e5b5efafc9262dbf815fd492eee5e89cf0151fa) Bump mockito-junit-jupiter from 3.12.4 to 4.0.0 (#2398) 
+   
 ## 6.0.0
 **Overview**
 
