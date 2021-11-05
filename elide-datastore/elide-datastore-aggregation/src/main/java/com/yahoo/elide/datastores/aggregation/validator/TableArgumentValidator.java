@@ -136,7 +136,8 @@ public class TableArgumentValidator {
     }
 
     public static void verifyDefaultValue(ArgumentDefinition argument, String errorMsgPrefix) {
-        String defaultValue = argument.getDefaultValue().toString();
+        Object value = argument.getDefaultValue();
+        String defaultValue = value == null ? null : value.toString();
         verifyValue(argument, defaultValue, errorMsgPrefix + "Default ");
     }
 
