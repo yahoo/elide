@@ -367,7 +367,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("orderRatio", "ratio2", arguments(
                                                 argument("numerator", "\"orderMax\""),
                                                 argument("denominator", "\"orderTotal\"")
-                                        ))
+                                        )),
+                                        field("orderRatio", "ratio3", arguments())
                                 )
                         )
                 )
@@ -379,7 +380,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 selections(
                                         field("ratio1", 1.0),
-                                        field("ratio2", 0.23852451476405115)
+                                        field("ratio2", 0.23852451476405115),
+                                        field("ratio3", 1.0)
                                 )
                         )
                 )

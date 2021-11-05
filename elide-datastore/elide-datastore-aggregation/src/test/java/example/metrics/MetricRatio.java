@@ -13,8 +13,6 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 
-import com.google.common.base.Preconditions;
-
 import java.util.Map;
 
 /**
