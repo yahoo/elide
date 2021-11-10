@@ -27,7 +27,7 @@ import javax.validation.constraints.Pattern;
  */
 @MappedSuperclass
 @Data
-public abstract class AsyncAPI implements PrincipalOwned {
+public abstract class AsyncAPI implements PrincipalOwned, Cloneable {
     @Id
     @Column(columnDefinition = "varchar(36)")
     @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -87,5 +87,9 @@ public abstract class AsyncAPI implements PrincipalOwned {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof AsyncAPI && this.getClass() == obj.getClass() && id.equals(((AsyncAPI) obj).id);
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

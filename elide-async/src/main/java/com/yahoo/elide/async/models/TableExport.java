@@ -43,4 +43,16 @@ public class TableExport extends AsyncAPI {
     public void setResult(AsyncAPIResult result) {
         this.result = (TableExportResult) result;
     }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        TableExport cloneObj = new TableExport();
+        cloneObj.setId(this.getId());
+        cloneObj.setStatus(this.getStatus());
+        cloneObj.setResultType(this.getResultType());
+        cloneObj.setQuery(this.getQuery());
+        cloneObj.setRequestId(this.getRequestId());
+        cloneObj.setPrincipalName(this.getPrincipalName());
+        return cloneObj;
+    }
 }
