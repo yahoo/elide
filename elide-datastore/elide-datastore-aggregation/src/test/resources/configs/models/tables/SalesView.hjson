@@ -114,24 +114,17 @@
           readAccess: operator
           cardinality: small
         }
-        //Tests a reference to an enum Java dimension stored as VARCHAR coerced to the enum.
-        {
-          name: customerRegionType
-          type: example.dimensions.PlaceType
-          definition: '{{customer.region.placeType}}'
-          readAccess: guest user
-        }
         //Tests a reference to an enum Java dimension stored as VARCHAR coerced to a string.
         {
-          name: customerRegionType2
+          name: customerRegionType1
           type: TEXT
           definition: '{{customer.region.placeType}}'
           readAccess: guest user
         }
         //Tests a reference to an enum Java dimension stored as INT coerced to the enum.
         {
-          name: customerRegionType3
-          type: example.dimensions.PlaceType
+          name: customerRegionType2
+          type: TEXT
           definition: '{{customer.region.ordinalPlaceType}}'
           readAccess: guest user
         }

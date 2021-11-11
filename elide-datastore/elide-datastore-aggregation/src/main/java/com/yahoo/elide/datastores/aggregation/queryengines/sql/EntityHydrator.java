@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.ParameterizedModel;
@@ -13,6 +14,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -39,6 +41,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -98,11 +101,20 @@ public class EntityHydrator implements Iterable<Object> {
         }
 
         result.forEach((fieldName, value) -> {
-            ColumnProjection dim = query.getColumnProjection(fieldName);
-            Type<?> fieldType = getType(entityClass, dim);
-            Attribute attribute = projectionToAttribute(dim, fieldType);
+            ColumnProjection columnProjection = query.getColumnProjection(fieldName);
+            Column column = table.getColumn(Column.class, fieldName);
+            Type<?> fieldType = getType(entityClass, columnProjection);
+            Attribute attribute = projectionToAttribute(columnProjection, fieldType);
+
+            ValueType valueType = column.getValueType();
 
             if (entityInstance instanceof ParameterizedModel) {
+
+                //This is an ENUM type.
+                if (valueType == ValueType.TEXT && !column.getValues().isEmpty()) {
+                    value = convertToEnumValue(value, column.getValues());
+                }
+
                 ((ParameterizedModel) entityInstance).addAttributeValue(
                     attribute,
                     CoerceUtil.coerce(value, fieldType));
@@ -166,6 +178,20 @@ public class EntityHydrator implements Iterable<Object> {
             default:
                 throw new IllegalStateException("Invalid grain type");
         }
+    }
+
+    private String convertToEnumValue(Object value, LinkedHashSet<String> enumValues) {
+        if (Integer.class.isAssignableFrom(value.getClass())) {
+            Integer valueIndex = (Integer) value;
+            if (valueIndex < enumValues.size()) {
+                return enumValues.toArray(new String[0])[valueIndex];
+            }
+        }
+        else if (enumValues.contains(value.toString())) {
+            return value.toString();
+        }
+
+        throw new InvalidValueException(value, "Value must map to a value in: " + enumValues);
     }
 
     @Override

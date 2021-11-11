@@ -2000,9 +2000,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
                                 ),
                                 selections(
-                                        field("customerRegionType"),
-                                        field("customerRegionType2"),
-                                        field("customerRegionType3")
+                                        field("customerRegionType1"),
+                                        field("customerRegionType2")
                                 )
                         )
                 )
@@ -2013,9 +2012,40 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 selections(
-                                        field("customerRegionType", "STATE"),
-                                        field("customerRegionType2", "STATE"),
-                                        field("customerRegionType3", "STATE")
+                                        field("customerRegionType1", "STATE"),
+                                        field("customerRegionType2", "STATE")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testFilterByEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31';customerRegionType1==STATE;customerRegionType2==STATE\"")
+                                ),
+                                selections(
+                                        field("customerRegionType1"),
+                                        field("customerRegionType2")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("customerRegionType1", "STATE"),
+                                        field("customerRegionType2", "STATE")
                                 )
                         )
                 )
