@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,7 @@ import java.util.concurrent.Callable;
 @RequestMapping(value = "${elide.graphql.path}")
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @ConditionalOnExpression("${elide.graphql.enabled:false}")
+@RefreshScope
 public class GraphqlController {
 
     private final ElideConfigProperties settings;

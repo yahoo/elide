@@ -166,6 +166,14 @@
             <version>${spring.boot.version}</version>
             <optional>true</optional>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-context</artifactId>
+            <version>3.0.4</version>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
@@ -245,7 +253,9 @@
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-commons</artifactId>
             <version>1.8.2</version>
+            <scope>test</scope>
         </dependency>
+
 
     </dependencies>
 

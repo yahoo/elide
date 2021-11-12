@@ -47,6 +47,7 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.spring.controllers.SwaggerController;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -57,12 +58,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
-import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -102,6 +103,7 @@ public class ElideAutoConfiguration {
      * @return An instance of DynamicConfiguration.
      */
     @Bean
+    @RefreshScope
     @ConditionalOnMissingBean
     @ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
     public DynamicConfiguration buildDynamicConfiguration(ClassScanner scanner,
@@ -144,6 +146,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @RefreshScope
     public Elide initializeElide(EntityDictionary dictionary,
                                  DataStore dataStore,
                                  ElideConfigProperties settings,
@@ -227,6 +230,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @RefreshScope
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
                                             ClassScanner scanner,
                                             @Autowired(required = false) DynamicConfiguration dynamicConfig,
@@ -281,6 +285,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
+    @RefreshScope
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
                                         @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                         ElideConfigProperties settings,
@@ -333,6 +338,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @RefreshScope
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
                                     ClassScanner scanner,
                                     @Autowired(required = false) QueryEngine queryEngine,
@@ -414,16 +420,21 @@ public class ElideAutoConfiguration {
      * @return An instance of a JPA DataStore.
      */
     @Bean
+    @RefreshScope
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
-    public Swagger buildSwagger(EntityDictionary dictionary, ElideConfigProperties settings) {
+    public SwaggerController.SwaggerRegistrations buildSwagger(
+            EntityDictionary dictionary,
+            ElideConfigProperties settings
+    ) {
         Info info = new Info()
                 .title(settings.getSwagger().getName())
                 .version(settings.getSwagger().getVersion());
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
-
-        return builder.build().basePath(settings.getJsonApi().getPath());
+        return new SwaggerController.SwaggerRegistrations(
+                builder.build().basePath(settings.getJsonApi().getPath())
+        );
     }
 
     @Bean

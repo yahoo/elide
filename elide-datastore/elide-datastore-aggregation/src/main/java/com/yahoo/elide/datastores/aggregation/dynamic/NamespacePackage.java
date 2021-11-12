@@ -12,6 +12,8 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 
+import lombok.EqualsAndHashCode;
+
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.Map;
 /**
  * A dynamic Elide model that wraps a deserialized HJSON Namespace.
  */
+@EqualsAndHashCode
 public class NamespacePackage implements Package {
 
     public static final String EMPTY = "";

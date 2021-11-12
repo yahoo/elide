@@ -16,6 +16,7 @@ import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +51,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 @Configuration
 @RequestMapping(value = "${elide.json-api.path}")
 @ConditionalOnExpression("${elide.json-api.enabled:false}")
+@RefreshScope
 public class JsonApiController {
 
     private final Elide elide;
