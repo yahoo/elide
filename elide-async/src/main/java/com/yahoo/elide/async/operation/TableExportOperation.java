@@ -19,7 +19,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
 import io.reactivex.Observable;
 import lombok.Getter;
@@ -66,6 +65,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
         log.debug("TableExport Object from request: {}", exportObj);
         Elide elide = service.getElide();
         TableExportResult exportResult = new TableExportResult();
+        UUID requestId = UUID.fromString(exportObj.getRequestId());
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
 
             RequestScope requestScope = getRequestScope(exportObj, scope, tx);
@@ -73,7 +73,18 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             validateProjections(projections);
             EntityProjection projection = projections.iterator().next();
 
-            Observable<PersistentResource> observableResults = export(exportObj, requestScope, projection);
+            Observable<PersistentResource> observableResults = Observable.empty();
+
+            elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
+
+            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+            //TODO - Can we have projectionInfo as null?
+            requestScope.setEntityProjection(projection);
+
+            if (projection != null) {
+                projection.setPagination(null);
+                observableResults = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
+            }
 
             Observable<String> results = Observable.empty();
             String preResult = formatter.preFormat(projection, exportObj);
@@ -91,16 +102,25 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
             exportResult.setUrl(new URL(generateDownloadURL(exportObj, scope)));
             exportResult.setRecordCount(recordNumber);
+
+            tx.flush(requestScope);
+            elide.getAuditLogger().commit();
+            tx.commit(requestScope);
         } catch (BadRequestException e) {
             exportResult.setMessage(e.getMessage());
         } catch (MalformedURLException e) {
             exportResult.setMessage("Download url generation failure.");
-        }  catch (Exception e) {
+        } catch (IOException e) {
+            log.error("IOException during TableExport", e);
+            exportResult.setMessage(e.getMessage());
+        } catch (Exception e) {
             exportResult.setMessage(e.getMessage());
         } finally {
             // Follows same flow as GraphQL. The query may result in failure but request was successfully processed.
             exportResult.setHttpStatus(200);
             exportResult.setCompletedOn(new Date());
+            elide.getTransactionRegistry().removeRunningTransaction(requestId);
+            elide.getAuditLogger().clear();
         }
         return exportResult;
     }
@@ -113,56 +133,6 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
         return stringFirst ? Observable.just(toConcat).concatWith(observable)
                 : observable.concatWith(Observable.just(toConcat));
-    }
-
-    /**
-     * Export Table Data.
-     * @param exportObj TableExport type object.
-     * @param prevScope RequestScope object.
-     * @param projection Entity projection.
-     * @return Observable PersistentResource
-     */
-    private Observable<PersistentResource> export(TableExport exportObj, RequestScope scope,
-            EntityProjection projection) {
-        Observable<PersistentResource> results = Observable.empty();
-        Elide elide = service.getElide();
-
-        UUID requestId = UUID.fromString(exportObj.getRequestId());
-
-        try {
-            DataStoreTransaction tx = scope.getTransaction();
-            elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
-
-            //TODO - we need to add the baseUrlEndpoint to the queryObject.
-            //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(exportObj, scope, tx);
-            exportRequestScope.setEntityProjection(projection);
-
-            if (projection != null) {
-                results = PersistentResource.loadRecords(projection, Collections.emptyList(), exportRequestScope);
-            }
-
-            tx.preCommit(exportRequestScope);
-            exportRequestScope.runQueuedPreSecurityTriggers();
-            exportRequestScope.getPermissionExecutor().executeCommitChecks();
-
-            tx.flush(exportRequestScope);
-
-            exportRequestScope.runQueuedPreCommitTriggers();
-
-            elide.getAuditLogger().commit();
-            tx.commit(exportRequestScope);
-
-            exportRequestScope.runQueuedPostCommitTriggers();
-        } catch (IOException e) {
-            log.error("IOException during TableExport", e);
-            throw new TransactionException(e);
-        } finally {
-            elide.getTransactionRegistry().removeRunningTransaction(requestId);
-            elide.getAuditLogger().clear();
-        }
-
-        return results;
     }
 
     /**
