@@ -12,6 +12,12 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.allOf;
@@ -348,6 +354,66 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String errorMessage = "Validation error of type FieldUndefined: Field &#39;zipCodeHidden&#39; in type &#39;SalesNamespace_orderDetails&#39; is undefined @ &#39;SalesNamespace_orderDetails/edges/node/zipCodeHidden&#39;";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
+    }
+
+    @Test
+    public void parameterizedJsonApiColumnTest() throws Exception {
+        when()
+            .get("/SalesNamespace_orderDetails?filter=deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'&fields[SalesNamespace_orderDetails]=orderRatio")
+            .then()
+            .body(equalTo(
+                data(
+                    resource(
+                        type("SalesNamespace_orderDetails"),
+                        id("0"),
+                        attributes(
+                            attr("orderRatio", 1)
+                        )
+                    )
+                ).toJSON())
+            )
+            .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void parameterizedGraphQLColumnTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
+                                ),
+                                selections(
+                                        field("orderRatio", "ratio1", arguments(
+                                                argument("numerator", "\"orderMax\""),
+                                                argument("denominator", "\"orderMax\"")
+                                        )),
+                                        field("orderRatio", "ratio2", arguments(
+                                                argument("numerator", "\"orderMax\""),
+                                                argument("denominator", "\"orderTotal\"")
+                                        )),
+                                        field("orderRatio", "ratio3", arguments())
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("ratio1", 1.0),
+                                        field("ratio2", 0.23852451476405115),
+                                        field("ratio3", 1.0)
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test

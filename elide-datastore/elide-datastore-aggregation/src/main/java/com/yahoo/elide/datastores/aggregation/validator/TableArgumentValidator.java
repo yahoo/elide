@@ -136,7 +136,18 @@ public class TableArgumentValidator {
     }
 
     public static void verifyDefaultValue(ArgumentDefinition argument, String errorMsgPrefix) {
-        String defaultValue = argument.getDefaultValue().toString();
+        Object value = argument.getDefaultValue();
+
+        /*
+         * Arguments must have default values or else we won't be able to evaluate the correctness of their expressions
+         * at build time.
+         */
+        if (value == null) {
+            throw new IllegalStateException(String.format("Argument '%s' is missing a default value",
+                    argument.getName()));
+        }
+
+        String defaultValue = value.toString();
         verifyValue(argument, defaultValue, errorMsgPrefix + "Default ");
     }
 

@@ -43,6 +43,26 @@
       measures:
       [
         {
+          name: orderRatio
+          type: DECIMAL
+          maker: example.metrics.MetricRatio
+          arguments:
+          [
+             {
+               name: numerator
+               type: TEXT
+               values: ['orderTotal', 'orderMax']
+               default: 'orderTotal'
+             }
+             {
+               name: denominator
+               type: TEXT
+               values: ['orderTotal', 'orderMax']
+               default: 'orderTotal'
+             }
+          ]
+        }
+        {
           name: orderTotal
           type: DECIMAL
           // TODO : Use Arguments

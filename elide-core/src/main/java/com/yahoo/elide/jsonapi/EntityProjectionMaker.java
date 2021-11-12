@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
@@ -75,6 +76,7 @@ public class EntityProjectionMaker
     public EntityProjection parseInclude(Type<?> entityClass) {
         return EntityProjection.builder()
                 .type(entityClass)
+                .arguments(getDefaultEntityArguments(entityClass))
                 .relationships(toRelationshipSet(getIncludedRelationships(entityClass)))
                 .build();
     }
@@ -145,6 +147,7 @@ public class EntityProjectionMaker
                         .filterExpression(filter)
                         .sorting(sorting)
                         .pagination(pagination)
+                        .arguments(getDefaultEntityArguments(entityClass))
                         .type(entityClass)
                         .build()
                     ).build();
@@ -162,6 +165,7 @@ public class EntityProjectionMaker
                     .name(entityName)
                     .projection(EntityProjection.builder()
                         .type(entityClass)
+                        .arguments(getDefaultEntityArguments(entityClass))
                         .attributes(getSparseAttributes(entityClass))
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .build()
@@ -196,6 +200,7 @@ public class EntityProjectionMaker
                 .attributes(getSparseAttributes(entityClass))
                 .filterExpression(scope.getFilterExpressionByType(entityClass).orElse(null))
                 .type(entityClass)
+                .arguments(getDefaultEntityArguments(entityClass))
                 .build();
         }
 
@@ -203,6 +208,7 @@ public class EntityProjectionMaker
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
+                .arguments(getDefaultEntityArguments(entityClass))
                 .filterExpression(scope.getFilterExpressionByType(entityClass).orElse(null))
                 .build();
     }
@@ -220,6 +226,7 @@ public class EntityProjectionMaker
                     .name(entityName)
                     .projection(EntityProjection.builder()
                         .type(entityClass)
+                        .arguments(getDefaultEntityArguments(entityClass))
                         .relationship(projection.name, projection.projection)
                         .build()
                     ).build();
@@ -242,6 +249,7 @@ public class EntityProjectionMaker
                     .name(entityName)
                     .projection(EntityProjection.builder()
                         .type(entityClass)
+                        .arguments(getDefaultEntityArguments(entityClass))
                         .filterExpression(filter)
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .relationship(relationshipName, relationshipProjection.projection)
@@ -280,6 +288,7 @@ public class EntityProjectionMaker
                         .pagination(pagination)
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .attributes(getSparseAttributes(entityClass))
+                        .arguments(getDefaultEntityArguments(entityClass))
                         .type(entityClass)
                         .build()
                     ).build();
@@ -320,6 +329,30 @@ public class EntityProjectionMaker
         return relationships;
     }
 
+    private Set<Argument> getDefaultAttributeArguments(Type<?> entityClass, String attributeName) {
+        return dictionary.getAttributeArguments(entityClass, attributeName)
+                .stream()
+                .map(argumentType -> {
+                    return Argument.builder()
+                            .name(argumentType.getName())
+                            .value(argumentType.getDefaultValue())
+                            .build();
+                })
+                .collect(Collectors.toSet());
+    }
+
+    private Set<Argument> getDefaultEntityArguments(Type<?> entityClass) {
+        return dictionary.getEntityArguments(entityClass)
+                .stream()
+                .map(argumentType -> {
+                    return Argument.builder()
+                            .name(argumentType.getName())
+                            .value(argumentType.getDefaultValue())
+                            .build();
+                })
+                .collect(Collectors.toSet());
+    }
+
     private Set<Attribute> getSparseAttributes(Type<?> entityClass) {
         Set<String> allAttributes = new LinkedHashSet<>(dictionary.getAttributes(entityClass));
 
@@ -336,6 +369,7 @@ public class EntityProjectionMaker
                 .map(attributeName -> Attribute.builder()
                     .name(attributeName)
                     .type(dictionary.getType(entityClass, attributeName))
+                    .arguments(getDefaultAttributeArguments(entityClass, attributeName))
                     .build())
                 .collect(Collectors.toSet());
     }
@@ -361,6 +395,7 @@ public class EntityProjectionMaker
 
                             return EntityProjection.builder()
                                     .type(dictionary.getParameterizedType(entityClass, relationshipName))
+                                    .arguments(getDefaultEntityArguments(entityClass))
                                     .filterExpression(filter)
                                     .build();
                         }

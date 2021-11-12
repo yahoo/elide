@@ -1,6 +1,13 @@
 # Change Log
+## 6.0.1
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/85a20be1bd489054abcc5f4c7ed3314d3b0dd03a) Fixing bug where Hibernate is not detecting updates to complex attrib… (#2402) 
+   * [view commit](https://github.com/yahoo/elide/commit/2e5b5efafc9262dbf815fd492eee5e89cf0151fa) Bump mockito-junit-jupiter from 3.12.4 to 4.0.0 (#2398) 
+   
 ## 6.0.0
 **Overview**
+
 Official Elide 6 Release.  Elide 6 is compiled with Java 11 (as opposed to 8).  GraphQL subscription support has been added.  Other changes since Elide 5 are summarized here [here](https://elide.io/pages/guide/v6/17-migration.html).
 
 **Fixes**
@@ -90,7 +97,6 @@ Prerelease candidate for Elide 6.
 Elide 6 introduces several new features:
  - Elide 6 is built using Java 11 (as opposed to Java 8).
  - GraphQL subscription support (experimental) is added along with a JMS data store that can read Elide models from JMS topics.
- - Coming Soon: Quarkus support including Elide native builds with GraalVM.
 
 ### API Changes
 
