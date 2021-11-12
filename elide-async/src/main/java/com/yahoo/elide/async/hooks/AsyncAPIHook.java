@@ -72,16 +72,8 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
                 if (query.getClass().equals(AsyncQuery.class) || (query.getClass().equals(TableExport.class)
                         && query.getQueryType().equals(QueryType.JSONAPI_V1_0))) {
                     executeAsync(query, queryWorker);
-                }
-                return;
-            }
-            if (phase.equals(POSTCOMMIT)) {
-                if (query.getClass().equals(AsyncQuery.class) || (query.getClass().equals(TableExport.class)
-                        && query.getQueryType().equals(QueryType.JSONAPI_V1_0))) {
-                    completeAsync(query, requestScope);
                     return;
                 }
-
                 // Graphql TableExport takes this flow.
                 AsyncAPIJob job = null;
                 try {
@@ -106,6 +98,13 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
                         || job.getAsyncApi().getStatus() == QueryStatus.FAILURE) {
                     query.setStatus(job.getAsyncApi().getStatus());
                     query.setResult(job.getAsyncApi().getResult());
+                }
+                return;
+            }
+            if (phase.equals(POSTCOMMIT)) {
+                if (query.getClass().equals(AsyncQuery.class) || (query.getClass().equals(TableExport.class)
+                        && query.getQueryType().equals(QueryType.JSONAPI_V1_0))) {
+                    completeAsync(query, requestScope);
                 }
                 return;
             }

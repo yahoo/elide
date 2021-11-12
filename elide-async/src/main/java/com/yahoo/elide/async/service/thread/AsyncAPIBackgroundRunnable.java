@@ -90,13 +90,14 @@ public class AsyncAPIBackgroundRunnable implements Runnable {
         supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, false));
         supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
         TableExportFormatter formatter = supportedFormatters.get(exportObj.getResultType());
+        UUID requestId = UUID.fromString(exportObj.getRequestId());
 
         log.debug("TableExport Object from request: {}", exportObj);
         TableExportResult exportResult = new TableExportResult();
         ResultStorageEngine engine = new FileResultStorageEngine("/tmp");
-        try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+        try (DataStoreTransaction tx = elide.getDataStore().beginReadTransaction()) {
         	// Change Status to Processing
-        	asyncAPIDao.updateStatus(exportObj.getId(), QueryStatus.PROCESSING, TableExport.class);
+        	//asyncAPIDao.updateStatus(exportObj.getId(), QueryStatus.PROCESSING, TableExport.class);
             // Do Not Cache Export Results
             Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
             requestHeaders.put("bypasscache", new ArrayList<String>(Arrays.asList("true")));
@@ -106,8 +107,37 @@ public class AsyncAPIBackgroundRunnable implements Runnable {
             validateProjections(projections);
             EntityProjection projection = projections.iterator().next();
 
-            Observable<PersistentResource> observableResults = export(exportObj, requestScope, projection);
+            //Observable<PersistentResource> observableResults = export(exportObj, requestScope, projection);
+            Observable<PersistentResource> observableResults = Observable.empty();
 
+            elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
+
+            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+            //TODO - Can we have projectionInfo as null?
+            requestScope.setEntityProjection(projection);
+
+            if (projection != null) {
+                projection.setPagination(null);
+                observableResults = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
+            }
+
+/*            tx.preCommit(scope);
+            scope.runQueuedPreSecurityTriggers();
+            scope.getPermissionExecutor().executeCommitChecks();
+
+            tx.flush(scope);
+
+            scope.runQueuedPreCommitTriggers();
+
+            elide.getAuditLogger().commit();
+            tx.commit(scope);
+
+            scope.runQueuedPostCommitTriggers();
+            //finally {
+                elide.getTransactionRegistry().removeRunningTransaction(requestId);
+                elide.getAuditLogger().clear();
+            //}
+*/
             Observable<String> results = Observable.empty();
             String preResult = formatter.preFormat(projection, exportObj);
             results = observableResults.map(resource -> {
@@ -126,6 +156,10 @@ public class AsyncAPIBackgroundRunnable implements Runnable {
             exportResult.setRecordCount(recordNumber);
             asyncAPIDao.updateStatus(exportObj.getId(), QueryStatus.COMPLETE, TableExport.class);
             exportObj.setStatus(QueryStatus.COMPLETE);
+
+            tx.flush(requestScope);
+            elide.getAuditLogger().commit();
+            tx.commit(requestScope);
         } catch (BadRequestException e) {
             exportResult.setMessage(e.getMessage());
             asyncAPIDao.updateStatus(exportObj.getId(), QueryStatus.FAILURE, TableExport.class);
@@ -139,6 +173,9 @@ public class AsyncAPIBackgroundRunnable implements Runnable {
             asyncAPIDao.updateStatus(exportObj.getId(), QueryStatus.FAILURE, TableExport.class);
             exportObj.setStatus(QueryStatus.FAILURE);
         } finally {
+        	elide.getTransactionRegistry().removeRunningTransaction(requestId);
+        	elide.getAuditLogger().clear();
+
             // Follows same flow as GraphQL. The query may result in failure but request was successfully processed.
             exportResult.setHttpStatus(200);
             exportResult.setCompletedOn(new Date());

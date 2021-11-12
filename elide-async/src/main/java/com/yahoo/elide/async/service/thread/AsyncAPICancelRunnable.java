@@ -49,7 +49,7 @@ public class AsyncAPICancelRunnable implements Runnable {
 
     @Override
     public void run() {
-        cancelAsyncAPI(AsyncQuery.class);
+        //cancelAsyncAPI(AsyncQuery.class);
     }
 
     /**
