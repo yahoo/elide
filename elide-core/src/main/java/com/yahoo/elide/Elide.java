@@ -90,35 +90,46 @@ public class Elide {
      *
      * @param elideSettings Elide settings object.
      */
-    public Elide(ElideSettings elideSettings) {
-        this(elideSettings, elideSettings.getDictionary().getScanner());
+    public Elide(
+            ElideSettings elideSettings
+    ) {
+        this(elideSettings, new TransactionRegistry(), elideSettings.getDictionary().getScanner(), false);
     }
 
     /**
      * Instantiates a new Elide instance.
      *
      * @param elideSettings Elide settings object.
-     * @param scanner Scans classes for Elide annotations.
+     * @param transactionRegistry Global transaction state.
      */
-    public Elide(ElideSettings elideSettings, ClassScanner scanner) {
-        this(elideSettings, scanner, true);
+    public Elide(
+            ElideSettings elideSettings,
+            TransactionRegistry transactionRegistry
+    ) {
+        this(elideSettings, transactionRegistry, elideSettings.getDictionary().getScanner(), false);
     }
 
     /**
      * Instantiates a new Elide instance.
      *
      * @param elideSettings Elide settings object.
+     * @param transactionRegistry Global transaction state.
      * @param scanner Scans classes for Elide annotations.
      * @param doScans Perform scans now.
      */
-    public Elide(ElideSettings elideSettings, ClassScanner scanner, boolean doScans) {
+    public Elide(
+            ElideSettings elideSettings,
+            TransactionRegistry transactionRegistry,
+            ClassScanner scanner,
+            boolean doScans
+    ) {
         this.elideSettings = elideSettings;
         this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
         this.mapper = elideSettings.getMapper();
         this.errorMapper = elideSettings.getErrorMapper();
-        this.transactionRegistry = new TransactionRegistry();
+        this.transactionRegistry = transactionRegistry;
 
         if (doScans) {
             doScans();

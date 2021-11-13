@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.spring.config;
 
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
@@ -21,12 +22,12 @@ import javax.jms.Message;
  */
 @Configuration
 public class ElideSubscriptionScanningConfiguration {
-    private ElideAutoConfiguration.GlobalElide elide;
+    private RefreshableElide elide;
     private ConnectionFactory connectionFactory;
 
     @Autowired
     public ElideSubscriptionScanningConfiguration(
-            ElideAutoConfiguration.GlobalElide elide,
+            RefreshableElide elide,
             ConnectionFactory connectionFactory
     ) {
         this.elide = elide;

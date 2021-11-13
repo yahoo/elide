@@ -9,8 +9,8 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.spring.config.ElideAutoConfiguration;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
@@ -61,10 +61,10 @@ public class JsonApiController {
     public static final String JSON_API_PATCH_CONTENT_TYPE = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 
     @Autowired
-    public JsonApiController(ElideAutoConfiguration.GlobalElide globalElide, ElideConfigProperties settings) {
+    public JsonApiController(RefreshableElide refreshableElide, ElideConfigProperties settings) {
         log.debug("Started ~~");
         this.settings = settings;
-        this.elide = globalElide.getElide();
+        this.elide = refreshableElide.getElide();
     }
 
     private <K, V> MultivaluedHashMap<K, V> convert(MultiValueMap<K, V> springMVMap) {

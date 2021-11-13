@@ -9,8 +9,10 @@ import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -41,6 +43,7 @@ import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
@@ -66,8 +69,6 @@ import org.springframework.context.annotation.Scope;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -95,12 +96,6 @@ import javax.sql.DataSource;
 @Slf4j
 public class ElideAutoConfiguration {
 
-    @Data
-    @AllArgsConstructor
-    public static class GlobalElide {
-        private Elide elide;
-    }
-
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
 
@@ -122,6 +117,12 @@ public class ElideAutoConfiguration {
                 settings.getDynamicConfig().getPath());
         validator.readAndValidateConfigs();
         return validator;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public TransactionRegistry createRegistry() {
+        return new TransactionRegistry();
     }
 
     /**
@@ -150,14 +151,22 @@ public class ElideAutoConfiguration {
     @Bean
     @RefreshScope
     @ConditionalOnMissingBean
-    public GlobalElide getGlobalElide(Elide elide) {
-        return new GlobalElide(elide);
+    public RefreshableElide getRefreshableElide(Elide elide) {
+        return new RefreshableElide(elide);
+    }
+
+    @Bean
+    @RefreshScope
+    @ConditionalOnMissingBean
+    public QueryRunners getQueryRunners(RefreshableElide refreshableElide) {
+        return new QueryRunners(refreshableElide);
     }
 
     /**
      * Creates the Elide instance with standard settings.
      * @param dictionary Stores the static metadata about Elide models.
      * @param dataStore The persistence store.
+     * @param transactionRegistry Global transaction registry.
      * @param settings Elide settings.
      * @return A new elide instance.
      */
@@ -166,6 +175,7 @@ public class ElideAutoConfiguration {
     @Scope(SCOPE_PROTOTYPE)
     public Elide initializeElide(EntityDictionary dictionary,
                                  DataStore dataStore,
+                                 TransactionRegistry transactionRegistry,
                                  ElideConfigProperties settings,
                                  JsonApiMapper mapper,
                                  ErrorMapper errorMapper) {
@@ -207,8 +217,8 @@ public class ElideAutoConfiguration {
             }
         }
 
-        Elide elide = new Elide(builder.build());
-        return elide;
+
+        return new Elide(builder.build(), transactionRegistry);
     }
 
     /**
@@ -441,7 +451,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
     @RefreshScope
     public SwaggerController.SwaggerRegistrations buildSwagger(
-            GlobalElide elide,
+            RefreshableElide elide,
             ElideConfigProperties settings
     ) {
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
@@ -499,6 +509,5 @@ public class ElideAutoConfiguration {
 
         return asyncProperties != null && asyncProperties.getExport() != null
                 && asyncProperties.getExport().isEnabled();
-
     }
 }

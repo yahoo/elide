@@ -9,6 +9,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
 import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
@@ -61,7 +62,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(
-            ElideAutoConfiguration.GlobalElide elide,
+            RefreshableElide elide,
             ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDao,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine
@@ -139,7 +140,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
-    public AsyncCleanerService buildAsyncCleanerService(ElideAutoConfiguration.GlobalElide elide,
+    public AsyncCleanerService buildAsyncCleanerService(RefreshableElide elide,
                                                         ElideConfigProperties settings,
                                                         AsyncAPIDAO asyncQueryDao) {
         AsyncCleanerService.init(elide.getElide(), settings.getAsync().getMaxRunTimeSeconds(),
@@ -156,7 +157,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncAPIDAO", matchIfMissing = true)
-    public AsyncAPIDAO buildAsyncAPIDAO(ElideAutoConfiguration.GlobalElide elide) {
+    public AsyncAPIDAO buildAsyncAPIDAO(RefreshableElide elide) {
         return new DefaultAsyncAPIDAO(elide.getElide().getElideSettings(), elide.getElide().getDataStore());
     }
 
