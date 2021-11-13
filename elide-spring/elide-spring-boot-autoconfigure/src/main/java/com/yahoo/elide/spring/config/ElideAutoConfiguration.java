@@ -6,6 +6,7 @@
 package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -61,9 +62,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -91,6 +95,12 @@ import javax.sql.DataSource;
 @Slf4j
 public class ElideAutoConfiguration {
 
+    @Data
+    @AllArgsConstructor
+    public static class GlobalElide {
+        private Elide elide;
+    }
+
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
 
@@ -103,7 +113,7 @@ public class ElideAutoConfiguration {
      * @return An instance of DynamicConfiguration.
      */
     @Bean
-    @RefreshScope
+    @Scope(SCOPE_PROTOTYPE)
     @ConditionalOnMissingBean
     @ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
     public DynamicConfiguration buildDynamicConfiguration(ClassScanner scanner,
@@ -137,6 +147,13 @@ public class ElideAutoConfiguration {
         };
     }
 
+    @Bean
+    @RefreshScope
+    @ConditionalOnMissingBean
+    public GlobalElide getGlobalElide(Elide elide) {
+        return new GlobalElide(elide);
+    }
+
     /**
      * Creates the Elide instance with standard settings.
      * @param dictionary Stores the static metadata about Elide models.
@@ -146,7 +163,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @RefreshScope
+    @Scope(SCOPE_PROTOTYPE)
     public Elide initializeElide(EntityDictionary dictionary,
                                  DataStore dataStore,
                                  ElideConfigProperties settings,
@@ -230,7 +247,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @RefreshScope
+    @Scope(SCOPE_PROTOTYPE)
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
                                             ClassScanner scanner,
                                             @Autowired(required = false) DynamicConfiguration dynamicConfig,
@@ -285,7 +302,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    @RefreshScope
+    @Scope(SCOPE_PROTOTYPE)
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
                                         @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                         ElideConfigProperties settings,
@@ -338,7 +355,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @RefreshScope
+    @Scope(SCOPE_PROTOTYPE)
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
                                     ClassScanner scanner,
                                     @Autowired(required = false) QueryEngine queryEngine,
@@ -415,18 +432,19 @@ public class ElideAutoConfiguration {
 
     /**
      * Creates a singular swagger document for JSON-API.
-     * @param dictionary Contains the static metadata about Elide models.
+     * @param elide Singleton elide instance.
      * @param settings Elide configuration settings.
      * @return An instance of a JPA DataStore.
      */
     @Bean
-    @RefreshScope
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
+    @RefreshScope
     public SwaggerController.SwaggerRegistrations buildSwagger(
-            EntityDictionary dictionary,
+            GlobalElide elide,
             ElideConfigProperties settings
     ) {
+        EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
         Info info = new Info()
                 .title(settings.getSwagger().getName())
                 .version(settings.getSwagger().getVersion());

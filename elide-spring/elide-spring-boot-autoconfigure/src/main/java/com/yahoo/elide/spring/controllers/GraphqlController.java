@@ -11,6 +11,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.spring.config.ElideAutoConfiguration;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
@@ -56,10 +57,10 @@ public class GraphqlController {
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     @Autowired
-    public GraphqlController(Elide elide, ElideConfigProperties settings) {
+    public GraphqlController(ElideAutoConfiguration.GlobalElide globalElide, ElideConfigProperties settings) {
         log.debug("Started ~~");
         this.settings = settings;
-        this.elide = elide;
+        this.elide = globalElide.getElide();
         this.runners = new HashMap<>();
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));

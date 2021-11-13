@@ -9,7 +9,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
-import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
 import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
@@ -57,23 +56,29 @@ public class ElideAsyncConfiguration {
      * @param elide elideObject.
      * @param settings Elide settings.
      * @param asyncQueryDao AsyncDao object.
-     * @param dictionary EntityDictionary.
      * @return a AsyncExecutorService.
      */
     @Bean
     @ConditionalOnMissingBean
-    public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
-            AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
-            @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
+    public AsyncExecutorService buildAsyncExecutorService(
+            ElideAutoConfiguration.GlobalElide elide,
+            ElideConfigProperties settings,
+            AsyncAPIDAO asyncQueryDao,
+            @Autowired(required = false) ResultStorageEngine resultStorageEngine
+    ) {
         AsyncProperties asyncProperties = settings.getAsync();
 
         ExecutorService executor = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
         ExecutorService updater = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
-        AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncQueryDao);
+        AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide.getElide(), executor,
+                updater, asyncQueryDao);
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
                 asyncProperties.getMaxAsyncAfterSeconds());
+
+        EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
+
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PREFLUSH, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
@@ -85,8 +90,8 @@ public class ElideAsyncConfiguration {
             boolean skipCSVHeader = asyncProperties.getExport() != null
                     && asyncProperties.getExport().isSkipCSVHeader();
             Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-            supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, skipCSVHeader));
-            supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+            supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide.getElide(), skipCSVHeader));
+            supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide.getElide()));
 
             // Binding TableExport LifeCycleHook
             TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings, supportedFormatters,
@@ -134,9 +139,10 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
-    public AsyncCleanerService buildAsyncCleanerService(Elide elide, ElideConfigProperties settings,
-            AsyncAPIDAO asyncQueryDao) {
-        AsyncCleanerService.init(elide, settings.getAsync().getMaxRunTimeSeconds(),
+    public AsyncCleanerService buildAsyncCleanerService(ElideAutoConfiguration.GlobalElide elide,
+                                                        ElideConfigProperties settings,
+                                                        AsyncAPIDAO asyncQueryDao) {
+        AsyncCleanerService.init(elide.getElide(), settings.getAsync().getMaxRunTimeSeconds(),
                 settings.getAsync().getQueryCleanupDays(),
                 settings.getAsync().getQueryCancellationIntervalSeconds(), asyncQueryDao);
         return AsyncCleanerService.getInstance();
@@ -150,20 +156,19 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncAPIDAO", matchIfMissing = true)
-    public AsyncAPIDAO buildAsyncAPIDAO(Elide elide) {
-        return new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
+    public AsyncAPIDAO buildAsyncAPIDAO(ElideAutoConfiguration.GlobalElide elide) {
+        return new DefaultAsyncAPIDAO(elide.getElide().getElideSettings(), elide.getElide().getDataStore());
     }
 
     /**
      * Configure the ResultStorageEngine used by async query requests.
-     * @param elide elideObject.
+     * @param settings Elide settings.
      * @return an ResultStorageEngine object.
      */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
-    public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
-            AsyncAPIDAO asyncQueryDAO) {
+    public ResultStorageEngine buildResultStorageEngine(ElideConfigProperties settings) {
         FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(settings.getAsync().getExport()
                 .getStorageDestination(), settings.getAsync().getExport().isExtensionEnabled());
         return resultStorageEngine;
