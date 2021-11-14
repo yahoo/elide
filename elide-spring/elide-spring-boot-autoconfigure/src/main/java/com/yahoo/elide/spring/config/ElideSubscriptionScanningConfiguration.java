@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.spring.config;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,20 +23,23 @@ import javax.jms.Message;
  */
 @Configuration
 public class ElideSubscriptionScanningConfiguration {
-    private RefreshableElide elide;
+    private RefreshableElide refreshableElide;
     private ConnectionFactory connectionFactory;
 
     @Autowired
     public ElideSubscriptionScanningConfiguration(
-            RefreshableElide elide,
+            RefreshableElide refreshableElide,
             ConnectionFactory connectionFactory
     ) {
-        this.elide = elide;
+        this.refreshableElide = refreshableElide;
         this.connectionFactory = connectionFactory;
     }
 
     @EventListener(value = { ContextRefreshedEvent.class, RefreshScopeRefreshedEvent.class })
     public void onStartOrRefresh(ApplicationEvent event) {
+
+        Elide elide = refreshableElide.getElide();
+
         SubscriptionScanner scanner = SubscriptionScanner.builder()
 
                 //Things you may want to override...
@@ -45,8 +49,8 @@ public class ElideSubscriptionScanningConfiguration {
                 .deliveryMode(Message.DEFAULT_DELIVERY_MODE)
 
                 //Things you probably don't care about...
-                .scanner(elide.getElide().getScanner())
-                .dictionary(elide.getElide().getElideSettings().getDictionary())
+                .scanner(elide.getScanner())
+                .dictionary(elide.getElideSettings().getDictionary())
                 .connectionFactory(connectionFactory)
                 .build();
 
