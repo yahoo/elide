@@ -61,7 +61,6 @@ import javax.ws.rs.core.MediaType;
 )
 @ActiveProfiles("default")
 public class ControllerTest extends IntegrationTest {
-    public static final String SORT_PARAM = "sort";
     private String baseUrl;
 
     @BeforeAll
