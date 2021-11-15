@@ -241,7 +241,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        String expectedError = "Schema validation failed for: security.hjson\n"
+        String expectedError = "Schema validation failed for: models/security.hjson\n"
                         + "[ERROR]\n"
                         + "Instance[/roles/0] failed to validate against schema[/properties/roles/items]. Role [admin,] is not allowed. Role must start with an alphabetic character and can include alaphabets, numbers, spaces and '.' only.\n"
                         + "[ERROR]\n"
@@ -268,7 +268,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        String expected = "Schema validation failed for: test_namespace.hjson\n"
+        String expected = "Schema validation failed for: models/namespaces/test_namespace.hjson\n"
                 + "[ERROR]\n"
                 + "Instance[/namespaces/0/name] failed to validate against schema[/properties/namespaces/items/properties/name]. Name [Default] clashes with the 'default' namespace. Either change the case or pick a different namespace name.\n";
         assertEquals(expected, error);
@@ -303,7 +303,7 @@ public class DynamicConfigValidatorTest {
                     DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type"}));
             assertEquals(2, exitStatus);
         });
-        String expected = "Schema validation failed for: table1.hjson\n"
+        String expected = "Schema validation failed for: models/tables/table1.hjson\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/joins/0/kind] failed to validate against schema[/definitions/join/properties/kind]. Join kind [toAll] is not allowed. Supported value is one of [ToOne, ToMany].\n"
                         + "[ERROR]\n"
@@ -314,7 +314,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadDimName() throws Exception {
-        String expectedMessage = "Schema validation failed for: table1.hjson\n"
+        String expectedMessage = "Schema validation failed for: models/tables/table1.hjson\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/dimensions/0] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"

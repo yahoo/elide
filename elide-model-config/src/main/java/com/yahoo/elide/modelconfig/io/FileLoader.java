@@ -6,8 +6,10 @@
 
 package com.yahoo.elide.modelconfig.io;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -17,13 +19,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Responsible for loading HJSON configuration either from the classpath or from the file system.
  */
 public class FileLoader {
-    private static final Pattern FILTER_VARIABLE_PATTERN = Pattern.compile(".*?\\{\\{(\\w+)\\}\\}");
     private static final String CLASSPATH_PATTERN = "classpath*:";
     private static final String FILEPATH_PATTERN = "file:";
     private static final String RESOURCES = "resources";
@@ -35,6 +35,9 @@ public class FileLoader {
 
     @Getter
     private final String rootPath;
+
+    @Getter
+    private boolean writeable;
 
     /**
      * Constructor.
@@ -54,11 +57,14 @@ public class FileLoader {
 
         if (classPathExists) {
             this.rootPath = pattern;
+            writeable = false;
         } else {
             File config = new File(rootPath);
             if (!config.exists()) {
                 throw new IllegalStateException(rootPath + " : config path does not exist");
             }
+
+            writeable = config.canWrite();
             this.rootPath = FILEPATH_PATTERN + DynamicConfigHelpers.formatFilePath(config.getAbsolutePath());
         }
     }
@@ -68,13 +74,14 @@ public class FileLoader {
      * @return A map from the path to the resource.
      * @throws IOException If something goes boom.
      */
-    public Map<String, Resource> loadResources() throws IOException {
-        Map<String, Resource> resourceMap = new HashMap<>();
+    public Map<String, String> loadResources() throws IOException {
+        Map<String, String> resourceMap = new HashMap<>();
         int configDirURILength = resolver.getResources(this.rootPath)[0].getURI().toString().length();
 
         Resource[] hjsonResources = resolver.getResources(this.rootPath + HJSON_EXTN);
         for (Resource resource : hjsonResources) {
-            resourceMap.put(resource.getURI().toString().substring(configDirURILength), resource);
+            String content = IOUtils.toString(resource.getInputStream(), UTF_8);
+            resourceMap.put(resource.getURI().toString().substring(configDirURILength), content);
         }
 
         return resourceMap;
