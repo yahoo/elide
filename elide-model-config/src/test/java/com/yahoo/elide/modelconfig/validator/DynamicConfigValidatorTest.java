@@ -460,14 +460,4 @@ public class DynamicConfigValidatorTest {
         Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
         assertEquals("Multiple Arguments found with the same name: code", e.getMessage());
     }
-
-    @Test
-    public void testFormatClassPath() {
-        assertEquals("anydir", DynamicConfigValidator.formatClassPath("src/test/resources/anydir"));
-        assertEquals("anydir/configs", DynamicConfigValidator.formatClassPath("src/test/resources/anydir/configs"));
-        assertEquals("src/test/resourc", DynamicConfigValidator.formatClassPath("src/test/resourc"));
-        assertEquals("", DynamicConfigValidator.formatClassPath("src/test/resources/"));
-        assertEquals("", DynamicConfigValidator.formatClassPath("src/test/resources"));
-        assertEquals("anydir/configs", DynamicConfigValidator.formatClassPath("src/test/resourcesanydir/configs"));
-    }
 }
