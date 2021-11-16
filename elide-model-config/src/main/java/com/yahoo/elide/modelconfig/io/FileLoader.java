@@ -147,7 +147,7 @@ public class FileLoader {
         return filePath;
     }
 
-    private static ConfigFile.ConfigFileType toType(String path) {
+    public static ConfigFile.ConfigFileType toType(String path) {
         String lowerCasePath = path.toLowerCase(Locale.ROOT);
         if (lowerCasePath.endsWith("db/variables.hjson")) {
             return ConfigFile.ConfigFileType.VARIABLE;
