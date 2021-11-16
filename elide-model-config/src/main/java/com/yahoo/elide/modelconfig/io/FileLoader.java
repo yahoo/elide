@@ -42,6 +42,7 @@ public class FileLoader {
 
     @Getter
     private final String rootPath;
+    private final String rootURL;
 
     @Getter
     private boolean writeable;
@@ -63,7 +64,7 @@ public class FileLoader {
         }
 
         if (classPathExists) {
-            this.rootPath = pattern;
+            this.rootURL = pattern;
             writeable = false;
         } else {
             File config = new File(rootPath);
@@ -72,8 +73,10 @@ public class FileLoader {
             }
 
             writeable = config.canWrite();
-            this.rootPath = FILEPATH_PATTERN + DynamicConfigHelpers.formatFilePath(config.getAbsolutePath());
+            this.rootURL = FILEPATH_PATTERN + DynamicConfigHelpers.formatFilePath(config.getAbsolutePath());
         }
+
+        this.rootPath = rootPath;
     }
 
     /**
@@ -83,9 +86,9 @@ public class FileLoader {
      */
     public Map<String, ConfigFile> loadResources() throws IOException {
         Map<String, ConfigFile> resourceMap = new HashMap<>();
-        int configDirURILength = resolver.getResources(this.rootPath)[0].getURI().toString().length();
+        int configDirURILength = resolver.getResources(this.rootURL)[0].getURI().toString().length();
 
-        Resource[] hjsonResources = resolver.getResources(this.rootPath + HJSON_EXTN);
+        Resource[] hjsonResources = resolver.getResources(this.rootURL + HJSON_EXTN);
         for (Resource resource : hjsonResources) {
             String content = IOUtils.toString(resource.getInputStream(), UTF_8);
             String path = resource.getURI().toString().substring(configDirURILength);
@@ -106,7 +109,7 @@ public class FileLoader {
      * @throws IOException If something goes boom.
      */
     public ConfigFile loadResource(String relativePath) throws IOException {
-        Resource[] hjsonResources = resolver.getResources(this.rootPath + relativePath);
+        Resource[] hjsonResources = resolver.getResources(this.rootURL + relativePath);
         if (hjsonResources.length == 0) {
             return null;
         }
