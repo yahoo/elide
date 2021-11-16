@@ -176,9 +176,11 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
     private ConfigFile.ConfigFileType toType(String path) {
         String lowerCasePath = path.toLowerCase(Locale.ROOT);
-        if (lowerCasePath.endsWith("variables.hjson")) {
+        if (lowerCasePath.endsWith("db/variables.hjson")) {
             return ConfigFile.ConfigFileType.VARIABLE;
-        } else if (lowerCasePath.endsWith("security.hjson")) {
+        } else if (lowerCasePath.endsWith("models/variables.hjson")) {
+            return ConfigFile.ConfigFileType.VARIABLE;
+        } else if (lowerCasePath.equals("models/security.hjson")) {
             return ConfigFile.ConfigFileType.SECURITY;
         } else if (DB_FILE.matcher(lowerCasePath).matches()) {
             return ConfigFile.ConfigFileType.DATABASE;
