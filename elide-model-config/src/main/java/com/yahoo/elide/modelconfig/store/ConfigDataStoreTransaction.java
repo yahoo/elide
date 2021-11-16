@@ -11,16 +11,21 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.modelconfig.io.FileLoader;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
+import com.yahoo.elide.modelconfig.validator.Validator;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,48 +37,82 @@ import java.util.regex.Pattern;
  */
 public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
-    private final FileLoader fileLoader;
     private static final Pattern TABLE_FILE = Pattern.compile("models/tables/[^/]+\\.hjson");
     private static final Pattern NAME_SPACE_FILE = Pattern.compile("models/namespaces/[^/]+\\.hjson");
     private static final Pattern DB_FILE = Pattern.compile("db/sql/[^/]+\\.hjson");
 
-    public ConfigDataStoreTransaction(FileLoader fileLoader) {
+    private final FileLoader fileLoader;
+    private final Set<Runnable> todo;
+    private final Set<ConfigFile> dirty;
+    private final Validator validator;
+    private final boolean readOnly;
+
+    public ConfigDataStoreTransaction(
+            FileLoader fileLoader,
+            boolean readOnly,
+            Validator validator
+    ) {
         this.fileLoader = fileLoader;
+        this.readOnly = readOnly || !fileLoader.isWriteable();
+        this.dirty = new LinkedHashSet<>();
+        this.todo = new LinkedHashSet<>();
+        this.validator = validator;
     }
 
     @Override
     public <T> void save(T entity, RequestScope scope) {
+        if (readOnly) {
+            throw new UnsupportedOperationException("Configuration is read only.");
+        }
 
+        ConfigFile file = (ConfigFile) entity;
+        dirty.add(file);
+        todo.add(() -> upsertFile(file.getPath(), file.getContent()));
     }
 
     @Override
     public <T> void delete(T entity, RequestScope scope) {
-
+        if (readOnly) {
+            throw new UnsupportedOperationException("Configuration is read only.");
+        }
+        ConfigFile file = (ConfigFile) entity;
+        dirty.add(file);
+        todo.add(() -> deleteFile(file.getPath()));
     }
 
     @Override
     public void flush(RequestScope scope) {
+        if (!readOnly) {
+            Map<String, String> resources;
+            try {
+                resources = fileLoader.loadResources();
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
 
+            for (ConfigFile file : dirty) {
+                resources.put(file.getPath(), file.getContent());
+            }
+
+            validator.validate(resources);
+        }
     }
 
     @Override
     public void commit(RequestScope scope) {
-
-    }
-
-    @Override
-    public void preCommit(RequestScope scope) {
-        DataStoreTransaction.super.preCommit(scope);
+        for (Runnable runnable : todo) {
+            runnable.run();
+        }
     }
 
     @Override
     public <T> void createObject(T entity, RequestScope scope) {
-
-    }
-
-    @Override
-    public <T> T createNewObject(Type<T> entityClass, RequestScope scope) {
-        return DataStoreTransaction.super.createNewObject(entityClass, scope);
+        if (readOnly) {
+            throw new UnsupportedOperationException("Configuration is read only.");
+        }
+        ConfigFile file = (ConfigFile) entity;
+        dirty.add(file);
+        todo.add(() -> upsertFile(file.getPath(), file.getContent()));
     }
 
     @Override
@@ -106,72 +145,13 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T, R> DataStoreIterable<R> getToManyRelation(
-            DataStoreTransaction relationTx,
-            T entity,
-            Relationship relationship,
-            RequestScope scope
-    ) {
-        return DataStoreTransaction.super.getToManyRelation(relationTx, entity, relationship, scope);
-    }
-
-    @Override
-    public <T, R> R getToOneRelation(
-            DataStoreTransaction relationTx,
-            T entity,
-            Relationship relationship,
-            RequestScope scope
-    ) {
-        return DataStoreTransaction.super.getToOneRelation(relationTx, entity, relationship, scope);
-    }
-
-    @Override
-    public <T, R> void updateToManyRelation(
-            DataStoreTransaction relationTx,
-            T entity,
-            String relationName,
-            Set<R> newRelationships,
-            Set<R> deletedRelationships,
-            RequestScope scope
-    ) {
-        DataStoreTransaction.super.updateToManyRelation(relationTx, entity, relationName,
-                newRelationships, deletedRelationships, scope);
-    }
-
-    @Override
-    public <T, R> void updateToOneRelation(
-            DataStoreTransaction relationTx,
-            T entity,
-            String relationName,
-            R relationshipValue,
-            RequestScope scope
-    ) {
-        DataStoreTransaction.super.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
-    }
-
-    @Override
-    public <T, R> R getAttribute(T entity, Attribute attribute, RequestScope scope) {
-        return DataStoreTransaction.super.getAttribute(entity, attribute, scope);
-    }
-
-    @Override
-    public <T> void setAttribute(T entity, Attribute attribute, RequestScope scope) {
-        DataStoreTransaction.super.setAttribute(entity, attribute, scope);
-    }
-
-    @Override
     public void cancel(RequestScope scope) {
-
-    }
-
-    @Override
-    public <T> T getProperty(String propertyName) {
-        return DataStoreTransaction.super.getProperty(propertyName);
+        //NOOP
     }
 
     @Override
     public void close() throws IOException {
-
+        //NOOP
     }
 
     private ConfigFile.ConfigFileType toType(String path) {
@@ -190,6 +170,41 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
             return ConfigFile.ConfigFileType.NAMESPACE;
         } else {
             return ConfigFile.ConfigFileType.UNKNOWN;
+        }
+    }
+
+    private void deleteFile(String path) {
+        Path deletePath = Path.of(fileLoader.getRootPath(), path);
+        File file = deletePath.toFile();
+
+        if (! file.exists()) {
+            return;
+        }
+
+        if (! file.delete()) {
+            throw new IllegalStateException("Unable to delete: " + path);
+        }
+    }
+
+    private void upsertFile(String path, String content) {
+        Path createPath = Path.of(fileLoader.getRootPath(), path);
+        File file = createPath.toFile();
+
+        if (file.exists()) {
+            throw new IllegalStateException("File already exists: " + path);
+        }
+
+        try {
+            File parentDirectory = file.getParentFile();
+            Files.createDirectories(Path.of(parentDirectory.getPath()));
+
+            boolean created = file.createNewFile();
+            if (!created) {
+                throw new IllegalStateException("Unable to create file: " + path);
+            }
+            FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
     }
 }

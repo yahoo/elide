@@ -17,6 +17,7 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -85,6 +86,23 @@ public class FileLoader {
         }
 
         return resourceMap;
+    }
+
+    /**
+     * Load a single resource from the filesystem/classpath.
+     * @return The file content.
+     * @throws IOException If something goes boom.
+     */
+    public String loadResource(String relativePath) throws IOException {
+        Map<String, String> resourceMap = new HashMap<>();
+        int configDirURILength = resolver.getResources(this.rootPath)[0].getURI().toString().length();
+
+        Resource[] hjsonResources = resolver.getResources(this.rootPath + relativePath);
+        if (hjsonResources.length == 0) {
+            return null;
+        }
+
+        return IOUtils.toString(hjsonResources[0].getInputStream(), UTF_8);
     }
 
     /**
