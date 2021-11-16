@@ -1,4 +1,9 @@
 # Change Log
+
+## 5.1.1
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/076a3171fa9c2240c16a2d3f2ced259d46202f7a) Fixes async API resultset premature closure. (#2411) 
+
 ## 5.1.0
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/2bd8e22fba35aeabc8f00b9836364b06a5abeea0) UPdating screwdriver build 
