@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -39,6 +40,14 @@ public class FileLoader {
     private static final String HJSON_EXTN = "**/*.hjson";
 
     private final PathMatchingResourcePatternResolver resolver;
+
+    private static final Function<Resource, String> CONTENT_PROVIDER = (resource) -> {
+        try {
+            return IOUtils.toString(resource.getInputStream(), UTF_8);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    };
 
     @Getter
     private final String rootPath;
@@ -90,11 +99,10 @@ public class FileLoader {
 
         Resource[] hjsonResources = resolver.getResources(this.rootURL + HJSON_EXTN);
         for (Resource resource : hjsonResources) {
-            String content = IOUtils.toString(resource.getInputStream(), UTF_8);
             String path = resource.getURI().toString().substring(configDirURILength);
             resourceMap.put(path, ConfigFile.builder()
                     .type(toType(path))
-                    .content(content)
+                    .contentProvider(() -> CONTENT_PROVIDER.apply(resource))
                     .path(path)
                     .version(NO_VERSION)
                     .build());
@@ -116,7 +124,7 @@ public class FileLoader {
 
         return ConfigFile.builder()
                 .type(toType(relativePath))
-                .content(IOUtils.toString(hjsonResources[0].getInputStream(), UTF_8))
+                .contentProvider(() -> CONTENT_PROVIDER.apply(hjsonResources[0]))
                 .path(relativePath)
                 .version(NO_VERSION)
                 .build();

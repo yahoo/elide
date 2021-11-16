@@ -7,11 +7,15 @@
 package com.yahoo.elide.modelconfig.store.models;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+import java.util.function.Supplier;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
@@ -28,8 +32,37 @@ public class ConfigFile {
         UNKNOWN;
     }
 
+    @Id
+    @GeneratedValue
+    private String id; //path-version
+
+    private String path;
+
+    private String version;
+
+    @Exclude
+    private Supplier<String> contentProvider;
+
+    @Exclude
+    private String content;
+
+    @ComputedAttribute
+    public String getContent() {
+        if (content == null) {
+            content = contentProvider.get();
+        }
+
+        return content;
+    }
+
+    private ConfigFileType type;
+
     @Builder
-    public ConfigFile(String path, String version, String content, ConfigFileType type) {
+    public ConfigFile(
+            String path,
+            String version,
+            ConfigFileType type,
+            Supplier<String> contentProvider) {
         if (version == null || version.isEmpty()) {
             this.id = path;
         } else {
@@ -41,19 +74,24 @@ public class ConfigFile {
         } else {
             this.version = version;
         }
-        this.content = content;
+        this.contentProvider = contentProvider;
         this.type = type;
     }
 
-    @Id
-    @GeneratedValue
-    private String id; //path-version
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ConfigFile that = (ConfigFile) o;
+        return id.equals(that.id);
+    }
 
-    private String path;
-
-    private String version;
-
-    private String content;
-
-    private ConfigFileType type;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
