@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
@@ -149,6 +150,15 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     @Override
     public void validate(Map<String, ConfigFile> resourceMap) {
         try {
+
+            //Validate that the file types and file paths match...
+            resourceMap.forEach((path, file) -> {
+                if (! file.getType().equals(FileLoader.toType(path))) {
+                    throw new BadRequestException(String.format("File type %s does not match file path: %s",
+                            file.getType(), file.getPath()));
+                }
+            });
+
             readConfigs(resourceMap);
             validateConfigs();
         } catch (IOException e) {
@@ -161,8 +171,9 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
      * @throws IOException IOException
      */
     public void readAndValidateConfigs() throws IOException {
-        readConfigs(fileLoader.loadResources());
-        validateConfigs();
+        Map<String, ConfigFile> loadedFiles = fileLoader.loadResources();
+
+        validate(loadedFiles);
     }
 
     public void readConfigs() throws IOException {
