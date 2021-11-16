@@ -8,8 +8,12 @@ package com.yahoo.elide.modelconfig.store.models;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +26,10 @@ import javax.persistence.Id;
 @Include(name = "config")
 @Data
 @NoArgsConstructor
+@ReadPermission(expression = ConfigChecks.CAN_READ_CONFIG)
+@UpdatePermission(expression = ConfigChecks.CAN_UPDATE_CONFIG)
+@DeletePermission(expression = ConfigChecks.CAN_DELETE_CONFIG)
+@CreatePermission(expression = ConfigChecks.CAN_CREATE_CONFIG)
 public class ConfigFile {
     public enum ConfigFileType {
         NAMESPACE,
