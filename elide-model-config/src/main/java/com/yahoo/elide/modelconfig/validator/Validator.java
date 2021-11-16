@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.modelconfig.validator;
 
+import com.yahoo.elide.modelconfig.store.models.ConfigFile;
+
 import java.util.Map;
 
 /**
@@ -18,5 +20,5 @@ public interface Validator {
      * Validate a full set of configurations.  Throws an exception if there is an error.
      * @param resourceMap Maps the path to the resource content.
      */
-    void validate(Map<String, String> resourceMap);
+    void validate(Map<String, ConfigFile> resourceMap);
 }

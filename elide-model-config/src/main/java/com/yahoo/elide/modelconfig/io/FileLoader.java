@@ -6,8 +6,10 @@
 
 package com.yahoo.elide.modelconfig.io;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
+import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
@@ -17,14 +19,18 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Responsible for loading HJSON configuration either from the classpath or from the file system.
  */
 public class FileLoader {
+    private static final Pattern TABLE_FILE = Pattern.compile("models/tables/[^/]+\\.hjson");
+    private static final Pattern NAME_SPACE_FILE = Pattern.compile("models/namespaces/[^/]+\\.hjson");
+    private static final Pattern DB_FILE = Pattern.compile("db/sql/[^/]+\\.hjson");
     private static final String CLASSPATH_PATTERN = "classpath*:";
     private static final String FILEPATH_PATTERN = "file:";
     private static final String RESOURCES = "resources";
@@ -75,14 +81,20 @@ public class FileLoader {
      * @return A map from the path to the resource.
      * @throws IOException If something goes boom.
      */
-    public Map<String, String> loadResources() throws IOException {
-        Map<String, String> resourceMap = new HashMap<>();
+    public Map<String, ConfigFile> loadResources() throws IOException {
+        Map<String, ConfigFile> resourceMap = new HashMap<>();
         int configDirURILength = resolver.getResources(this.rootPath)[0].getURI().toString().length();
 
         Resource[] hjsonResources = resolver.getResources(this.rootPath + HJSON_EXTN);
         for (Resource resource : hjsonResources) {
             String content = IOUtils.toString(resource.getInputStream(), UTF_8);
-            resourceMap.put(resource.getURI().toString().substring(configDirURILength), content);
+            String path = resource.getURI().toString().substring(configDirURILength);
+            resourceMap.put(path, ConfigFile.builder()
+                    .type(toType(path))
+                    .content(content)
+                    .path(path)
+                    .version(NO_VERSION)
+                    .build());
         }
 
         return resourceMap;
@@ -93,16 +105,18 @@ public class FileLoader {
      * @return The file content.
      * @throws IOException If something goes boom.
      */
-    public String loadResource(String relativePath) throws IOException {
-        Map<String, String> resourceMap = new HashMap<>();
-        int configDirURILength = resolver.getResources(this.rootPath)[0].getURI().toString().length();
-
+    public ConfigFile loadResource(String relativePath) throws IOException {
         Resource[] hjsonResources = resolver.getResources(this.rootPath + relativePath);
         if (hjsonResources.length == 0) {
             return null;
         }
 
-        return IOUtils.toString(hjsonResources[0].getInputStream(), UTF_8);
+        return ConfigFile.builder()
+                .type(toType(relativePath))
+                .content(IOUtils.toString(hjsonResources[0].getInputStream(), UTF_8))
+                .path(relativePath)
+                .version(NO_VERSION)
+                .build();
     }
 
     /**
@@ -117,5 +131,24 @@ public class FileLoader {
             return filePath.substring(filePath.indexOf(RESOURCES) + RESOURCES_LENGTH);
         }
         return filePath;
+    }
+
+    private static ConfigFile.ConfigFileType toType(String path) {
+        String lowerCasePath = path.toLowerCase(Locale.ROOT);
+        if (lowerCasePath.endsWith("db/variables.hjson")) {
+            return ConfigFile.ConfigFileType.VARIABLE;
+        } else if (lowerCasePath.endsWith("models/variables.hjson")) {
+            return ConfigFile.ConfigFileType.VARIABLE;
+        } else if (lowerCasePath.equals("models/security.hjson")) {
+            return ConfigFile.ConfigFileType.SECURITY;
+        } else if (DB_FILE.matcher(lowerCasePath).matches()) {
+            return ConfigFile.ConfigFileType.DATABASE;
+        } else if (TABLE_FILE.matcher(lowerCasePath).matches()) {
+            return ConfigFile.ConfigFileType.TABLE;
+        } else if (NAME_SPACE_FILE.matcher(lowerCasePath).matches()) {
+            return ConfigFile.ConfigFileType.NAMESPACE;
+        } else {
+            return ConfigFile.ConfigFileType.UNKNOWN;
+        }
     }
 }
