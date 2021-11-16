@@ -69,7 +69,7 @@ import java.util.stream.Stream;
 /**
  * Util class to validate and parse the config files. Optionally compiles config files.
  */
-public class DynamicConfigValidator implements DynamicConfiguration {
+public class DynamicConfigValidator implements DynamicConfiguration, Validator {
 
     private static final Set<String> SQL_DISALLOWED_WORDS = new HashSet<>(
             Arrays.asList("DROP", "TRUNCATE", "DELETE", "INSERT", "UPDATE", "ALTER", "COMMENT", "CREATE", "DESCRIBE",
@@ -103,7 +103,6 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     private void initialize() {
-
         Set<Class<?>> annotatedClasses =
                         dictionary.getScanner().getAnnotatedClasses(Arrays.asList(Include.class, SecurityCheck.class));
 
@@ -146,17 +145,30 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
     }
 
+    @Override
+    public void validate(Map<String, String> resourceMap) {
+        try {
+            readConfigs(resourceMap);
+            validateConfigs();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     /**
      * Read and validate config files under config directory.
      * @throws IOException IOException
      */
     public void readAndValidateConfigs() throws IOException {
-        readConfigs();
+        readConfigs(fileLoader.loadResources());
         validateConfigs();
     }
 
     public void readConfigs() throws IOException {
-        Map<String, String> resourceMap = fileLoader.loadResources();
+        readConfigs(fileLoader.loadResources());
+    }
+
+    public void readConfigs(Map<String, String> resourceMap) throws IOException {
         this.modelVariables = readVariableConfig(Config.MODELVARIABLE, resourceMap);
         this.elideSecurityConfig = readSecurityConfig(resourceMap);
         this.dbVariables = readVariableConfig(Config.DBVARIABLE, resourceMap);

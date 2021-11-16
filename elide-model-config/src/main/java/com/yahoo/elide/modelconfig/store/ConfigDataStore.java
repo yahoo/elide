@@ -7,11 +7,11 @@
 package com.yahoo.elide.modelconfig.store;
 
 import com.yahoo.elide.core.datastore.DataStore;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.modelconfig.io.FileLoader;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
+import com.yahoo.elide.modelconfig.validator.Validator;
 
 /**
  * Elide DataStore which loads/persists HJSON configuration files as Elide models.
@@ -19,9 +19,14 @@ import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 public class ConfigDataStore implements DataStore {
 
     private final FileLoader fileLoader;
+    private final Validator validator;
 
-    public ConfigDataStore(String configRoot) {
+    public ConfigDataStore(
+            String configRoot,
+            Validator validator
+    ) {
         this.fileLoader = new FileLoader(configRoot);
+        this.validator = validator;
     }
 
     @Override
@@ -31,11 +36,11 @@ public class ConfigDataStore implements DataStore {
 
     @Override
     public ConfigDataStoreTransaction beginTransaction() {
-        return new ConfigDataStoreTransaction(fileLoader);
+        return new ConfigDataStoreTransaction(fileLoader, false, validator);
     }
 
     @Override
     public ConfigDataStoreTransaction beginReadTransaction() {
-        return new ConfigDataStoreTransaction(fileLoader);
+        return new ConfigDataStoreTransaction(fileLoader, true, validator);
     }
 }

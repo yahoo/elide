@@ -1,3 +1,9 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.modelconfig.store;
 
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.DATABASE;
@@ -11,17 +17,24 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
+import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.modelconfig.validator.Validator;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Path;
 import java.util.List;
 
 public class ConfigDataStoreTest {
 
     @Test
     public void testLoadObjects() {
-        ConfigDataStore store = new ConfigDataStore("src/test/resources/validator/valid");
+        String configRoot = "src/test/resources/validator/valid";
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigDataStoreTransaction tx = store.beginReadTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -35,31 +48,31 @@ public class ConfigDataStoreTest {
         assertEquals(ConfigFile.builder()
                 .version("")
                 .type(ConfigFile.ConfigFileType.DATABASE)
-                .content("{\n" +
-                        "  dbconfigs:\n" +
-                        "  [\n" +
-                        "    {\n" +
-                        "      name: MyDB2Connection\n" +
-                        "      url: jdbc:db2:localhost:50000/testdb\n" +
-                        "      driver: COM.ibm.db2.jdbc.net.DB2Driver\n" +
-                        "      user: guestdb2\n" +
-                        "      dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDBDialect\n" +
-                        "      propertyMap:\n" +
-                        "      {\n" +
-                        "        hibernate.show_sql: true\n" +
-                        "        hibernate.default_batch_fetch_size: 100.1\n" +
-                        "        hibernate.hbm2ddl.auto: create\n" +
-                        "      }\n" +
-                        "    }\n" +
-                        "    {\n" +
-                        "      name: MySQLConnection\n" +
-                        "      url: jdbc:mysql://localhost/testdb?serverTimezone=UTC\n" +
-                        "      driver: com.mysql.jdbc.Driver\n" +
-                        "      user: guestmysql\n" +
-                        "      dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect\n" +
-                        "    }\n" +
-                        "  ]\n" +
-                        "}\n")
+                .content("{\n"
+                        + "  dbconfigs:\n"
+                        + "  [\n"
+                        + "    {\n"
+                        + "      name: MyDB2Connection\n"
+                        + "      url: jdbc:db2:localhost:50000/testdb\n"
+                        + "      driver: COM.ibm.db2.jdbc.net.DB2Driver\n"
+                        + "      user: guestdb2\n"
+                        + "      dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDBDialect\n"
+                        + "      propertyMap:\n"
+                        + "      {\n"
+                        + "        hibernate.show_sql: true\n"
+                        + "        hibernate.default_batch_fetch_size: 100.1\n"
+                        + "        hibernate.hbm2ddl.auto: create\n"
+                        + "      }\n"
+                        + "    }\n"
+                        + "    {\n"
+                        + "      name: MySQLConnection\n"
+                        + "      url: jdbc:mysql://localhost/testdb?serverTimezone=UTC\n"
+                        + "      driver: com.mysql.jdbc.Driver\n"
+                        + "      user: guestmysql\n"
+                        + "      dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect\n"
+                        + "    }\n"
+                        + "  ]\n"
+                        + "}\n")
                 .path("db/sql/multiple_db_no_variables.hjson")
                 .build(), configFiles.get(0));
 
@@ -89,5 +102,45 @@ public class ConfigDataStoreTest {
 
         assertEquals("models/security.hjson", configFiles.get(9).getPath());
         assertEquals(SECURITY, configFiles.get(9).getType());
+    }
+
+    @Test
+    public void testCreate(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+
+        ConfigFile newFile = ConfigFile.builder()
+                .type(TABLE)
+                .path("models/tables/test.hjson")
+                .content("{            \n"
+                        + "  tables: [{     \n"
+                        + "      name: Test\n"
+                        + "      table: test\n"
+                        + "      schema: test\n"
+                        + "      measures : [\n"
+                        + "         {\n"
+                        + "          name : measure\n"
+                        + "          type : INTEGER\n"
+                        + "          definition: 'MAX({{$measure}})'\n"
+                        + "         }\n"
+                        + "      ]      \n"
+                        + "      dimensions : [\n"
+                        + "         {\n"
+                        + "           name : dimension\n"
+                        + "           type : TEXT\n"
+                        + "           definition : '{{$dimension}}'\n"
+                        + "         }\n"
+                        + "      ]\n"
+                        + "  }]\n"
+                        + "}")
+                .build();
+
+        ConfigDataStoreTransaction tx = store.beginTransaction();
+        RequestScope scope = mock(RequestScope.class);
+
+        tx.createObject(newFile, scope);
+        tx.flush(scope);
+        tx.commit(scope);
     }
 }
