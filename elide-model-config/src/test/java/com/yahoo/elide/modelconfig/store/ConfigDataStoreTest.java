@@ -12,6 +12,7 @@ import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.TABLE;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.VARIABLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class ConfigDataStoreTest {
 
@@ -44,11 +46,8 @@ public class ConfigDataStoreTest {
 
         List<ConfigFile> configFiles = Lists.newArrayList(loaded.iterator());
 
-        assertEquals(10, configFiles.size());
-        assertEquals(ConfigFile.builder()
-                .version("")
-                .type(ConfigFile.ConfigFileType.DATABASE)
-                .content("{\n"
+        Supplier<String> contentProvider = () ->
+                "{\n"
                         + "  dbconfigs:\n"
                         + "  [\n"
                         + "    {\n"
@@ -72,9 +71,15 @@ public class ConfigDataStoreTest {
                         + "      dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect\n"
                         + "    }\n"
                         + "  ]\n"
-                        + "}\n")
+                        + "}\n";
+
+        assertEquals(10, configFiles.size());
+        assertTrue(compare(ConfigFile.builder()
+                .version("")
+                .type(ConfigFile.ConfigFileType.DATABASE)
+                .contentProvider(contentProvider)
                 .path("db/sql/multiple_db_no_variables.hjson")
-                .build(), configFiles.get(0));
+                .build(), configFiles.get(0)));
 
         assertEquals("models/namespaces/player.hjson", configFiles.get(1).getPath());
         assertEquals(NAMESPACE, configFiles.get(1).getType());
@@ -110,30 +115,32 @@ public class ConfigDataStoreTest {
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
+        Supplier<String> contentProvider = () -> "{            \n"
+                    + "  tables: [{     \n"
+                    + "      name: Test\n"
+                    + "      table: test\n"
+                    + "      schema: test\n"
+                    + "      measures : [\n"
+                    + "         {\n"
+                    + "          name : measure\n"
+                    + "          type : INTEGER\n"
+                    + "          definition: 'MAX({{$measure}})'\n"
+                    + "         }\n"
+                    + "      ]      \n"
+                    + "      dimensions : [\n"
+                    + "         {\n"
+                    + "           name : dimension\n"
+                    + "           type : TEXT\n"
+                    + "           definition : '{{$dimension}}'\n"
+                    + "         }\n"
+                    + "      ]\n"
+                    + "  }]\n"
+                    + "}";
+
         ConfigFile newFile = ConfigFile.builder()
                 .type(TABLE)
+                .contentProvider(contentProvider)
                 .path("models/tables/test.hjson")
-                .content("{            \n"
-                        + "  tables: [{     \n"
-                        + "      name: Test\n"
-                        + "      table: test\n"
-                        + "      schema: test\n"
-                        + "      measures : [\n"
-                        + "         {\n"
-                        + "          name : measure\n"
-                        + "          type : INTEGER\n"
-                        + "          definition: 'MAX({{$measure}})'\n"
-                        + "         }\n"
-                        + "      ]      \n"
-                        + "      dimensions : [\n"
-                        + "         {\n"
-                        + "           name : dimension\n"
-                        + "           type : TEXT\n"
-                        + "           definition : '{{$dimension}}'\n"
-                        + "         }\n"
-                        + "      ]\n"
-                        + "  }]\n"
-                        + "}")
                 .build();
 
         ConfigDataStoreTransaction tx = store.beginTransaction();
@@ -145,9 +152,13 @@ public class ConfigDataStoreTest {
 
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
-        ConfigFile loaded = tx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
+        ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
                 "models/tables/test.hjson", scope);
 
-        assertEquals(newFile, loaded);
+        assertTrue(compare(newFile, loaded));
+    }
+
+    protected boolean compare(ConfigFile a, ConfigFile b) {
+        return a.equals(b) && a.getContent().equals(b.getContent()) && a.getType().equals(b.getType());
     }
 }
