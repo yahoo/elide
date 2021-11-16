@@ -99,6 +99,9 @@ public class FileLoader {
 
         Resource[] hjsonResources = resolver.getResources(this.rootURL + HJSON_EXTN);
         for (Resource resource : hjsonResources) {
+            if (! resource.exists()) {
+                continue;
+            }
             String path = resource.getURI().toString().substring(configDirURILength);
             resourceMap.put(path, ConfigFile.builder()
                     .type(toType(path))
@@ -118,7 +121,7 @@ public class FileLoader {
      */
     public ConfigFile loadResource(String relativePath) throws IOException {
         Resource[] hjsonResources = resolver.getResources(this.rootURL + relativePath);
-        if (hjsonResources.length == 0) {
+        if (hjsonResources.length == 0 || ! hjsonResources[0].exists()) {
             return null;
         }
 
