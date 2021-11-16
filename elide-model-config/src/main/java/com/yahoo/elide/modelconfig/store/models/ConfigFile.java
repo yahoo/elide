@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.modelconfig.store.models;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.annotation.Include;
 import lombok.Builder;
 import lombok.Data;
@@ -35,7 +36,11 @@ public class ConfigFile {
             this.id = path + "-" + version;
         }
         this.path = path;
-        this.version = version;
+        if (version == null) {
+            this.version = NO_VERSION;
+        } else {
+            this.version = version;
+        }
         this.content = content;
         this.type = type;
     }

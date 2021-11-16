@@ -110,7 +110,14 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     @Override
     public <T> T loadObject(EntityProjection entityProjection, Serializable id, RequestScope scope) {
         String idString = id.toString();
-        String path = idString.substring(idString.lastIndexOf('-'));
+        int hyphenIndex = idString.lastIndexOf('-');
+
+        String path;
+        if (hyphenIndex < 0) {
+            path = idString;
+        } else {
+            path = idString.substring(idString.lastIndexOf('-'));
+        }
         try {
             return (T) fileLoader.loadResource(path);
         } catch (IOException e) {

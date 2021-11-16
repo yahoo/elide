@@ -142,5 +142,12 @@ public class ConfigDataStoreTest {
         tx.createObject(newFile, scope);
         tx.flush(scope);
         tx.commit(scope);
+
+
+        ConfigDataStoreTransaction readTx = store.beginReadTransaction();
+        ConfigFile loaded = tx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
+                "models/tables/test.hjson", scope);
+
+        assertEquals(newFile, loaded);
     }
 }
