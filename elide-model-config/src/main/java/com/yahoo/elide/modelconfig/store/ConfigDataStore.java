@@ -30,12 +30,12 @@ public class ConfigDataStore implements DataStore {
     }
 
     @Override
-    public DataStoreTransaction beginTransaction() {
+    public ConfigDataStoreTransaction beginTransaction() {
         return new ConfigDataStoreTransaction(fileLoader);
     }
 
     @Override
-    public DataStoreTransaction beginReadTransaction() {
+    public ConfigDataStoreTransaction beginReadTransaction() {
         return new ConfigDataStoreTransaction(fileLoader);
     }
 }
