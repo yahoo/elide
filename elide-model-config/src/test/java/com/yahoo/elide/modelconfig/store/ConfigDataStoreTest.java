@@ -12,6 +12,7 @@ import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.TABLE;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.VARIABLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.RequestScope;
@@ -112,30 +113,67 @@ public class ConfigDataStoreTest {
     @Test
     public void testCreate(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
+
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
+        ConfigFile newFile = createFile(configRoot, store);
+
+        ConfigDataStoreTransaction readTx = store.beginReadTransaction();
+        RequestScope scope = mock(RequestScope.class);
+
+        ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
+                "models/tables/test.hjson", scope);
+
+        assertTrue(compare(newFile, loaded));
+    }
+
+    @Test
+    public void testDelete(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+
+        ConfigFile newFile = createFile(configRoot, store);
+
+        ConfigDataStoreTransaction tx = store.beginTransaction();
+        RequestScope scope = mock(RequestScope.class);
+        tx.delete(newFile, scope);
+
+        tx.flush(scope);
+        tx.commit(scope);
+
+        ConfigDataStoreTransaction readTx = store.beginReadTransaction();
+
+        ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
+                "models/tables/test.hjson", scope);
+
+        assertNull(loaded);
+    }
+
+    protected ConfigFile createFile(String configRoot, ConfigDataStore store) {
         Supplier<String> contentProvider = () -> "{            \n"
-                    + "  tables: [{     \n"
-                    + "      name: Test\n"
-                    + "      table: test\n"
-                    + "      schema: test\n"
-                    + "      measures : [\n"
-                    + "         {\n"
-                    + "          name : measure\n"
-                    + "          type : INTEGER\n"
-                    + "          definition: 'MAX({{$measure}})'\n"
-                    + "         }\n"
-                    + "      ]      \n"
-                    + "      dimensions : [\n"
-                    + "         {\n"
-                    + "           name : dimension\n"
-                    + "           type : TEXT\n"
-                    + "           definition : '{{$dimension}}'\n"
-                    + "         }\n"
-                    + "      ]\n"
-                    + "  }]\n"
-                    + "}";
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}})'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
 
         ConfigFile newFile = ConfigFile.builder()
                 .type(TABLE)
@@ -150,12 +188,7 @@ public class ConfigDataStoreTest {
         tx.flush(scope);
         tx.commit(scope);
 
-
-        ConfigDataStoreTransaction readTx = store.beginReadTransaction();
-        ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
-                "models/tables/test.hjson", scope);
-
-        assertTrue(compare(newFile, loaded));
+        return newFile;
     }
 
     protected boolean compare(ConfigFile a, ConfigFile b) {

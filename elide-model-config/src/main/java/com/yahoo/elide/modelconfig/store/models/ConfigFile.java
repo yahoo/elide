@@ -23,6 +23,9 @@ import java.util.function.Supplier;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+/**
+ * Represents an HJSON configuration file for dynamic Elide models.
+ */
 @Include(name = "config")
 @Data
 @NoArgsConstructor

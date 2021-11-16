@@ -138,7 +138,8 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public void cancel(RequestScope scope) {
-        //NOOP
+        todo.clear();
+        dirty.clear();
     }
 
     @Override
