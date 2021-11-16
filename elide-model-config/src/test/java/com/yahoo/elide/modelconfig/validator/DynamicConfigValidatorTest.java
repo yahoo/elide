@@ -11,11 +11,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
+import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 public class DynamicConfigValidatorTest {
 
@@ -459,5 +463,31 @@ public class DynamicConfigValidatorTest {
         playerStatsTable.setFilterTemplate("foo=={{bar}};blah=={{code}}");
         Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
         assertEquals("Multiple Arguments found with the same name: code", e.getMessage());
+    }
+
+    @Test
+    public void testPathAndConfigFileTypeMismatches() {
+        DynamicConfigValidator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+                "src/test/resources/validator/valid");
+
+        Map<String, ConfigFile> resources = Map.of("blah/foo",
+                ConfigFile.builder().type(ConfigFile.ConfigFileType.SECURITY).build());
+
+        assertThrows(BadRequestException.class, () -> validator.validate(resources));
+
+        Map<String, ConfigFile> resources2 = Map.of("models/variables.hjson",
+                ConfigFile.builder().type(ConfigFile.ConfigFileType.TABLE).build());
+
+        assertThrows(BadRequestException.class, () -> validator.validate(resources2));
+
+        Map<String, ConfigFile> resources3 = Map.of("models/tables/referred_model.hjson",
+                ConfigFile.builder().type(ConfigFile.ConfigFileType.NAMESPACE).build());
+
+        assertThrows(BadRequestException.class, () -> validator.validate(resources3));
+
+        Map<String, ConfigFile> resources4 = Map.of("models/tables/referred_model.hjson",
+            ConfigFile.builder().type(ConfigFile.ConfigFileType.DATABASE).build());
+
+        assertThrows(BadRequestException.class, () -> validator.validate(resources4));
     }
 }
