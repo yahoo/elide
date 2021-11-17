@@ -134,6 +134,19 @@ public class ConfigDataStoreTest {
     }
 
     @Test
+    public void testCreateReadOnly() {
+
+        //This path is read only (Classpath)...
+        String configRoot = "src/test/resources/validator/valid";
+
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+
+        assertThrows(UnsupportedOperationException.class,
+                () -> createFile(configRoot, store, false));
+    }
+
+    @Test
     public void testCreateInvalid(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
