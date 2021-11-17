@@ -35,6 +35,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfigu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
+import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
@@ -42,6 +43,7 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
+import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -339,6 +341,11 @@ public class ElideAutoConfiguration {
 
             if (isDynamicConfigEnabled(settings)) {
                 aggregationDataStoreBuilder.dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes());
+
+                if (settings.getDynamicConfig().isConfigApiEnabled()) {
+                    stores.add(new ConfigDataStore(settings.getDynamicConfig().getPath(),
+                            new TemplateConfigValidator(scanner, settings.getDynamicConfig().getPath())));
+                }
             }
             aggregationDataStoreBuilder.cache(cache);
             aggregationDataStoreBuilder.queryLogger(querylogger);

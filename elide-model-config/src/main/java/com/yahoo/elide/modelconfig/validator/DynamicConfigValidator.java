@@ -192,14 +192,17 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
 
     public void validateConfigs() throws IOException {
         validateSecurityConfig();
-        validateRequiredConfigsProvided();
-        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
-        validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
-        validateTableConfig();
-        validateNameUniqueness(this.elideNamespaceConfig.getNamespaceconfigs(),
-                "Multiple Namespace configs found with the same name: ");
-        validateNamespaceConfig();
-        validateJoinedTablesDBConnectionName(this.elideTableConfig);
+        boolean configurationExists = validateRequiredConfigsProvided();
+
+        if (configurationExists) {
+            validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
+            validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
+            validateTableConfig();
+            validateNameUniqueness(this.elideNamespaceConfig.getNamespaceconfigs(),
+                    "Multiple Namespace configs found with the same name: ");
+            validateNamespaceConfig();
+            validateJoinedTablesDBConnectionName(this.elideTableConfig);
+        }
     }
 
     @Override
@@ -506,10 +509,8 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     /**
      * Checks if neither Table nor DB config files provided.
      */
-    private void validateRequiredConfigsProvided() {
-        if (this.elideTableConfig.getTables().isEmpty() && this.elideSQLDBConfig.getDbconfigs().isEmpty()) {
-            throw new IllegalStateException("Neither Table nor DB configs found under: " + fileLoader.getRootPath());
-        }
+    private boolean validateRequiredConfigsProvided() {
+        return !(this.elideTableConfig.getTables().isEmpty() && this.elideSQLDBConfig.getDbconfigs().isEmpty());
     }
 
     /**
