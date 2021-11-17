@@ -55,7 +55,7 @@ public class SubqueryFilterSplitterTest {
 
         DataSource mockDataSource = mock(DataSource.class);
         //The query engine populates the metadata store with actual tables.
-        new SQLQueryEngine(metaDataStore, new ConnectionDetails(mockDataSource,
+        new SQLQueryEngine(metaDataStore, (unused) -> new ConnectionDetails(mockDataSource,
                 SQLDialectFactory.getDefaultDialect()));
 
         dialect = RSQLFilterDialect.builder().dictionary(dictionary).build();

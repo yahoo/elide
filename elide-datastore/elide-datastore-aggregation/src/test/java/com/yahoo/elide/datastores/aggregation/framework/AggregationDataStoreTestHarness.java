@@ -66,7 +66,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         }
 
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
-                .queryEngine(new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
+                .queryEngine(new SQLQueryEngine(metaDataStore,
+                        (name) -> connectionDetailsMap.getOrDefault(name, defaultConnectionDetails),
                         new HashSet<>(), new DefaultQueryValidator(metaDataStore.getMetadataDictionary())))
                 .queryLogger(new Slf4jQueryLogger())
                 .build();

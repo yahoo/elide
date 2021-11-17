@@ -23,4 +23,9 @@ public class DynamicConfigProperties {
      */
     private String path = "/";
 
+    /**
+     * Elide configuration models enabled/disabled.
+     */
+    private boolean configApiEnabled = false;
+
 }

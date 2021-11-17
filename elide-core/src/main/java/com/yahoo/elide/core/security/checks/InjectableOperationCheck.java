@@ -17,12 +17,12 @@ import javax.inject.Inject;
 public class InjectableOperationCheck extends OperationCheck {
 
     @Inject
-    OperationCheck actualCheck;
+    Optional<OperationCheck> actualCheck;
 
     @Override
     public boolean ok(Object object, RequestScope requestScope, Optional optional) {
-        if (actualCheck != null) {
-            return actualCheck.ok(object, requestScope, optional);
+        if (actualCheck.isPresent()) {
+            return actualCheck.get().ok(object, requestScope, optional);
         }
 
         return true;

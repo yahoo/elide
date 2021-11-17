@@ -46,6 +46,7 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -66,6 +67,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
@@ -536,11 +538,21 @@ public interface ElideStandaloneSettings {
                                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
                                                 SQLDialectFactory.getDialect(dbConfig.getDialect())))
             );
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
+
+            Function<String, ConnectionDetails> connectionDetailsLookup = (name) -> {
+                if (StringUtils.isEmpty(name)) {
+                    return defaultConnectionDetails;
+                }
+                return Optional.ofNullable(connectionDetailsMap.get(name))
+                        .orElseThrow(() -> new IllegalStateException("ConnectionDetails undefined for connection: "
+                                + name));
+            };
+
+            return new SQLQueryEngine(metaDataStore, connectionDetailsLookup,
                     new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
                     new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
-        return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
+        return new SQLQueryEngine(metaDataStore, (unused) -> defaultConnectionDetails);
     }
 
     /**

@@ -34,21 +34,22 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class TableArgumentValidatorTest {
 
-    private final ConnectionDetails connection;
-    private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
     private final Set<Optimizer> optimizers = new HashSet<>();
     private final QueryValidator queryValidator = new DefaultQueryValidator(EntityDictionary.builder().build());
 
     private Table.TableBuilder mainTableBuilder;
     private final Collection<NamespaceConfig> namespaceConfigs;
+    private final Function<String, ConnectionDetails> connectionLookup;
 
     public TableArgumentValidatorTest() {
-        this.connection = new ConnectionDetails(new HikariDataSource(), SQLDialectFactory.getDefaultDialect());
-        this.connectionDetailsMap.put("mycon", this.connection);
-        this.connectionDetailsMap.put("SalesDBConnection", this.connection);
+        ConnectionDetails connection = new ConnectionDetails(new HikariDataSource(), SQLDialectFactory.getDefaultDialect());
+        Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+        connectionDetailsMap.put("mycon", connection);
+        connectionDetailsMap.put("SalesDBConnection", connection);
 
         this.namespaceConfigs = Collections.singleton(NamespaceConfig.builder().name("namespace").build());
 
@@ -62,6 +63,8 @@ public class TableArgumentValidatorTest {
                                         .defaultValue("")
                                         .build())
                         ;
+
+        connectionLookup = (name) -> connectionDetailsMap.getOrDefault(name, connection);
     }
 
     @Test
@@ -79,7 +82,7 @@ public class TableArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Value: '2.5' for Argument 'testArg' with Type 'INTEGER' is invalid.",
                         e.getMessage());
@@ -100,7 +103,7 @@ public class TableArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Default Value: '5' for Argument 'testArg' with Type 'INTEGER' must match one of these values: [1, 2].",
                         e.getMessage());
@@ -121,7 +124,7 @@ public class TableArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Default Value: '2.5' for Argument 'testArg' with Type 'INTEGER' is invalid.",
                         e.getMessage());
@@ -137,7 +140,7 @@ public class TableArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$table.args.mainArg2}}' in table's sql.",
                         e.getMessage());
@@ -158,7 +161,7 @@ public class TableArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$table.args.mainArg2}}' in definition of column: 'dim1'.",
                         e.getMessage());
@@ -182,7 +185,7 @@ public class TableArgumentValidatorTest {
                         .namespace("namespace")
                         .build());
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$table.args.mainArg2}}' in definition of join: 'join'.",
                         e.getMessage());
@@ -213,7 +216,7 @@ public class TableArgumentValidatorTest {
                         .build());
 
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'joinArg1' with type 'INTEGER' is not defined but is required by join table: namespace_JoinTable.",
                         e.getMessage());
@@ -270,7 +273,7 @@ public class TableArgumentValidatorTest {
                         .build());
 
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument type mismatch. Join table: 'namespace_JoinTable' has same Argument: 'mainArg1' with type 'TEXT'.",
                         e.getMessage());

@@ -67,7 +67,7 @@ public class JoinExpressionExtractorTest {
 
         DataSource mockDataSource = mock(DataSource.class);
         // The query engine populates the metadata store with actual tables.
-        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(mockDataSource, new H2Dialect()));
+        engine = new SQLQueryEngine(metaDataStore, (unused) -> new ConnectionDetails(mockDataSource, new H2Dialect()));
         table = metaDataStore.getTable(ClassType.of(MainTable.class));
         queryArgs = new HashMap<>();
         queryArgs.put("tableArg", Argument.builder().name("tableArg").value("tableArgValue").build());

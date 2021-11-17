@@ -62,13 +62,17 @@ import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -215,7 +219,6 @@ public class ElideAutoConfiguration {
      * @param settings Elide configuration settings.
      * @param entitiesToExclude set of Entities to exclude from binding.
      * @return a newly configured EntityDictionary.
-     * @throws ClassNotFoundException Exception thrown.
      */
     @Bean
     @ConditionalOnMissingBean
@@ -223,9 +226,7 @@ public class ElideAutoConfiguration {
                                             ClassScanner scanner,
                                             @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                             ElideConfigProperties settings,
-                                            @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude)
-            throws ClassNotFoundException {
-
+                                            @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude) {
         EntityDictionary dictionary = new EntityDictionary(
                 new HashMap<>(), //Checks
                 new HashMap<>(), //Role Checks
@@ -263,7 +264,6 @@ public class ElideAutoConfiguration {
      * @param dataSourceConfiguration DataSource Configuration
      * @param dbPasswordExtractor Password Extractor Implementation
      * @return An instance of a QueryEngine
-     * @throws ClassNotFoundException Exception thrown.
      */
     @Bean
     @ConditionalOnMissingBean
@@ -273,7 +273,7 @@ public class ElideAutoConfiguration {
                                         ElideConfigProperties settings,
                                         ClassScanner scanner,
                                         DataSourceConfiguration dataSourceConfiguration,
-                                        DBPasswordExtractor dbPasswordExtractor) throws ClassNotFoundException {
+                                        DBPasswordExtractor dbPasswordExtractor) {
 
         boolean enableMetaDataStore = settings.getAggregationStore().isEnableMetaDataStore();
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource,
@@ -281,21 +281,31 @@ public class ElideAutoConfiguration {
         if (isDynamicConfigEnabled(settings)) {
             MetaDataStore metaDataStore = new MetaDataStore(scanner, dynamicConfig.getTables(),
                     dynamicConfig.getNamespaceConfigurations(), enableMetaDataStore);
+
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
             dynamicConfig.getDatabaseConfigurations().forEach(dbConfig -> {
                 connectionDetailsMap.put(dbConfig.getName(),
-                                new ConnectionDetails(
-                                                dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
-                                                SQLDialectFactory.getDialect(dbConfig.getDialect())));
+                        new ConnectionDetails(
+                                dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
+                                SQLDialectFactory.getDialect(dbConfig.getDialect())));
             });
 
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
+            Function<String, ConnectionDetails> connectionDetailsLookup = (name) -> {
+                if (StringUtils.isEmpty(name)) {
+                    return defaultConnectionDetails;
+                }
+                return Optional.ofNullable(connectionDetailsMap.get(name))
+                        .orElseThrow(() -> new IllegalStateException("ConnectionDetails undefined for connection: "
+                                + name));
+            };
+
+            return new SQLQueryEngine(metaDataStore, connectionDetailsLookup,
                     new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
                     new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
         MetaDataStore metaDataStore = new MetaDataStore(scanner, enableMetaDataStore);
-        return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
+        return new SQLQueryEngine(metaDataStore, (unused) -> defaultConnectionDetails);
     }
 
     /**
@@ -304,16 +314,16 @@ public class ElideAutoConfiguration {
      * @param queryEngine QueryEngine instance for aggregation data store.
      * @param settings Elide configuration settings.
      * @return An instance of a JPA DataStore.
-     * @throws ClassNotFoundException Exception thrown.
      */
     @Bean
     @ConditionalOnMissingBean
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
+                                    ClassScanner scanner,
                                     @Autowired(required = false) QueryEngine queryEngine,
                                     ElideConfigProperties settings,
                                     @Autowired(required = false) Cache cache,
-                                    @Autowired(required = false) QueryLogger querylogger)
-            throws ClassNotFoundException {
+                                    @Autowired(required = false) QueryLogger querylogger) {
+        List<DataStore> stores = new ArrayList<>();
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 entityManagerFactory::createEntityManager,
@@ -321,9 +331,12 @@ public class ElideAutoConfiguration {
                         DEFAULT_LOGGER,
                         settings.getJpaStore().isDelegateToInMemoryStore(), true));
 
+        stores.add(jpaDataStore);
+
         if (isAggregationStoreEnabled(settings)) {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
                             AggregationDataStore.builder().queryEngine(queryEngine);
+
             if (isDynamicConfigEnabled(settings)) {
                 aggregationDataStoreBuilder.dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes());
             }
@@ -331,8 +344,11 @@ public class ElideAutoConfiguration {
             aggregationDataStoreBuilder.queryLogger(querylogger);
             AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
+            stores.add(queryEngine.getMetaDataStore());
+            stores.add(aggregationDataStore);
+
             // meta data store needs to be put at first to populate meta data models
-            return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
+            return new MultiplexManager(stores.toArray(new DataStore[0]));
         }
 
         return jpaDataStore;
