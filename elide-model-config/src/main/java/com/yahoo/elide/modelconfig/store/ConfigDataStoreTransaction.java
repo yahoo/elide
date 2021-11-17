@@ -11,6 +11,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.modelconfig.io.FileLoader;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
@@ -87,7 +88,11 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
                 resources.put(file.getPath(), file);
             }
 
-            validator.validate(resources);
+            try {
+                validator.validate(resources);
+            } catch (Exception e) {
+                throw new BadRequestException(e.getMessage());
+            }
         }
     }
 

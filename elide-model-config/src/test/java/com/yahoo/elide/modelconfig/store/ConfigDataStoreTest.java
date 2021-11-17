@@ -14,12 +14,14 @@ import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.VARIABLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -132,13 +134,22 @@ public class ConfigDataStoreTest {
     }
 
     @Test
-    public void testCreateValidateOnly(@TempDir Path configPath) {
+    public void testCreateInvalid(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
-        ConfigFile newFile = createFile(configRoot, store, true);
+        assertThrows(BadRequestException.class,
+                () -> createInvalidFile(configRoot, store));
+    }
+
+    @Test
+    public void testCreateValidateOnly(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -273,6 +284,46 @@ public class ConfigDataStoreTest {
         tx.commit(scope);
 
         return updatedFile;
+    }
+
+    protected ConfigFile createInvalidFile(String configRoot, ConfigDataStore store) {
+        Supplier<String> contentProvider = () -> "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INVALID_TYPE\n"
+                + "          definition: 'MAX({{$measure}})'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        ConfigFile newFile = ConfigFile.builder()
+                .type(TABLE)
+                .contentProvider(contentProvider)
+                .path("models/tables/test.hjson")
+                .build();
+
+        ConfigDataStoreTransaction tx = store.beginTransaction();
+        RequestScope scope = mock(RequestScope.class);
+
+        tx.createObject(newFile, scope);
+        tx.save(newFile, scope);
+        tx.flush(scope);
+        tx.commit(scope);
+
+        return newFile;
     }
 
     protected boolean compare(ConfigFile a, ConfigFile b) {
