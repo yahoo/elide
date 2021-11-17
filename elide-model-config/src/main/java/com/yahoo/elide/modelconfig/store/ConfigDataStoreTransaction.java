@@ -59,7 +59,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
         ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
-        todo.add(() -> upsertFile(file.getPath(), file.getContent()));
+        todo.add(() -> updateFile(file.getPath(), file.getContent()));
     }
 
     @Override
@@ -104,7 +104,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         }
         ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
-        todo.add(() -> upsertFile(file.getPath(), file.getContent()));
+        todo.add(() -> createFile(file.getPath()));
     }
 
     @Override
@@ -147,7 +147,6 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         //NOOP
     }
 
-
     private void deleteFile(String path) {
         Path deletePath = Path.of(fileLoader.getRootPath(), path);
         File file = deletePath.toFile();
@@ -161,7 +160,17 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         }
     }
 
-    private void upsertFile(String path, String content) {
+    private void updateFile(String path, String content) {
+        Path updatePath = Path.of(fileLoader.getRootPath(), path);
+        File file = updatePath.toFile();
+
+        try {
+            FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+    private void createFile(String path) {
         Path createPath = Path.of(fileLoader.getRootPath(), path);
         File file = createPath.toFile();
 
@@ -177,7 +186,6 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
             if (!created) {
                 throw new IllegalStateException("Unable to create file: " + path);
             }
-            FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
