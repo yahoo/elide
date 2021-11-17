@@ -129,6 +129,25 @@ public class ConfigDataStoreTest {
     }
 
     @Test
+    public void testUpdate(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+
+        createFile(configRoot, store);
+        ConfigFile updateFile = updateFile(configRoot, store);
+
+        ConfigDataStoreTransaction readTx = store.beginReadTransaction();
+        RequestScope scope = mock(RequestScope.class);
+
+        ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
+                "models/tables/test.hjson", scope);
+
+        assertTrue(compare(updateFile, loaded));
+    }
+
+    @Test
     public void testDelete(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
@@ -185,10 +204,50 @@ public class ConfigDataStoreTest {
         RequestScope scope = mock(RequestScope.class);
 
         tx.createObject(newFile, scope);
+        tx.save(newFile, scope);
         tx.flush(scope);
         tx.commit(scope);
 
         return newFile;
+    }
+
+    protected ConfigFile updateFile(String configRoot, ConfigDataStore store) {
+        Supplier<String> contentProvider = () -> "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test2\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}})'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        ConfigFile updatedFile = ConfigFile.builder()
+                .type(TABLE)
+                .contentProvider(contentProvider)
+                .path("models/tables/test.hjson")
+                .build();
+
+        ConfigDataStoreTransaction tx = store.beginTransaction();
+        RequestScope scope = mock(RequestScope.class);
+
+        tx.save(updatedFile, scope);
+        tx.flush(scope);
+        tx.commit(scope);
+
+        return updatedFile;
     }
 
     protected boolean compare(ConfigFile a, ConfigFile b) {
