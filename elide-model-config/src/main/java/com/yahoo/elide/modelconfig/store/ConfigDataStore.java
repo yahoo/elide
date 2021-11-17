@@ -18,6 +18,8 @@ import com.yahoo.elide.modelconfig.validator.Validator;
  */
 public class ConfigDataStore implements DataStore {
 
+    public static final String VALIDATE_ONLY_HEADER = "ValidateOnly";
+
     private final FileLoader fileLoader;
     private final Validator validator;
 

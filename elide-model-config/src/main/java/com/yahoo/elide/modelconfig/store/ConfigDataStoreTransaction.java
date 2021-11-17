@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.modelconfig.store;
 
+import static com.yahoo.elide.modelconfig.store.ConfigDataStore.VALIDATE_ONLY_HEADER;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
@@ -92,8 +93,12 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public void commit(RequestScope scope) {
-        for (Runnable runnable : todo) {
-            runnable.run();
+        boolean validateOnly = scope.getRequestHeaderByName(VALIDATE_ONLY_HEADER) != null;
+
+        if (! validateOnly) {
+            for (Runnable runnable : todo) {
+                runnable.run();
+            }
         }
     }
 

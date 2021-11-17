@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.modelconfig.store;
 
+import static com.yahoo.elide.modelconfig.store.ConfigDataStore.VALIDATE_ONLY_HEADER;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.DATABASE;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.NAMESPACE;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.SECURITY;
@@ -14,7 +15,9 @@ import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -117,7 +120,7 @@ public class ConfigDataStoreTest {
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
-        ConfigFile newFile = createFile(configRoot, store);
+        ConfigFile newFile = createFile(configRoot, store, false);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -129,13 +132,31 @@ public class ConfigDataStoreTest {
     }
 
     @Test
+    public void testCreateValidateOnly(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+
+        ConfigFile newFile = createFile(configRoot, store, true);
+
+        ConfigDataStoreTransaction readTx = store.beginReadTransaction();
+        RequestScope scope = mock(RequestScope.class);
+
+        ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
+                "models/tables/test.hjson", scope);
+
+        assertNull(loaded);
+    }
+
+    @Test
     public void testUpdate(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
-        createFile(configRoot, store);
+        createFile(configRoot, store, false);
         ConfigFile updateFile = updateFile(configRoot, store);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
@@ -154,7 +175,7 @@ public class ConfigDataStoreTest {
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
-        ConfigFile newFile = createFile(configRoot, store);
+        ConfigFile newFile = createFile(configRoot, store, false);
 
         ConfigDataStoreTransaction tx = store.beginTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -171,7 +192,7 @@ public class ConfigDataStoreTest {
         assertNull(loaded);
     }
 
-    protected ConfigFile createFile(String configRoot, ConfigDataStore store) {
+    protected ConfigFile createFile(String configRoot, ConfigDataStore store, boolean validateOnly) {
         Supplier<String> contentProvider = () -> "{            \n"
                 + "  tables: [{     \n"
                 + "      name: Test\n"
@@ -202,6 +223,10 @@ public class ConfigDataStoreTest {
 
         ConfigDataStoreTransaction tx = store.beginTransaction();
         RequestScope scope = mock(RequestScope.class);
+
+        if (validateOnly) {
+            when(scope.getRequestHeaderByName(eq(VALIDATE_ONLY_HEADER))).thenReturn("true");
+        }
 
         tx.createObject(newFile, scope);
         tx.save(newFile, scope);
