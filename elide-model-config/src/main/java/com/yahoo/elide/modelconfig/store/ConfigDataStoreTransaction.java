@@ -114,7 +114,10 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         }
         ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
-        todo.add(() -> createFile(file.getPath()));
+        todo.add(() -> {
+            createFile(file.getPath());
+            updateFile(file.getPath(), file.getContent());
+        });
     }
 
     @Override

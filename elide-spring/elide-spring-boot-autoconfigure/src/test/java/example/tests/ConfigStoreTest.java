@@ -5,9 +5,18 @@
  */
 package example.tests;
 
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.spring.controllers.JsonApiController;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -47,5 +56,68 @@ public class ConfigStoreTest {
                 .then()
                 .body(equalTo("{\"data\":[]}"))
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testCreateFetchAndDelete() {
+        String hjson = "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}})'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        given()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("http://localhost:" + port + "/json/config")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        when()
+                .get("http://localhost:" + port + "/json/config?fields[config]=content")
+                .then()
+                .body(equalTo(data(
+                        resource(
+                                type("config"),
+                                id("models/tables/table1.hjson"),
+                                attributes(
+                                        attr("content", hjson)
+                                )
+                        )
+                ).toJSON()))
+                .statusCode(HttpStatus.SC_OK);
+
+        when()
+                .delete("http://localhost:" + port + "/json/config/models/tables/table1.hjson")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 }

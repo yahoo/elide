@@ -60,6 +60,9 @@ public class ConfigFile {
     @ComputedAttribute
     public String getContent() {
         if (content == null) {
+            if (contentProvider == null) {
+                return null;
+            }
             content = contentProvider.get();
         }
 
