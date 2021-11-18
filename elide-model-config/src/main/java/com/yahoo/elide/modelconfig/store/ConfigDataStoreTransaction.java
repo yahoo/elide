@@ -13,7 +13,6 @@ import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.modelconfig.io.FileLoader;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import com.yahoo.elide.modelconfig.validator.Validator;
@@ -74,6 +73,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         }
         ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
+        deleted.add(file.getPath());
         todo.add(() -> deleteFile(file.getPath()));
     }
 
@@ -168,8 +168,6 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     private void deleteFile(String path) {
         Path deletePath = Path.of(fileLoader.getRootPath(), path);
         File file = deletePath.toFile();
-
-        deleted.add(path);
 
         if (! file.exists()) {
             return;

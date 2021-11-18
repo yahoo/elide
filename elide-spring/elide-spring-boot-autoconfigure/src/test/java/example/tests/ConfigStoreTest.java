@@ -9,7 +9,6 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
-import static com.yahoo.elide.test.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
@@ -26,7 +25,6 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -40,8 +38,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 import java.util.TimeZone;
 import javax.ws.rs.core.MediaType;
 

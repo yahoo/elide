@@ -124,7 +124,7 @@ public class ConfigDataStoreTest {
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
-        ConfigFile newFile = createFile(configRoot, store, false);
+        ConfigFile newFile = createFile("test", store, false);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -145,7 +145,7 @@ public class ConfigDataStoreTest {
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         assertThrows(UnsupportedOperationException.class,
-                () -> createFile(configRoot, store, false));
+                () -> createFile("test", store, false));
     }
 
     @Test
@@ -182,7 +182,7 @@ public class ConfigDataStoreTest {
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
-        createFile(configRoot, store, false);
+        createFile("test", store, false);
         ConfigFile updateFile = updateFile(configRoot, store);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
@@ -201,7 +201,7 @@ public class ConfigDataStoreTest {
         Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
-        ConfigFile newFile = createFile(configRoot, store, false);
+        ConfigFile newFile = createFile("test", store, false);
 
         ConfigDataStoreTransaction tx = store.beginTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -218,10 +218,80 @@ public class ConfigDataStoreTest {
         assertNull(loaded);
     }
 
-    protected ConfigFile createFile(String configRoot, ConfigDataStore store, boolean validateOnly) {
-        Supplier<String> contentProvider = () -> "{            \n"
+    @Test
+    public void testMultipleFileOperations(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+        ConfigDataStoreTransaction tx = store.beginTransaction();
+        RequestScope scope = mock(RequestScope.class);
+
+        String [] tables = {"table1", "table2", "table3"};
+
+        for (String tableName : tables) {
+            Supplier<String> contentProvider = () -> String.format("{            \n"
+                    + "  tables: [{     \n"
+                    + "      name: %s\n"
+                    + "      table: test\n"
+                    + "      schema: test\n"
+                    + "      measures : [\n"
+                    + "         {\n"
+                    + "          name : measure\n"
+                    + "          type : INTEGER\n"
+                    + "          definition: 'MAX({{$measure}})'\n"
+                    + "         }\n"
+                    + "      ]      \n"
+                    + "      dimensions : [\n"
+                    + "         {\n"
+                    + "           name : dimension\n"
+                    + "           type : TEXT\n"
+                    + "           definition : '{{$dimension}}'\n"
+                    + "         }\n"
+                    + "      ]\n"
+                    + "  }]\n"
+                    + "}", tableName);
+
+            ConfigFile newFile = ConfigFile.builder()
+                    .type(TABLE)
+                    .contentProvider(contentProvider)
+                    .path(String.format("models/tables/%s.hjson", tableName))
+                    .build();
+
+
+            tx.createObject(newFile, scope);
+        }
+
+        ConfigFile invalid = ConfigFile.builder().path("/tmp").contentProvider((() -> "Invalid")).build();
+        tx.createObject(invalid, scope);
+
+        tx.delete(invalid, scope);
+
+        tx.flush(scope);
+        tx.commit(scope);
+
+        ConfigDataStoreTransaction readTx = store.beginReadTransaction();
+        DataStoreIterable<ConfigFile> loaded = readTx.loadObjects(EntityProjection.builder()
+                .type(ClassType.of(ConfigFile.class)).build(), scope);
+
+        List<ConfigFile> configFiles = Lists.newArrayList(loaded.iterator());
+
+        assertEquals(3, configFiles.size());
+
+        assertEquals("models/tables/table1.hjson", configFiles.get(0).getPath());
+        assertEquals(TABLE, configFiles.get(0).getType());
+
+        assertEquals("models/tables/table2.hjson", configFiles.get(1).getPath());
+        assertEquals(TABLE, configFiles.get(1).getType());
+
+        assertEquals("models/tables/table3.hjson", configFiles.get(2).getPath());
+        assertEquals(TABLE, configFiles.get(2).getType());
+    }
+
+    protected ConfigFile createFile(String tableName, ConfigDataStore store, boolean validateOnly) {
+        Supplier<String> contentProvider = () -> String.format("{            \n"
                 + "  tables: [{     \n"
-                + "      name: Test\n"
+                + "      name: %s\n"
                 + "      table: test\n"
                 + "      schema: test\n"
                 + "      measures : [\n"
@@ -239,12 +309,12 @@ public class ConfigDataStoreTest {
                 + "         }\n"
                 + "      ]\n"
                 + "  }]\n"
-                + "}";
+                + "}", tableName);
 
         ConfigFile newFile = ConfigFile.builder()
                 .type(TABLE)
                 .contentProvider(contentProvider)
-                .path("models/tables/test.hjson")
+                .path(String.format("models/tables/%s.hjson", tableName))
                 .build();
 
         ConfigDataStoreTransaction tx = store.beginTransaction();
