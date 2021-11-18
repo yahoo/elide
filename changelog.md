@@ -1,4 +1,14 @@
 # Change Log
+## 6.0.2
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/cc3b1f7edb491d5abfafaa2b2b1e0f3b7caa36bc) Aggregation Store: Arguments should require default values. (#2403) 
+   * [view commit](https://github.com/yahoo/elide/commit/113e7f2e821fb83eeb2915e61c42b81ee659db67) Added IT test for Hibernate Type annotation. (#2404) 
+   * [view commit](https://github.com/yahoo/elide/commit/b7712fc3d8860ab4c564d9cdea65334cfdc7f444) Bump classgraph from 4.8.129 to 4.8.130 (#2406) 
+   * [view commit](https://github.com/yahoo/elide/commit/ab97e119b0c88bf37dac9be38c03cb923173da22) Bump version.antlr4 from 4.9.2 to 4.9.3 (#2405) 
+   * [view commit](https://github.com/yahoo/elide/commit/c8266c116bb3dbd322cfefe86ea23c6320c6b9a8) Fixes async API resultset premature closure (#2410) 
+   * [view commit](https://github.com/yahoo/elide/commit/5f2dc6c29ee678eaf1c89a18e5a4a9abc41bfe37) Bump classgraph from 4.8.130 to 4.8.132 (#2417) 
+   
 ## 6.0.1
 
 **Fixes**
@@ -114,6 +124,10 @@ The following packages havea been removed:
  - Legacy datastore packages elide-hibernate-3 and elide-hibernate-5 have been retired and can be replaced with the JPA data store.
  - The Elide bridgeable datastore has been removed.
  - The package elide-datastore-hibernate has been renamed to elide-datastore-jpql.   Internal package structure for the module was also changed.
+
+## 5.1.1
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/076a3171fa9c2240c16a2d3f2ced259d46202f7a) Fixes async API resultset premature closure. (#2411) 
 
 ## 5.1.0
 **Fixes**
