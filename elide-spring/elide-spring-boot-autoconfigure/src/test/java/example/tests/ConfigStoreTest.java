@@ -202,4 +202,74 @@ public class ConfigStoreTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
     }
+
+    @Test
+    public void testTemplateError() {
+        String hjson = "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}}) + {{$$column.args.missing}}'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        given()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("http://localhost:" + port + "/json/config")
+                .then()
+                .body(equalTo("{\"errors\":[{\"detail\":\"Failed to verify column arguments for column: measure in table: Test. Argument &#39;missing&#39; is not defined but found &#39;{{$$column.args.missing}}&#39;.\"}]}"))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testHackAttempt() {
+        String hjson = "#!/bin/sh ...";
+
+        given()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "../../../etc/hosts"),
+                                                attr("type", "UNKNOWN"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("http://localhost:" + port + "/json/config")
+                .then()
+                .body(equalTo("{\"errors\":[{\"detail\":\"Unrecognized File: ../../../etc/hosts\"}]}"))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
 }
