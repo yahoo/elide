@@ -23,6 +23,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 
 import io.restassured.RestAssured;
 
@@ -31,6 +32,7 @@ import java.util.TimeZone;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(ConfigStoreIntegrationTestSetup.class)
 public class ConfigStoreTest {
 
     private static Path testDirectory;
@@ -130,5 +132,74 @@ public class ConfigStoreTest {
                 .get("http://localhost:" + port + "/json/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testUpdatePermissionError() {
+        String hjson = "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}})'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        given()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("http://localhost:" + port + "/json/config")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        given()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        id("bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24="),
+                                        attributes(
+                                                attr("path", "models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("http://localhost:" + port + "/json/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
+
+        when()
+                .delete("http://localhost:" + port + "/json/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 }
