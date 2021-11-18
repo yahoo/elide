@@ -6,12 +6,14 @@
 
 package com.yahoo.elide.modelconfig.store;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.modelconfig.store.ConfigDataStore.VALIDATE_ONLY_HEADER;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.DATABASE;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.NAMESPACE;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.SECURITY;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.TABLE;
 import static com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType.VARIABLE;
+import static com.yahoo.elide.modelconfig.store.models.ConfigFile.toId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -128,7 +130,7 @@ public class ConfigDataStoreTest {
         RequestScope scope = mock(RequestScope.class);
 
         ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
-                "models/tables/test.hjson", scope);
+                toId("models/tables/test.hjson", NO_VERSION), scope);
 
         assertTrue(compare(newFile, loaded));
     }
@@ -168,7 +170,7 @@ public class ConfigDataStoreTest {
         RequestScope scope = mock(RequestScope.class);
 
         ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
-                "models/tables/test.hjson", scope);
+                toId("models/tables/test.hjson", NO_VERSION), scope);
 
         assertNull(loaded);
     }
@@ -187,7 +189,7 @@ public class ConfigDataStoreTest {
         RequestScope scope = mock(RequestScope.class);
 
         ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
-                "models/tables/test.hjson", scope);
+                toId("models/tables/test.hjson", NO_VERSION), scope);
 
         assertTrue(compare(updateFile, loaded));
     }
@@ -211,7 +213,7 @@ public class ConfigDataStoreTest {
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
 
         ConfigFile loaded = readTx.loadObject(EntityProjection.builder().type(ClassType.of(ConfigFile.class)).build(),
-                "models/tables/test.hjson", scope);
+                toId("models/tables/test.hjson", NO_VERSION), scope);
 
         assertNull(loaded);
     }

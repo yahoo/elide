@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -122,15 +123,8 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public <T> T loadObject(EntityProjection entityProjection, Serializable id, RequestScope scope) {
-        String idString = id.toString();
-        int hyphenIndex = idString.lastIndexOf('-');
+        String path = ConfigFile.fromId(id.toString());
 
-        String path;
-        if (hyphenIndex < 0) {
-            path = idString;
-        } else {
-            path = idString.substring(idString.lastIndexOf('-'));
-        }
         try {
             return (T) fileLoader.loadResource(path);
         } catch (IOException e) {

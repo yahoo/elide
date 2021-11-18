@@ -107,7 +107,7 @@ public class ConfigStoreTest {
                 .body(equalTo(data(
                         resource(
                                 type("config"),
-                                id("models/tables/table1.hjson"),
+                                id("bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24="),
                                 attributes(
                                         attr("content", hjson)
                                 )
@@ -116,8 +116,19 @@ public class ConfigStoreTest {
                 .statusCode(HttpStatus.SC_OK);
 
         when()
-                .delete("http://localhost:" + port + "/json/config/models/tables/table1.hjson")
+                .delete("http://localhost:" + port + "/json/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        when()
+                .get("http://localhost:" + port + "/json/config?fields[config]=path,type")
+                .then()
+                .body(equalTo("{\"data\":[]}"))
+                .statusCode(HttpStatus.SC_OK);
+
+        when()
+                .get("http://localhost:" + port + "/json/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }

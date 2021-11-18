@@ -14,12 +14,15 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Base64;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
@@ -77,11 +80,9 @@ public class ConfigFile {
             String version,
             ConfigFileType type,
             Supplier<String> contentProvider) {
-        if (version == null || version.isEmpty()) {
-            this.id = path;
-        } else {
-            this.id = path + "-" + version;
-        }
+
+        this.id = toId(path, version);
+
         this.path = path;
         if (version == null) {
             this.version = NO_VERSION;
@@ -107,5 +108,35 @@ public class ConfigFile {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public static String toId(String path, String version) {
+        String id;
+        if (version == null || version.isEmpty()) {
+            id = path;
+        } else {
+            id = path + "-" + version;
+        }
+        return Base64.getEncoder().encodeToString(id.getBytes());
+    }
+
+    public static String fromId(String id) {
+        String idString;
+        try {
+            idString = new String(Base64.getDecoder().decode(id.getBytes()));
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid ID: " + id);
+        }
+
+        int hyphenIndex = idString.lastIndexOf(".hjson-");
+
+        String path;
+        if (hyphenIndex < 0) {
+            path = idString;
+        } else {
+            path = idString.substring(0, idString.lastIndexOf('-'));
+        }
+
+        return path;
     }
 }

@@ -151,8 +151,13 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     public void validate(Map<String, ConfigFile> resourceMap) {
         try {
 
-            //Validate that the file types and file paths match...
             resourceMap.forEach((path, file) -> {
+                //Validate that all the files are ones we know about and are safe to manipulate...
+                if (file.getType().equals(ConfigFile.ConfigFileType.UNKNOWN)) {
+                    throw new BadRequestException(String.format("Unrecognized File: %s", file.getPath()));
+                }
+
+                //Validate that the file types and file paths match...
                 if (! file.getType().equals(FileLoader.toType(path))) {
                     throw new BadRequestException(String.format("File type %s does not match file path: %s",
                             file.getType(), file.getPath()));
