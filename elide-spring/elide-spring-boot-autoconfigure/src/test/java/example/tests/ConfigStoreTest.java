@@ -9,6 +9,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
@@ -39,6 +40,8 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.TimeZone;
 import javax.ws.rs.core.MediaType;
 
@@ -112,7 +115,7 @@ public class ConfigStoreTest {
     }
 
     @Test
-    public void testGraphQLCreate() {
+    public void testGraphQLCreateFetchAndDelete() {
         String hjson = "\\\"{\\\\n"
                 + "  tables: [{\\\\n"
                 + "      name: Test\\\\n"
@@ -171,6 +174,84 @@ public class ConfigStoreTest {
                         ).toResponse()
                ))
                .statusCode(200);
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        selection(
+                                field("config",
+                                        argument(
+                                                argument("ids", "[\\\"bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=\\\"]")
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("path")
+                                        )
+                                )
+                        )
+                ).toQuery() + "\" }")
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo(
+                        GraphQLDSL.document(
+                                selection(
+                                        field(
+                                                "config",
+                                                selections(
+                                                        field("id", "bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24="),
+                                                        field("path", "models/tables/table1.hjson")
+                                                )
+                                        )
+                                )
+                        ).toResponse()
+                ))
+                .statusCode(200);
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        mutation(
+                            selection(
+                                    field("config",
+                                            arguments(
+                                                    argument("op", "DELETE"),
+                                                    argument("ids", "[\\\"bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=\\\"]")
+                                            ),
+                                            selections(
+                                                    field("id"),
+                                                    field("path")
+                                            )
+                                    )
+                            )
+                        )
+                ).toQuery() + "\" }")
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo("{\"data\":{\"config\":{\"edges\":[]}}}"))
+                .statusCode(200);
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        selection(
+                                field("config",
+                                        selections(
+                                                field("id"),
+                                                field("path")
+                                        )
+                                )
+                        )
+                ).toQuery() + "\" }")
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo("{\"data\":{\"config\":{\"edges\":[]}}}"))
+                .statusCode(200);
     }
 
     @Test
