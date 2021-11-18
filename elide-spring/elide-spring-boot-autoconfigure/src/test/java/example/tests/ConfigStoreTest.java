@@ -5,6 +5,12 @@
  */
 package example.tests;
 
+import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -16,7 +22,10 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType;
 import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.test.graphql.GraphQLDSL;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -26,14 +35,27 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 
 import io.restassured.RestAssured;
+import lombok.Builder;
+import lombok.Data;
 
 import java.nio.file.Path;
 import java.util.TimeZone;
+import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(ConfigStoreIntegrationTestSetup.class)
 public class ConfigStoreTest {
+
+    @Data
+    @Builder
+    public static class ConfigFile {
+        ConfigFileType type;
+
+        String path;
+
+        String content;
+    }
 
     private static Path testDirectory;
 
@@ -61,7 +83,98 @@ public class ConfigStoreTest {
     }
 
     @Test
-    public void testCreateFetchAndDelete() {
+    public void testGraphQLNullContent() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        mutation(
+                                selection(
+                                        field("config",
+                                                arguments(
+                                                        argument("op", "UPSERT"),
+                                                        argument("data", "{ type: TABLE, path: \\\"models/tables/table1.hjson\\\" }")
+                                                ),
+                                                selections(
+                                                        field("id"),
+                                                        field("path")
+                                                )
+                                        )
+                                )
+                        )
+                ).toQuery() + "\" }")
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo("{\"errors\":[{\"message\":\"Null or empty file content for models/tables/table1.hjson\"}]}"))
+                .log().all()
+                .statusCode(200);
+    }
+
+    @Test
+    public void testGraphQLCreate() {
+        String hjson = "\\\"{\\\\n"
+                + "  tables: [{\\\\n"
+                + "      name: Test\\\\n"
+                + "      table: test\\\\n"
+                + "      schema: test\\\\n"
+                + "      measures : [\\\\n"
+                + "         {\\\\n"
+                + "          name : measure\\\\n"
+                + "          type : INTEGER\\\\n"
+                + "          definition: 'MAX({{$measure}})'\\\\n"
+                + "         }\\\\n"
+                + "      ]\\\\n"
+                + "      dimensions : [\\\\n"
+                + "         {\\\\n"
+                + "           name : dimension\\\\n"
+                + "           type : TEXT\\\\n"
+                + "           definition : '{{$dimension}}'\\\\n"
+                + "         }\\\\n"
+                + "      ]\\\\n"
+                + "  }]\\\\n"
+                + "}\\\"";
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        mutation(
+                                selection(
+                                        field("config",
+                                                arguments(
+                                                        argument("op", "UPSERT"),
+                                                        argument("data", String.format("{ type: TABLE, path: \\\"models/tables/table1.hjson\\\", content: %s }", hjson))
+                                                ),
+                                                selections(
+                                                        field("id"),
+                                                        field("path")
+                                                )
+                                        )
+                                )
+                        )
+                ).toQuery() + "\" }")
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo(
+                        GraphQLDSL.document(
+                                selection(
+                                        field(
+                                                "config",
+                                                selections(
+                                                        field("id", "bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24="),
+                                                        field("path", "models/tables/table1.hjson")
+                                                )
+                                        )
+                                )
+                        ).toResponse()
+               ))
+               .statusCode(200);
+    }
+
+    @Test
+    public void testJsonApiCreateFetchAndDelete() {
         String hjson = "{            \n"
                 + "  tables: [{     \n"
                 + "      name: Test\n"
@@ -270,6 +383,51 @@ public class ConfigStoreTest {
                 .post("http://localhost:" + port + "/json/config")
                 .then()
                 .body(equalTo("{\"errors\":[{\"detail\":\"Unrecognized File: ../../../etc/hosts\"}]}"))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testPathTraversalAttempt() {
+        String hjson = "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}})'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        given()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "../../../../../tmp/models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("http://localhost:" + port + "/json/config")
+                .then()
+                .body(equalTo("{\"errors\":[{\"detail\":\"Parent directory traversal not allowed: ../../../../../tmp/models/tables/table1.hjson\"}]}"))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 }

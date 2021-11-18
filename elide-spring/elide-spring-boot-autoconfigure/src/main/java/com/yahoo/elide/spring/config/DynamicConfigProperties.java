@@ -27,5 +27,4 @@ public class DynamicConfigProperties {
      * Elide configuration models enabled/disabled.
      */
     private boolean configApiEnabled = false;
-
 }

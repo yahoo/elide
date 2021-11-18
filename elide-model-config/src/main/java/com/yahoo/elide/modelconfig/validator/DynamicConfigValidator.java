@@ -152,9 +152,18 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
         try {
 
             resourceMap.forEach((path, file) -> {
+                if (file.getContent() == null || file.getContent().isEmpty()) {
+                    throw new BadRequestException(String.format("Null or empty file content for %s", file.getPath()));
+                }
+
                 //Validate that all the files are ones we know about and are safe to manipulate...
                 if (file.getType().equals(ConfigFile.ConfigFileType.UNKNOWN)) {
                     throw new BadRequestException(String.format("Unrecognized File: %s", file.getPath()));
+                }
+
+                if (path.contains("..")) {
+                    throw new BadRequestException(String.format("Parent directory traversal not allowed: %s",
+                            file.getPath()));
                 }
 
                 //Validate that the file types and file paths match...

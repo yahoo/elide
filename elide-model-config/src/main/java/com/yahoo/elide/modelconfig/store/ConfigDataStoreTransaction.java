@@ -13,6 +13,7 @@ import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.modelconfig.io.FileLoader;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import com.yahoo.elide.modelconfig.validator.Validator;
@@ -25,7 +26,6 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +39,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     private final FileLoader fileLoader;
     private final Set<Runnable> todo;
     private final Set<ConfigFile> dirty;
+    private final Set<String> deleted;
     private final Validator validator;
     private final boolean readOnly;
 
@@ -50,6 +51,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         this.fileLoader = fileLoader;
         this.readOnly = readOnly || !fileLoader.isWriteable();
         this.dirty = new LinkedHashSet<>();
+        this.deleted = new LinkedHashSet<>();
         this.todo = new LinkedHashSet<>();
         this.validator = validator;
     }
@@ -89,6 +91,10 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
                 resources.put(file.getPath(), file);
             }
 
+            for (String path: deleted) {
+                resources.remove(path);
+            }
+
             try {
                 validator.validate(resources);
             } catch (Exception e) {
@@ -116,6 +122,10 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
         todo.add(() -> {
+
+            //We have to assign the ID here during commit so it gets sent back in the response.
+            file.setId(ConfigFile.toId(file.getPath(), file.getVersion()));
+
             createFile(file.getPath());
             updateFile(file.getPath(), file.getContent());
         });
@@ -147,6 +157,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     public void cancel(RequestScope scope) {
         todo.clear();
         dirty.clear();
+        deleted.clear();
     }
 
     @Override
@@ -157,6 +168,8 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     private void deleteFile(String path) {
         Path deletePath = Path.of(fileLoader.getRootPath(), path);
         File file = deletePath.toFile();
+
+        deleted.add(path);
 
         if (! file.exists()) {
             return;

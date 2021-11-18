@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
@@ -48,7 +47,7 @@ public class ConfigFile {
 
     @Id
     @GeneratedValue
-    private String id; //path-version
+    private String id; //Base64 encoded path-version
 
     private String path;
 
