@@ -37,12 +37,14 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfigu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
+import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
+import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
@@ -428,11 +430,24 @@ public interface ElideStandaloneSettings {
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
+
+        List<DataStore> stores = new ArrayList<>();
+
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
                 em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true));
 
-        return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
+        stores.add(jpaDataStore);
+
+        if (getAnalyticProperties().enableDynamicModelConfigAPI()) {
+            stores.add(new ConfigDataStore(getAnalyticProperties().getDynamicConfigPath(),
+                    new TemplateConfigValidator(getClassScanner(), getAnalyticProperties().getDynamicConfigPath())));
+        }
+
+        stores.add(metaDataStore);
+        stores.add(aggregationDataStore);
+
+        return new MultiplexManager(stores.toArray(new DataStore[0]));
     }
 
     /**
