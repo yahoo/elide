@@ -29,7 +29,7 @@ elide:
   dynamic-config:
     path: src/test/resources/configs
     enabled: true
-    configApiEnabled: true
+    configApiEnabled: false
   aggregation-store:
     enabled: true
     default-dialect: h2

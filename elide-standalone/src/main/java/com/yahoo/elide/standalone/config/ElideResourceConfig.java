@@ -137,7 +137,6 @@ public class ElideResourceConfig extends ResourceConfig {
             bind(elideSettings).to(ElideSettings.class);
             bind(elideSettings.getDictionary()).to(EntityDictionary.class);
             bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
-            bindConfigApiChecks(settings.getAnalyticProperties());
 
             //Bind subscription hooks.
             if (settings.getSubscriptionProperties().publishingEnabled()) {
@@ -148,23 +147,6 @@ public class ElideResourceConfig extends ResourceConfig {
             // Binding async service
             if (asyncProperties.enabled()) {
                 bindAsync(asyncProperties, elide, dictionary);
-            }
-        }
-
-        protected void bindConfigApiChecks(ElideStandaloneAnalyticSettings analyticSettings) {
-            if (analyticSettings.enableDynamicModelConfigAPI()) {
-                bind(analyticSettings.getConfigApiReadCheck())
-                        .named("ConfigReadCheck")
-                        .to(UserCheck.class);
-                bind(analyticSettings.getConfigApiUpdateCheck())
-                        .named("ConfigUpdateCheck")
-                        .to(OperationCheck.class);
-                bind(analyticSettings.getConfigApiDeleteCheck())
-                        .named("ConfigDeleteCheck")
-                        .to(OperationCheck.class);
-                bind(analyticSettings.getConfigApiCreateCheck())
-                        .named("ConfigCreateCheck")
-                        .to(OperationCheck.class);
             }
         }
 

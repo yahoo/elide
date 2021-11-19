@@ -24,15 +24,22 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.core.security.RequestScope;
-import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.UserCheck;
+import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.modelconfig.DynamicConfiguration;
+import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,7 +47,11 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -61,6 +72,44 @@ public class ElideStandaloneConfigStoreTest {
         settings = new ElideStandaloneTestSettings() {
 
             @Override
+            public EntityDictionary getEntityDictionary(ServiceLocator injector, ClassScanner scanner,
+                                                        Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
+
+                Map<String, Class<? extends Check>> checks = new HashMap<>();
+
+                if (getAnalyticProperties().enableDynamicModelConfigAPI()) {
+                    checks.put(ConfigChecks.CAN_CREATE_CONFIG, ConfigChecks.CanCreate.class);
+                    checks.put(ConfigChecks.CAN_READ_CONFIG, ConfigChecks.CanRead.class);
+                    checks.put(ConfigChecks.CAN_DELETE_CONFIG, ConfigChecks.CanDelete.class);
+                    checks.put(ConfigChecks.CAN_UPDATE_CONFIG, ConfigChecks.CanNotUpdate.class);
+                }
+
+                EntityDictionary dictionary = new EntityDictionary(
+                        checks, //Checks
+                        new HashMap<>(), //Role Checks
+                        new Injector() {
+                            @Override
+                            public void inject(Object entity) {
+                                injector.inject(entity);
+                            }
+
+                            @Override
+                            public <T> T instantiate(Class<T> cls) {
+                                return injector.create(cls);
+                            }
+                        },
+                        CoerceUtil::lookup, //Serde Lookup
+                        entitiesToExclude,
+                        scanner);
+
+                dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
+                        dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
+                );
+
+                return dictionary;
+            }
+
+            @Override
             public ElideStandaloneAnalyticSettings getAnalyticProperties() {
                 return new ElideStandaloneAnalyticSettings() {
                     @Override
@@ -71,36 +120,6 @@ public class ElideStandaloneConfigStoreTest {
                     @Override
                     public boolean enableDynamicModelConfigAPI() {
                         return true;
-                    }
-
-                    @Override
-                    public UserCheck getConfigApiReadCheck() {
-                        return new UserCheck() {
-                            @Override
-                            public boolean ok(User user) {
-                                return true;
-                            }
-                        };
-                    }
-
-                    @Override
-                    public OperationCheck getConfigApiDeleteCheck() {
-                        return new OperationCheck() {
-                            @Override
-                            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
-                                return true;
-                            }
-                        };
-                    }
-
-                    @Override
-                    public OperationCheck getConfigApiCreateCheck() {
-                        return new OperationCheck() {
-                            @Override
-                            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
-                                return true;
-                            }
-                        };
                     }
 
                     @Override

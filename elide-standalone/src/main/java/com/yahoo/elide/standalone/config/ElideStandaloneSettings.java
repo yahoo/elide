@@ -45,6 +45,7 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
+import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
@@ -489,6 +490,15 @@ public interface ElideStandaloneSettings {
     default EntityDictionary getEntityDictionary(ServiceLocator injector, ClassScanner scanner,
             Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
 
+        Map<String, Class<? extends Check>> checks = new HashMap<>();
+
+        if (getAnalyticProperties().enableDynamicModelConfigAPI()) {
+            checks.put(ConfigChecks.CAN_CREATE_CONFIG, ConfigChecks.CanNotCreate.class);
+            checks.put(ConfigChecks.CAN_READ_CONFIG, ConfigChecks.CanNotRead.class);
+            checks.put(ConfigChecks.CAN_DELETE_CONFIG, ConfigChecks.CanNotDelete.class);
+            checks.put(ConfigChecks.CAN_UPDATE_CONFIG, ConfigChecks.CanNotUpdate.class);
+        }
+
         EntityDictionary dictionary = new EntityDictionary(
                 new HashMap<>(), //Checks
                 new HashMap<>(), //Role Checks
@@ -506,8 +516,6 @@ public interface ElideStandaloneSettings {
                 CoerceUtil::lookup, //Serde Lookup
                 entitiesToExclude,
                 scanner);
-
-        //dictionary.scanForSecurityChecks();
 
         dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
             dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))

@@ -41,42 +41,6 @@ public interface ElideStandaloneAnalyticSettings {
         return false;
     }
 
-    default UserCheck getConfigApiReadCheck() {
-        return new UserCheck() {
-            @Override
-            public boolean ok(User user) {
-                return false;
-            }
-        };
-    }
-
-    default OperationCheck getConfigApiUpdateCheck() {
-        return new OperationCheck() {
-            @Override
-            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
-                return false;
-            }
-        };
-    }
-
-    default OperationCheck getConfigApiDeleteCheck() {
-        return new OperationCheck() {
-            @Override
-            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
-                return false;
-            }
-        };
-    }
-
-    default OperationCheck getConfigApiCreateCheck() {
-        return new OperationCheck() {
-            @Override
-            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
-                return false;
-            }
-        };
-    }
-
     /**
      * Base path to Hjson dynamic model configurations.
      *
