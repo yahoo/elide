@@ -31,6 +31,8 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -92,6 +94,7 @@ public class ElideResourceConfig extends ResourceConfig {
             EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(classScanner,
                     settings.getModelPackageName(), asyncProperties.enabled(), settings.getDatabaseProperties());
 
+
             EntityDictionary dictionary = settings.getEntityDictionary(injector, classScanner, dynamicConfiguration,
                     settings.getEntitiesToExclude());
 
@@ -116,6 +119,9 @@ public class ElideResourceConfig extends ResourceConfig {
                             "Aggregation Datastore is enabled but aggregationDataStore is null");
                 }
                 dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory);
+
+
+
             } else {
                 dataStore = settings.getDataStore(entityManagerFactory);
             }
@@ -131,6 +137,7 @@ public class ElideResourceConfig extends ResourceConfig {
             bind(elideSettings).to(ElideSettings.class);
             bind(elideSettings.getDictionary()).to(EntityDictionary.class);
             bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
+            bindConfigApiChecks(settings.getAnalyticProperties());
 
             //Bind subscription hooks.
             if (settings.getSubscriptionProperties().publishingEnabled()) {
@@ -141,6 +148,23 @@ public class ElideResourceConfig extends ResourceConfig {
             // Binding async service
             if (asyncProperties.enabled()) {
                 bindAsync(asyncProperties, elide, dictionary);
+            }
+        }
+
+        protected void bindConfigApiChecks(ElideStandaloneAnalyticSettings analyticSettings) {
+            if (analyticSettings.enableDynamicModelConfigAPI()) {
+                bind(analyticSettings.getConfigApiReadCheck())
+                        .named("ConfigReadCheck")
+                        .to(UserCheck.class);
+                bind(analyticSettings.getConfigApiUpdateCheck())
+                        .named("ConfigUpdateCheck")
+                        .to(OperationCheck.class);
+                bind(analyticSettings.getConfigApiDeleteCheck())
+                        .named("ConfigDeleteCheck")
+                        .to(OperationCheck.class);
+                bind(analyticSettings.getConfigApiCreateCheck())
+                        .named("ConfigCreateCheck")
+                        .to(OperationCheck.class);
             }
         }
 
@@ -237,15 +261,18 @@ public class ElideResourceConfig extends ResourceConfig {
             throw new IllegalStateException(e);
         }
 
+
         // Bind to injector
         register(new ElideBinder(classScanner, dynamicConfiguration, servletContext));
-
 
         // Bind swaggers to given endpoint
         register(new org.glassfish.hk2.utilities.binding.AbstractBinder() {
             @Override
             protected void configure() {
-                EntityDictionary dictionary = injector.getService(EntityDictionary.class);
+                Elide elide = injector.getService(Elide.class, "elide");
+
+                elide.doScans();
+                EntityDictionary dictionary = elide.getElideSettings().getDictionary();
 
                 if (settings.enableSwagger()) {
                     List<DocEndpoint.SwaggerRegistration> swaggerDocs = settings.buildSwagger(dictionary);
@@ -258,6 +285,8 @@ public class ElideResourceConfig extends ResourceConfig {
 
         additionalConfiguration(settings.getApplicationConfigurator());
     }
+
+
 
     /**
      * Init the supplemental resource config.

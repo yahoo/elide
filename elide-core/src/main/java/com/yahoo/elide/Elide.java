@@ -82,6 +82,7 @@ public class Elide {
     @Getter private final ErrorMapper errorMapper;
     @Getter private final TransactionRegistry transactionRegistry;
     @Getter private final ClassScanner scanner;
+    private boolean initialized = false;
 
     /**
      * Instantiates a new Elide instance.
@@ -103,14 +104,24 @@ public class Elide {
         this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
-        this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
         this.mapper = elideSettings.getMapper();
         this.errorMapper = elideSettings.getErrorMapper();
         this.transactionRegistry = new TransactionRegistry();
+    }
 
-        elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
+    /**
+     * Called after Elide initializes and performs all system scans.
+     */
+    public void doScans() {
+        if (! initialized) {
+            elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
+            registerCustomSerde();
 
-        registerCustomSerde();
+            this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
+
+            elideSettings.getDictionary().scanForSecurityChecks();
+            initialized = true;
+        }
     }
 
     protected void registerCustomSerde() {

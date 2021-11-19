@@ -507,7 +507,7 @@ public interface ElideStandaloneSettings {
                 entitiesToExclude,
                 scanner);
 
-        dictionary.scanForSecurityChecks();
+        //dictionary.scanForSecurityChecks();
 
         dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
             dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))

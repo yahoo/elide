@@ -6,7 +6,10 @@
 package example.tests;
 
 import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
+import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -18,10 +21,10 @@ public class ConfigStoreIntegrationTestSetup {
 
     @Bean
     @Named("ConfigReadCheck")
-    OperationCheck getReadCheck() {
-        return new OperationCheck() {
+    UserCheck getReadCheck() {
+        return new UserCheck() {
             @Override
-            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
+            public boolean ok(User user) {
                 return true;
             }
         };
@@ -29,7 +32,7 @@ public class ConfigStoreIntegrationTestSetup {
 
     @Bean
     @Named("ConfigCreateCheck")
-    OperationCheck getCreateCheck() {
+    OperationCheck<ConfigFile> getCreateCheck() {
         return new OperationCheck() {
             @Override
             public boolean ok(Object object, RequestScope requestScope, Optional optional) {
@@ -40,7 +43,7 @@ public class ConfigStoreIntegrationTestSetup {
 
     @Bean
     @Named("ConfigDeleteCheck")
-    OperationCheck getDeleteCheck() {
+    OperationCheck<ConfigFile> getDeleteCheck() {
         return new OperationCheck() {
             @Override
             public boolean ok(Object object, RequestScope requestScope, Optional optional) {
@@ -51,7 +54,7 @@ public class ConfigStoreIntegrationTestSetup {
 
     @Bean
     @Named("ConfigUpdateCheck")
-    OperationCheck getUpdateCheck() {
+    OperationCheck<ConfigFile> getUpdateCheck() {
         return new OperationCheck() {
             @Override
             public boolean ok(Object object, RequestScope requestScope, Optional optional) {

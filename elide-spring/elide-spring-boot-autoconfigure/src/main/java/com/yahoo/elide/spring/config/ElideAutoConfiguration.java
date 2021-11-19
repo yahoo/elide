@@ -16,6 +16,10 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
@@ -44,6 +48,7 @@ import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
+import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -57,6 +62,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
@@ -75,6 +81,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -142,6 +149,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @DependsOn({"ConfigCreateCheck", "ConfigDeleteCheck", "ConfigUpdateCheck", "ConfigReadCheck"})
     public Elide initializeElide(EntityDictionary dictionary,
                                  DataStore dataStore,
                                  ElideConfigProperties settings,
@@ -185,7 +193,9 @@ public class ElideAutoConfiguration {
             }
         }
 
-        return new Elide(builder.build());
+        Elide elide = new Elide(builder.build());
+        elide.doScans();
+        return elide;
     }
 
     /**
@@ -428,6 +438,54 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     public JsonApiMapper mapper() {
         return new JsonApiMapper();
+    }
+
+    @Bean("ConfigCreateCheck")
+    @Named("ConfigCreateCheck")
+    @ConditionalOnMissingBean
+    public OperationCheck getConfigCreateCheck() {
+        return new OperationCheck() {
+            @Override
+            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
+                return false;
+            }
+        };
+    }
+
+    @Bean("ConfigUpdateCheck")
+    @Named("ConfigUpdateCheck")
+    @ConditionalOnMissingBean
+    public OperationCheck getConfigUpdateCheck() {
+        return new OperationCheck() {
+            @Override
+            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
+                return false;
+            }
+        };
+    }
+
+    @Bean("ConfigDeleteCheck")
+    @Named("ConfigDeleteCheck")
+    @ConditionalOnMissingBean
+    public OperationCheck getConfigDeleteCheck() {
+        return new OperationCheck() {
+            @Override
+            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
+                return false;
+            }
+        };
+    }
+
+    @Bean("ConfigReadCheck")
+    @Named("ConfigReadCheck")
+    @ConditionalOnMissingBean
+    public UserCheck getConfigReadCheck() {
+        return new UserCheck() {
+            @Override
+            public boolean ok(User user) {
+                return false;
+            }
+        };
     }
 
     private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

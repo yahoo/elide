@@ -25,6 +25,10 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
@@ -36,6 +40,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -55,7 +60,6 @@ public class ElideStandaloneConfigStoreTest {
         configRoot = Files.createTempDirectory("test");
         settings = new ElideStandaloneTestSettings() {
 
-
             @Override
             public ElideStandaloneAnalyticSettings getAnalyticProperties() {
                 return new ElideStandaloneAnalyticSettings() {
@@ -67,6 +71,36 @@ public class ElideStandaloneConfigStoreTest {
                     @Override
                     public boolean enableDynamicModelConfigAPI() {
                         return true;
+                    }
+
+                    @Override
+                    public UserCheck getConfigApiReadCheck() {
+                        return new UserCheck() {
+                            @Override
+                            public boolean ok(User user) {
+                                return true;
+                            }
+                        };
+                    }
+
+                    @Override
+                    public OperationCheck getConfigApiDeleteCheck() {
+                        return new OperationCheck() {
+                            @Override
+                            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
+                                return true;
+                            }
+                        };
+                    }
+
+                    @Override
+                    public OperationCheck getConfigApiCreateCheck() {
+                        return new OperationCheck() {
+                            @Override
+                            public boolean ok(Object object, RequestScope requestScope, Optional optional) {
+                                return true;
+                            }
+                        };
                     }
 
                     @Override
@@ -347,5 +381,189 @@ public class ElideStandaloneConfigStoreTest {
                 .get("/api/v1/json/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testTemplateError() {
+        String hjson = "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}}) + {{$$column.args.missing}}'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/api/v1/config")
+                .then()
+                .body(equalTo("{\"errors\":[{\"detail\":\"Failed to verify column arguments for column: measure in table: Test. Argument &#39;missing&#39; is not defined but found &#39;{{$$column.args.missing}}&#39;.\"}]}"))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testHackAttempt() {
+        String hjson = "#!/bin/sh ...";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "../../../etc/hosts"),
+                                                attr("type", "UNKNOWN"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/api/v1/config")
+                .then()
+                .body(equalTo("{\"errors\":[{\"detail\":\"Unrecognized File: ../../../etc/hosts\"}]}"))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testPathTraversalAttempt() {
+        String hjson = "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}})'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "../../../../../tmp/models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/api/v1/config")
+                .then()
+                .body(equalTo("{\"errors\":[{\"detail\":\"Parent directory traversal not allowed: ../../../../../tmp/models/tables/table1.hjson\"}]}"))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testUpdatePermissionError() {
+        String hjson = "{            \n"
+                + "  tables: [{     \n"
+                + "      name: Test\n"
+                + "      table: test\n"
+                + "      schema: test\n"
+                + "      measures : [\n"
+                + "         {\n"
+                + "          name : measure\n"
+                + "          type : INTEGER\n"
+                + "          definition: 'MAX({{$measure}})'\n"
+                + "         }\n"
+                + "      ]      \n"
+                + "      dimensions : [\n"
+                + "         {\n"
+                + "           name : dimension\n"
+                + "           type : TEXT\n"
+                + "           definition : '{{$dimension}}'\n"
+                + "         }\n"
+                + "      ]\n"
+                + "  }]\n"
+                + "}";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        attributes(
+                                                attr("path", "models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/api/v1/config")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("config"),
+                                        id("bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24="),
+                                        attributes(
+                                                attr("path", "models/tables/table1.hjson"),
+                                                attr("type", "TABLE"),
+                                                attr("content", hjson)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/api/v1/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
+
+        when()
+                .delete("/api/v1/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 }

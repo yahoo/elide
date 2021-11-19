@@ -8,7 +8,9 @@ package com.yahoo.elide.modelconfig.store.models;
 
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.security.checks.InjectableOperationCheck;
+import com.yahoo.elide.core.security.checks.InjectableUserCheck;
 import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
 
 import java.util.Optional;
 import javax.inject.Inject;
@@ -26,15 +28,15 @@ public class ConfigChecks {
     public static final String CAN_CREATE_CONFIG = "Can Create Config";
 
     @SecurityCheck(CAN_READ_CONFIG)
-    public static class CanReadConfigCheck extends InjectableOperationCheck {
+    public static class CanReadConfigCheck extends InjectableUserCheck {
 
         @Inject
         @Named("ConfigReadCheck")
-        Optional<OperationCheck> actualCheck;
+        UserCheck actualCheck;
 
         @Override
-        public Optional<OperationCheck> getActualCheck() {
-            return actualCheck;
+        public Optional<UserCheck> getActualCheck() {
+            return Optional.ofNullable(actualCheck);
         }
     }
 
@@ -43,11 +45,11 @@ public class ConfigChecks {
 
         @Inject
         @Named("ConfigUpdateCheck")
-        Optional<OperationCheck> actualCheck;
+        OperationCheck actualCheck;
 
         @Override
         public Optional<OperationCheck> getActualCheck() {
-            return actualCheck;
+            return Optional.ofNullable(actualCheck);
         }
     }
 
@@ -55,11 +57,11 @@ public class ConfigChecks {
     public static class CanDeleteConfigCheck extends InjectableOperationCheck {
         @Inject
         @Named("ConfigDeleteCheck")
-        Optional<OperationCheck> actualCheck;
+        OperationCheck actualCheck;
 
         @Override
         public Optional<OperationCheck> getActualCheck() {
-            return actualCheck;
+            return Optional.ofNullable(actualCheck);
         }
     }
 
@@ -68,11 +70,11 @@ public class ConfigChecks {
 
         @Inject
         @Named("ConfigCreateCheck")
-        Optional<OperationCheck> actualCheck;
+        OperationCheck actualCheck;
 
         @Override
         public Optional<OperationCheck> getActualCheck() {
-            return actualCheck;
+            return Optional.ofNullable(actualCheck);
         }
     }
 }

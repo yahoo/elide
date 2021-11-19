@@ -22,7 +22,7 @@ public abstract class InjectableOperationCheck extends OperationCheck {
             return getActualCheck().get().ok(object, requestScope, optional);
         }
 
-        return true;
+        return false;
     }
 
     public abstract Optional<OperationCheck> getActualCheck();
