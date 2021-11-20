@@ -151,8 +151,22 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     public void validate(Map<String, ConfigFile> resourceMap) {
         try {
 
-            //Validate that the file types and file paths match...
             resourceMap.forEach((path, file) -> {
+                if (file.getContent() == null || file.getContent().isEmpty()) {
+                    throw new BadRequestException(String.format("Null or empty file content for %s", file.getPath()));
+                }
+
+                //Validate that all the files are ones we know about and are safe to manipulate...
+                if (file.getType().equals(ConfigFile.ConfigFileType.UNKNOWN)) {
+                    throw new BadRequestException(String.format("Unrecognized File: %s", file.getPath()));
+                }
+
+                if (path.contains("..")) {
+                    throw new BadRequestException(String.format("Parent directory traversal not allowed: %s",
+                            file.getPath()));
+                }
+
+                //Validate that the file types and file paths match...
                 if (! file.getType().equals(FileLoader.toType(path))) {
                     throw new BadRequestException(String.format("File type %s does not match file path: %s",
                             file.getType(), file.getPath()));
@@ -192,14 +206,19 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
 
     public void validateConfigs() throws IOException {
         validateSecurityConfig();
-        validateRequiredConfigsProvided();
-        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
-        validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
-        validateTableConfig();
-        validateNameUniqueness(this.elideNamespaceConfig.getNamespaceconfigs(),
-                "Multiple Namespace configs found with the same name: ");
-        validateNamespaceConfig();
-        validateJoinedTablesDBConnectionName(this.elideTableConfig);
+        boolean configurationExists = validateRequiredConfigsProvided();
+
+        if (configurationExists) {
+            validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(),
+                    "Multiple DB configs found with the same name: ");
+            validateNameUniqueness(this.elideTableConfig.getTables(),
+                    "Multiple Table configs found with the same name: ");
+            validateTableConfig();
+            validateNameUniqueness(this.elideNamespaceConfig.getNamespaceconfigs(),
+                    "Multiple Namespace configs found with the same name: ");
+            validateNamespaceConfig();
+            validateJoinedTablesDBConnectionName(this.elideTableConfig);
+        }
     }
 
     @Override
@@ -506,10 +525,8 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     /**
      * Checks if neither Table nor DB config files provided.
      */
-    private void validateRequiredConfigsProvided() {
-        if (this.elideTableConfig.getTables().isEmpty() && this.elideSQLDBConfig.getDbconfigs().isEmpty()) {
-            throw new IllegalStateException("Neither Table nor DB configs found under: " + fileLoader.getRootPath());
-        }
+    private boolean validateRequiredConfigsProvided() {
+        return !(this.elideTableConfig.getTables().isEmpty() && this.elideSQLDBConfig.getDbconfigs().isEmpty());
     }
 
     /**

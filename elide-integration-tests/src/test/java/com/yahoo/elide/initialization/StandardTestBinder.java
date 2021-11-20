@@ -57,13 +57,16 @@ public class StandardTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
+                Elide elide = new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .build());
+
+                elide.doScans();
+                return elide;
             }
 
             @Override

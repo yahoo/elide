@@ -55,6 +55,7 @@ public class CSVExportFormatterTest {
                         .withEntityDictionary(EntityDictionary.builder().checks(map).build())
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
+        elide.doScans();
         scope = mock(RequestScope.class);
     }
 

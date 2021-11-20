@@ -56,6 +56,7 @@ public class LifeCycleIntegrationTestApplicationResourceConfig extends ResourceC
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .build());
+                elide.doScans();
                 bind(elide).to(Elide.class).named("elide");
 
                 BillingService billingService = new BillingService() {

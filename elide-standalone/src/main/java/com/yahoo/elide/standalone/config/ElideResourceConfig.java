@@ -92,6 +92,7 @@ public class ElideResourceConfig extends ResourceConfig {
             EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(classScanner,
                     settings.getModelPackageName(), asyncProperties.enabled(), settings.getDatabaseProperties());
 
+
             EntityDictionary dictionary = settings.getEntityDictionary(injector, classScanner, dynamicConfiguration,
                     settings.getEntitiesToExclude());
 
@@ -116,6 +117,7 @@ public class ElideResourceConfig extends ResourceConfig {
                             "Aggregation Datastore is enabled but aggregationDataStore is null");
                 }
                 dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory);
+
             } else {
                 dataStore = settings.getDataStore(entityManagerFactory);
             }
@@ -131,12 +133,6 @@ public class ElideResourceConfig extends ResourceConfig {
             bind(elideSettings).to(ElideSettings.class);
             bind(elideSettings.getDictionary()).to(EntityDictionary.class);
             bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
-
-            //Bind subscription hooks.
-            if (settings.getSubscriptionProperties().publishingEnabled()) {
-                settings.getSubscriptionProperties().subscriptionScanner(elide,
-                        settings.getSubscriptionProperties().getConnectionFactory());
-            }
 
             // Binding async service
             if (asyncProperties.enabled()) {
@@ -237,15 +233,28 @@ public class ElideResourceConfig extends ResourceConfig {
             throw new IllegalStateException(e);
         }
 
+
         // Bind to injector
         register(new ElideBinder(classScanner, dynamicConfiguration, servletContext));
 
-
         // Bind swaggers to given endpoint
+        //This looks strange, but Jersey binds its Abstract binders first, and then later it binds 'external'
+        //binders (like this HK2 version).  This allows breaking dependency injection into two phases.
+        //Everything bound in the first phase can be accessed in the second phase.
         register(new org.glassfish.hk2.utilities.binding.AbstractBinder() {
             @Override
             protected void configure() {
-                EntityDictionary dictionary = injector.getService(EntityDictionary.class);
+                Elide elide = injector.getService(Elide.class, "elide");
+
+                elide.doScans();
+
+                //Bind subscription hooks.
+                if (settings.getSubscriptionProperties().publishingEnabled()) {
+                    settings.getSubscriptionProperties().subscriptionScanner(elide,
+                            settings.getSubscriptionProperties().getConnectionFactory());
+                }
+
+                EntityDictionary dictionary = elide.getElideSettings().getDictionary();
 
                 if (settings.enableSwagger()) {
                     List<DocEndpoint.SwaggerRegistration> swaggerDocs = settings.buildSwagger(dictionary);

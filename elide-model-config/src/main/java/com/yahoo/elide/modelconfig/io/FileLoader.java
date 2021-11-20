@@ -19,7 +19,7 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
@@ -94,7 +94,7 @@ public class FileLoader {
      * @throws IOException If something goes boom.
      */
     public Map<String, ConfigFile> loadResources() throws IOException {
-        Map<String, ConfigFile> resourceMap = new HashMap<>();
+        Map<String, ConfigFile> resourceMap = new LinkedHashMap<>();
         int configDirURILength = resolver.getResources(this.rootURL)[0].getURI().toString().length();
 
         Resource[] hjsonResources = resolver.getResources(this.rootURL + HJSON_EXTN);

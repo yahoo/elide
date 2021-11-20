@@ -79,8 +79,6 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
             EntityDictionary dictionary = EntityDictionary.builder().build();
 
-            dictionary.scanForSecurityChecks();
-
             DataStore store = buildDataStore(dictionary);
 
             Elide elide = buildElide(store, dictionary);
@@ -107,7 +105,11 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
             builder = builder.withVerboseErrors();
         }
 
-        return new Elide(builder.build());
+        Elide elide = new Elide(builder.build());
+
+        elide.doScans();
+
+        return elide;
     }
 
     protected DataStore buildDataStore(EntityDictionary dictionary) {

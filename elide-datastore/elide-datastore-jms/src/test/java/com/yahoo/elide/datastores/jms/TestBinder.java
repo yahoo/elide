@@ -66,6 +66,8 @@ public class TestBinder extends AbstractBinder {
                 );
                 Elide elide = buildElide(inMemoryStore, dictionary);
 
+                elide.doScans();
+
                 SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
                         .connectionFactory(connectionFactory)
                         .dictionary(elide.getElideSettings().getDictionary())

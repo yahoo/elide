@@ -38,6 +38,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     private final FileLoader fileLoader;
     private final Set<Runnable> todo;
     private final Set<ConfigFile> dirty;
+    private final Set<String> deleted;
     private final Validator validator;
     private final boolean readOnly;
 
@@ -49,6 +50,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         this.fileLoader = fileLoader;
         this.readOnly = readOnly || !fileLoader.isWriteable();
         this.dirty = new LinkedHashSet<>();
+        this.deleted = new LinkedHashSet<>();
         this.todo = new LinkedHashSet<>();
         this.validator = validator;
     }
@@ -71,6 +73,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         }
         ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
+        deleted.add(file.getPath());
         todo.add(() -> deleteFile(file.getPath()));
     }
 
@@ -86,6 +89,10 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
             for (ConfigFile file : dirty) {
                 resources.put(file.getPath(), file);
+            }
+
+            for (String path: deleted) {
+                resources.remove(path);
             }
 
             try {
@@ -114,20 +121,20 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         }
         ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
-        todo.add(() -> createFile(file.getPath()));
+        todo.add(() -> {
+
+            //We have to assign the ID here during commit so it gets sent back in the response.
+            file.setId(ConfigFile.toId(file.getPath(), file.getVersion()));
+
+            createFile(file.getPath());
+            updateFile(file.getPath(), file.getContent());
+        });
     }
 
     @Override
     public <T> T loadObject(EntityProjection entityProjection, Serializable id, RequestScope scope) {
-        String idString = id.toString();
-        int hyphenIndex = idString.lastIndexOf('-');
+        String path = ConfigFile.fromId(id.toString());
 
-        String path;
-        if (hyphenIndex < 0) {
-            path = idString;
-        } else {
-            path = idString.substring(idString.lastIndexOf('-'));
-        }
         try {
             return (T) fileLoader.loadResource(path);
         } catch (IOException e) {
@@ -150,6 +157,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     public void cancel(RequestScope scope) {
         todo.clear();
         dirty.clear();
+        deleted.clear();
     }
 
     @Override

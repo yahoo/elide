@@ -88,6 +88,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         initializeMocks();
         Elide elide = new Elide(settings);
+        elide.doScans();
 
         runner = new QueryRunner(elide, NO_VERSION);
     }

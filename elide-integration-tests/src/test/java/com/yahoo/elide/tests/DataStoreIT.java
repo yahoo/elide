@@ -75,6 +75,8 @@ public class DataStoreIT extends IntegrationTest {
                 .withAuditLogger(new TestAuditLogger())
                 .withEntityDictionary(EntityDictionary.builder().checks(checks).build())
                 .build());
+
+        elide.doScans();
     }
 
     @BeforeEach

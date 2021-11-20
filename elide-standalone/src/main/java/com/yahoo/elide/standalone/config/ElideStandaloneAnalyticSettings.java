@@ -28,6 +28,15 @@ public interface ElideStandaloneAnalyticSettings {
     }
 
     /**
+     * Enable support for reading and manipulating HJSON configuration through Elide models.
+     *
+     * @return Default: False
+     */
+    default boolean enableDynamicModelConfigAPI() {
+        return false;
+    }
+
+    /**
      * Base path to Hjson dynamic model configurations.
      *
      * @return Default: /configs/

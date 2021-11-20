@@ -73,6 +73,7 @@ public class GraphQLTableExportOperationTest {
                         .withAuditLogger(new Slf4jLogger())
                         .withExportApiPath("/export")
                         .build());
+        elide.doScans();
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
