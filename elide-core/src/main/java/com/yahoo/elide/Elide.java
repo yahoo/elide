@@ -110,7 +110,8 @@ public class Elide {
     }
 
     /**
-     * Called after Elide initializes and performs all system scans.
+     * Scans & binds Elide models, scans for security check definitions, serde definitions, life cycle hooks
+     * and more.  Any dependency injection required by objects found from scans must be performed prior to this call.
      */
     public void doScans() {
         if (! initialized) {
