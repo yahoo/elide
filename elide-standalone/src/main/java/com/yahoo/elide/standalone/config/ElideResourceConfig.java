@@ -134,12 +134,6 @@ public class ElideResourceConfig extends ResourceConfig {
             bind(elideSettings.getDictionary()).to(EntityDictionary.class);
             bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
 
-            //Bind subscription hooks.
-            if (settings.getSubscriptionProperties().publishingEnabled()) {
-                settings.getSubscriptionProperties().subscriptionScanner(elide,
-                        settings.getSubscriptionProperties().getConnectionFactory());
-            }
-
             // Binding async service
             if (asyncProperties.enabled()) {
                 bindAsync(asyncProperties, elide, dictionary);
@@ -253,6 +247,13 @@ public class ElideResourceConfig extends ResourceConfig {
                 Elide elide = injector.getService(Elide.class, "elide");
 
                 elide.doScans();
+
+                //Bind subscription hooks.
+                if (settings.getSubscriptionProperties().publishingEnabled()) {
+                    settings.getSubscriptionProperties().subscriptionScanner(elide,
+                            settings.getSubscriptionProperties().getConnectionFactory());
+                }
+
                 EntityDictionary dictionary = elide.getElideSettings().getDictionary();
 
                 if (settings.enableSwagger()) {
