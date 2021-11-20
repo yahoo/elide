@@ -25,6 +25,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 
 import io.restassured.RestAssured;
 import lombok.Builder;
@@ -44,6 +46,11 @@ import javax.ws.rs.core.MediaType;
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(ConfigStoreIntegrationTestSetup.class)
+@TestPropertySource(
+        properties = {
+                "elide.dynamic-config.configApiEnabled=true"
+        }
+)
 public class ConfigStoreTest {
 
     @Data
@@ -56,17 +63,19 @@ public class ConfigStoreTest {
         String content;
     }
 
-    private static Path testDirectory;
-
     @LocalServerPort
     protected int port;
 
     @BeforeAll
     public static void initialize(@TempDir Path testDirectory) {
-        ConfigStoreTest.testDirectory = testDirectory;
         System.setProperty("elide.dynamic-config.path", testDirectory.toFile().getAbsolutePath());
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+    }
+
+    @AfterAll
+    public static void cleanup() {
+        System.clearProperty("elide.dynamic-config.path");
     }
 
     /**
