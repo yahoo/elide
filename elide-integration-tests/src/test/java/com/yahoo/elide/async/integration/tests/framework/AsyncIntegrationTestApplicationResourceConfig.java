@@ -104,6 +104,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
+                elide.doScans();
+
                 AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncAPIDao).to(AsyncAPIDAO.class);
 

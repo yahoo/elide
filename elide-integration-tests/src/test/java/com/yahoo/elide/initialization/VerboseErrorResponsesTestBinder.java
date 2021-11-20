@@ -57,13 +57,16 @@ public class VerboseErrorResponsesTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide(new ElideSettingsBuilder(getDataStore())
+                Elide elide = new Elide(new ElideSettingsBuilder(getDataStore())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withVerboseErrors()
                         .build());
+
+                elide.doScans();
+                return elide;
             }
 
             @Override

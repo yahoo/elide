@@ -46,7 +46,6 @@ import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
-import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import org.apache.commons.lang3.StringUtils;

@@ -2501,10 +2501,12 @@ public class ResourceIT extends IntegrationTest {
                 .withAuditLogger(new TestAuditLogger())
                 .build());
 
+        elide.doScans();
+
         com.yahoo.elide.core.security.User user = new com.yahoo.elide.core.security.User(() -> "-1");
         ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
-        assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
-        assertEquals(response.getBody(), "{\"data\":[]}");
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        assertEquals("{\"data\":[]}", response.getBody());
     }
 
     @Test

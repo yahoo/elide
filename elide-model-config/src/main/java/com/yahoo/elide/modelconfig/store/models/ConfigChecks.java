@@ -18,12 +18,28 @@ public class ConfigChecks {
     public static final String CAN_DELETE_CONFIG = "Can Delete Config";
     public static final String CAN_CREATE_CONFIG = "Can Create Config";
 
-    public static class CanNotRead extends Role.NONE {};
-    public static class CanNotUpdate extends Role.NONE {};
-    public static class CanNotCreate extends Role.NONE {};
-    public static class CanNotDelete extends Role.NONE {};
-    public static class CanRead extends Role.ALL {};
-    public static class CanUpdate extends Role.ALL {};
-    public static class CanCreate extends Role.ALL {};
-    public static class CanDelete extends Role.ALL {};
+    public static class CanNotRead extends Role.NONE {
+
+    };
+    public static class CanNotUpdate extends Role.NONE {
+
+    };
+    public static class CanNotCreate extends Role.NONE {
+
+    };
+    public static class CanNotDelete extends Role.NONE {
+
+    };
+    public static class CanRead extends Role.ALL {
+
+    };
+    public static class CanUpdate extends Role.ALL {
+
+    };
+    public static class CanCreate extends Role.ALL {
+
+    };
+    public static class CanDelete extends Role.ALL {
+
+    };
 }

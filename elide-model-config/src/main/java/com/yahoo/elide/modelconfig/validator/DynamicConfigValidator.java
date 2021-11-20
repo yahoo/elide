@@ -209,8 +209,10 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
         boolean configurationExists = validateRequiredConfigsProvided();
 
         if (configurationExists) {
-            validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
-            validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
+            validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(),
+                    "Multiple DB configs found with the same name: ");
+            validateNameUniqueness(this.elideTableConfig.getTables(),
+                    "Multiple Table configs found with the same name: ");
             validateTableConfig();
             validateNameUniqueness(this.elideNamespaceConfig.getNamespaceconfigs(),
                     "Multiple Namespace configs found with the same name: ");

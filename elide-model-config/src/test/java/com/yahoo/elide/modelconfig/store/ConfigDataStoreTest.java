@@ -87,34 +87,34 @@ public class ConfigDataStoreTest {
                 .type(ConfigFile.ConfigFileType.DATABASE)
                 .contentProvider(contentProvider)
                 .path("db/sql/multiple_db_no_variables.hjson")
-                .build(), configFiles.get(0)));
+                .build(), configFiles.get(1)));
 
-        assertEquals("models/namespaces/player.hjson", configFiles.get(1).getPath());
-        assertEquals(NAMESPACE, configFiles.get(1).getType());
+        assertEquals("db/sql/multiple_db.hjson", configFiles.get(0).getPath());
+        assertEquals(DATABASE, configFiles.get(0).getType());
 
-        assertEquals("db/variables.hjson", configFiles.get(2).getPath());
-        assertEquals(VARIABLE, configFiles.get(2).getType());
+        assertEquals("db/sql/single_db.hjson", configFiles.get(2).getPath());
+        assertEquals(DATABASE, configFiles.get(2).getType());
 
-        assertEquals("models/tables/referred_model.hjson", configFiles.get(3).getPath());
-        assertEquals(TABLE, configFiles.get(3).getType());
+        assertEquals("db/variables.hjson", configFiles.get(3).getPath());
+        assertEquals(VARIABLE, configFiles.get(3).getType());
 
-        assertEquals("db/sql/single_db.hjson", configFiles.get(4).getPath());
-        assertEquals(DATABASE, configFiles.get(4).getType());
+        assertEquals("models/namespaces/player.hjson", configFiles.get(4).getPath());
+        assertEquals(NAMESPACE, configFiles.get(4).getType());
 
-        assertEquals("models/tables/player_stats_extends.hjson", configFiles.get(5).getPath());
-        assertEquals(TABLE, configFiles.get(5).getType());
+        assertEquals("models/security.hjson", configFiles.get(5).getPath());
+        assertEquals(SECURITY, configFiles.get(5).getType());
 
-        assertEquals("db/sql/multiple_db.hjson", configFiles.get(6).getPath());
-        assertEquals(DATABASE, configFiles.get(6).getType());
+        assertEquals("models/tables/player_stats.hjson", configFiles.get(6).getPath());
+        assertEquals(TABLE, configFiles.get(6).getType());
 
-        assertEquals("models/variables.hjson", configFiles.get(7).getPath());
-        assertEquals(VARIABLE, configFiles.get(7).getType());
+        assertEquals("models/tables/player_stats_extends.hjson", configFiles.get(7).getPath());
+        assertEquals(TABLE, configFiles.get(7).getType());
 
-        assertEquals("models/tables/player_stats.hjson", configFiles.get(8).getPath());
+        assertEquals("models/tables/referred_model.hjson", configFiles.get(8).getPath());
         assertEquals(TABLE, configFiles.get(8).getType());
 
-        assertEquals("models/security.hjson", configFiles.get(9).getPath());
-        assertEquals(SECURITY, configFiles.get(9).getType());
+        assertEquals("models/variables.hjson", configFiles.get(9).getPath());
+        assertEquals(VARIABLE, configFiles.get(9).getType());
     }
 
     @Test

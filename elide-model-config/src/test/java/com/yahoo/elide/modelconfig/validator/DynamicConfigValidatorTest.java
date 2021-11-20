@@ -158,17 +158,6 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testMissingConfigs() throws Exception {
-        String error = tapSystemErr(() -> {
-            int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_configs"}));
-            assertEquals(2, exitStatus);
-        });
-
-        assertTrue(error.startsWith("Neither Table nor DB configs found under:"));
-    }
-
-    @Test
     public void testMissingTableConfig() throws Exception {
         tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
@@ -471,22 +460,22 @@ public class DynamicConfigValidatorTest {
                 "src/test/resources/validator/valid");
 
         Map<String, ConfigFile> resources = Map.of("blah/foo",
-                ConfigFile.builder().type(ConfigFile.ConfigFileType.SECURITY).build());
+                ConfigFile.builder().path("blah/foo").type(ConfigFile.ConfigFileType.SECURITY).build());
 
         assertThrows(BadRequestException.class, () -> validator.validate(resources));
 
         Map<String, ConfigFile> resources2 = Map.of("models/variables.hjson",
-                ConfigFile.builder().type(ConfigFile.ConfigFileType.TABLE).build());
+                ConfigFile.builder().path("models/variables.hjson").type(ConfigFile.ConfigFileType.TABLE).build());
 
         assertThrows(BadRequestException.class, () -> validator.validate(resources2));
 
         Map<String, ConfigFile> resources3 = Map.of("models/tables/referred_model.hjson",
-                ConfigFile.builder().type(ConfigFile.ConfigFileType.NAMESPACE).build());
+                ConfigFile.builder().path("models/tables/referred_model.hjson").type(ConfigFile.ConfigFileType.NAMESPACE).build());
 
         assertThrows(BadRequestException.class, () -> validator.validate(resources3));
 
         Map<String, ConfigFile> resources4 = Map.of("models/tables/referred_model.hjson",
-            ConfigFile.builder().type(ConfigFile.ConfigFileType.DATABASE).build());
+            ConfigFile.builder().path("models/tables/referred_model.hjson").type(ConfigFile.ConfigFileType.DATABASE).build());
 
         assertThrows(BadRequestException.class, () -> validator.validate(resources4));
     }
