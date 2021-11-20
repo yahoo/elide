@@ -127,6 +127,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                     .withAuditLogger(new TestAuditLogger())
                                     .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                                     .build());
+
+                    elide.doScans();
                     bind(elide).to(Elide.class).named("elide");
                 }
             });

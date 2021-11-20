@@ -118,8 +118,6 @@ public class ElideResourceConfig extends ResourceConfig {
                 }
                 dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory);
 
-
-
             } else {
                 dataStore = settings.getDataStore(entityManagerFactory);
             }
@@ -246,6 +244,9 @@ public class ElideResourceConfig extends ResourceConfig {
         register(new ElideBinder(classScanner, dynamicConfiguration, servletContext));
 
         // Bind swaggers to given endpoint
+        //This looks strange, but Jersey binds its Abstract binders first, and then later it binds 'external'
+        //binders (like this HK2 version).  This allows breaking dependency injection into two phases.
+        //Everything bound in the first phase can be accessed in the second phase.
         register(new org.glassfish.hk2.utilities.binding.AbstractBinder() {
             @Override
             protected void configure() {
@@ -265,8 +266,6 @@ public class ElideResourceConfig extends ResourceConfig {
 
         additionalConfiguration(settings.getApplicationConfigurator());
     }
-
-
 
     /**
      * Init the supplemental resource config.

@@ -5,17 +5,12 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import com.yahoo.elide.core.security.RequestScope;
-import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.core.security.checks.OperationCheck;
-import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.util.Optional;
 
 /**
  * Interface for configuring the Analytic configuration of Standalone Application.

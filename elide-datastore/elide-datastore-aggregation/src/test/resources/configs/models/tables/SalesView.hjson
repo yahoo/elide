@@ -3,10 +3,7 @@
   [
     {
       name: orderDetails
-      #table: order_details
-      sql: '''
-      select * from foo where datetstamp >= format({{$$table.args.start}}, 'yyyyMMdd')
-      '''
+      table: order_details
       dbConnectionName: SalesDBConnection
       cardinality: large
       readAccess: guest user

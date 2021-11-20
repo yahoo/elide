@@ -107,7 +107,11 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
             builder = builder.withVerboseErrors();
         }
 
-        return new Elide(builder.build());
+        Elide elide = new Elide(builder.build());
+
+        elide.doScans();
+
+        return elide;
     }
 
     protected DataStore buildDataStore(EntityDictionary dictionary) {
