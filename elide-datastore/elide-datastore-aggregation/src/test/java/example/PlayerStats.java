@@ -28,12 +28,15 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import example.dimensions.Country;
+import example.dimensions.PlaceType;
 import example.dimensions.SubCountry;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
@@ -134,6 +137,9 @@ public class PlayerStats extends ParameterizedModel {
 
     @Setter
     private String countryIsInUsa;
+
+    private PlaceType placeType1;
+    private PlaceType placeType2;
 
     @Id
     public String getId() {
@@ -362,5 +368,25 @@ public class PlayerStats extends ParameterizedModel {
     @DimensionFormula("CASE WHEN {{country.inUsa}} THEN 'true' ELSE 'false' END")
     public String getCountryIsInUsa() {
         return fetch("countryIsInUsa", countryIsInUsa);
+    }
+
+    @DimensionFormula("{{$place_type_ordinal}}")
+    @Enumerated(EnumType.ORDINAL)
+    public PlaceType getPlaceType1() {
+        return placeType1;
+    }
+
+    public void setPlaceType1(PlaceType placeType) {
+        this.placeType1 = placeType;
+    }
+
+    @DimensionFormula("{{$place_type_text}}")
+    @Enumerated(EnumType.STRING)
+    public PlaceType getPlaceType2() {
+        return placeType2;
+    }
+
+    public void setPlaceType2(PlaceType placeType) {
+        this.placeType2 = placeType;
     }
 }

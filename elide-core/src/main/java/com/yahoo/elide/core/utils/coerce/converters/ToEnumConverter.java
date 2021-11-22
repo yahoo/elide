@@ -31,6 +31,9 @@ public class ToEnumConverter implements Converter {
             if (ClassUtils.isAssignable(value.getClass(), Integer.class, true)) {
                 return intToEnum(cls, (Integer) value);
             }
+            if (ClassUtils.isAssignable(value.getClass(), Long.class, true)) {
+                return intToEnum(cls, ((Long) value).intValue());
+            }
             throw new UnsupportedOperationException(value.getClass().getSimpleName() + " to Enum no supported");
         } catch (IndexOutOfBoundsException | ReflectiveOperationException
                 | UnsupportedOperationException | IllegalArgumentException e) {
