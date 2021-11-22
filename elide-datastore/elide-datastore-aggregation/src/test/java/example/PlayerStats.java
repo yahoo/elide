@@ -222,7 +222,7 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @DimensionFormula("{{country.isoCode}}")
-    @ColumnMeta(values = {"HK", "USA"})
+    @ColumnMeta(values = {"HKG", "USA"})
     public String getCountryIsoCode() {
         return fetch("countryIsoCode", countryIsoCode);
     }

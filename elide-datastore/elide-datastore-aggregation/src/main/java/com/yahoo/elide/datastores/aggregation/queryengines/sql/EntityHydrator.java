@@ -39,8 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -102,7 +102,8 @@ public class EntityHydrator implements Iterable<Object> {
 
         result.forEach((fieldName, value) -> {
             ColumnProjection columnProjection = query.getColumnProjection(fieldName);
-            Column column = table.getColumn(Column.class, fieldName);
+            Column column = table.getColumn(Column.class, columnProjection.getName());
+
             Type<?> fieldType = getType(entityClass, columnProjection);
             Attribute attribute = projectionToAttribute(columnProjection, fieldType);
 
@@ -111,7 +112,7 @@ public class EntityHydrator implements Iterable<Object> {
             if (entityInstance instanceof ParameterizedModel) {
 
                 //This is an ENUM type.
-                if (valueType == ValueType.TEXT && !column.getValues().isEmpty()) {
+                if (valueType == ValueType.TEXT && column.getValues() != null && !column.getValues().isEmpty()) {
                     value = convertToEnumValue(value, column.getValues());
                 }
 
@@ -228,7 +229,7 @@ public class EntityHydrator implements Iterable<Object> {
                     if (! hasNext) {
                         throw new NoSuchElementException();
                     }
-                    Map<String, Object> row = new HashMap<>();
+                    Map<String, Object> row = new LinkedHashMap<>();
 
                     for (Map.Entry<String, String> entry : projections.entrySet()) {
                         Object value = resultSet.getObject(entry.getValue());

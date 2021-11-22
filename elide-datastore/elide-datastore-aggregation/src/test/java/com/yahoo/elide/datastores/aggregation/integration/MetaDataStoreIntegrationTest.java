@@ -344,7 +344,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.countryIsoCode")
                 .then()
-                .body("data.attributes.values", containsInAnyOrder("USA", "HK"))
+                .body("data.attributes.values", containsInAnyOrder("USA", "HKG"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FORMULA"))
@@ -358,7 +358,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
-                .body("data.attributes.values", containsInAnyOrder("Good", "OK", "Terrible"))
+                .body("data.attributes.values", containsInAnyOrder("Good", "OK", "Great", "Terrible"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FIELD"))
@@ -566,10 +566,10 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionType")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionType1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("customerRegionType"))
+                .body("data.attributes.name", equalTo("customerRegionType1"))
                 .body("data.attributes.valueType", equalTo("TEXT"));
 
         given()
@@ -578,14 +578,6 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegionType2"))
-                .body("data.attributes.valueType", equalTo("TEXT"));
-
-        given()
-                .accept("application/vnd.api+json")
-                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionType3")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("customerRegionType3"))
                 .body("data.attributes.valueType", equalTo("TEXT"));
     }
 }

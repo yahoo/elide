@@ -39,6 +39,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
 public class TableTypeTest {
@@ -461,5 +463,27 @@ public class TableTypeTest {
         MetricFormula metricFormula = field.getAnnotation(MetricFormula.class);
 
         assertThrows(IllegalStateException.class, () -> metricFormula.maker());
+    }
+
+    @Test
+    void testEnumeratedDimension() throws Exception {
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .dimension(Dimension.builder()
+                        .name("dim1")
+                        .type("ENUM_ORDINAL")
+                        .values(Set.of("A", "B", "C"))
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("dim1");
+        assertNotNull(field);
+
+        Enumerated enumerated = field.getAnnotation(Enumerated.class);
+        assertNotNull(enumerated);
+        assertEquals(EnumType.ORDINAL, enumerated.value());
     }
 }
