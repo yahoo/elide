@@ -181,7 +181,7 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @FriendlyName
-    @ColumnMeta(values = {"Good", "OK", "Terrible"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
+    @ColumnMeta(values = {"Good", "OK", "Great", "Terrible"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
     public String getOverallRating() {
         return fetch("overallRating", overallRating);
     }

@@ -23,7 +23,6 @@ import static com.yahoo.elide.modelconfig.model.Type.TEXT;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Package;
@@ -675,18 +674,7 @@ public class TableType implements Type<DynamicModelInstance> {
         }
 
         if (dimension.getType().toUpperCase(Locale.ROOT).equals(ENUM_ORDINAL)) {
-            annotations.put(Enumerated.class, new Enumerated() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Enumerated.class;
-                }
-
-                @Override
-                public EnumType value() {
-                    return EnumType.ORDINAL;
-                }
-            });
+            annotations.put(Enumerated.class, getEnumeratedAnnotation(EnumType.ORDINAL));
         }
 
         if (dimension.getType().toUpperCase(Locale.ROOT).equals(TIME)) {
@@ -739,6 +727,20 @@ public class TableType implements Type<DynamicModelInstance> {
         }
 
         return annotations;
+    }
+
+    private static Enumerated getEnumeratedAnnotation(EnumType type) {
+        return new Enumerated() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Enumerated.class;
+            }
+
+            @Override
+            public EnumType value() {
+                return EnumType.ORDINAL;
+            }
+        };
     }
 
     private static Map<String, Field> buildFields(Table table) {
@@ -860,12 +862,7 @@ public class TableType implements Type<DynamicModelInstance> {
             case COORDINATE:
                 return STRING_TYPE;
             default:
-                try {
-                    Class<?> inputClass = Class.forName(inputType);
-                    return new ClassType(inputClass);
-                } catch (ClassNotFoundException e) {
-                    return STRING_TYPE;
-                }
+                return STRING_TYPE;
         }
     }
 
