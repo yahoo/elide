@@ -14,6 +14,8 @@ public class Type {
     public final static String DECIMAL = "DECIMAL";
     public final static String MONEY = "MONEY";
     public final static String TEXT = "TEXT";
+    public final static String ENUM_ORDINAL = "ENUM_ORDINAL";
+    public final static String ENUM_TEXT = "ENUM_TEXT";
     public final static String COORDINATE = "COORDINATE";
     public final static String BOOLEAN = "BOOLEAN";
 }

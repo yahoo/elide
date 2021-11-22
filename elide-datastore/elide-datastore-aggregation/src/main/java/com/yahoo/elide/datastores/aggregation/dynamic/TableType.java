@@ -15,6 +15,8 @@ import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static com.yahoo.elide.modelconfig.model.Type.BOOLEAN;
 import static com.yahoo.elide.modelconfig.model.Type.COORDINATE;
 import static com.yahoo.elide.modelconfig.model.Type.DECIMAL;
+import static com.yahoo.elide.modelconfig.model.Type.ENUM_ORDINAL;
+import static com.yahoo.elide.modelconfig.model.Type.ENUM_TEXT;
 import static com.yahoo.elide.modelconfig.model.Type.INTEGER;
 import static com.yahoo.elide.modelconfig.model.Type.MONEY;
 import static com.yahoo.elide.modelconfig.model.Type.TEXT;
@@ -62,6 +64,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -670,6 +674,21 @@ public class TableType implements Type<DynamicModelInstance> {
             });
         }
 
+        if (dimension.getType().toUpperCase(Locale.ROOT).equals(ENUM_ORDINAL)) {
+            annotations.put(Enumerated.class, new Enumerated() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Enumerated.class;
+                }
+
+                @Override
+                public EnumType value() {
+                    return EnumType.ORDINAL;
+                }
+            });
+        }
+
         if (dimension.getType().toUpperCase(Locale.ROOT).equals(TIME)) {
             annotations.put(Temporal.class, new Temporal() {
 
@@ -827,6 +846,8 @@ public class TableType implements Type<DynamicModelInstance> {
             case TIME:
                 return TIME_TYPE;
             case TEXT:
+            case ENUM_ORDINAL:
+            case ENUM_TEXT:
                 return STRING_TYPE;
             case MONEY:
                 return BIGDECIMAL_TYPE;

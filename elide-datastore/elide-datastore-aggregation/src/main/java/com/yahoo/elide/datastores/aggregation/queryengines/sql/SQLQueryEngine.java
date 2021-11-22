@@ -479,6 +479,17 @@ public class SQLQueryEngine extends QueryEngine {
             return dialect.translateTimeToJDBC((Time) value);
         }
 
+        if (value.getClass().isEnum()) {
+            Enumerated enumerated =
+                    metadataDictionary.getAttributeOrRelationAnnotation(parent, Enumerated.class, column.getName());
+
+            if (enumerated != null && enumerated.value().equals(EnumType.ORDINAL)) {
+                return ((Enum) value).ordinal();
+            } else {
+                return value;
+            }
+        }
+
         if ((column.getValueType().equals(ValueType.TEXT)
                 && column.getValues() != null
                 && column.getValues().isEmpty() == false)) {
