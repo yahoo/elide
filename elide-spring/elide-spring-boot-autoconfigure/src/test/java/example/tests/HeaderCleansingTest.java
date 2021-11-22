@@ -16,12 +16,14 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +64,7 @@ public class HeaderCleansingTest extends IntegrationTest {
     private String baseUrl;
 
     @SpyBean
-    private Elide elide;
+    private RefreshableElide elide;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -72,6 +74,11 @@ public class HeaderCleansingTest extends IntegrationTest {
     public void setUp() {
         super.setUp();
         baseUrl = "https://elide.io/json/";
+    }
+
+    @BeforeEach
+    public void resetMocks() {
+        reset(elide.getElide());
     }
 
     @Test
@@ -100,7 +107,7 @@ public class HeaderCleansingTest extends IntegrationTest {
 
         ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide).post(any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        verify(elide.getElide()).post(any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
 
         MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
@@ -123,7 +130,7 @@ public class HeaderCleansingTest extends IntegrationTest {
 
         ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide).get(any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        verify(elide.getElide()).get(any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
 
         MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
@@ -158,7 +165,7 @@ public class HeaderCleansingTest extends IntegrationTest {
 
         ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide).patch(any(), any(), any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        verify(elide.getElide()).patch(any(), any(), any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
 
         MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
@@ -181,7 +188,7 @@ public class HeaderCleansingTest extends IntegrationTest {
 
         ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide).delete(
+        verify(elide.getElide()).delete(
                 any(),
                 any(),
                 any(),
@@ -217,7 +224,7 @@ public class HeaderCleansingTest extends IntegrationTest {
 
         ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide).delete(
+        verify(elide.getElide()).delete(
                 any(),
                 any(),
                 any(),

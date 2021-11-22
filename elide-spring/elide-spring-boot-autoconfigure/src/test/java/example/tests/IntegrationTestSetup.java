@@ -5,8 +5,10 @@
  */
 package example.tests;
 
+import static org.mockito.Mockito.spy;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -27,11 +29,11 @@ public class IntegrationTestSetup {
 
     //We recreate the Elide bean here without @RefreshScope so that it can be used With @SpyBean.
     @Bean
-    public Elide initializeElide(EntityDictionary dictionary,
-                                 DataStore dataStore,
-                                 ElideConfigProperties settings,
-                                 JsonApiMapper mapper,
-                                 ErrorMapper errorMapper) {
+    public RefreshableElide initializeElide(EntityDictionary dictionary,
+                                            DataStore dataStore,
+                                            ElideConfigProperties settings,
+                                            JsonApiMapper mapper,
+                                            ErrorMapper errorMapper) {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
@@ -70,6 +72,8 @@ public class IntegrationTestSetup {
             }
         }
 
-        return new Elide(builder.build());
+        Elide elide = new Elide(builder.build());
+
+        return new RefreshableElide(spy(elide));
     }
 }

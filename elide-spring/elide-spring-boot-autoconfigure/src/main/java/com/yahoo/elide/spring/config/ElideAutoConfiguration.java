@@ -148,20 +148,6 @@ public class ElideAutoConfiguration {
         };
     }
 
-    @Bean
-    @RefreshScope
-    @ConditionalOnMissingBean
-    public RefreshableElide getRefreshableElide(Elide elide) {
-        return new RefreshableElide(elide);
-    }
-
-    @Bean
-    @RefreshScope
-    @ConditionalOnMissingBean
-    public QueryRunners getQueryRunners(RefreshableElide refreshableElide) {
-        return new QueryRunners(refreshableElide);
-    }
-
     /**
      * Creates the Elide instance with standard settings.
      * @param dictionary Stores the static metadata about Elide models.
@@ -171,14 +157,14 @@ public class ElideAutoConfiguration {
      * @return A new elide instance.
      */
     @Bean
+    @RefreshScope
     @ConditionalOnMissingBean
-    @Scope(SCOPE_PROTOTYPE)
-    public Elide initializeElide(EntityDictionary dictionary,
-                                 DataStore dataStore,
-                                 TransactionRegistry transactionRegistry,
-                                 ElideConfigProperties settings,
-                                 JsonApiMapper mapper,
-                                 ErrorMapper errorMapper) {
+    public RefreshableElide getRefreshableElide(EntityDictionary dictionary,
+                                                DataStore dataStore,
+                                                TransactionRegistry transactionRegistry,
+                                                ElideConfigProperties settings,
+                                                JsonApiMapper mapper,
+                                                ErrorMapper errorMapper) {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
@@ -217,8 +203,16 @@ public class ElideAutoConfiguration {
             }
         }
 
+        return new Elide(builder.build(), transactionRegistry, true);
 
-        return new Elide(builder.build(), transactionRegistry);
+        return new RefreshableElide(elide);
+    }
+
+    @Bean
+    @RefreshScope
+    @ConditionalOnMissingBean
+    public QueryRunners getQueryRunners(RefreshableElide refreshableElide) {
+        return new QueryRunners(refreshableElide);
     }
 
     /**
@@ -479,6 +473,7 @@ public class ElideAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
     public JsonApiMapper mapper() {
         return new JsonApiMapper();
     }
