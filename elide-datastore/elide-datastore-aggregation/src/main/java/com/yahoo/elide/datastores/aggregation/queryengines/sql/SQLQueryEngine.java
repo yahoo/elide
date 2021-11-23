@@ -484,7 +484,7 @@ public class SQLQueryEngine extends QueryEngine {
             if (enumerated != null && enumerated.value().equals(EnumType.ORDINAL)) {
                 return ((Enum) value).ordinal();
             } else {
-                return value;
+                return value.toString();
             }
         }
 

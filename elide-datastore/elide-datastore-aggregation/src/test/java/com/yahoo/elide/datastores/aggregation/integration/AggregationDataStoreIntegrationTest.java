@@ -2023,7 +2023,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
-    public void testFilterByEnumDimension() throws Exception {
+    public void testHjsonFilterByEnumDimension() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
@@ -2046,6 +2046,38 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("customerRegionType1", "STATE"),
                                         field("customerRegionType2", "STATE")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testJavaFilterByEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"placeType1==STATE;placeType2==STATE\"")
+                                ),
+                                selections(
+                                        field("placeType1"),
+                                        field("placeType2")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("placeType1", "STATE"),
+                                        field("placeType2", "STATE")
                                 )
                         )
                 )

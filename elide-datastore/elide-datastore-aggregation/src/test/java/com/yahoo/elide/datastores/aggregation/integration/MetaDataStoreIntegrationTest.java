@@ -259,7 +259,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats.player2Name",
                                 "playerStats.countryIsoCode",
                                 "playerStats.subCountryIsoCode",
-                                "playerStats.overallRating"))
+                                "playerStats.overallRating",
+                                "playerStats.placeType1",
+                                "playerStats.placeType2"))
                 .body("data.relationships.metrics.data.id", containsInAnyOrder("playerStats.id", "playerStats.lowScore",
                         "playerStats.highScore", "playerStats.dailyAverageScorePerPeriod"))
                 .body("data.relationships.timeDimensions.data.id", containsInAnyOrder("playerStats.recordedDate",
@@ -578,6 +580,22 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegionType2"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/playerStats/dimensions/playerStats.placeType1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("placeType1"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/playerStats/dimensions/playerStats.placeType2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("placeType2"))
                 .body("data.attributes.valueType", equalTo("TEXT"));
     }
 }
