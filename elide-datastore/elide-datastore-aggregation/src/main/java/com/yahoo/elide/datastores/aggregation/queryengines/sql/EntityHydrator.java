@@ -111,8 +111,11 @@ public class EntityHydrator implements Iterable<Object> {
 
             if (entityInstance instanceof ParameterizedModel) {
 
-                //This is an ENUM type.
-                if (valueType == ValueType.TEXT && column.getValues() != null && !column.getValues().isEmpty()) {
+                //This is an ENUM_TEXT or ENUM_ORDINAL type.
+                if (! fieldType.isEnum()
+                        && valueType == ValueType.TEXT
+                        && column.getValues() != null
+                        && !column.getValues().isEmpty()) {
                     value = convertToEnumValue(value, column.getValues());
                 }
 
