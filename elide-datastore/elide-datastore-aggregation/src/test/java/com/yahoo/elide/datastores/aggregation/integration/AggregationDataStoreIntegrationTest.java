@@ -2085,4 +2085,69 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
+
+    @Test
+    public void testJavaSortByEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"placeType1,placeType2\"")
+                                ),
+                                selections(
+                                        field("placeType1"),
+                                        field("placeType2")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("placeType1", "STATE"),
+                                        field("placeType2", "STATE")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testHjsonSortByEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\""),
+                                        argument("sort", "\"customerRegionType1,customerRegionType2\"")
+                                ),
+                                selections(
+                                        field("customerRegionType1"),
+                                        field("customerRegionType2")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("customerRegionType1", "STATE"),
+                                        field("customerRegionType2", "STATE")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
 }
