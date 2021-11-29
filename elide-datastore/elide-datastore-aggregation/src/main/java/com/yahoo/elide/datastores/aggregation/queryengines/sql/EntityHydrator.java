@@ -111,8 +111,8 @@ public class EntityHydrator implements Iterable<Object> {
 
             if (entityInstance instanceof ParameterizedModel) {
 
-                //This is an ENUM_TEXT or ENUM_ORDINAL type.
-                if (! fieldType.isEnum()
+                // This is an ENUM_TEXT or ENUM_ORDINAL type.
+                if (! fieldType.isEnum() //Java enums can be coerced directly via CoerceUtil - so skip them.
                         && valueType == ValueType.TEXT
                         && column.getValues() != null
                         && !column.getValues().isEmpty()) {
