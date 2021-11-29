@@ -39,15 +39,6 @@ public class DynamicConfigSchemaValidatorTest {
     }
 
     @Test
-    public void testInvalidColumnType() throws Exception {
-        String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/invalid_column_type.hjson");
-        Exception e = assertThrows(IllegalStateException.class,
-                () -> testClass.verifySchema(Config.TABLE, jsonConfig, "invalid_column_type.hjson"));
-        String expectedMessage = "Field type [com.yahoo.elide.modelconfig.models.NoSuchType] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean] or a valid Java class name.";
-        assertTrue(e.getMessage().contains(expectedMessage));
-    }
-
-    @Test
     public void testValidVariableSchema() throws Exception {
         String jsonConfig = loadHjsonFromClassPath("/validator/valid/models/variables.hjson");
         assertTrue(testClass.verifySchema(Config.MODELVARIABLE, jsonConfig, "variables.hjson"));
@@ -107,7 +98,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/tables/0/arguments/0] failed to validate against schema[/definitions/argument]. object has missing required properties ([\"default\"])\n"
                         + "[ERROR]\n"
-                        + "Instance[/tables/0/arguments/0/type] failed to validate against schema[/definitions/argument/properties/type]. Field type [Number] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean].\n"
+                        + "Instance[/tables/0/arguments/0/type] failed to validate against schema[/definitions/argument/properties/type]. Field type [Number] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean, Enum_Text, Enum_Ordinal].\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/arguments/1] failed to validate against schema[/definitions/argument]. object has missing required properties ([\"default\"])\n"
                         + "[ERROR]\n"
@@ -121,7 +112,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/0/cardinality] failed to validate against schema[/definitions/dimensionRef/properties/cardinality]. Cardinality type [Extra small] is not allowed. Supported value is one of [Tiny, Small, Medium, Large, Huge].\n"
                         + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be one of [id, sql]\n"
-                        + "        Instance[/tables/0/dimensions/0/type] failed to validate against schema[/definitions/dimension/allOf/1/properties/type]. Field type [Float] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean] or a valid Java class name.\n"
+                        + "        Instance[/tables/0/dimensions/0/type] failed to validate against schema[/definitions/dimension/allOf/1/properties/type]. Field type [Float] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean, Enum_Text, Enum_Ordinal].\n"
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/0/cardinality] failed to validate against schema[/definitions/dimensionRef/properties/cardinality]. Cardinality type [Extra small] is not allowed. Supported value is one of [Tiny, Small, Medium, Large, Huge].\n"
                         + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be one of [id, sql]\n"
@@ -141,7 +132,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/tables/0/dimensions/2] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
                         + "    Instance[/tables/0/dimensions/2] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
-                        + "        Instance[/tables/0/dimensions/2/type] failed to validate against schema[/definitions/dimension/allOf/1/properties/type]. Field type [TIMEX] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean] or a valid Java class name.\n"
+                        + "        Instance[/tables/0/dimensions/2/type] failed to validate against schema[/definitions/dimension/allOf/1/properties/type]. Field type [TIMEX] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean, Enum_Text, Enum_Ordinal].\n"
                         + "    Instance[/tables/0/dimensions/2] failed to validate against schema[/definitions/dimension]. Properties: [grains] are not allowed for dimensions.\n"
                         + "    Instance[/tables/0/dimensions/2] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/2/grains/0/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/grains/items/properties/type]. Grain type [Days] is not allowed. Supported value is one of [Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year].\n"

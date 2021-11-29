@@ -11,7 +11,6 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -21,6 +20,8 @@ import com.yahoo.elide.datastores.aggregation.QueryValidator;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
@@ -67,6 +68,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.sql.DataSource;
 
 /**
@@ -451,15 +454,15 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         for (FilterPredicate filterPredicate : predicates) {
-            boolean isTimeFilter = ClassType.of(Time.class).isAssignableFrom(filterPredicate.getFieldType());
+            Column column = metaDataStore.getColumn(filterPredicate.getEntityType(), filterPredicate.getField());
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {
                     try {
                         Object value = param.getValue();
-                        if (isTimeFilter) {
-                            value = dialect.translateTimeToJDBC((Time) value);
-                        }
+
+                        value = convertForJdbc(filterPredicate.getEntityType(), column, value, dialect);
+
                         stmt.setObject(param.getName(), shouldEscape ? param.escapeMatching() : value);
                     } catch (SQLException e) {
                         throw new IllegalStateException(e);
@@ -467,6 +470,45 @@ public class SQLQueryEngine extends QueryEngine {
                 });
             }
         }
+    }
+
+    private Object convertForJdbc(Type<?> parent, Column column, Object value, SQLDialect dialect) {
+        if (column.getValueType().equals(ValueType.TIME) && (Time.class).isAssignableFrom(value.getClass())) {
+            return dialect.translateTimeToJDBC((Time) value);
+        }
+
+        if (value.getClass().isEnum()) {
+            Enumerated enumerated =
+                    metadataDictionary.getAttributeOrRelationAnnotation(parent, Enumerated.class, column.getName());
+
+            if (enumerated != null && enumerated.value().equals(EnumType.ORDINAL)) {
+                return ((Enum) value).ordinal();
+            } else {
+                return value.toString();
+            }
+        }
+
+        if ((column.getValueType().equals(ValueType.TEXT)
+                && column.getValues() != null
+                && column.getValues().isEmpty() == false)) {
+            Enumerated enumerated =
+                    metadataDictionary.getAttributeOrRelationAnnotation(parent, Enumerated.class, column.getName());
+
+            if (enumerated != null && enumerated.value().equals(EnumType.ORDINAL)) {
+
+                String [] enumValues = column.getValues().toArray(new String[0]);
+                for (int idx = 0; idx < column.getValues().size(); idx++) {
+                    if (enumValues[idx].equals(value)) {
+                        return idx;
+                    }
+                }
+
+                throw new IllegalStateException(String.format("Invalid value %s for column %s",
+                        value, column.getName()));
+            }
+        }
+
+        return value;
     }
 
     /**
