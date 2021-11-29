@@ -165,6 +165,8 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+
+            <!-- There are issues with later versions and the aggregation store -->
             <version>1.4.197</version>
             <scope>test</scope>
         </dependency>

@@ -22,12 +22,12 @@ import java.util.regex.Pattern;
  */
 public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
     public static final Pattern FIELD_TYPE_PATTERN =
-            Pattern.compile("^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean)$");
+            Pattern.compile("^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean|Enum_Text|Enum_Ordinal)$");
 
     public static final String FORMAT_NAME = "elideFieldType";
     public static final String TYPE_KEY = "elideFieldType.error.enum";
     public static final String TYPE_MSG = "Field type [%s] is not allowed. Supported value is one of "
-            + "[Integer, Decimal, Money, Text, Coordinate, Boolean].";
+            + "[Integer, Decimal, Money, Text, Coordinate, Boolean, Enum_Text, Enum_Ordinal].";
 
     public ElideFieldTypeFormatAttr() {
         this(FORMAT_NAME);

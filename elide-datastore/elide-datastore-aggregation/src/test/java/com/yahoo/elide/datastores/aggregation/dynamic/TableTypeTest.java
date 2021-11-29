@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
@@ -40,6 +39,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
 public class TableTypeTest {
@@ -465,17 +466,24 @@ public class TableTypeTest {
     }
 
     @Test
-    void testEnumField() throws Exception {
+    void testEnumeratedDimension() throws Exception {
         Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
                 .dimension(Dimension.builder()
                         .name("dim1")
-                        .type("com.yahoo.elide.modelconfig.model.Grain$GrainType")
+                        .type("ENUM_ORDINAL")
+                        .values(Set.of("A", "B", "C"))
                         .build())
                 .build();
 
         TableType testType = new TableType(testTable);
 
         Field field = testType.getDeclaredField("dim1");
-        assertEquals(ClassType.of(Grain.GrainType.class), field.getType());
+        assertNotNull(field);
+
+        Enumerated enumerated = field.getAnnotation(Enumerated.class);
+        assertNotNull(enumerated);
+        assertEquals(EnumType.ORDINAL, enumerated.value());
     }
 }

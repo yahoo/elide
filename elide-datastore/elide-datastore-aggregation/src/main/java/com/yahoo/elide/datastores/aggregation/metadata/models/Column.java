@@ -73,7 +73,7 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
 
     private final ValueSourceType valueSourceType;
 
-    private final Set<String> values;
+    private final LinkedHashSet<String> values;
 
     private String requiredFilter;
 

@@ -7,7 +7,6 @@ package com.yahoo.elide.modelconfig;
 
 import com.yahoo.elide.modelconfig.jsonformats.ElideArgumentNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideCardinalityFormatAttr;
-import com.yahoo.elide.modelconfig.jsonformats.ElideCustomFieldTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideGrainTypeFormatAttr;
@@ -49,8 +48,6 @@ public class MessageBundleWithElideMessages {
                                         .put(ElideArgumentNameFormatAttr.NAME_KEY, ElideArgumentNameFormatAttr.NAME_MSG)
                                         .put(ElideCardinalityFormatAttr.TYPE_KEY, ElideCardinalityFormatAttr.TYPE_MSG)
                                         .put(ElideFieldTypeFormatAttr.TYPE_KEY, ElideFieldTypeFormatAttr.TYPE_MSG)
-                                        .put(ElideCustomFieldTypeFormatAttr.TYPE_KEY,
-                                                ElideCustomFieldTypeFormatAttr.TYPE_MSG)
                                         .put(ElideGrainTypeFormatAttr.TYPE_KEY, ElideGrainTypeFormatAttr.TYPE_MSG)
                                         .put(ElideJoinTypeFormatAttr.TYPE_KEY, ElideJoinTypeFormatAttr.TYPE_MSG)
                                         .put(ElideJoinKindFormatAttr.TYPE_KEY, ElideJoinKindFormatAttr.TYPE_MSG)
