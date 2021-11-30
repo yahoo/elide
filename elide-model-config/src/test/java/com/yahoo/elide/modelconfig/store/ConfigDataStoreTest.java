@@ -35,8 +35,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class ConfigDataStoreTest {
@@ -207,7 +212,7 @@ public class ConfigDataStoreTest {
         String createdFilePath = Path.of(configPath.toFile().getPath(), createdFile.getPath()).toFile().getPath();
 
         File file = new File(createdFilePath);
-        file.setWritable(false, false);
+        blockWrites(file);
 
         assertThrows(UnsupportedOperationException.class, () -> updateFile(configRoot, store));
     }
@@ -224,7 +229,7 @@ public class ConfigDataStoreTest {
         String createdFilePath = Path.of(configPath.toFile().getPath(), createdFile.getPath()).toFile().getPath();
 
         File file = new File(createdFilePath);
-        file.setWritable(false, false);
+        blockWrites(file);
 
         ConfigDataStoreTransaction tx = store.beginTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -239,7 +244,7 @@ public class ConfigDataStoreTest {
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         File file = configPath.toFile();
-        file.setWritable(false, false);
+        blockWrites(file);
 
         assertThrows(UnsupportedOperationException.class, () -> createFile("test", store, false));
     }
@@ -463,5 +468,16 @@ public class ConfigDataStoreTest {
 
     protected boolean compare(ConfigFile a, ConfigFile b) {
         return a.equals(b) && a.getContent().equals(b.getContent()) && a.getType().equals(b.getType());
+    }
+
+    protected void blockWrites(File file) {
+        Set<PosixFilePermission> perms = new HashSet<>();
+
+        try {
+            //Windows doesn't like this.
+            Files.setPosixFilePermissions(file.toPath(), perms);
+        } catch (Exception e) {
+            file.setWritable(false, false);
+        }
     }
 }
