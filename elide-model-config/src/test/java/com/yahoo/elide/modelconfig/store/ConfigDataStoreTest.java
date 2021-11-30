@@ -207,7 +207,7 @@ public class ConfigDataStoreTest {
         String createdFilePath = Path.of(configPath.toFile().getPath(), createdFile.getPath()).toFile().getPath();
 
         File file = new File(createdFilePath);
-        file.setWritable(false);
+        file.setWritable(false, false);
 
         assertThrows(UnsupportedOperationException.class, () -> updateFile(configRoot, store));
     }
@@ -224,7 +224,7 @@ public class ConfigDataStoreTest {
         String createdFilePath = Path.of(configPath.toFile().getPath(), createdFile.getPath()).toFile().getPath();
 
         File file = new File(createdFilePath);
-        file.setWritable(false);
+        file.setWritable(false, false);
 
         ConfigDataStoreTransaction tx = store.beginTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -239,7 +239,7 @@ public class ConfigDataStoreTest {
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         File file = configPath.toFile();
-        file.setWritable(false);
+        file.setWritable(false, false);
 
         assertThrows(UnsupportedOperationException.class, () -> createFile("test", store, false));
     }
