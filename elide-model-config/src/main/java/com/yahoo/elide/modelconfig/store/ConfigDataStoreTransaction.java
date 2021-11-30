@@ -190,13 +190,13 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
             directory = directory.getParentFile();
         }
 
-        return (directory != null && directory.canWrite());
+        return (directory != null && Files.isWritable(directory.toPath()));
     }
 
     private boolean canModify(String filePath) {
         Path path = Path.of(fileLoader.getRootPath(), filePath);
         File file = path.toFile();
-        return !file.exists() || file.canWrite();
+        return !file.exists() || Files.isWritable(file.toPath());
     }
 
     private void deleteFile(String path) {
