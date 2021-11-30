@@ -213,6 +213,38 @@ public class ConfigDataStoreTest {
     }
 
     @Test
+    public void testDeleteWithPermissionError(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+
+        ConfigFile createdFile = createFile("test", store, false);
+
+        String createdFilePath = Path.of(configPath.toFile().getPath(), createdFile.getPath()).toFile().getPath();
+
+        File file = new File(createdFilePath);
+        file.setWritable(false);
+
+        ConfigDataStoreTransaction tx = store.beginTransaction();
+        RequestScope scope = mock(RequestScope.class);
+
+        assertThrows(UnsupportedOperationException.class, () -> tx.delete(createdFile, scope));
+    }
+
+    @Test
+    public void testCreateWithPermissionError(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+
+        File file = configPath.toFile();
+        file.setWritable(false);
+
+        assertThrows(UnsupportedOperationException.class, () -> createFile("test", store, false));
+    }
+
+    @Test
     public void testDelete(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
