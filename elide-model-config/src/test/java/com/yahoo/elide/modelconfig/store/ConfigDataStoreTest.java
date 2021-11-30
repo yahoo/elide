@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Supplier;
@@ -192,6 +193,23 @@ public class ConfigDataStoreTest {
                 toId("models/tables/test.hjson", NO_VERSION), scope);
 
         assertTrue(compare(updateFile, loaded));
+    }
+
+    @Test
+    public void testUpdateWithPermissionError(@TempDir Path configPath) {
+        String configRoot = configPath.toFile().getPath();
+
+        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        ConfigDataStore store = new ConfigDataStore(configRoot, validator);
+
+        ConfigFile createdFile = createFile("test", store, false);
+
+        String createdFilePath = Path.of(configPath.toFile().getPath(), createdFile.getPath()).toFile().getPath();
+
+        File file = new File(createdFilePath);
+        file.setWritable(false);
+
+        assertThrows(UnsupportedOperationException.class, () -> updateFile(configRoot, store));
     }
 
     @Test

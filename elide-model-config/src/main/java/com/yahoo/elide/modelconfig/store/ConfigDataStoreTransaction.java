@@ -58,23 +58,31 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public <T> void save(T entity, RequestScope scope) {
-        if (readOnly) {
+        ConfigFile file = (ConfigFile) entity;
+
+        boolean canWrite;
+        if (scope.isNewResource(file)) {
+            canWrite = canCreate(file.getPath());
+        } else {
+            canWrite = canModify(file.getPath());
+        }
+
+        if (readOnly || !canWrite) {
             log.error("Attempt to modify a read only configuration");
             throw new UnsupportedOperationException("Configuration is read only.");
         }
 
-        ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
         todo.add(() -> updateFile(file.getPath(), file.getContent()));
     }
 
     @Override
     public <T> void delete(T entity, RequestScope scope) {
-        if (readOnly) {
+        ConfigFile file = (ConfigFile) entity;
+        if (readOnly || !canModify(file.getPath())) {
             log.error("Attempt to modify a read only configuration");
             throw new UnsupportedOperationException("Configuration is read only.");
         }
-        ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
         deleted.add(file.getPath());
         todo.add(() -> deleteFile(file.getPath()));
@@ -121,11 +129,12 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public <T> void createObject(T entity, RequestScope scope) {
-        if (readOnly) {
+        ConfigFile file = (ConfigFile) entity;
+
+        if (readOnly || !canCreate(file.getPath())) {
             log.error("Attempt to modify a read only configuration");
             throw new UnsupportedOperationException("Configuration is read only.");
         }
-        ConfigFile file = (ConfigFile) entity;
         dirty.add(file);
         todo.add(() -> {
 
@@ -171,6 +180,23 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     @Override
     public void close() throws IOException {
         //NOOP
+    }
+
+    private boolean canCreate(String filePath) {
+        Path path = Path.of(fileLoader.getRootPath(), filePath);
+        File directory = path.toFile().getParentFile();
+
+        while (directory != null && !directory.exists()) {
+            directory = directory.getParentFile();
+        }
+
+        return (directory != null && directory.canWrite());
+    }
+
+    private boolean canModify(String filePath) {
+        Path path = Path.of(fileLoader.getRootPath(), filePath);
+        File file = path.toFile();
+        return !file.exists() || file.canWrite();
     }
 
     private void deleteFile(String path) {
