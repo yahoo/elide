@@ -34,6 +34,8 @@ import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+@Slf4j
 public class ConfigDataStoreTest {
 
     @Test
@@ -477,6 +480,14 @@ public class ConfigDataStoreTest {
             Files.setPosixFilePermissions(file.toPath(), perms);
         } catch (Exception e) {
             file.setWritable(false, false);
+        }
+
+        log.info("Files can write {} {}", file, Files.isWritable(file.toPath()));
+        log.info("File can write {} {}", file, file.canWrite());
+        try {
+            log.info("File permission {} {}", file, Files.getPosixFilePermissions(file.toPath()));
+        } catch (Exception e) {
+            log.error(e.getMessage());
         }
     }
 }
