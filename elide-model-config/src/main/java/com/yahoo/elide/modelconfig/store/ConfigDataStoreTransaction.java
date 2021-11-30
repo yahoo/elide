@@ -19,6 +19,8 @@ import com.yahoo.elide.modelconfig.validator.Validator;
 
 import org.apache.commons.io.FileUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,9 +34,8 @@ import java.util.Set;
 /**
  * Elide DataStoreTransaction which loads/persists HJSON configuration files as Elide models.
  */
+@Slf4j
 public class ConfigDataStoreTransaction implements DataStoreTransaction {
-
-
     private final FileLoader fileLoader;
     private final Set<Runnable> todo;
     private final Set<ConfigFile> dirty;
@@ -58,6 +59,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     @Override
     public <T> void save(T entity, RequestScope scope) {
         if (readOnly) {
+            log.error("Attempt to modify a read only configuration");
             throw new UnsupportedOperationException("Configuration is read only.");
         }
 
@@ -69,6 +71,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     @Override
     public <T> void delete(T entity, RequestScope scope) {
         if (readOnly) {
+            log.error("Attempt to modify a read only configuration");
             throw new UnsupportedOperationException("Configuration is read only.");
         }
         ConfigFile file = (ConfigFile) entity;
@@ -84,6 +87,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
             try {
                 resources = fileLoader.loadResources();
             } catch (IOException e) {
+                log.error("Error reading configuration resources: {}", e.getMessage());
                 throw new IllegalStateException(e);
             }
 
@@ -98,6 +102,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
             try {
                 validator.validate(resources);
             } catch (Exception e) {
+                log.error("Error validating configuration: {}", e.getMessage());
                 throw new BadRequestException(e.getMessage());
             }
         }
@@ -117,6 +122,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
     @Override
     public <T> void createObject(T entity, RequestScope scope) {
         if (readOnly) {
+            log.error("Attempt to modify a read only configuration");
             throw new UnsupportedOperationException("Configuration is read only.");
         }
         ConfigFile file = (ConfigFile) entity;
@@ -138,6 +144,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         try {
             return (T) fileLoader.loadResource(path);
         } catch (IOException e) {
+            log.error("Error reading configuration resources for {} : {}", id, e.getMessage());
             return null;
         }
     }
@@ -149,6 +156,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
             return new DataStoreIterableBuilder(resources.values()).allInMemory().build();
         } catch (IOException e) {
+            log.error("Error reading configuration resources: {}", e.getMessage());
             throw new IllegalStateException(e);
         }
     }
@@ -174,6 +182,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         }
 
         if (! file.delete()) {
+            log.error("Error deleting file: {}", file.getPath());
             throw new IllegalStateException("Unable to delete: " + path);
         }
     }
@@ -185,6 +194,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         try {
             FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
         } catch (IOException e) {
+            log.error("Error updating file: {} with message: {}", file.getPath(), e.getMessage());
             throw new IllegalStateException(e);
         }
     }
@@ -193,7 +203,8 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         File file = createPath.toFile();
 
         if (file.exists()) {
-            throw new IllegalStateException("File already exists: " + path);
+            log.error("File already exits: {}", file.getPath());
+            throw new IllegalStateException("File already exists: " + file.getPath());
         }
 
         try {
@@ -202,9 +213,11 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
             boolean created = file.createNewFile();
             if (!created) {
+                log.error("Unable to create file: {}", file.getPath());
                 throw new IllegalStateException("Unable to create file: " + path);
             }
         } catch (IOException e) {
+            log.error("Error creating file: {} with message: {}", file.getPath(), e.getMessage());
             throw new IllegalStateException(e);
         }
     }

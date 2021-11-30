@@ -16,6 +16,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.util.regex.Pattern;
 /**
  * Responsible for loading HJSON configuration either from the classpath or from the file system.
  */
+@Slf4j
 public class FileLoader {
     private static final Pattern TABLE_FILE = Pattern.compile("models/tables/[^/]+\\.hjson");
     private static final Pattern NAME_SPACE_FILE = Pattern.compile("models/namespaces/[^/]+\\.hjson");
@@ -45,6 +47,7 @@ public class FileLoader {
         try {
             return IOUtils.toString(resource.getInputStream(), UTF_8);
         } catch (IOException e) {
+            log.error ("Error converting stream to String: {}", e.getMessage());
             throw new IllegalStateException(e);
         }
     };
@@ -78,6 +81,7 @@ public class FileLoader {
         } else {
             File config = new File(rootPath);
             if (!config.exists()) {
+                log.error ("Config path does not exist: {}", config);
                 throw new IllegalStateException(rootPath + " : config path does not exist");
             }
 
@@ -100,6 +104,7 @@ public class FileLoader {
         Resource[] hjsonResources = resolver.getResources(this.rootURL + HJSON_EXTN);
         for (Resource resource : hjsonResources) {
             if (! resource.exists()) {
+                log.error("Missing resource during HJSON configuration load: {}", resource.getURI());
                 continue;
             }
             String path = resource.getURI().toString().substring(configDirURILength);
