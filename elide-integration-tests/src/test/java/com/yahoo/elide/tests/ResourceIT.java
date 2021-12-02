@@ -2619,6 +2619,58 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void testUpdatingExistingResourceWithoutPermissionsIsForbidden() {
+
+        Resource entity1 = resource(
+                type("createButNoUpdate"),
+                id("1"),
+                attributes(
+                        attr("textValue", "new value")
+                )
+        );
+
+        Resource entity2 = resource(
+                type("createButNoUpdate"),
+                id("2"),
+                attributes(
+                        attr("textValue", "new value")
+                ),
+                relationships(
+                        relation("toOneRelation", linkage(type("createButNoUpdate"), id("1")))
+                )
+        );
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(entity1))
+                .post("/createButNoUpdate")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(entity2))
+                .post("/createButNoUpdate")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+
+        Data relationships = data(
+                linkage(type("createButNoUpdate"), id("1"))
+        );
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(relationships)
+                .post("/createButNoUpdate/2/relationships/toOneRelation")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
+    }
+
+    @Test
     public void testPatchDeferredOnCreate() {
         String request = jsonParser.getJson("/ResourceIT/testPatchDeferredOnCreate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/testPatchDeferredOnCreate.json");
