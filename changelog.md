@@ -1,5 +1,9 @@
 # Change Log
 
+## 5.1.2
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f54c0343fae51b8827da7bd719c460f39c3d56b1) Security Fix: #147 for elide-5.x (#2432) 
+
 ## 5.1.1
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/076a3171fa9c2240c16a2d3f2ced259d46202f7a) Fixes async API resultset premature closure. (#2411) 
