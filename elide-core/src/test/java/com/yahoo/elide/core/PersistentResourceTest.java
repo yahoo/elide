@@ -2378,4 +2378,30 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertNotEquals(resourceWithDifferentId, resourceWithId);
         assertNotEquals(resourceWithId, resourceWithDifferentId);
     }
+
+    @Test
+    void testAddRelationForbiddenByToManyExistingRelationship() {
+        FunWithPermissions fun = new FunWithPermissions();
+
+        Child child = newChild(1);
+        fun.setRelation1(Sets.newHashSet(child));
+
+        RequestScope badScope = buildRequestScope(tx, badUser);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", badScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, "1", badScope);
+        assertThrows(ForbiddenAccessException.class, () -> funResource.addRelation("relation1", childResource));
+    }
+
+    @Test
+    void testAddRelationForbiddenByToOneExistingRelationship() {
+        FunWithPermissions fun = new FunWithPermissions();
+
+        Child child = newChild(1);
+        fun.setRelation3(child);
+
+        RequestScope badScope = buildRequestScope(tx, badUser);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", badScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, "1", badScope);
+        assertThrows(ForbiddenAccessException.class, () -> funResource.addRelation("relation3", childResource));
+    }
 }
