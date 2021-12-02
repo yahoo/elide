@@ -739,48 +739,25 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Checks whether the new entity is already a part of the relationship.
-     * @param fieldName which relation link
-     * @param toAdd the new relation
-     * @return boolean representing the result of the check
-     *
-     * This method does not handle the case where the toAdd entity is newly created,
-     * since newly created entities have null id there is no easy way to check for identity
-     */
-    public boolean relationshipAlreadyExists(String fieldName, PersistentResource toAdd) {
-        Object relation = this.getValueUnchecked(fieldName);
-        String toAddId = toAdd.getId();
-        if (toAddId == null) {
-            return false;
-        }
-        if (relation instanceof Collection) {
-            return ((Collection) relation).stream().anyMatch(obj -> toAddId.equals(dictionary.getId(obj)));
-        }
-        return toAddId.equals(dictionary.getId(relation));
-    }
-
-    /**
      * Add relation link from a given parent resource to a child resource.
      *
      * @param fieldName which relation link
      * @param newRelation the new relation
      */
     public void addRelation(String fieldName, PersistentResource newRelation) {
-        if (!newRelation.isNewlyCreated() && relationshipAlreadyExists(fieldName, newRelation)) {
-            return;
-        }
         checkTransferablePermission(Collections.singleton(newRelation));
         Object relation = this.getValueUnchecked(fieldName);
 
         if (relation instanceof Collection) {
             if (addToCollection((Collection) relation, fieldName, newRelation)) {
                 this.markDirty();
-            }
-            //Hook for updateToManyRelation
-            transaction.updateToManyRelation(transaction, obj, fieldName,
-                    Sets.newHashSet(newRelation.getObject()), new LinkedHashSet<>(), requestScope);
 
-            addInverseRelation(fieldName, newRelation.getObject());
+                //Hook for updateToManyRelation
+                transaction.updateToManyRelation(transaction, obj, fieldName,
+                        Sets.newHashSet(newRelation.getObject()), new LinkedHashSet<>(), requestScope);
+
+                addInverseRelation(fieldName, newRelation.getObject());
+            }
         } else {
             // Not a collection, but may be trying to create a ToOne relationship.
             // NOTE: updateRelation marks dirty.
