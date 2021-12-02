@@ -37,15 +37,19 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfigu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
+import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
+import com.yahoo.elide.modelconfig.store.ConfigDataStore;
+import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -66,6 +70,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
@@ -426,11 +431,24 @@ public interface ElideStandaloneSettings {
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
+
+        List<DataStore> stores = new ArrayList<>();
+
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
                 em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true));
 
-        return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
+        stores.add(jpaDataStore);
+
+        if (getAnalyticProperties().enableDynamicModelConfigAPI()) {
+            stores.add(new ConfigDataStore(getAnalyticProperties().getDynamicConfigPath(),
+                    new TemplateConfigValidator(getClassScanner(), getAnalyticProperties().getDynamicConfigPath())));
+        }
+
+        stores.add(metaDataStore);
+        stores.add(aggregationDataStore);
+
+        return new MultiplexManager(stores.toArray(new DataStore[0]));
     }
 
     /**
@@ -472,6 +490,15 @@ public interface ElideStandaloneSettings {
     default EntityDictionary getEntityDictionary(ServiceLocator injector, ClassScanner scanner,
             Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
 
+        Map<String, Class<? extends Check>> checks = new HashMap<>();
+
+        if (getAnalyticProperties().enableDynamicModelConfigAPI()) {
+            checks.put(ConfigChecks.CAN_CREATE_CONFIG, ConfigChecks.CanNotCreate.class);
+            checks.put(ConfigChecks.CAN_READ_CONFIG, ConfigChecks.CanNotRead.class);
+            checks.put(ConfigChecks.CAN_DELETE_CONFIG, ConfigChecks.CanNotDelete.class);
+            checks.put(ConfigChecks.CAN_UPDATE_CONFIG, ConfigChecks.CanNotUpdate.class);
+        }
+
         EntityDictionary dictionary = new EntityDictionary(
                 new HashMap<>(), //Checks
                 new HashMap<>(), //Role Checks
@@ -489,8 +516,6 @@ public interface ElideStandaloneSettings {
                 CoerceUtil::lookup, //Serde Lookup
                 entitiesToExclude,
                 scanner);
-
-        dictionary.scanForSecurityChecks();
 
         dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
             dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
@@ -536,11 +561,21 @@ public interface ElideStandaloneSettings {
                                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
                                                 SQLDialectFactory.getDialect(dbConfig.getDialect())))
             );
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
+
+            Function<String, ConnectionDetails> connectionDetailsLookup = (name) -> {
+                if (StringUtils.isEmpty(name)) {
+                    return defaultConnectionDetails;
+                }
+                return Optional.ofNullable(connectionDetailsMap.get(name))
+                        .orElseThrow(() -> new IllegalStateException("ConnectionDetails undefined for connection: "
+                                + name));
+            };
+
+            return new SQLQueryEngine(metaDataStore, connectionDetailsLookup,
                     new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
                     new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
-        return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
+        return new SQLQueryEngine(metaDataStore, (unused) -> defaultConnectionDetails);
     }
 
     /**

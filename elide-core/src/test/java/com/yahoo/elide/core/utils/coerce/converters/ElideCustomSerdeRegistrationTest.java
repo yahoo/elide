@@ -48,7 +48,8 @@ public class ElideCustomSerdeRegistrationTest {
         InMemoryDataStore store = new InMemoryDataStore(wrapped);
         ElideSettings elideSettings = new ElideSettingsBuilder(store)
                 .withEntityDictionary(EntityDictionary.builder().build()).build();
-        new Elide(elideSettings);
+        Elide elide = new Elide(elideSettings);
+        elide.doScans();
         assertNotNull(CoerceUtil.lookup(Dummy.class));
         assertNotNull(CoerceUtil.lookup(DummyTwo.class));
         assertNotNull(CoerceUtil.lookup(DummyThree.class));

@@ -134,7 +134,10 @@ public class GraphQLEndpointTest {
                             .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
                             .withAuditLogger(audit)
                             .build())
+
                 );
+
+        elide.doScans();
         endpoint = new GraphQLEndpoint(elide);
 
         DataStoreTransaction tx = inMemoryStore.beginTransaction();

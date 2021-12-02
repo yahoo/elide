@@ -48,7 +48,8 @@ public class PhysicalRefColumnContextTest {
 
         DataSource mockDataSource = mock(DataSource.class);
         // The query engine populates the metadata store with actual tables.
-        new SQLQueryEngine(metaDataStore, new ConnectionDetails(mockDataSource, SQLDialectFactory.getDefaultDialect()));
+        new SQLQueryEngine(metaDataStore, (unused) ->
+                new ConnectionDetails(mockDataSource, SQLDialectFactory.getDefaultDialect()));
 
         revenueFactTable = metaDataStore.getTable(ClassType.of(RevenueFact.class));
 
