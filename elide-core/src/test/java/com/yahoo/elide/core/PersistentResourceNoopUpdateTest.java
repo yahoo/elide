@@ -13,6 +13,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
@@ -34,6 +35,7 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         initDictionary();
         reset(goodUserScope.getTransaction());
     }
+
     @Test
     public void testNOOPToOneAddRelation() {
         FunWithPermissions fun = new FunWithPermissions();
@@ -45,6 +47,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, "1", goodScope);
+
+        when(tx.getToOneRelation(eq(tx), eq(fun), any(), any())).thenReturn(child);
+
         //We do not want the update to one method to be called when we add the existing entity to the relation
         funResource.addRelation("relation3", childResource);
 
