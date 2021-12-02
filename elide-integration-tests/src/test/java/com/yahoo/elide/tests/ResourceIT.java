@@ -2569,6 +2569,9 @@ public class ResourceIT extends IntegrationTest {
                 attributes(
                         attr("cannotModify", "unmodified"),
                         attr("textValue", "new value")
+                ),
+                relationships(
+                        relation("toOneRelation", true)
                 )
         );
 
