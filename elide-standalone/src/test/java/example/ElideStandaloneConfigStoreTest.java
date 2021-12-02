@@ -457,7 +457,7 @@ public class ElideStandaloneConfigStoreTest {
                                 resource(
                                         type("config"),
                                         attributes(
-                                                attr("path", "../../../etc/hosts"),
+                                                attr("path", "foo"),
                                                 attr("type", "UNKNOWN"),
                                                 attr("content", hjson)
                                         )
@@ -467,7 +467,7 @@ public class ElideStandaloneConfigStoreTest {
                 .when()
                 .post("/api/v1/config")
                 .then()
-                .body(equalTo("{\"errors\":[{\"detail\":\"Unrecognized File: ../../../etc/hosts\"}]}"))
+                .body(equalTo("{\"errors\":[{\"detail\":\"Unrecognized File: foo\"}]}"))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 

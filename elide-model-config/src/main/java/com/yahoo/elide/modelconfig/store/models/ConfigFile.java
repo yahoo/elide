@@ -19,6 +19,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -122,8 +124,9 @@ public class ConfigFile {
     public static String fromId(String id) {
         String idString;
         try {
-            idString = new String(Base64.getDecoder().decode(id.getBytes()));
-        } catch (IllegalArgumentException e) {
+            idString = URLDecoder.decode(id, "UTF-8");
+            idString = new String(Base64.getDecoder().decode(idString.getBytes()));
+        } catch (IllegalArgumentException | UnsupportedEncodingException e) {
             throw new BadRequestException("Invalid ID: " + id);
         }
 

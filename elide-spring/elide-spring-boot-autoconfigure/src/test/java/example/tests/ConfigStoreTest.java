@@ -68,6 +68,7 @@ public class ConfigStoreTest {
 
     @BeforeAll
     public static void initialize(@TempDir Path testDirectory) {
+        System.out.println("Test DIrectory: " + testDirectory.toString());
         System.setProperty("elide.dynamic-config.path", testDirectory.toFile().getAbsolutePath());
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
@@ -115,7 +116,6 @@ public class ConfigStoreTest {
                 .post("http://localhost:" + port + "/graphql")
                 .then()
                 .body(equalTo("{\"errors\":[{\"message\":\"Null or empty file content for models/tables/table1.hjson\"}]}"))
-                .log().all()
                 .statusCode(200);
     }
 
@@ -458,7 +458,7 @@ public class ConfigStoreTest {
                                 resource(
                                         type("config"),
                                         attributes(
-                                                attr("path", "../../../etc/hosts"),
+                                                attr("path", "foo"),
                                                 attr("type", "UNKNOWN"),
                                                 attr("content", hjson)
                                         )
@@ -468,7 +468,7 @@ public class ConfigStoreTest {
                 .when()
                 .post("http://localhost:" + port + "/json/config")
                 .then()
-                .body(equalTo("{\"errors\":[{\"detail\":\"Unrecognized File: ../../../etc/hosts\"}]}"))
+                .body(equalTo("{\"errors\":[{\"detail\":\"Unrecognized File: foo\"}]}"))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
