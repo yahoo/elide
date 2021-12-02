@@ -68,7 +68,6 @@ public class ConfigStoreTest {
 
     @BeforeAll
     public static void initialize(@TempDir Path testDirectory) {
-        System.out.println("Test DIrectory: " + testDirectory.toString());
         System.setProperty("elide.dynamic-config.path", testDirectory.toFile().getAbsolutePath());
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
