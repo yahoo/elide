@@ -165,7 +165,7 @@ public class JsonApiPatch {
             Supplier<Pair<Integer, JsonNode>> result;
             try {
                 String path = action.patch.getPath();
-                if (path == null || path.isEmpty()) {
+                if (path == null) {
                     throw new InvalidEntityBodyException("Patch extension requires all objects "
                             + "to have an assigned path");
                 }
