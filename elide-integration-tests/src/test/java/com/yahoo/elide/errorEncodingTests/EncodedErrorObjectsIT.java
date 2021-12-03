@@ -115,7 +115,7 @@ public class EncodedErrorObjectsIT extends IntegrationTest {
             .accept(JSONAPI_CONTENT_TYPE)
             .body(request).post("/invoice")
             .then()
-            .statusCode(HttpStatus.SC_LOCKED)
+            .statusCode(HttpStatus.SC_BAD_REQUEST)
             .body(equalTo(expected));
     }
 
