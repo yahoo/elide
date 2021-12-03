@@ -959,6 +959,34 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void testMissingTypeInJsonBody() {
+        String detail = "Resource 'type' field is missing or empty.";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{ \"data\": { \"id\": \"1\", \"attributes\": { \"firstName\": \"foo\" }}}")
+                .patch("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
+    public void testInvalidJson() {
+        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: (String)\"{ ]\"; line: 1, column: 1])\n at [Source: (String)\"{ ]\"; line: 1, column: 4]";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{ ]")
+                .patch("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
     public void testGetSortCollection() throws Exception {
 
         String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();

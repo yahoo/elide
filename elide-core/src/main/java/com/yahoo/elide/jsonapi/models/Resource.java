@@ -33,6 +33,9 @@ import java.util.Objects;
  */
 @ToString
 public class Resource {
+
+    //Doesn't work currently - https://github.com/FasterXML/jackson-databind/issues/230
+    @JsonProperty(required = true)
     private String type;
     private String id;
     private Map<String, Object> attributes;
