@@ -164,6 +164,11 @@ public class JsonApiPatch {
         return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonNode>> result;
             try {
+                String path = action.patch.getPath();
+                if (path == null || path.isEmpty()) {
+                    throw new InvalidEntityBodyException("Patch extension requires all objects "
+                            + "to have an assigned path");
+                }
                 String[] combined = ArrayUtils.addAll(rootUri.split("/"), action.patch.getPath().split("/"));
                 String fullPath = String.join("/", combined).replace("/-", "");
                 switch (action.patch.getOperation()) {
