@@ -1432,6 +1432,22 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void invalidPatchMissingPath() {
+        String request = jsonParser.getJson("/ResourceIT/invalidPatchMissingPath.req.json");
+
+        String detail = "Bad Request Body'Patch extension requires all objects to have an assigned path'";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail[0]", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
     public void updateChildRelationToExisting() {
         String request = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.1.json");
