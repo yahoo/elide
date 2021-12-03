@@ -7,6 +7,7 @@ package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -23,6 +24,7 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Child;
@@ -323,6 +325,20 @@ public class JsonApiTest {
 
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
+    }
+
+    @Test
+    public void testMissingTypeInResource() throws IOException {
+        String doc = "{ \"data\": { \"id\": \"22\", \"attributes\": { \"title\": \"works fine\" } } }";
+
+        assertThrows(JsonMappingException.class, () -> mapper.readJsonApiDocument(doc));
+    }
+
+    @Test
+    public void testMissingTypeInResourceList() throws IOException {
+        String doc = "{ \"data\": [{ \"id\": \"22\", \"attributes\": { \"title\": \"works fine\" } } ]}";
+
+        assertThrows(JsonMappingException.class, () -> mapper.readJsonApiDocument(doc));
     }
 
     @Test

@@ -39,6 +39,7 @@ import com.yahoo.elide.jsonapi.parser.GetVisitor;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -504,7 +505,12 @@ public class Elide {
             }
 
             return response;
+        } catch (JacksonException e) {
+            String message = (e.getLocation() != null && e.getLocation().getSourceRef() != null)
+                    ? e.getMessage() //This will leak Java class info if the location isn't known.
+                    : e.getOriginalMessage();
 
+            return buildErrorResponse(new BadRequestException(message), isVerbose);
         } catch (IOException e) {
             log.error("IO Exception uncaught by Elide", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
