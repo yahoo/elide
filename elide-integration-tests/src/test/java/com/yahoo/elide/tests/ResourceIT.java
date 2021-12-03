@@ -968,7 +968,6 @@ public class ResourceIT extends IntegrationTest {
                 .body("{ \"data\": { \"id\": \"1\", \"attributes\": { \"firstName\": \"foo\" }}}")
                 .patch("/parent/1")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body("errors[0].detail", equalTo(Encode.forHtml(detail)));
     }
@@ -983,7 +982,6 @@ public class ResourceIT extends IntegrationTest {
                 .body("{ ]")
                 .patch("/parent/1")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body("errors[0].detail", equalTo(Encode.forHtml(detail)));
     }
