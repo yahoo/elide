@@ -119,9 +119,9 @@ public class Elide {
             elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
             registerCustomSerde();
 
-            this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
-
             elideSettings.getDictionary().scanForSecurityChecks();
+
+            this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
             initialized = true;
         }
     }

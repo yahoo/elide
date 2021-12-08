@@ -114,8 +114,6 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 @Override
                 protected void configure() {
                     Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
-                    map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
-                    map.put(VideoGameFilterCheck.NAME_FILTER, VideoGameFilterCheck.class);
                     EntityDictionary dictionary = EntityDictionary.builder().checks(map).build();
 
                     VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
