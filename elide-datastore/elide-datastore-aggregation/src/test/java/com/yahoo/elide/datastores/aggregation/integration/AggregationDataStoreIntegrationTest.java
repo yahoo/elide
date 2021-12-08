@@ -37,8 +37,6 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
-import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
