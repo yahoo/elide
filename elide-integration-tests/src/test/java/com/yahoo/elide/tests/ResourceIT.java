@@ -2230,6 +2230,20 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void testIssue608() {
+        String req = jsonParser.getJson("/ResourceIT/Issue608.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/Issue608.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
     public void testNestedPatch() {
         String req = jsonParser.getJson("/ResourceIT/nestedPatchCreate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/nestedPatchCreate.resp.json");
