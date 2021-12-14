@@ -795,7 +795,9 @@ public class LifeCycleTest {
       verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 
       verify(tx).preCommit(any());
-      verify(tx).loadObject(any(), any(), isA(RequestScope.class));
+
+      //Twice because the patch extension request is broken into attributes & relationships separately.
+      verify(tx, times(2)).loadObject(any(), any(), isA(RequestScope.class));
       verify(tx).flush(isA(RequestScope.class));
       verify(tx).commit(isA(RequestScope.class));
       verify(tx).close();
