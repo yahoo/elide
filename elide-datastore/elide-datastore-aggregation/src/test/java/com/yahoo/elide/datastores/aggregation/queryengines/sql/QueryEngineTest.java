@@ -327,18 +327,18 @@ public class QueryEngineTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
-        stats0.setId("0");
+        stats0.setId("1");
         stats0.setOverallRating("Great");
         stats0.setCountryIsoCode("USA");
         stats0.setHighScore(2412);
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("1");
+        stats1.setId("0");
         stats1.setOverallRating("Good");
         stats1.setCountryIsoCode("USA");
         stats1.setHighScore(1234);
 
-        assertEquals(ImmutableList.of(stats0, stats1), results);
+        assertEquals(ImmutableList.of(stats1, stats0), results);
     }
 
     /**
@@ -399,16 +399,16 @@ public class QueryEngineTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
+        stats1.setId("1");
         stats1.setHighScore(2412);
         stats1.setCountryIsoCode("USA");
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("0");
         stats2.setHighScore(1000);
         stats2.setCountryIsoCode("HKG");
 
-        assertEquals(ImmutableList.of(stats1, stats2), results);
+        assertEquals(ImmutableList.of(stats2, stats1), results);
     }
 
     /**
@@ -593,16 +593,16 @@ public class QueryEngineTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
+        stats1.setId("1");
         stats1.setHighScore(2412);
         stats1.setCountryNickName("Uncle Sam");
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("0");
         stats2.setHighScore(1000);
         stats2.setCountryNickName(null);
 
-        assertEquals(ImmutableList.of(stats1, stats2), results);
+        assertEquals(ImmutableList.of(stats2, stats1), results);
     }
 
     @Test
@@ -616,16 +616,16 @@ public class QueryEngineTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
+        stats1.setId("1");
         stats1.setHighScore(2412);
         stats1.setCountryUnSeats(1);
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("0");
         stats2.setHighScore(1000);
         stats2.setCountryUnSeats(0);
 
-        assertEquals(ImmutableList.of(stats1, stats2), results);
+        assertEquals(ImmutableList.of(stats2, stats1), results);
     }
 
     @Test
@@ -800,7 +800,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
-        stats0.setDailyAverageScorePerPeriod(1549);
+        stats0.setDailyAverageScorePerPeriod((float) 1548.6666);
         stats0.setRecordedDate(new Month(Date.valueOf("2019-07-01")));
 
         assertEquals(ImmutableList.of(stats0), results);

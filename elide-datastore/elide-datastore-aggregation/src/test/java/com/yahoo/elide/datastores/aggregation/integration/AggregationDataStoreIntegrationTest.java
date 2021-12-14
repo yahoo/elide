@@ -300,16 +300,16 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("zipCode", 10002)
                                 ),
                                 selections(
-                                        field("orderTotal", 88.22),
-                                        field("zipCode", 20170)
-                                ),
-                                selections(
                                         field("orderTotal", 285.19),
                                         field("zipCode", 20166)
                                 ),
                                 selections(
                                         field("orderTotal", 78.87),
                                         field("zipCode", 0)
+                                ),
+                                selections(
+                                        field("orderTotal", 88.22),
+                                        field("zipCode", 20170)
                                 )
                         )
                 )
@@ -1089,16 +1089,16 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "playerStats",
                                 selections(
-                                        field("recordedDate", "2019-07-13"),
-                                        field("updatedDate", "2020-01-12")
+                                        field("recordedDate", "2019-07-11"),
+                                        field("updatedDate", "2020-07-12")
                                 ),
                                 selections(
                                         field("recordedDate", "2019-07-12"),
                                         field("updatedDate", "2019-10-12")
                                 ),
                                 selections(
-                                        field("recordedDate", "2019-07-11"),
-                                        field("updatedDate", "2020-07-12")
+                                        field("recordedDate", "2019-07-13"),
+                                        field("updatedDate", "2020-01-12")
                                 )
                         )
                 )

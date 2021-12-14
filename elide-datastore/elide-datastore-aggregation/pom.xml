@@ -161,16 +161,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- H2 -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-
-            <!-- There are issues with later versions and the aggregation store -->
-            <version>2.0.202</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Mockito -->
         <dependency>
             <groupId>org.mockito</groupId>
