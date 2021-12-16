@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.createSafeAlias;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -93,6 +94,30 @@ public class EntityHydratorTest extends SQLUnitTest {
         assertEquals(Month.class, stats.fetch("byMonth", null).getClass());
         assertEquals(Day.class, stats.fetch("byDay", null).getClass());
 
+        assertFalse(iterator.hasNext());
+        assertThrows(NoSuchElementException.class, () -> hydrator.iterator().next());
+    }
+
+    @Test
+    void testNullEnumHydration() throws Exception {
+        ResultSet resultSet = mock(ResultSet.class);
+        ResultSetMetaData resultSetMetaData = mock(ResultSetMetaData.class);
+        when(resultSet.next()).thenReturn(true, false);
+        when(resultSet.getObject("overallRating")).thenReturn(null);
+        when(resultSetMetaData.getColumnCount()).thenReturn(1);
+
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .build();
+
+        EntityHydrator hydrator = new EntityHydrator(resultSet, query, dictionary);
+
+        Iterator<Object> iterator = hydrator.iterator();
+        assertTrue(iterator.hasNext());
+        PlayerStats stats = (PlayerStats) iterator.next();
+
+        assertNull(stats.getOverallRating());
         assertFalse(iterator.hasNext());
         assertThrows(NoSuchElementException.class, () -> hydrator.iterator().next());
     }
