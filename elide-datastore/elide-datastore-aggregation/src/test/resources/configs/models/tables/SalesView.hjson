@@ -117,7 +117,7 @@
         //Tests a reference to an enum Java dimension stored as VARCHAR coerced to a string.
         {
           name: customerRegionType1
-          type: TEXT
+          type: ENUM_TEXT
           definition: '{{customer.region.placeType}}'
           readAccess: guest user
         }

@@ -306,6 +306,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("orderTotal", 285.19),
                                         field("zipCode", 20166)
+                                ),
+                                selections(
+                                        field("orderTotal", 78.87),
+                                        field("zipCode", 0)
                                 )
                         )
                 )
@@ -403,7 +407,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 selections(
                                         field("ratio1", 1.0),
-                                        field("ratio2", 0.23852451476405115),
+                                        field("ratio2", 0.20190379786260731),
                                         field("ratio3", 1.0)
                                 )
                         )
@@ -1126,7 +1130,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 selections(
                                         field("id", "0"),
-                                        field("orderTotal", 434.84)
+                                        field("orderTotal", 513.71)
                                 )
                         )
                 )
@@ -1159,15 +1163,16 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
             .get(getPath)
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .body("data", hasSize(3))
-            .body("data.id", hasItems("0", "1", "2"))
+            .body("data", hasSize(4))
+            .body("data.id", hasItems("0", "1", "2", "3"))
             .body("data.attributes", hasItems(
-                            allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderTime", "2020-08")),
-                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-08")),
-                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-09"))))
-            .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F))
+                    allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderTime", "2020-08")),
+                    allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-08")),
+                    allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-08")),
+                    allOf(hasEntry("customerRegion", null), hasEntry("orderTime", "2020-09"))))
+            .body("data.attributes.orderTotal", hasItems(78.87F, 61.43F, 113.07F, 260.34F))
             .body("meta.page.number", equalTo(1))
-            .body("meta.page.totalRecords", equalTo(3))
+            .body("meta.page.totalRecords", equalTo(4))
             .body("meta.page.totalPages", equalTo(1))
             .body("meta.page.limit", equalTo(500));
     }
@@ -1284,7 +1289,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 arguments(
-                                        argument("sort", "\"courierName,deliveryDate,orderTotal\""),
+                                        argument("sort", "\"courierName,deliveryDate,orderTotal,customerRegion\""),
                                         argument("filter", "\"deliveryYear=='2020';(deliveryTime>='2020-08-01';deliveryTime<'2020-12-31');(deliveryDate>='2020-09-01',orderTotal>50)\"")
                                 ),
                                 selections(
@@ -1368,6 +1373,23 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("orderTotal", 103.72F),
                                         field("zipCode", 20166),
                                         field("orderId", "order-1a")
+                                ),
+                                selections(
+                                        field("courierName", "UPS"),
+                                        field("deliveryTime", "2020-09-13T16:30:11"),
+                                        field("deliveryHour", "2020-09-13T16"),
+                                        field("deliveryDate", "2020-09-13"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryYear", "2020"),
+                                        field("bySecond", "2020-09-09T16:30:11"),
+                                        field("deliveryDefault", "2020-09-13"),
+                                        field("byDay", "2020-09-09"),
+                                        field("byMonth", "2020-09"),
+                                        field("customerRegion", (String) null, false),
+                                        field("customerRegionRegion", (String) null, false),
+                                        field("orderTotal", 78.87F),
+                                        field("zipCode", 0),
+                                        field("orderId", "order-null-enum")
                                 ),
                                 selections(
                                         field("courierName", "UPS"),
@@ -1495,7 +1517,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 arguments(
-                                        argument("sort", "\"orderTime\""),
+                                        argument("sort", "\"orderTime,customerRegion\""),
                                         argument("filter", "\"(orderTime=='2020-08-01',orderTotal>50);(deliveryTime>='2020-01-01';deliveryTime<'2020-12-31')\"") //No Grain Arg passed, so works based on Alias's argument in Selection.
                                 ),
                                 selections(
@@ -1522,6 +1544,11 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("orderTotal", 181.47F),
                                         field("customerRegion", "Virginia"),
                                         field("orderTime", "2020-09-08")
+                                ),
+                                selections(
+                                        field("orderTotal", 78.87F),
+                                        field("customerRegion", (String) null, false),
+                                        field("orderTime", "2020-09-09")
                                 ),
                                 selections(
                                         field("orderTotal", 78.87F),
@@ -2012,6 +2039,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("customerRegionType1", "STATE"),
                                         field("customerRegionType2", "STATE")
+                                ),
+                                selections(
+                                        field("customerRegionType1", (String) null, false),
+                                        field("customerRegionType2", (String) null, false)
                                 )
                         )
                 )
@@ -2138,6 +2169,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 selections(
                         field(
                                 "SalesNamespace_orderDetails",
+                                selections(
+                                        field("customerRegionType1", (String) null, false),
+                                        field("customerRegionType2", (String) null, false)
+                                ),
                                 selections(
                                         field("customerRegionType1", "STATE"),
                                         field("customerRegionType2", "STATE")

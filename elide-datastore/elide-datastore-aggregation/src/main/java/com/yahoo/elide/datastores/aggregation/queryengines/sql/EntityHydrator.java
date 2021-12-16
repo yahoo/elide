@@ -185,6 +185,10 @@ public class EntityHydrator implements Iterable<Object> {
     }
 
     private String convertToEnumValue(Object value, LinkedHashSet<String> enumValues) {
+        if (value == null) {
+            return null;
+        }
+
         if (Integer.class.isAssignableFrom(value.getClass())) {
             Integer valueIndex = (Integer) value;
             if (valueIndex < enumValues.size()) {
