@@ -167,7 +167,7 @@
             <artifactId>h2</artifactId>
 
             <!-- There are issues with later versions and the aggregation store -->
-            <version>2.0.202</version>
+            <version>1.4.197</version>
             <scope>test</scope>
         </dependency>
 

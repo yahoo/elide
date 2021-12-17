@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS customer_details
 (
   id VARCHAR(255) NOT NULL,
   name VARCHAR(255),
-  "zip code" INT,
+  `zip code` INT,
   PRIMARY KEY (id)
 );
 
