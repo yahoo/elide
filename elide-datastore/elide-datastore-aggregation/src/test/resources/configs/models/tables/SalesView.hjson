@@ -270,7 +270,7 @@
         {
           name: zipCode
           type: INTEGER
-          definition: '{{$zip_code}}'
+          definition: '{{[$zip code]}}'
           readAccess: guest user
         }
         {
