@@ -97,7 +97,9 @@ public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
         }
 
         if (List.class.isAssignableFrom(result.getClass())) {
-            result = ((List) result).get(0);
+            List resultList = ((List) result);
+
+            result = resultList.size() == 0 ? 0 : resultList.get(0);
             if (Integer.class.isAssignableFrom(result.getClass())) {
                 return (Integer) result;
             }
