@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  */
 public class ExpressionParser {
 
-    private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+    private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{\\[?(.+?)\\]?}}");
     private static final String SQL_HELPER_PREFIX = "sql ";
     private static final String COLUMN_ARGS_PREFIX = "$$column.args.";
     private static final String TABLE_ARGS_PREFIX = "$$table.args.";
