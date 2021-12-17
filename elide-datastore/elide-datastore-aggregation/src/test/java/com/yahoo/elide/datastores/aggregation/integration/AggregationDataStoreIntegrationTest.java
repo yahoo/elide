@@ -12,6 +12,12 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.allOf;
@@ -31,8 +37,6 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
-import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -108,8 +112,6 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 @Override
                 protected void configure() {
                     Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
-                    map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
-                    map.put(VideoGameFilterCheck.NAME_FILTER, VideoGameFilterCheck.class);
                     EntityDictionary dictionary = EntityDictionary.builder().checks(map).build();
 
                     VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
@@ -121,6 +123,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                     .withAuditLogger(new TestAuditLogger())
                                     .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                                     .build());
+
+                    elide.doScans();
                     bind(elide).to(Elide.class).named("elide");
                 }
             });
@@ -302,6 +306,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("orderTotal", 285.19),
                                         field("zipCode", 20166)
+                                ),
+                                selections(
+                                        field("orderTotal", 78.87),
+                                        field("zipCode", 0)
                                 )
                         )
                 )
@@ -348,6 +356,66 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String errorMessage = "Validation error of type FieldUndefined: Field &#39;zipCodeHidden&#39; in type &#39;SalesNamespace_orderDetails&#39; is undefined @ &#39;SalesNamespace_orderDetails/edges/node/zipCodeHidden&#39;";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
+    }
+
+    @Test
+    public void parameterizedJsonApiColumnTest() throws Exception {
+        when()
+            .get("/SalesNamespace_orderDetails?filter=deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'&fields[SalesNamespace_orderDetails]=orderRatio")
+            .then()
+            .body(equalTo(
+                data(
+                    resource(
+                        type("SalesNamespace_orderDetails"),
+                        id("0"),
+                        attributes(
+                            attr("orderRatio", 1)
+                        )
+                    )
+                ).toJSON())
+            )
+            .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void parameterizedGraphQLColumnTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
+                                ),
+                                selections(
+                                        field("orderRatio", "ratio1", arguments(
+                                                argument("numerator", "\"orderMax\""),
+                                                argument("denominator", "\"orderMax\"")
+                                        )),
+                                        field("orderRatio", "ratio2", arguments(
+                                                argument("numerator", "\"orderMax\""),
+                                                argument("denominator", "\"orderTotal\"")
+                                        )),
+                                        field("orderRatio", "ratio3", arguments())
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("ratio1", 1.0),
+                                        field("ratio2", 0.20190379786260731),
+                                        field("ratio3", 1.0)
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test
@@ -1062,7 +1130,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 selections(
                                         field("id", "0"),
-                                        field("orderTotal", 434.84)
+                                        field("orderTotal", 513.71)
                                 )
                         )
                 )
@@ -1095,15 +1163,16 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
             .get(getPath)
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .body("data", hasSize(3))
-            .body("data.id", hasItems("0", "1", "2"))
+            .body("data", hasSize(4))
+            .body("data.id", hasItems("0", "1", "2", "3"))
             .body("data.attributes", hasItems(
-                            allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderTime", "2020-08")),
-                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-08")),
-                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-09"))))
-            .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F))
+                    allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderTime", "2020-08")),
+                    allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-08")),
+                    allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-08")),
+                    allOf(hasEntry("customerRegion", null), hasEntry("orderTime", "2020-09"))))
+            .body("data.attributes.orderTotal", hasItems(78.87F, 61.43F, 113.07F, 260.34F))
             .body("meta.page.number", equalTo(1))
-            .body("meta.page.totalRecords", equalTo(3))
+            .body("meta.page.totalRecords", equalTo(4))
             .body("meta.page.totalPages", equalTo(1))
             .body("meta.page.limit", equalTo(500));
     }
@@ -1220,7 +1289,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 arguments(
-                                        argument("sort", "\"courierName,deliveryDate,orderTotal\""),
+                                        argument("sort", "\"courierName,deliveryDate,orderTotal,customerRegion\""),
                                         argument("filter", "\"deliveryYear=='2020';(deliveryTime>='2020-08-01';deliveryTime<'2020-12-31');(deliveryDate>='2020-09-01',orderTotal>50)\"")
                                 ),
                                 selections(
@@ -1304,6 +1373,23 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("orderTotal", 103.72F),
                                         field("zipCode", 20166),
                                         field("orderId", "order-1a")
+                                ),
+                                selections(
+                                        field("courierName", "UPS"),
+                                        field("deliveryTime", "2020-09-13T16:30:11"),
+                                        field("deliveryHour", "2020-09-13T16"),
+                                        field("deliveryDate", "2020-09-13"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryYear", "2020"),
+                                        field("bySecond", "2020-09-09T16:30:11"),
+                                        field("deliveryDefault", "2020-09-13"),
+                                        field("byDay", "2020-09-09"),
+                                        field("byMonth", "2020-09"),
+                                        field("customerRegion", (String) null, false),
+                                        field("customerRegionRegion", (String) null, false),
+                                        field("orderTotal", 78.87F),
+                                        field("zipCode", 0),
+                                        field("orderId", "order-null-enum")
                                 ),
                                 selections(
                                         field("courierName", "UPS"),
@@ -1431,7 +1517,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 arguments(
-                                        argument("sort", "\"orderTime\""),
+                                        argument("sort", "\"orderTime,customerRegion\""),
                                         argument("filter", "\"(orderTime=='2020-08-01',orderTotal>50);(deliveryTime>='2020-01-01';deliveryTime<'2020-12-31')\"") //No Grain Arg passed, so works based on Alias's argument in Selection.
                                 ),
                                 selections(
@@ -1458,6 +1544,11 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("orderTotal", 181.47F),
                                         field("customerRegion", "Virginia"),
                                         field("orderTime", "2020-09-08")
+                                ),
+                                selections(
+                                        field("orderTotal", 78.87F),
+                                        field("customerRegion", (String) null, false),
+                                        field("orderTime", "2020-09-09")
                                 ),
                                 selections(
                                         field("orderTotal", 78.87F),
@@ -1934,9 +2025,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
                                 ),
                                 selections(
-                                        field("customerRegionType"),
-                                        field("customerRegionType2"),
-                                        field("customerRegionType3")
+                                        field("customerRegionType1"),
+                                        field("customerRegionType2")
                                 )
                         )
                 )
@@ -1947,9 +2037,145 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 selections(
-                                        field("customerRegionType", "STATE"),
-                                        field("customerRegionType2", "STATE"),
-                                        field("customerRegionType3", "STATE")
+                                        field("customerRegionType1", "STATE"),
+                                        field("customerRegionType2", "STATE")
+                                ),
+                                selections(
+                                        field("customerRegionType1", (String) null, false),
+                                        field("customerRegionType2", (String) null, false)
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testHjsonFilterByEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31';customerRegionType1==STATE;customerRegionType2==STATE\"")
+                                ),
+                                selections(
+                                        field("customerRegionType1"),
+                                        field("customerRegionType2")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("customerRegionType1", "STATE"),
+                                        field("customerRegionType2", "STATE")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testJavaFilterByEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"placeType1==STATE;placeType2==STATE\"")
+                                ),
+                                selections(
+                                        field("placeType1"),
+                                        field("placeType2")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("placeType1", "STATE"),
+                                        field("placeType2", "STATE")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testJavaSortByEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"placeType1,placeType2\"")
+                                ),
+                                selections(
+                                        field("placeType1"),
+                                        field("placeType2")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("placeType1", "STATE"),
+                                        field("placeType2", "STATE")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testHjsonSortByEnumDimension() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\""),
+                                        argument("sort", "\"customerRegionType1,customerRegionType2\"")
+                                ),
+                                selections(
+                                        field("customerRegionType1"),
+                                        field("customerRegionType2")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("customerRegionType1", (String) null, false),
+                                        field("customerRegionType2", (String) null, false)
+                                ),
+                                selections(
+                                        field("customerRegionType1", "STATE"),
+                                        field("customerRegionType2", "STATE")
                                 )
                         )
                 )

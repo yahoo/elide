@@ -43,6 +43,26 @@
       measures:
       [
         {
+          name: orderRatio
+          type: DECIMAL
+          maker: example.metrics.MetricRatio
+          arguments:
+          [
+             {
+               name: numerator
+               type: TEXT
+               values: ['orderTotal', 'orderMax']
+               default: 'orderTotal'
+             }
+             {
+               name: denominator
+               type: TEXT
+               values: ['orderTotal', 'orderMax']
+               default: 'orderTotal'
+             }
+          ]
+        }
+        {
           name: orderTotal
           type: DECIMAL
           // TODO : Use Arguments
@@ -94,26 +114,20 @@
           readAccess: operator
           cardinality: small
         }
-        //Tests a reference to an enum Java dimension stored as VARCHAR coerced to the enum.
-        {
-          name: customerRegionType
-          type: example.dimensions.PlaceType
-          definition: '{{customer.region.placeType}}'
-          readAccess: guest user
-        }
         //Tests a reference to an enum Java dimension stored as VARCHAR coerced to a string.
         {
-          name: customerRegionType2
-          type: TEXT
+          name: customerRegionType1
+          type: ENUM_TEXT
           definition: '{{customer.region.placeType}}'
           readAccess: guest user
         }
         //Tests a reference to an enum Java dimension stored as INT coerced to the enum.
         {
-          name: customerRegionType3
-          type: example.dimensions.PlaceType
+          name: customerRegionType2
+          type: ENUM_ORDINAL
           definition: '{{customer.region.ordinalPlaceType}}'
           readAccess: guest user
+          values: ['COUNTRY', 'STATE', 'COUNTY', 'TOWN', 'PLACE']
         }
         {
           name: customerRegionRegion

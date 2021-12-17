@@ -58,6 +58,11 @@ class UserTypeIT extends IntegrationTest {
                                 "123 AnyStreet Dr",
                                 "IL",
                                 new Zip("61820", "1234")
+                        )),
+                        attr("alternateAddress", new Address(
+                                "XYZ AnyStreet Dr",
+                                "IL",
+                                new Zip("61820", "1234")
                         ))
                 )
         );
@@ -91,6 +96,11 @@ class UserTypeIT extends IntegrationTest {
                                 "456 AnyStreet Dr",
                                 "IL",
                                 new Zip("61822", "567")
+                        )),
+                        attr("alternateAddress", new Address(
+                                "XYZ AnyStreet Dr",
+                                "IL",
+                                new Zip("61820", "1234")
                         ))
                 )
         );
@@ -104,6 +114,11 @@ class UserTypeIT extends IntegrationTest {
                                 "456 AnyRoad Ave",
                                 "AZ",
                                 new Zip("85001", "9999")
+                        )),
+                        attr("alternateAddress", new Address(
+                                "ABC AnyStreet Dr",
+                                "CO",
+                                new Zip("12345", "1234")
                         ))
                 )
         );
@@ -149,7 +164,8 @@ class UserTypeIT extends IntegrationTest {
                 id("3"),
                 attributes(
                         attr("name", "DM"),
-                        attr("address", null)
+                        attr("address", null),
+                        attr("alternateAddress", null)
                 )
         );
 
@@ -187,7 +203,8 @@ class UserTypeIT extends IntegrationTest {
             id("4"),
             attributes(
                 attr("name", "WC"),
-                attr("address", partialAddress)
+                attr("address", partialAddress),
+                attr("alternateAddress", partialAddress)
             )
         );
 
@@ -197,6 +214,11 @@ class UserTypeIT extends IntegrationTest {
             attributes(
                 attr("name", "WC"),
                 attr("address", new Address(
+                    "1400 AnyAve St",
+                    null,
+                    new Zip("60412", null)
+                )),
+                attr("alternateAddress", new Address(
                     "1400 AnyAve St",
                     null,
                     new Zip("60412", null)

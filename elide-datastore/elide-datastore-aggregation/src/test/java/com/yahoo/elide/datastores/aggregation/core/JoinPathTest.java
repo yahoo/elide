@@ -54,7 +54,7 @@ public class JoinPathTest {
 
         DataSource mockDataSource = mock(DataSource.class);
         //The query engine populates the metadata store with actual tables.
-        new SQLQueryEngine(store, new ConnectionDetails(mockDataSource,
+        new SQLQueryEngine(store, (unused) -> new ConnectionDetails(mockDataSource,
                 SQLDialectFactory.getDefaultDialect()));
     }
 

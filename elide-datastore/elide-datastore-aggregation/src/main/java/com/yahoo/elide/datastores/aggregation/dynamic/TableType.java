@@ -15,13 +15,14 @@ import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static com.yahoo.elide.modelconfig.model.Type.BOOLEAN;
 import static com.yahoo.elide.modelconfig.model.Type.COORDINATE;
 import static com.yahoo.elide.modelconfig.model.Type.DECIMAL;
+import static com.yahoo.elide.modelconfig.model.Type.ENUM_ORDINAL;
+import static com.yahoo.elide.modelconfig.model.Type.ENUM_TEXT;
 import static com.yahoo.elide.modelconfig.model.Type.INTEGER;
 import static com.yahoo.elide.modelconfig.model.Type.MONEY;
 import static com.yahoo.elide.modelconfig.model.Type.TEXT;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Package;
@@ -62,6 +63,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -425,7 +428,8 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public String defaultValue() {
-                    return argument.getDefaultValue().toString();
+                    Object value = argument.getDefaultValue();
+                    return value == null ? null : value.toString();
                 }
 
                 @Override
@@ -669,6 +673,10 @@ public class TableType implements Type<DynamicModelInstance> {
             });
         }
 
+        if (dimension.getType().toUpperCase(Locale.ROOT).equals(ENUM_ORDINAL)) {
+            annotations.put(Enumerated.class, getEnumeratedAnnotation(EnumType.ORDINAL));
+        }
+
         if (dimension.getType().toUpperCase(Locale.ROOT).equals(TIME)) {
             annotations.put(Temporal.class, new Temporal() {
 
@@ -719,6 +727,20 @@ public class TableType implements Type<DynamicModelInstance> {
         }
 
         return annotations;
+    }
+
+    private static Enumerated getEnumeratedAnnotation(EnumType type) {
+        return new Enumerated() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Enumerated.class;
+            }
+
+            @Override
+            public EnumType value() {
+                return EnumType.ORDINAL;
+            }
+        };
     }
 
     private static Map<String, Field> buildFields(Table table) {
@@ -826,6 +848,8 @@ public class TableType implements Type<DynamicModelInstance> {
             case TIME:
                 return TIME_TYPE;
             case TEXT:
+            case ENUM_ORDINAL:
+            case ENUM_TEXT:
                 return STRING_TYPE;
             case MONEY:
                 return BIGDECIMAL_TYPE;
@@ -838,12 +862,7 @@ public class TableType implements Type<DynamicModelInstance> {
             case COORDINATE:
                 return STRING_TYPE;
             default:
-                try {
-                    Class<?> inputClass = Class.forName(inputType);
-                    return new ClassType(inputClass);
-                } catch (ClassNotFoundException e) {
-                    return STRING_TYPE;
-                }
+                return STRING_TYPE;
         }
     }
 

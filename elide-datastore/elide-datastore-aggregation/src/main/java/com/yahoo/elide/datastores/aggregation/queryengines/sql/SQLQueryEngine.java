@@ -11,7 +11,6 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -21,6 +20,8 @@ import com.yahoo.elide.datastores.aggregation.QueryValidator;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
@@ -48,7 +49,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.yahoo.elide.datastores.aggregation.validator.ColumnArgumentValidator;
 import com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,14 +59,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.sql.DataSource;
 
 /**
@@ -76,38 +76,33 @@ import javax.sql.DataSource;
 public class SQLQueryEngine extends QueryEngine {
 
     @Getter
-    private final ConnectionDetails defaultConnectionDetails;
-    private final Map<String, ConnectionDetails> connectionDetailsMap;
     private final Set<Optimizer> optimizers;
     private final QueryValidator validator;
     private final FormulaValidator formulaValidator;
+    private final Function<String, ConnectionDetails> connectionDetailsLookup;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
-        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(), new HashSet<>(),
+    public SQLQueryEngine(MetaDataStore metaDataStore, Function<String, ConnectionDetails> connectionDetailsLookup) {
+        this(metaDataStore, connectionDetailsLookup, new HashSet<>(),
                 new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
     }
 
     /**
      * Constructor.
      * @param metaDataStore : MetaDataStore.
-     * @param defaultConnectionDetails : default DataSource Object and SQLDialect Object.
-     * @param connectionDetailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
+     * @param connectionDetailsLookup : maps a connection name to meta info about the connection.
      * @param optimizers The set of enabled optimizers.
      * @param validator Validates each incoming client query.
      */
     public SQLQueryEngine(
             MetaDataStore metaDataStore,
-            ConnectionDetails defaultConnectionDetails,
-            Map<String, ConnectionDetails> connectionDetailsMap,
+            Function<String, ConnectionDetails> connectionDetailsLookup,
             Set<Optimizer> optimizers,
             QueryValidator validator
     ) {
 
-        Preconditions.checkNotNull(defaultConnectionDetails);
-        Preconditions.checkNotNull(connectionDetailsMap);
+        Preconditions.checkNotNull(connectionDetailsLookup);
 
-        this.defaultConnectionDetails = defaultConnectionDetails;
-        this.connectionDetailsMap = connectionDetailsMap;
+        this.connectionDetailsLookup = connectionDetailsLookup;
         this.metaDataStore = metaDataStore;
         this.validator = validator;
         this.formulaValidator = new FormulaValidator(metaDataStore);
@@ -143,15 +138,7 @@ public class SQLQueryEngine extends QueryEngine {
             dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
         }
 
-        ConnectionDetails connectionDetails;
-        if (StringUtils.isBlank(dbConnectionName)) {
-            connectionDetails = defaultConnectionDetails;
-        } else {
-            connectionDetails = Optional.ofNullable(connectionDetailsMap.get(dbConnectionName))
-                            .orElseThrow(() -> new IllegalStateException("ConnectionDetails undefined for model: "
-                                            + metaDataDictionary.getJsonAliasFor(entityClass)));
-        }
-
+        ConnectionDetails connectionDetails = connectionDetailsLookup.apply(dbConnectionName);
         return new SQLTable(namespace, entityClass, metaDataDictionary, connectionDetails);
     }
 
@@ -451,15 +438,15 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         for (FilterPredicate filterPredicate : predicates) {
-            boolean isTimeFilter = ClassType.of(Time.class).isAssignableFrom(filterPredicate.getFieldType());
+            Column column = metaDataStore.getColumn(filterPredicate.getEntityType(), filterPredicate.getField());
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {
                     try {
                         Object value = param.getValue();
-                        if (isTimeFilter) {
-                            value = dialect.translateTimeToJDBC((Time) value);
-                        }
+
+                        value = convertForJdbc(filterPredicate.getEntityType(), column, value, dialect);
+
                         stmt.setObject(param.getName(), shouldEscape ? param.escapeMatching() : value);
                     } catch (SQLException e) {
                         throw new IllegalStateException(e);
@@ -467,6 +454,45 @@ public class SQLQueryEngine extends QueryEngine {
                 });
             }
         }
+    }
+
+    private Object convertForJdbc(Type<?> parent, Column column, Object value, SQLDialect dialect) {
+        if (column.getValueType().equals(ValueType.TIME) && (Time.class).isAssignableFrom(value.getClass())) {
+            return dialect.translateTimeToJDBC((Time) value);
+        }
+
+        if (value.getClass().isEnum()) {
+            Enumerated enumerated =
+                    metadataDictionary.getAttributeOrRelationAnnotation(parent, Enumerated.class, column.getName());
+
+            if (enumerated != null && enumerated.value().equals(EnumType.ORDINAL)) {
+                return ((Enum) value).ordinal();
+            } else {
+                return value.toString();
+            }
+        }
+
+        if ((column.getValueType().equals(ValueType.TEXT)
+                && column.getValues() != null
+                && column.getValues().isEmpty() == false)) {
+            Enumerated enumerated =
+                    metadataDictionary.getAttributeOrRelationAnnotation(parent, Enumerated.class, column.getName());
+
+            if (enumerated != null && enumerated.value().equals(EnumType.ORDINAL)) {
+
+                String [] enumValues = column.getValues().toArray(new String[0]);
+                for (int idx = 0; idx < column.getValues().size(); idx++) {
+                    if (enumValues[idx].equals(value)) {
+                        return idx;
+                    }
+                }
+
+                throw new IllegalStateException(String.format("Invalid value %s for column %s",
+                        value, column.getName()));
+            }
+        }
+
+        return value;
     }
 
     /**

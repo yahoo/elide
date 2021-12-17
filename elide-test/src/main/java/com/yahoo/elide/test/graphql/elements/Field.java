@@ -93,6 +93,10 @@ public class Field extends Selection {
                             : getSelectionSet().toString()
             );
         }
+
+        if (getSelectionSet() == null) {
+            return String.format("\"%s\":%s", getName(), null);
+        }
         // object response field
         return String.format("\"%s\":%s", getName(), ((SelectionSet) getSelectionSet()).toResponse());
     }

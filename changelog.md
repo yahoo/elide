@@ -1,6 +1,47 @@
 # Change Log
+
+## 6.0.3
+
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/54cdcb9fe67225cd463e1bf9357f0e1d2a42c152) Experimental HJSON Configuration Models and DataStore (#2418) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/38b030daa701f205215b56199705f3d689726527) Fix issue with Enum types in Aggregation Store filters (#2422) 
+   * [view commit](https://github.com/yahoo/elide/commit/21bf8717330d499fcb5baadadb6012c64f84062f) Bump mockito-core from 4.0.0 to 4.1.0 (#2421) 
+   * [view commit](https://github.com/yahoo/elide/commit/e2fcd71b026d3d3a2c207dd48941e38de945f290) Bump spring-websocket from 5.3.12 to 5.3.13 (#2412) 
+   * [view commit](https://github.com/yahoo/elide/commit/1444c00ca7fb2560d38358e01426dfd2eb20350b) Bump version.logback from 1.2.6 to 1.2.7 (#2415) 
+   * [view commit](https://github.com/yahoo/elide/commit/88648be470fc881b1a7019becb141c7ffb78b143) Bump spring-core from 5.3.12 to 5.3.13 (#2416) 
+   * [view commit](https://github.com/yahoo/elide/commit/aae18e32063a48d8b5fb7941becf3ddc6d814430) Bump version.junit from 5.8.1 to 5.8.2 (#2424) 
+   * [view commit](https://github.com/yahoo/elide/commit/a4a796bc72a7b60f145828bee9a3cabc6b9926c1) Bump classgraph from 4.8.132 to 4.8.137 (#2425) 
+   * [view commit](https://github.com/yahoo/elide/commit/a3da66f290a9e68f3e934eec890d479996f772b2) Bump checkstyle from 9.1 to 9.2 (#2426) 
+   * [view commit](https://github.com/yahoo/elide/commit/63b4863f97f621b5b3ccd726f7129b61342566d3) Bump dependency-check-maven from 6.4.1 to 6.5.0 (#2413) 
+   * [view commit](https://github.com/yahoo/elide/commit/d8050f843f8bb392eac26c454de63ab92264184a) Bump junit-platform-commons from 1.8.1 to 1.8.2 (#2429) 
+   * [view commit](https://github.com/yahoo/elide/commit/d2a0749a4903060d8bc064701758d3cfa693da9e) Bump junit-platform-launcher from 1.8.1 to 1.8.2 (#2430) 
+   * [view commit](https://github.com/yahoo/elide/commit/6a14913ac606860b713f332c91701bd66c553bb0) Bump micrometer-core from 1.7.5 to 1.8.0 (#2414) 
+   * [view commit](https://github.com/yahoo/elide/commit/9f4fd01e2c66e9e5a48cc5d79061ad8afb6c9930) Bump spring.boot.version from 2.5.6 to 2.6.1 (#2423) 
+   * [view commit](https://github.com/yahoo/elide/commit/decae2e5d7fb0ad44304af2b4a05c83ba26a809e) Bump mockito-junit-jupiter from 4.0.0 to 4.1.0 (#2428) 
+   * [view commit](https://github.com/yahoo/elide/commit/c8b79396be2432782911c385ec73d0c623a03c72) Security Fix: #147 (#2431) 
+   * [view commit](https://github.com/yahoo/elide/commit/6919c75bf8dd364267ff6e738166cc5d401d0412) Removing extra System.out from test.
+
+## 6.0.2
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/cc3b1f7edb491d5abfafaa2b2b1e0f3b7caa36bc) Aggregation Store: Arguments should require default values. (#2403) 
+   * [view commit](https://github.com/yahoo/elide/commit/113e7f2e821fb83eeb2915e61c42b81ee659db67) Added IT test for Hibernate Type annotation. (#2404) 
+   * [view commit](https://github.com/yahoo/elide/commit/b7712fc3d8860ab4c564d9cdea65334cfdc7f444) Bump classgraph from 4.8.129 to 4.8.130 (#2406) 
+   * [view commit](https://github.com/yahoo/elide/commit/ab97e119b0c88bf37dac9be38c03cb923173da22) Bump version.antlr4 from 4.9.2 to 4.9.3 (#2405) 
+   * [view commit](https://github.com/yahoo/elide/commit/c8266c116bb3dbd322cfefe86ea23c6320c6b9a8) Fixes async API resultset premature closure (#2410) 
+   * [view commit](https://github.com/yahoo/elide/commit/5f2dc6c29ee678eaf1c89a18e5a4a9abc41bfe37) Bump classgraph from 4.8.130 to 4.8.132 (#2417) 
+   
+## 6.0.1
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/85a20be1bd489054abcc5f4c7ed3314d3b0dd03a) Fixing bug where Hibernate is not detecting updates to complex attrib… (#2402) 
+   * [view commit](https://github.com/yahoo/elide/commit/2e5b5efafc9262dbf815fd492eee5e89cf0151fa) Bump mockito-junit-jupiter from 3.12.4 to 4.0.0 (#2398) 
+   
 ## 6.0.0
 **Overview**
+
 Official Elide 6 Release.  Elide 6 is compiled with Java 11 (as opposed to 8).  GraphQL subscription support has been added.  Other changes since Elide 5 are summarized here [here](https://elide.io/pages/guide/v6/17-migration.html).
 
 **Fixes**
@@ -90,7 +131,6 @@ Prerelease candidate for Elide 6.
 Elide 6 introduces several new features:
  - Elide 6 is built using Java 11 (as opposed to Java 8).
  - GraphQL subscription support (experimental) is added along with a JMS data store that can read Elide models from JMS topics.
- - Coming Soon: Quarkus support including Elide native builds with GraalVM.
 
 ### API Changes
 
@@ -108,6 +148,14 @@ The following packages havea been removed:
  - Legacy datastore packages elide-hibernate-3 and elide-hibernate-5 have been retired and can be replaced with the JPA data store.
  - The Elide bridgeable datastore has been removed.
  - The package elide-datastore-hibernate has been renamed to elide-datastore-jpql.   Internal package structure for the module was also changed.
+
+## 5.1.2
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f54c0343fae51b8827da7bd719c460f39c3d56b1) Security Fix: #147 for elide-5.x (#2432) 
+
+## 5.1.1
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/076a3171fa9c2240c16a2d3f2ced259d46202f7a) Fixes async API resultset premature closure. (#2411) 
 
 ## 5.1.0
 **Fixes**

@@ -959,6 +959,34 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void testMissingTypeInJsonBody() {
+        String detail = "Resource 'type' field is missing or empty.";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{ \"data\": { \"id\": \"1\", \"attributes\": { \"firstName\": \"foo\" }}}")
+                .patch("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
+    public void testInvalidJson() {
+        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: (String)\"{ ]\"; line: 1, column: 1])\n at [Source: (String)\"{ ]\"; line: 1, column: 4]";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{ ]")
+                .patch("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
     public void testGetSortCollection() throws Exception {
 
         String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();
@@ -1420,6 +1448,22 @@ public class ResourceIT extends IntegrationTest {
 
         String detail = "Bad Request Body'Patch extension requires all objects to have an assigned "
                 + "ID (temporary or permanent) when assigning relationships.'";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail[0]", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
+    public void invalidPatchMissingPath() {
+        String request = jsonParser.getJson("/ResourceIT/invalidPatchMissingPath.req.json");
+
+        String detail = "Bad Request Body'Patch extension requires all objects to have an assigned path'";
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
@@ -2186,6 +2230,20 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void testIssue608() {
+        String req = jsonParser.getJson("/ResourceIT/Issue608.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/Issue608.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
     public void testNestedPatch() {
         String req = jsonParser.getJson("/ResourceIT/nestedPatchCreate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/nestedPatchCreate.resp.json");
@@ -2501,10 +2559,12 @@ public class ResourceIT extends IntegrationTest {
                 .withAuditLogger(new TestAuditLogger())
                 .build());
 
+        elide.doScans();
+
         com.yahoo.elide.core.security.User user = new com.yahoo.elide.core.security.User(() -> "-1");
         ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
-        assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
-        assertEquals(response.getBody(), "{\"data\":[]}");
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        assertEquals("{\"data\":[]}", response.getBody());
     }
 
     @Test
@@ -2569,6 +2629,9 @@ public class ResourceIT extends IntegrationTest {
                 attributes(
                         attr("cannotModify", "unmodified"),
                         attr("textValue", "new value")
+                ),
+                relationships(
+                        relation("toOneRelation", true)
                 )
         );
 
@@ -2614,6 +2677,58 @@ public class ResourceIT extends IntegrationTest {
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(datum(validRequest))
                 .patch("/createButNoUpdate/1")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
+    }
+
+    @Test
+    public void testUpdatingExistingResourceWithoutPermissionsIsForbidden() {
+
+        Resource entity1 = resource(
+                type("createButNoUpdate"),
+                id("1"),
+                attributes(
+                        attr("textValue", "new value")
+                )
+        );
+
+        Resource entity2 = resource(
+                type("createButNoUpdate"),
+                id("2"),
+                attributes(
+                        attr("textValue", "new value")
+                ),
+                relationships(
+                        relation("toOneRelation", linkage(type("createButNoUpdate"), id("1")))
+                )
+        );
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(entity1))
+                .post("/createButNoUpdate")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(entity2))
+                .post("/createButNoUpdate")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+
+        Data relationships = data(
+                linkage(type("createButNoUpdate"), id("1"))
+        );
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(relationships)
+                .post("/createButNoUpdate/2/relationships/toOneRelation")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
     }

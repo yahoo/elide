@@ -10,6 +10,7 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,11 +33,19 @@ public class DataDeserializer extends JsonDeserializer<Data<Resource>> {
             List<Resource> resources = new ArrayList<>();
             for (JsonNode n : node) {
                 Resource r = MAPPER.convertValue(n, Resource.class);
+                validateResource(jsonParser, r);
                 resources.add(r);
             }
             return new Data<>(resources);
         }
         Resource resource = MAPPER.convertValue(node, Resource.class);
+        validateResource(jsonParser, resource);
         return new Data<>(resource);
+    }
+
+    private void validateResource(JsonParser jsonParser, Resource resource) throws IOException {
+        if (resource.getType() == null || resource.getType().isEmpty()) {
+            throw JsonMappingException.from(jsonParser, "Resource 'type' field is missing or empty.");
+        }
     }
 }

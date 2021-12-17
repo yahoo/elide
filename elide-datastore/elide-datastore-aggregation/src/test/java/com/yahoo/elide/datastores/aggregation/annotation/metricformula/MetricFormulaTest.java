@@ -23,7 +23,7 @@ public class MetricFormulaTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, DUMMY_CONNECTION));
+                () -> new SQLQueryEngine(metaDataStore, (unused) -> DUMMY_CONNECTION));
         assertTrue(exception.getMessage().startsWith("Formula reference loop found:"));
     }
 }

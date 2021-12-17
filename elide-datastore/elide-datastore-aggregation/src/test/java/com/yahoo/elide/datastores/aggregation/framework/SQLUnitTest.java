@@ -79,6 +79,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -514,8 +515,11 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("mycon", new ConnectionDetails(dataSource, sqlDialect));
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
-        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect),
-                connectionDetailsMap, optimizers, new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
+
+        Function<String, ConnectionDetails> connectionLookup = (name) ->
+                connectionDetailsMap.getOrDefault(name, new ConnectionDetails(dataSource, sqlDialect));
+        engine = new SQLQueryEngine(metaDataStore, connectionLookup,
+                optimizers, new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
         playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);

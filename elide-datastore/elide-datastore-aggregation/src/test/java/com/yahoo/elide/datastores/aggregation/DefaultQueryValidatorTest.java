@@ -203,7 +203,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .havingFilter(havingFilter)
                 .build();
 
-        validateQuery(query, "Invalid operation: Column 'countryIsoCode' values must match one of these values: [HK, USA]");
+        validateQuery(query, "Invalid operation: Column 'countryIsoCode' values must match one of these values: [HKG, USA]");
     }
 
     @Test

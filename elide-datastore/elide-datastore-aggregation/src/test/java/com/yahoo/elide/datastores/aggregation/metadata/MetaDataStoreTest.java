@@ -62,7 +62,7 @@ public class MetaDataStoreTest {
         dataStore.populateEntityDictionary(dictionary);
 
         ConnectionDetails connectionDetails = mock(ConnectionDetails.class);
-        QueryEngine engine = new SQLQueryEngine(dataStore, connectionDetails);
+        QueryEngine engine = new SQLQueryEngine(dataStore, (unused) -> connectionDetails);
     }
 
     @Test

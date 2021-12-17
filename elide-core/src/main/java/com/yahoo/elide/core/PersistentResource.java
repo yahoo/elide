@@ -8,6 +8,8 @@ package com.yahoo.elide.core;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.getType;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 
 import com.yahoo.elide.annotation.Audit;
@@ -22,6 +24,7 @@ import com.yahoo.elide.core.audit.LogMessage;
 import com.yahoo.elide.core.audit.LogMessageImpl;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -124,7 +127,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             @NonNull RequestScope scope
     ) {
         this.obj = obj;
-        this.type = EntityDictionary.getType(obj);
+        this.type = getType(obj);
         this.uuid = Optional.ofNullable(id);
         this.lineage = parent != null
                 ? new ResourceLineage(parent.lineage, parent, parentRelationship)
@@ -496,7 +499,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     private static <A extends Annotation> ExpressionResult checkUserPermission(
             Class<A> annotationClass, Object obj, RequestScope requestScope, Set<String> requestedFields) {
         return requestScope.getPermissionExecutor()
-                .checkUserPermissions(EntityDictionary.getType(obj), annotationClass, requestedFields);
+                .checkUserPermissions(getType(obj), annotationClass, requestedFields);
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
@@ -580,18 +583,31 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         if (!Objects.equals(val, coercedNewValue)) {
             if (val == null
                     || coercedNewValue == null
-                    || !dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
+                    || !dictionary.isComplexAttribute(getType(obj), fieldName)) {
                 this.setValueChecked(fieldName, coercedNewValue);
             } else {
                 if (newVal instanceof Map) {
-                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, val, requestScope);
+
+                    //We perform a copy here for two reasons:
+                    //1. We want the original so we can dispatch update life cycle hooks.
+                    //2. Some stores (Hibernate) won't notice changes to an attribute if the attribute
+                    //has a @TypeDef annotation unless we modify the reference in the parent object.  This rules
+                    //out an update in place strategy.
+                    Object copy = copyComplexAttribute(val);
+
+                    //Update the copy.
+                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, copy, requestScope);
+
+                    //Set the copy.
+                    dictionary.setValue(obj, fieldName, copy);
+                    triggerUpdate(fieldName, val, copy);
                 } else {
                     this.setValueChecked(fieldName, coercedNewValue);
                 }
             }
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
-            if (dictionary.isAttribute(EntityDictionary.getType(obj), fieldName)) {
+            if (dictionary.isAttribute(getType(obj), fieldName)) {
                 transaction.setAttribute(obj, Attribute.builder()
                         .name(fieldName)
                         .type(fieldClass)
@@ -628,6 +644,43 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 }
             }
         }
+    }
+
+    /**
+     * Copies a complex attribute.  If the attribute fields are complex, recurses to perform a deep copy.
+     * @param object The attribute to copy.
+     * @return The copy.
+     */
+    private Object copyComplexAttribute(Object object) {
+        if (object == null) {
+            return null;
+        }
+
+        Type<?> type = getType(object);
+        EntityBinding binding = dictionary.getEntityBinding(type);
+
+        Preconditions.checkState(! binding.equals(EMPTY_BINDING), "Model not found.");
+        Preconditions.checkState(binding.apiRelationships.isEmpty(), "Deep copy of relationships not supported");
+
+        Object copy;
+        try {
+            copy = type.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("Cannot perform deep copy of " + type.getName(), e);
+        }
+
+        binding.apiAttributes.forEach(attribute -> {
+            Object newValue;
+            Object oldValue = dictionary.getValue(object, attribute, requestScope);
+            if (! dictionary.isComplexAttribute(type, attribute)) {
+                newValue = oldValue;
+            } else {
+                newValue = copyComplexAttribute(oldValue);
+            }
+            dictionary.setValue(copy, attribute, newValue);
+        });
+
+        return copy;
     }
 
     /**
@@ -913,37 +966,12 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Checks whether the new entity is already a part of the relationship.
-     *
-     * @param fieldName which relation link
-     * @param toAdd     the new relation
-     * @return boolean representing the result of the check
-     * <p>
-     * This method does not handle the case where the toAdd entity is newly created,
-     * since newly created entities have null id there is no easy way to check for identity
-     */
-    public boolean relationshipAlreadyExists(String fieldName, PersistentResource toAdd) {
-        Object relation = this.getValueUnchecked(fieldName);
-        String toAddId = toAdd.getId();
-        if (toAddId == null) {
-            return false;
-        }
-        if (relation instanceof Collection) {
-            return ((Collection) relation).stream().anyMatch(obj -> toAddId.equals(dictionary.getId(obj)));
-        }
-        return toAddId.equals(dictionary.getId(relation));
-    }
-
-    /**
      * Add relation link from a given parent resource to a child resource.
      *
      * @param fieldName   which relation link
      * @param newRelation the new relation
      */
     public void addRelation(String fieldName, PersistentResource newRelation) {
-        if (!newRelation.isNewlyCreated() && relationshipAlreadyExists(fieldName, newRelation)) {
-            return;
-        }
         checkTransferablePermission(Collections.singleton(newRelation));
         Object relation = this.getValueUnchecked(fieldName);
 
@@ -951,12 +979,13 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             if (modifyCollection((Collection) relation, fieldName,
                     Set.of(newRelation.getObject()), Collections.emptySet(), true)) {
                 this.markDirty();
-            }
-            //Hook for updateToManyRelation
-            transaction.updateToManyRelation(transaction, obj, fieldName,
-                    Sets.newHashSet(newRelation.getObject()), new LinkedHashSet<>(), requestScope);
 
-            addInverseRelation(fieldName, newRelation.getObject());
+                //Hook for updateToManyRelation
+                transaction.updateToManyRelation(transaction, obj, fieldName,
+                        Sets.newHashSet(newRelation.getObject()), new LinkedHashSet<>(), requestScope);
+
+                addInverseRelation(fieldName, newRelation.getObject());
+            }
         } else {
             // Not a collection, but may be trying to create a ToOne relationship.
             // NOTE: updateRelation marks dirty.
@@ -1389,7 +1418,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     @Override
     @JsonIgnore
     public Type<T> getResourceType() {
-        return (Type) dictionary.lookupBoundClass(EntityDictionary.getType(obj));
+        return (Type) dictionary.lookupBoundClass(getType(obj));
     }
 
     /**

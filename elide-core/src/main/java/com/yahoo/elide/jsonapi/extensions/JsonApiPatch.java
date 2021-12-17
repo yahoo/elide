@@ -164,6 +164,11 @@ public class JsonApiPatch {
         return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonNode>> result;
             try {
+                String path = action.patch.getPath();
+                if (path == null) {
+                    throw new InvalidEntityBodyException("Patch extension requires all objects "
+                            + "to have an assigned path");
+                }
                 String[] combined = ArrayUtils.addAll(rootUri.split("/"), action.patch.getPath().split("/"));
                 String fullPath = String.join("/", combined).replace("/-", "");
                 switch (action.patch.getOperation()) {
@@ -171,7 +176,7 @@ public class JsonApiPatch {
                         result = handleAddOp(fullPath, action.patch.getValue(), requestScope, action);
                         break;
                     case REPLACE:
-                        result = handleReplaceOp(fullPath, action.patch.getValue(), requestScope);
+                        result = handleReplaceOp(fullPath, action.patch.getValue(), requestScope, action);
                         break;
                     case REMOVE:
                         result = handleRemoveOp(fullPath, action.patch.getValue(), requestScope);
@@ -230,9 +235,20 @@ public class JsonApiPatch {
      * Replace data via patch extension.
      */
     private Supplier<Pair<Integer, JsonNode>> handleReplaceOp(
-            String path, JsonNode patchVal, PatchRequestScope requestScope) {
+            String path, JsonNode patchVal, PatchRequestScope requestScope, PatchAction action) {
         try {
             JsonApiDocument value = requestScope.getMapper().readJsonApiPatchExtValue(patchVal);
+
+            if (!path.contains("relationships")) { // Reserved
+                Data<Resource> data = value.getData();
+                Collection<Resource> resources = data.get();
+                // Defer relationship updating until the end
+                getSingleResource(resources).setRelationships(null);
+                // Reparse since we mangle it first
+                action.doc = requestScope.getMapper().readJsonApiPatchExtValue(patchVal);
+                action.path = path;
+                action.isPostProcessing = true;
+            }
             // Defer relationship updating until the end
             PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));

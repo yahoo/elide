@@ -35,6 +35,7 @@
                  table: Country
                  column: isoCode
              }
+             default: US
           }
       ]
       joins: [
@@ -82,7 +83,7 @@
          },
          {
            name : teamRegion
-           type : com.yahoo.elide.modelconfig.models.PlaceType
+           type : TEXT
            definition : '{{playerTeam.region}}'
            tableSource: {
               table: PlayerStatsChild

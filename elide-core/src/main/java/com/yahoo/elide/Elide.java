@@ -39,6 +39,7 @@ import com.yahoo.elide.jsonapi.parser.GetVisitor;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -82,6 +83,7 @@ public class Elide {
     @Getter private final ErrorMapper errorMapper;
     @Getter private final TransactionRegistry transactionRegistry;
     @Getter private final ClassScanner scanner;
+    private boolean initialized = false;
 
     /**
      * Instantiates a new Elide instance.
@@ -103,14 +105,26 @@ public class Elide {
         this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
-        this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
         this.mapper = elideSettings.getMapper();
         this.errorMapper = elideSettings.getErrorMapper();
         this.transactionRegistry = new TransactionRegistry();
+    }
 
-        elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
+    /**
+     * Scans & binds Elide models, scans for security check definitions, serde definitions, life cycle hooks
+     * and more.  Any dependency injection required by objects found from scans must be performed prior to this call.
+     */
+    public void doScans() {
+        if (! initialized) {
+            elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
+            registerCustomSerde();
 
-        registerCustomSerde();
+            //Scan for security checks prior to populating data stores in case they need them.
+            elideSettings.getDictionary().scanForSecurityChecks();
+
+            this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
+            initialized = true;
+        }
     }
 
     protected void registerCustomSerde() {
@@ -492,7 +506,12 @@ public class Elide {
             }
 
             return response;
+        } catch (JacksonException e) {
+            String message = (e.getLocation() != null && e.getLocation().getSourceRef() != null)
+                    ? e.getMessage() //This will leak Java class info if the location isn't known.
+                    : e.getOriginalMessage();
 
+            return buildErrorResponse(new BadRequestException(message), isVerbose);
         } catch (IOException e) {
             log.error("IO Exception uncaught by Elide", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
