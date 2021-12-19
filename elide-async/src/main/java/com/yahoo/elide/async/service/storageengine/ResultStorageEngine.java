@@ -14,6 +14,7 @@ import io.reactivex.Observable;
  */
 public interface ResultStorageEngine {
     public static final String RETRIEVE_ERROR = "Unable to retrieve results.";
+    public static final String RETRIEVE_EXTENSION_ERROR = "Unable to retrieve file extension.";
     public static final String STORE_ERROR = "Unable to store results.";
 
     /**
@@ -30,4 +31,11 @@ public interface ResultStorageEngine {
      * @return returns the result associated with the AsyncQueryID
      */
     public Observable<String> getResultsByID(String asyncQueryID);
+
+    /**
+     * Searches for the async query results by ID and returns the extension including dot(.).
+     * @param asyncQueryID is the query ID of the AsyncQuery
+     * @return returns the file extension
+     */
+    public String getFileExtension(String asyncQueryID);
 }

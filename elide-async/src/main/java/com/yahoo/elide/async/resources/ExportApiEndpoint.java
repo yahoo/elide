@@ -27,6 +27,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+
 import javax.ws.rs.core.StreamingOutput;
 
 /**
@@ -70,6 +71,8 @@ public class ExportApiEndpoint {
             async.resume(resp.build());
         });
 
+        String fileExtension = resultStorageEngine.getFileExtension(asyncQueryId);
+
         exportApiProperties.getExecutor().submit(() -> {
             Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
 
@@ -110,7 +113,7 @@ public class ExportApiEndpoint {
                 );
 
             asyncResponse.resume(Response.ok(streamingOutput, MediaType.APPLICATION_OCTET_STREAM)
-                    .header("Content-Disposition", "attachment; filename=" + asyncQueryId).build());
+                    .header("Content-Disposition", "attachment; filename=" + asyncQueryId + fileExtension).build());
         });
     }
 }

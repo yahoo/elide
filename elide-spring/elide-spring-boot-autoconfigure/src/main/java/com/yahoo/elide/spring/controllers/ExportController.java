@@ -55,6 +55,7 @@ public class ExportController {
     public ResponseEntity<StreamingResponseBody> export(@PathVariable String asyncQueryId,
             HttpServletResponse response) {
 
+        String fileExtension = resultStorageEngine.getFileExtension(asyncQueryId);
         Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
         StreamingResponseBody streamingOutput = outputStream -> {
             observableResults
@@ -97,7 +98,7 @@ public class ExportController {
 
         return ResponseEntity
                 .ok()
-                .header("Content-Disposition", "attachment; filename=" + asyncQueryId)
+                .header("Content-Disposition", "attachment; filename=" + asyncQueryId + fileExtension)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(streamingOutput);
     }

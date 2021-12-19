@@ -7,6 +7,8 @@
 package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.TableExport;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,9 +18,16 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.Locale;
+
 import javax.inject.Singleton;
 
 /**
@@ -43,7 +52,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
     public TableExport storeResults(TableExport tableExport, Observable<String> result) {
         log.debug("store AsyncResults for Download");
 
-        try (BufferedWriter writer = getWriter(tableExport.getId())) {
+        try (BufferedWriter writer = getWriter(tableExport.getId(), tableExport.getResultType().toString())) {
             result
                 .map(record -> record.concat(System.lineSeparator()))
                 .subscribe(
@@ -93,18 +102,41 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                 BufferedReader::close);
     }
 
+    public String getFileExtension(String asyncQueryID) {
+        try {
+            FileSystem fileSystem = FileSystems.getDefault();
+            PathMatcher pathMatcher = fileSystem.getPathMatcher("glob:" + basePath + File.separator + asyncQueryID
+                    + "*");
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(basePath + File.separator))) {
+                for (Path entry : stream) {
+                    if (!Files.isDirectory(entry) && pathMatcher.matches(entry)) {
+                        String fileExtension = FilenameUtils.getExtension(entry.toString());
+                        return StringUtils.isEmpty(fileExtension) ? StringUtils.EMPTY : "." + fileExtension;
+                    }
+                }
+            }
+            return null;
+        } catch (IOException e) {
+            log.debug(e.getMessage());
+            throw new IllegalStateException(RETRIEVE_EXTENSION_ERROR, e);
+        }
+    }
+
     private BufferedReader getReader(String asyncQueryID) {
         try {
-            return Files.newBufferedReader(Paths.get(basePath + File.separator + asyncQueryID));
+            String fileExtension = getFileExtension(asyncQueryID);
+            return Files.newBufferedReader(Paths.get(basePath + File.separator + asyncQueryID + fileExtension));
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new IllegalStateException(RETRIEVE_ERROR, e);
         }
     }
 
-    private BufferedWriter getWriter(String asyncQueryID) {
+    private BufferedWriter getWriter(String asyncQueryID, String extension) {
         try {
-            return Files.newBufferedWriter(Paths.get(basePath + File.separator + asyncQueryID));
+            Path path = Paths.get(basePath + File.separator + asyncQueryID + "."
+                    + extension.toLowerCase(Locale.ENGLISH));
+            return Files.newBufferedWriter(path);
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new IllegalStateException(STORE_ERROR, e);

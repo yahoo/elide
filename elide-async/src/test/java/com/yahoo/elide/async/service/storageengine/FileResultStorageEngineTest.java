@@ -8,6 +8,8 @@ package com.yahoo.elide.async.service.storageengine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -15,12 +17,14 @@ import io.reactivex.Observable;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Locale;
 
 /**
  * Test cases for FileResultStorageEngine.
  */
 public class FileResultStorageEngineTest {
-    private static final String BASE_PATH = "src/test/resources/downloads/";
+    private static final String BASE_PATH = "src/test/resources/downloads";
+    private static final ResultType TEST_RESULTTYPE = ResultType.CSV;
 
     @Test
     public void testRead() {
@@ -49,7 +53,8 @@ public class FileResultStorageEngineTest {
 
         storeResultsFile(tempDir.toString(), queryId, Observable.fromArray(input));
 
-        File file = new File(tempDir.toString() + File.separator + queryId);
+        File file = new File(tempDir.toString() + File.separator + queryId + "."
+                + TEST_RESULTTYPE.toString().toLowerCase(Locale.ENGLISH));
         assertTrue(file.exists());
 
         // verify contents of stored files are readable and match original
@@ -83,6 +88,7 @@ public class FileResultStorageEngineTest {
         FileResultStorageEngine engine = new FileResultStorageEngine(path);
         TableExport query = new TableExport();
         query.setId(queryId);
+        query.setResultType(TEST_RESULTTYPE);
 
         engine.storeResults(query, storable);
     }
