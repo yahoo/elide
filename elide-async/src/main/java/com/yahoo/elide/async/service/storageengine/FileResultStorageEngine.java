@@ -27,7 +27,6 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Locale;
-
 import javax.inject.Singleton;
 
 /**
@@ -102,6 +101,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                 BufferedReader::close);
     }
 
+    @Override
     public String getFileExtension(String asyncQueryID) {
         try {
             FileSystem fileSystem = FileSystems.getDefault();

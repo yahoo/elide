@@ -216,6 +216,7 @@ public class ElideStandaloneExportTest {
         when()
                 .get("/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d")
                 .then()
+                .header("Content-Disposition", "attachment; filename=" + "ba31ca4e-ed8f-4be0-a0f3-12088fa9265d.csv")
                 .statusCode(HttpStatus.SC_OK);
     }
 
