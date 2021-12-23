@@ -28,9 +28,4 @@
         <cve>CVE-2021-42340</cve>
     </suppress>
 
-    <!-- Log4J Sev 10 - disabled because spring pulls in the api but not the core engine.  Elide doesn't use log4j" -->
-    <suppress until="2022-03-01">
-        <cve>CVE-2021-44228</cve>
-    </suppress>
-
 </suppressions>
