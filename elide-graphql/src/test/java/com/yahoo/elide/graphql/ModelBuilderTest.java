@@ -25,6 +25,7 @@ import example.Book;
 import example.Publisher;
 import org.junit.jupiter.api.Test;
 import graphql.Scalars;
+import graphql.scalars.java.JavaPrimitives;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
@@ -204,7 +205,7 @@ public class ModelBuilderTest {
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_GENRE).getType());
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_LANGUAGE).getType());
         assertEquals(Scalars.GraphQLInt, bookType.getFieldDefinition(FIELD_PUBLISH_DATE).getType());
-        assertEquals(Scalars.GraphQLFloat, bookType.getFieldDefinition(FIELD_WEIGHT_LBS).getType());
+        assertEquals(JavaPrimitives.GraphQLBigDecimal, bookType.getFieldDefinition(FIELD_WEIGHT_LBS).getType());
 
         GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
         assertEquals(Scalars.GraphQLString, addressType.getFieldDefinition("street1").getType());
