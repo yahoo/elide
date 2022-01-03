@@ -269,11 +269,11 @@ public class SQLQueryEngine extends QueryEngine {
         return resultBuilder.build();
     }
 
-    private long getPageTotal(Query query, NativeQuery sql, Query origQuery, SqlTransaction sqlTransaction) {
-        ConnectionDetails details = query.getConnectionDetails();
+    private long getPageTotal(Query expandedQuery, NativeQuery sql, Query query, SqlTransaction sqlTransaction) {
+        ConnectionDetails details = expandedQuery.getConnectionDetails();
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        NativeQuery paginationSQL = toPageTotalSQL(query, sql, dialect);
+        NativeQuery paginationSQL = toPageTotalSQL(expandedQuery, sql, dialect);
 
         if (paginationSQL == null) {
             // The query returns the aggregated metric without any dimension.
@@ -284,7 +284,7 @@ public class SQLQueryEngine extends QueryEngine {
         NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL.toString(), dataSource);
 
         // Supply the query parameters to the query
-        supplyFilterQueryParameters(origQuery, stmt, dialect);
+        supplyFilterQueryParameters(query, stmt, dialect);
 
         // Run the Pagination query and log the time spent.
         Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL.toString(), SINGLE_RESULT_MAPPER), Long.class);
