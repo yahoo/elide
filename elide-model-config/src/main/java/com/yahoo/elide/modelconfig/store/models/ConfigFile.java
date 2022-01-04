@@ -51,6 +51,7 @@ public class ConfigFile {
     @GeneratedValue
     private String id; //Base64 encoded path-version
 
+    @UpdatePermission(expression = "NONE")
     private String path;
 
     private String version;
