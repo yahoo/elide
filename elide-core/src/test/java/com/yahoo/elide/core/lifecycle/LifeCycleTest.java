@@ -1349,7 +1349,8 @@ public class LifeCycleTest {
     }
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
-        return new Elide(getElideSettings(dataStore, dictionary, auditLogger));
+        ElideSettings settings = getElideSettings(dataStore, dictionary, auditLogger);
+        return new Elide(settings, settings.getDictionary().getScanner(), false);
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {

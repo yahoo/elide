@@ -101,6 +101,17 @@ public class Elide {
      * @param scanner Scans classes for Elide annotations.
      */
     public Elide(ElideSettings elideSettings, ClassScanner scanner) {
+        this(elideSettings, scanner, true);
+    }
+
+    /**
+     * Instantiates a new Elide instance.
+     *
+     * @param elideSettings Elide settings object.
+     * @param scanner Scans classes for Elide annotations.
+     * @param doScans Perform scans now.
+     */
+    public Elide(ElideSettings elideSettings, ClassScanner scanner, boolean doScans) {
         this.elideSettings = elideSettings;
         this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
@@ -108,6 +119,10 @@ public class Elide {
         this.mapper = elideSettings.getMapper();
         this.errorMapper = elideSettings.getErrorMapper();
         this.transactionRegistry = new TransactionRegistry();
+
+        if (doScans) {
+            doScans();
+        }
     }
 
     /**
