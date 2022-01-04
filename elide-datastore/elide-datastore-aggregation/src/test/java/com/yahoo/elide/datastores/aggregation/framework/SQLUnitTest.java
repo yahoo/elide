@@ -470,7 +470,9 @@ public abstract class SQLUnitTest {
         Properties properties = new Properties();
         properties.put("driverClassName", "org.h2.Driver");
 
-        String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE" + getCompatabilityMode(sqlDialect.getDialectType());
+        String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1"
+                + ";NON_KEYWORDS=VALUE,USER"
+                + ";DATABASE_TO_UPPER=FALSE" + getCompatabilityMode(sqlDialect.getDialectType());
         properties.put("jdbcUrl", jdbcUrl);
         HikariConfig config = new HikariConfig(properties);
         DataSource dataSource = new HikariDataSource(config);

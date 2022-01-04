@@ -85,7 +85,7 @@
 
         <!-- dependency versions -->
         <version.antlr4>4.9.3</version.antlr4>
-        <version.logback>1.2.9</version.logback>
+        <version.logback>1.2.10</version.logback>
         <version.jetty>9.4.44.v20210927</version.jetty>
         <version.restassured>4.4.0</version.restassured>
         <version.jackson>2.12.5</version.jackson>
@@ -233,13 +233,13 @@
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>1.4.200</version>
+                <version>2.0.202</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>4.1.0</version>
+                <version>4.2.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -659,7 +659,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.5.0</version>
+                <version>6.5.2</version>
                 <configuration>
                     <failBuildOnCVSS>7</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>

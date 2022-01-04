@@ -18,6 +18,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import graphql.Scalars;
+import graphql.scalars.java.JavaPrimitives;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
@@ -104,7 +105,7 @@ public class GraphQLConversionUtils {
         } else if (clazz.equals(ClassType.of(String.class)) || clazz.equals(ClassType.of(Object.class))) {
             return Scalars.GraphQLString;
         } else if (clazz.equals(ClassType.of(BigDecimal.class))) {
-            return Scalars.GraphQLFloat;
+            return JavaPrimitives.GraphQLBigDecimal;
         }
         return otherClassToScalarType(clazz);
     }
