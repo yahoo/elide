@@ -148,7 +148,6 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${version.logback}</version>
             <scope>compile</scope>
         </dependency>
 
