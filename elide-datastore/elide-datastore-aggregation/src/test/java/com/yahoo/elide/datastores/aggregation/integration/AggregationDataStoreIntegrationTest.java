@@ -296,16 +296,16 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 selections(
+                                        field("orderTotal", 78.87),
+                                        field("zipCode", 0)
+                                ),
+                                selections(
                                         field("orderTotal", 61.43),
                                         field("zipCode", 10002)
                                 ),
                                 selections(
                                         field("orderTotal", 285.19),
                                         field("zipCode", 20166)
-                                ),
-                                selections(
-                                        field("orderTotal", 78.87),
-                                        field("zipCode", 0)
                                 ),
                                 selections(
                                         field("orderTotal", 88.22),
@@ -2037,12 +2037,12 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "SalesNamespace_orderDetails",
                                 selections(
-                                        field("customerRegionType1", "STATE"),
-                                        field("customerRegionType2", "STATE")
-                                ),
-                                selections(
                                         field("customerRegionType1", (String) null, false),
                                         field("customerRegionType2", (String) null, false)
+                                ),
+                                selections(
+                                        field("customerRegionType1", "STATE"),
+                                        field("customerRegionType2", "STATE")
                                 )
                         )
                 )
