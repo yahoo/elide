@@ -54,7 +54,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-websocket</artifactId>
-                <version>5.3.13</version>
+                <version>5.3.14</version>
             </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>
