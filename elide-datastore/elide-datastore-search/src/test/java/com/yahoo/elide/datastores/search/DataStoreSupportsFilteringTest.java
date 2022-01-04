@@ -32,7 +32,6 @@ import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.datastores.search.models.Item;
 import org.h2.store.fs.FileUtils;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -68,11 +67,6 @@ public class DataStoreSupportsFilteringTest {
         when(mockScope.getDictionary()).thenReturn(dictionary);
 
         CoerceUtil.register(Date.class, new ISO8601DateSerde());
-    }
-
-    @BeforeAll
-    public void initialize() {
-        FileUtils.createDirectory("/tmp/lucene");
     }
 
     @AfterAll

@@ -48,7 +48,7 @@ import javax.persistence.Persistence;
  */
 public class JpaDataStoreHarness implements DataStoreTestHarness {
 
-    private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
+    private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE;MODE=MYSQL;NON_KEYWORDS=VALUE,USER";
     private static final String ROOT = "root";
 
     private DataStore store;
@@ -79,7 +79,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
         options.put("javax.persistence.jdbc.url", JDBC);
         options.put("javax.persistence.jdbc.user", ROOT);
         options.put("javax.persistence.jdbc.password", ROOT);
-        options.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+        options.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
