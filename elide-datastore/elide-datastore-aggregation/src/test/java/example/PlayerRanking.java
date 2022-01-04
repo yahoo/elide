@@ -12,6 +12,7 @@ import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -20,6 +21,7 @@ import javax.persistence.Id;
 @Include
 @Data
 @TableMeta(size = CardinalitySize.MEDIUM)
+@Table(name = "playerRanking")
 public class PlayerRanking {
 
     @Id
