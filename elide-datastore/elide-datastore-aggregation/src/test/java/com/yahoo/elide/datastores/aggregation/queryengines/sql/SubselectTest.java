@@ -54,16 +54,16 @@ public class SubselectTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
+        stats1.setId("1");
         stats1.setHighScore(2412);
         stats1.setSubCountryIsoCode("USA");
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("0");
         stats2.setHighScore(1000);
         stats2.setSubCountryIsoCode("HKG");
 
-        assertEquals(ImmutableList.of(stats1, stats2), results);
+        assertEquals(ImmutableList.of(stats2, stats1), results);
     }
 
     /**
