@@ -285,6 +285,35 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     /**
+     * Nested Queries with filter - Pagination
+     * @throws Exception
+     */
+    @Test
+    public void testPaginationWithFilter() throws Exception {
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .whereFilter(filterParser.parseFilterExpression("overallRating==Great", playerStatsType, false))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
+                .pagination(new ImmutablePagination(0, 1, false, true))
+                .build();
+
+        QueryResult result = engine.executeQuery(query, transaction);
+        List<Object> data = toList(result.getData());
+
+        //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setDailyAverageScorePerPeriod(2412.0f);
+        stats1.setOverallRating("Great");
+        stats1.setRecordedDate(new Day(Date.valueOf("2019-07-11")));
+
+        assertEquals(ImmutableList.of(stats1), data, "Returned record does not match");
+        assertEquals(1, result.getPageTotals(), "Page totals does not match");
+    }
+
+    /**
      * Test having clause integrates with group by clause.
      *
      * @throws Exception exception
