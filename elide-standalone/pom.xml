@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.0.4-SNAPSHOT</version>
+        <version>6.0.5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -45,7 +45,6 @@
 
     <properties>
         <!-- Versions -->
-        <logback.version>1.2.3</logback.version>
         <metrics.version>4.2.5</metrics.version>
 
         <!-- Settings -->
@@ -57,39 +56,39 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>6.0.4-SNAPSHOT</version>
+            <version>6.0.5-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.0.4-SNAPSHOT</version>
+            <version>6.0.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jms</artifactId>
-            <version>6.0.4-SNAPSHOT</version>
+            <version>6.0.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.0.4-SNAPSHOT</version>
+            <version>6.0.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>6.0.4-SNAPSHOT</version>
+            <version>6.0.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>6.0.4-SNAPSHOT</version>
+            <version>6.0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>6.0.4-SNAPSHOT</version>
+            <version>6.0.5-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -149,7 +148,6 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${logback.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -222,7 +220,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.0.4-SNAPSHOT</version>
+            <version>6.0.5-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

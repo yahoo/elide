@@ -6,7 +6,7 @@
           "id": "1",
           "title": "Libro Uno",
           "price": {
-            "units" : 123.0,
+            "units" : 123,
             "currency" : {
               "currencyCode" : "USD"
             }

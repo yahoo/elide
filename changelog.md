@@ -1,5 +1,22 @@
 # Change Log
 
+## 6.0.4
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/5e9c1d7ff097ec3143de5ab7b20d5bafcf4ff0b0) Fixing #137 (#2433) 
+   * [view commit](https://github.com/yahoo/elide/commit/de351f391f51d0d8a7586e9384c9f2657743a66f) Fixes #2263.  JSON-API json processing errors will now return a 400 i… (#2434) 
+   * [view commit](https://github.com/yahoo/elide/commit/ac520d61915aa77253fd69cee3c5713da85ede77) Bump caffeine from 3.0.4 to 3.0.5 (#2435) 
+   * [view commit](https://github.com/yahoo/elide/commit/1cce9a9c4d9d29ab29638e7297000a604954eabb) Bump jetty-webapp from 9.4.43.v20210629 to 9.4.44.v20210927 (#2436) 
+   * [view commit](https://github.com/yahoo/elide/commit/35ba78e82f7e230b5c8d3818ab67df7606e65f29) Fixes #2438 (#2441) 
+   * [view commit](https://github.com/yahoo/elide/commit/a4f89601fb6acc03e6a3a0e0b29d8412e733eb77) Bump metrics.version from 4.2.4 to 4.2.5 (#2442) 
+   * [view commit](https://github.com/yahoo/elide/commit/bd16677ae47419004707f5a7356aa952315c2746) Bump classgraph from 4.8.137 to 4.8.138 (#2445) 
+   * [view commit](https://github.com/yahoo/elide/commit/469fe23e1bc9c8c6639c8df083472f437a69d1ae) Issue608 (#2446) 
+   * [view commit](https://github.com/yahoo/elide/commit/8e1563b2e4abde911563b69a6b5a37ca6361d3a5) Bump micrometer-core from 1.8.0 to 1.8.1 (#2444) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc7b13da0aa6f276c034325be51793f6d6b866c0) Bump httpcore from 4.4.14 to 4.4.15 (#2443) 
+   * [view commit](https://github.com/yahoo/elide/commit/9e2ff4727fbb11947d55536f59409b2e80766290) Resolves #2447 (#2448) 
+   * [view commit](https://github.com/yahoo/elide/commit/2ad81220c9eecb5c009653d72b3204706200d03a) AsyncQueryOperation: fix index out of bounds error for empty list (#2449) 
+   * [view commit](https://github.com/yahoo/elide/commit/0f2187a533022c3847f2bc744d4e1bd6f03e2595) Spaces in physical column name (#2450) 
+
 ## 6.0.3
 
 **Features**
