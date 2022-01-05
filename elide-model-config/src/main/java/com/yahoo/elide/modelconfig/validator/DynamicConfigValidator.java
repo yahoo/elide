@@ -149,35 +149,31 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
 
     @Override
     public void validate(Map<String, ConfigFile> resourceMap) {
-        try {
 
-            resourceMap.forEach((path, file) -> {
-                if (file.getContent() == null || file.getContent().isEmpty()) {
-                    throw new BadRequestException(String.format("Null or empty file content for %s", file.getPath()));
-                }
+        resourceMap.forEach((path, file) -> {
+            if (file.getContent() == null || file.getContent().isEmpty()) {
+                throw new BadRequestException(String.format("Null or empty file content for %s", file.getPath()));
+            }
 
-                //Validate that all the files are ones we know about and are safe to manipulate...
-                if (file.getType().equals(ConfigFile.ConfigFileType.UNKNOWN)) {
-                    throw new BadRequestException(String.format("Unrecognized File: %s", file.getPath()));
-                }
+            //Validate that all the files are ones we know about and are safe to manipulate...
+            if (file.getType().equals(ConfigFile.ConfigFileType.UNKNOWN)) {
+                throw new BadRequestException(String.format("Unrecognized File: %s", file.getPath()));
+            }
 
-                if (path.contains("..")) {
-                    throw new BadRequestException(String.format("Parent directory traversal not allowed: %s",
-                            file.getPath()));
-                }
+            if (path.contains("..")) {
+                throw new BadRequestException(String.format("Parent directory traversal not allowed: %s",
+                        file.getPath()));
+            }
 
-                //Validate that the file types and file paths match...
-                if (! file.getType().equals(FileLoader.toType(path))) {
-                    throw new BadRequestException(String.format("File type %s does not match file path: %s",
-                            file.getType(), file.getPath()));
-                }
-            });
+            //Validate that the file types and file paths match...
+            if (! file.getType().equals(FileLoader.toType(path))) {
+                throw new BadRequestException(String.format("File type %s does not match file path: %s",
+                        file.getType(), file.getPath()));
+            }
+        });
 
-            readConfigs(resourceMap);
-            validateConfigs();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+        readConfigs(resourceMap);
+        validateConfigs();
     }
 
     /**
@@ -194,10 +190,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
         readConfigs(fileLoader.loadResources());
     }
 
-    /**
-     * @throws IOException
-     */
-    public void readConfigs(Map<String, ConfigFile> resourceMap) throws IOException {
+    public void readConfigs(Map<String, ConfigFile> resourceMap) {
         this.modelVariables = readVariableConfig(Config.MODELVARIABLE, resourceMap);
         this.elideSecurityConfig = readSecurityConfig(resourceMap);
         this.dbVariables = readVariableConfig(Config.DBVARIABLE, resourceMap);
@@ -207,10 +200,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
         populateInheritance(this.elideTableConfig);
     }
 
-    /**
-     * @throws IOException
-     */
-    public void validateConfigs() throws IOException {
+    public void validateConfigs() {
         validateSecurityConfig();
         boolean configurationExists = validateRequiredConfigsProvided();
 
