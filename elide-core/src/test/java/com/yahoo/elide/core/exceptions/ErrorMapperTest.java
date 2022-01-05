@@ -132,7 +132,8 @@ public class ErrorMapperTest {
     }
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, ErrorMapper errorMapper) {
-        return new Elide(getElideSettings(dataStore, dictionary, errorMapper));
+        ElideSettings settings = getElideSettings(dataStore, dictionary, errorMapper);
+        return new Elide(settings, settings.getDictionary().getScanner(), false);
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, ErrorMapper errorMapper) {
