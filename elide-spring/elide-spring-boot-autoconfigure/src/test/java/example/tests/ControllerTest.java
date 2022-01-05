@@ -51,7 +51,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.MediaType;
@@ -359,7 +358,7 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void testInvalidApiVersion() throws IOException {
+    public void testInvalidApiVersion() {
 
         String graphQLRequest = GraphQLDSL.document(
                 selection(

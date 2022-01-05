@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Second;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -21,7 +20,7 @@ public class SecondSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @Test
-    public void testDateSerialize() throws ParseException {
+    public void testDateSerialize() {
 
         String expected = "2020-01-01T01:18:19";
         Second expectedDate = new Second(LocalDateTime.from(formatter.parse(expected)));
@@ -31,7 +30,7 @@ public class SecondSerdeTest {
     }
 
     @Test
-    public void testDateDeserializeString() throws ParseException {
+    public void testDateDeserializeString() {
 
         String dateInString = "2020-01-01T01:18:19";
         Second expectedDate = new Second(LocalDateTime.from(formatter.parse(dateInString)));
@@ -42,7 +41,7 @@ public class SecondSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestamp() throws ParseException {
+    public void testDeserializeTimestamp() {
 
         String dateInString = "2020-01-01T01:18:19";
         Second expectedDate = new Second(LocalDateTime.from(formatter.parse(dateInString)));
@@ -53,7 +52,7 @@ public class SecondSerdeTest {
     }
 
     @Test
-    public void testDeserializeDateInvalidFormat() throws ParseException {
+    public void testDeserializeDateInvalidFormat() {
 
         String dateInString = "00:18:19 2020-01-01";
         Serde serde = new Second.SecondSerde();

@@ -194,6 +194,9 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
         readConfigs(fileLoader.loadResources());
     }
 
+    /**
+     * @throws IOException
+     */
     public void readConfigs(Map<String, ConfigFile> resourceMap) throws IOException {
         this.modelVariables = readVariableConfig(Config.MODELVARIABLE, resourceMap);
         this.elideSecurityConfig = readSecurityConfig(resourceMap);
@@ -204,6 +207,9 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
         populateInheritance(this.elideTableConfig);
     }
 
+    /**
+     * @throws IOException
+     */
     public void validateConfigs() throws IOException {
         validateSecurityConfig();
         boolean configurationExists = validateRequiredConfigsProvided();

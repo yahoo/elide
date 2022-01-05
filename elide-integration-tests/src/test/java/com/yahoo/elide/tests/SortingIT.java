@@ -210,7 +210,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
-    public void testRootCollectionByNullRelationshipProperty() throws IOException {
+    public void testRootCollectionByNullRelationshipProperty() {
         // Test whether all book records are received
         when()
                 .get("/book?sort=publisher.editor.lastName")
@@ -226,7 +226,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
-    public void testSubcollectionByNullRelationshipProperty() throws IOException {
+    public void testSubcollectionByNullRelationshipProperty() {
         when()
                 .get("/author/1/books?sort=publisher.editor.lastName")
                 .then()

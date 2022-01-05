@@ -90,7 +90,7 @@ public class GraphQLAsyncQueryOperationTest {
     }
 
     @Test
-    public void testProcessQueryGraphQlRunnerException() throws URISyntaxException {
+    public void testProcessQueryGraphQlRunnerException() {
         AsyncQuery queryObj = new AsyncQuery();
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
@@ -104,7 +104,7 @@ public class GraphQLAsyncQueryOperationTest {
     }
 
     @Test
-    public void testProcessQueryGraphQlApiVersionNotSupported() throws URISyntaxException {
+    public void testProcessQueryGraphQlApiVersionNotSupported() {
         AsyncQuery queryObj = new AsyncQuery();
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";

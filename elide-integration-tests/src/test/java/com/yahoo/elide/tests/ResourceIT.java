@@ -1725,7 +1725,7 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
-    public void addRelationships() throws IOException {
+    public void addRelationships() {
         String request = jsonParser.getJson("/ResourceIT/addRelationships.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/addRelationships.json");
         String expected2 = jsonParser.getJson("/ResourceIT/addRelationships.2.json");

@@ -22,7 +22,6 @@ import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -92,7 +91,7 @@ public class AsyncAPICancelRunnableTest {
     }
 
     @Test
-    public void testStatusBasedFilter() throws ParseException {
+    public void testStatusBasedFilter() {
         DataStoreTransaction dtx = elide.getDataStore().beginTransaction();
         transactionRegistry.addRunningTransaction(UUID.fromString("edc4a871-dff2-4054-804e-d80075cf828d"), dtx);
         transactionRegistry.addRunningTransaction(UUID.fromString("edc4a871-dff2-4054-804e-d80075cf827d"), dtx);

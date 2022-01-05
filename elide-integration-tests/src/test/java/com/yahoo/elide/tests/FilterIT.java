@@ -1478,7 +1478,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
-    void testFilterByAuthorBookByChapter() throws JsonProcessingException {
+    void testFilterByAuthorBookByChapter() {
         /* Test default */
         given()
                 .get(String.format("/author/%s/books?filter[book.chapters.title]=Viva la Roma!", asimovId))

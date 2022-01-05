@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.ISOWeek;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -21,7 +20,7 @@ public class ISOWeekSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Test
-    public void testDateSerialize() throws ParseException {
+    public void testDateSerialize() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
 
         ISOWeek expectedDate = new ISOWeek(localDate);
@@ -31,7 +30,7 @@ public class ISOWeekSerdeTest {
     }
 
     @Test
-    public void testDateDeserializeString() throws ParseException {
+    public void testDateDeserializeString() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
 
         ISOWeek expectedDate = new ISOWeek(localDate);
@@ -41,7 +40,7 @@ public class ISOWeekSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestampNotMonday() throws ParseException {
+    public void testDeserializeTimestampNotMonday() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         ISOWeek timestamp = new ISOWeek(localDate);
         Serde serde = new ISOWeek.ISOWeekSerde();
@@ -51,7 +50,7 @@ public class ISOWeekSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestamp() throws ParseException {
+    public void testDeserializeTimestamp() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
         ISOWeek expectedDate = new ISOWeek(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
@@ -61,7 +60,7 @@ public class ISOWeekSerdeTest {
     }
 
     @Test
-    public void testDeserializeDateInvalidFormat() throws ParseException {
+    public void testDeserializeDateInvalidFormat() {
 
         String dateInString = "January-2020-01";
         Serde serde = new ISOWeek.ISOWeekSerde();

@@ -95,7 +95,7 @@ public class AsyncExecutorServiceTest {
 
     //Test for executor hook execution
     @Test
-    public void testExecuteQueryComplete() throws InterruptedException {
+    public void testExecuteQueryComplete() {
 
         AsyncQuery queryObj = mock(AsyncQuery.class);
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
