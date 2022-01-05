@@ -13,7 +13,6 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.google.common.collect.Streams;
 
 import java.util.ArrayList;
@@ -198,7 +197,7 @@ public interface Queryable {
 
             ColumnProjection projection = getSource().getColumnProjection(predicate.getField(), arguments);
 
-            results.add((SQLColumnProjection) projection);
+            results.add(projection);
         }));
 
         return results;
