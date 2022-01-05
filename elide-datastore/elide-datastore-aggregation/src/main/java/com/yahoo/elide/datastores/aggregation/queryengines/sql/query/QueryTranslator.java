@@ -235,7 +235,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
     /**
      * Coverts a Path from a table to a join path.
-     * @param source The table being queried.
+     * @param query query
      * @param path The path object from the table that may contain a join.
      * @return
      */
@@ -247,7 +247,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     /**
      * Given a filter expression, extracts any entity relationship traversals that require joins.
      *
-     * @param source The table that is being queried.
+     * @param query query
      * @param expression The filter expression
      * @return A set of Join expressions that capture a relationship traversal.
      */
@@ -264,7 +264,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     /**
      * Given a list of columns to sort on, extracts any entity relationship traversals that require joins.
      *
-     * @param source The table that is being queried.
+     * @param query query
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A set of Join expressions that capture a relationship traversal.
      */
