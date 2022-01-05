@@ -12,6 +12,8 @@ import com.yahoo.elide.core.security.checks.UserCheck;
  * Simple checks to always grant or deny.
  */
 public class Role {
+    public static final String NONE_ROLE = "NONE";
+    public static final String ALL_ROLE = "ALL";
     /**
      * Check which always grants.
      */
