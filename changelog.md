@@ -1,5 +1,22 @@
 # Change Log
 
+## 6.0.5
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/af4fdc3e859f9737b992f231a857793c912d3039) bump log4j2 (#2460) 
+   * [view commit](https://github.com/yahoo/elide/commit/16384c094b1974e293dc1f33d6330a6b0ac5821a) Use GraphqlBigDecimal for BigDecimal conversion (#2464) 
+   * [view commit](https://github.com/yahoo/elide/commit/6b2b60098436a3dd7db03697ffd4717122fa3bf6) use query with filter to populate query parameters in pagination (#2466) 
+   * [view commit](https://github.com/yahoo/elide/commit/ad03655829b88f6375b95d757be8abc0dbed4fd5) Bump spring-core from 5.3.13 to 5.3.14 (#2456) 
+   * [view commit](https://github.com/yahoo/elide/commit/9a4849d738692723c45dda410587b3e8c1be897a) Bump h2 from 1.4.200 to 2.0.202 (#2427) 
+   * [view commit](https://github.com/yahoo/elide/commit/865d5ac4c2006a8ac998082edbbd14844a375f8a) Bump log4j-api from 2.17.0 to 2.17.1 (#2468) 
+   * [view commit](https://github.com/yahoo/elide/commit/e0b40a7bb8255075d411bf6131ecd2c72f06dbb3) Bump log4j-api from 2.17.0 to 2.17.1 in /elide-spring (#2467) 
+   * [view commit](https://github.com/yahoo/elide/commit/a62df30e3a47af7c4657e8791e01c5403536d9d9) Bump metrics.version from 4.2.5 to 4.2.7 (#2455) 
+   * [view commit](https://github.com/yahoo/elide/commit/cea09b700eec6f45d361ebe9d32ed19e2949cba0) Bump dependency-check-maven from 6.5.0 to 6.5.2 (#2463) 
+   * [view commit](https://github.com/yahoo/elide/commit/6aac9bd0b2ceb2e06dfe1ee7b203fb186a4800db) Bump spring-websocket from 5.3.13 to 5.3.14 (#2461) 
+   * [view commit](https://github.com/yahoo/elide/commit/307f29ba0ac68533f45b2c66f96a5fd0cc7edb8b) Bump mockito-core from 4.1.0 to 4.2.0 (#2458) 
+   * [view commit](https://github.com/yahoo/elide/commit/7ca2d6d204550d2a0498d7ddd67b406620aae69b) jersey to 2.35 (#2472) 
+   * [view commit](https://github.com/yahoo/elide/commit/d554658425300df2210df1e67110f0b7588633e0) Enable lifecycle, check, and other entity scans by default for Spring. (#2470) 
+   * [view commit](https://github.com/yahoo/elide/commit/b931b4d5b2fb5a1ce4040762fc22f2df9f8d30eb) Disallow ConfigFile path to be changed in ConfigStore (#2471) 
+
 ## 6.0.4
 
 **Fixes**
