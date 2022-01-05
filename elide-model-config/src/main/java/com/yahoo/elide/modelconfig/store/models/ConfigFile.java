@@ -7,6 +7,7 @@
 package com.yahoo.elide.modelconfig.store.models;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.security.checks.prefab.Role.NONE_ROLE;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -51,7 +52,7 @@ public class ConfigFile {
     @GeneratedValue
     private String id; //Base64 encoded path-version
 
-    @UpdatePermission(expression = "NONE")
+    @UpdatePermission(expression = NONE_ROLE)
     private String path;
 
     private String version;
