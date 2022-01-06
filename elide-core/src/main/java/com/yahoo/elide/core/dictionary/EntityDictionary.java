@@ -7,6 +7,8 @@
 package com.yahoo.elide.core.dictionary;
 
 import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
+import static com.yahoo.elide.core.security.checks.prefab.Role.ALL_ROLE;
+import static com.yahoo.elide.core.security.checks.prefab.Role.NONE_ROLE;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.MAP_TYPE;
 import com.yahoo.elide.annotation.ApiVersion;
@@ -171,9 +173,9 @@ public class EntityDictionary {
         UserCheck none = new Role.NONE();
 
         addRoleCheck("Prefab.Role.All", all);
-        addRoleCheck("ALL", all);
+        addRoleCheck(ALL_ROLE, all);
         addRoleCheck("Prefab.Role.None", none);
-        addRoleCheck("NONE", none);
+        addRoleCheck(NONE_ROLE, none);
 
         addPrefabCheck("Prefab.Collections.AppendOnly", AppendOnly.class);
         addPrefabCheck("Prefab.Collections.RemoveOnly", RemoveOnly.class);
