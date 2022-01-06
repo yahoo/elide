@@ -77,7 +77,7 @@ public class GraphQLTableExportOperationTest {
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
-        engine = new FileResultStorageEngine(tempDir.toString());
+        engine = new FileResultStorageEngine(tempDir.toString(), false);
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
         when(requestScope.getUser()).thenReturn(user);

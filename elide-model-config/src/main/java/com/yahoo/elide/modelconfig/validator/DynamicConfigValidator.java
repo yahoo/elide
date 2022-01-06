@@ -194,7 +194,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
         readConfigs(fileLoader.loadResources());
     }
 
-    public void readConfigs(Map<String, ConfigFile> resourceMap) throws IOException {
+    public void readConfigs(Map<String, ConfigFile> resourceMap) {
         this.modelVariables = readVariableConfig(Config.MODELVARIABLE, resourceMap);
         this.elideSecurityConfig = readSecurityConfig(resourceMap);
         this.dbVariables = readVariableConfig(Config.DBVARIABLE, resourceMap);
