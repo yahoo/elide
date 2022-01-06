@@ -165,7 +165,7 @@ public class ElideAsyncConfiguration {
     public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDAO) {
         FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(settings.getAsync().getExport()
-                .getStorageDestination());
+                .getStorageDestination(), settings.getAsync().getExport().isExtensionEnabled());
         return resultStorageEngine;
     }
 }

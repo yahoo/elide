@@ -165,7 +165,8 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                 if (resultStorageEngine == null) {
-                    resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination());
+                    resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination(),
+                            asyncProperties.enableExtension());
                 }
                 bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 

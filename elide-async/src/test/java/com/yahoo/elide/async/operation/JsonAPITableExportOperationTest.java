@@ -78,7 +78,7 @@ public class JsonAPITableExportOperationTest {
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
-        engine = new FileResultStorageEngine(tempDir.toString());
+        engine = new FileResultStorageEngine(tempDir.toString(), true);
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
         when(requestScope.getUser()).thenReturn(user);
@@ -102,7 +102,7 @@ public class JsonAPITableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d", queryResultObj.getUrl().toString());
+        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d.csv", queryResultObj.getUrl().toString());
         assertEquals(1, queryResultObj.getRecordCount());
         assertNull(queryResultObj.getMessage());
     }
