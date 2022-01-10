@@ -266,7 +266,7 @@ public class ElideStandaloneTest {
 
     // Resource disabled by default.
     @Test
-    public void exportResourceDisabledTest() throws InterruptedException {
+    public void exportResourceDisabledTest() {
         // elide-standalone returns different error message when export resource is not initialized
         // vs when it could not find a matching id to export.
         // Jetty seems to have a different behavior than spring-framework for non-existent resources.

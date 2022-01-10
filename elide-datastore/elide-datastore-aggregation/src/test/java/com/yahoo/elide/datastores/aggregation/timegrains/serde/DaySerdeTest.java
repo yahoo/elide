@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -21,7 +20,7 @@ public class DaySerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Test
-    public void testDateSerialize() throws ParseException {
+    public void testDateSerialize() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
         Day expectedDate = new Day(localDate);
@@ -31,7 +30,7 @@ public class DaySerdeTest {
     }
 
     @Test
-    public void testDateDeserialize() throws ParseException {
+    public void testDateDeserialize() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Day expectedDate = new Day(localDate);
         Serde serde = new Day.DaySerde();
@@ -40,7 +39,7 @@ public class DaySerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestamp() throws ParseException {
+    public void testDeserializeTimestamp() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
         Day expectedDate = new Day(localDate);
@@ -51,7 +50,7 @@ public class DaySerdeTest {
     }
 
     @Test
-    public void testDeserializeDateInvalidFormat() throws ParseException {
+    public void testDeserializeDateInvalidFormat() {
 
         String dateInString = "January-01-2020";
         Serde serde = new Day.DaySerde();

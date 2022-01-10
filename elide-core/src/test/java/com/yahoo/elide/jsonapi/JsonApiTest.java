@@ -328,14 +328,14 @@ public class JsonApiTest {
     }
 
     @Test
-    public void testMissingTypeInResource() throws IOException {
+    public void testMissingTypeInResource() {
         String doc = "{ \"data\": { \"id\": \"22\", \"attributes\": { \"title\": \"works fine\" } } }";
 
         assertThrows(JsonMappingException.class, () -> mapper.readJsonApiDocument(doc));
     }
 
     @Test
-    public void testMissingTypeInResourceList() throws IOException {
+    public void testMissingTypeInResourceList() {
         String doc = "{ \"data\": [{ \"id\": \"22\", \"attributes\": { \"title\": \"works fine\" } } ]}";
 
         assertThrows(JsonMappingException.class, () -> mapper.readJsonApiDocument(doc));
@@ -468,7 +468,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void compareNullAndEmpty() throws JsonProcessingException {
+    public void compareNullAndEmpty() {
         Data<Resource> empty = new Data<>((Resource) null);
 
         JsonApiDocument jsonApiEmpty = new JsonApiDocument();
@@ -482,7 +482,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void compareOrder() throws JsonProcessingException {
+    public void compareOrder() {
         Parent parent1 = new Parent();
         parent1.setId(123L);
         Parent parent2 = new Parent();

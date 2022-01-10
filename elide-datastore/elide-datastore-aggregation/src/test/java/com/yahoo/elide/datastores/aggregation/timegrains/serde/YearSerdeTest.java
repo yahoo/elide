@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Year;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -21,7 +20,7 @@ public class YearSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy");
 
     @Test
-    public void testDateSerialize() throws ParseException {
+    public void testDateSerialize() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
         Year expectedDate = new Year(localDate);
@@ -31,7 +30,7 @@ public class YearSerdeTest {
     }
 
     @Test
-    public void testDateDeserialize() throws ParseException {
+    public void testDateDeserialize() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
         Year expectedDate = new Year(localDate);
@@ -41,7 +40,7 @@ public class YearSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestamp() throws ParseException {
+    public void testDeserializeTimestamp() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
         Year expectedDate = new Year(localDate);
@@ -52,7 +51,7 @@ public class YearSerdeTest {
     }
 
     @Test
-    public void testDeserializeDateInvalidFormat() throws ParseException {
+    public void testDeserializeDateInvalidFormat() {
 
         String dateInString = "January";
         Serde serde = new Year.YearSerde();

@@ -58,7 +58,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             boolean requiresDistinct = entityProjection.getPagination() != null
                     && containsOneToMany(filterExpression);
 
-            Boolean sortOverRelationship = entityProjection.getSorting() != null
+            boolean sortOverRelationship = entityProjection.getSorting() != null
                     && entityProjection.getSorting().getSortingPaths().keySet()
                     .stream().anyMatch(path -> path.getPathElements().size() > 1);
             if (requiresDistinct && sortOverRelationship) {
