@@ -22,7 +22,6 @@ import example.Parent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -133,7 +132,7 @@ public class LogMessageImplTest {
         assertTrue(exceptions.isEmpty(), exceptions.stream().map(Throwable::getMessage).findFirst().orElse(""));
     }
 
-    public void threadSafeLogger() throws IOException, InterruptedException {
+    public void threadSafeLogger() throws InterruptedException {
         TestLoggerException testException = new TestLoggerException();
         LogMessageImpl failMessage = new LogMessageImpl("test", 0) {
             @Override

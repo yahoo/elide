@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -21,7 +20,7 @@ public class QuarterSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
     @Test
-    public void testDateSerialize() throws ParseException {
+    public void testDateSerialize() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Quarter expectedDate = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
@@ -30,7 +29,7 @@ public class QuarterSerdeTest {
     }
 
     @Test
-    public void testDateDeserialize() throws ParseException {
+    public void testDateDeserialize() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Quarter expectedDate = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
@@ -39,7 +38,7 @@ public class QuarterSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestampNotQuarterMonth() throws ParseException {
+    public void testDeserializeTimestampNotQuarterMonth() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(02), 01, 00, 00, 00);
         Quarter quarter = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
@@ -49,7 +48,7 @@ public class QuarterSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestamp() throws ParseException {
+    public void testDeserializeTimestamp() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Quarter expectedDate = new Quarter(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
@@ -59,7 +58,7 @@ public class QuarterSerdeTest {
     }
 
     @Test
-    public void testDeserializeDateInvalidFormat() throws ParseException {
+    public void testDeserializeDateInvalidFormat() {
 
         String dateInString = "January-2020";
         Serde serde = new Quarter.QuarterSerde();

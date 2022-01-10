@@ -19,7 +19,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 import io.reactivex.Observable;
 
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletResponse;
@@ -47,7 +46,7 @@ public class ExportApiEndpointTest {
     }
 
     @Test
-    public void testGet() throws InterruptedException, IOException {
+    public void testGet() {
         String queryId = "1";
         int maxDownloadTimeSeconds = 1;
         int maxDownloadTimeMilliSeconds = (int) TimeUnit.SECONDS.toMillis(maxDownloadTimeSeconds);

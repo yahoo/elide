@@ -11,7 +11,6 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.junit.jupiter.api.Test;
 
-import java.text.ParseException;
 import java.time.LocalDateTime;
 
 public class TimeSerdeTest {
@@ -24,7 +23,7 @@ public class TimeSerdeTest {
     private static final String SECOND = "2020-01-01T00:00:00";
 
     @Test
-    public void testTimeDeserializeYear() throws ParseException {
+    public void testTimeDeserializeYear() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, false, false, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
@@ -34,7 +33,7 @@ public class TimeSerdeTest {
     }
 
     @Test
-    public void testTimeDeserializeMonth() throws ParseException {
+    public void testTimeDeserializeMonth() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, false, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
@@ -44,7 +43,7 @@ public class TimeSerdeTest {
     }
 
     @Test
-    public void testTimeDeserializeDate() throws ParseException {
+    public void testTimeDeserializeDate() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, true, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
@@ -54,7 +53,7 @@ public class TimeSerdeTest {
     }
 
     @Test
-    public void testTimeDeserializeHour() throws ParseException {
+    public void testTimeDeserializeHour() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
@@ -64,7 +63,7 @@ public class TimeSerdeTest {
     }
 
     @Test
-    public void testTimeDeserializeMinute() throws ParseException {
+    public void testTimeDeserializeMinute() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
@@ -74,7 +73,7 @@ public class TimeSerdeTest {
     }
 
     @Test
-    public void testTimeDeserializeSecond() throws ParseException {
+    public void testTimeDeserializeSecond() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
@@ -84,7 +83,7 @@ public class TimeSerdeTest {
     }
 
     @Test
-    public void testInvalidDeserialization() throws ParseException {
+    public void testInvalidDeserialization() {
         Serde serde = new Time.TimeSerde();
         assertThrows(IllegalArgumentException.class, () ->
             serde.deserialize("2020R1")

@@ -285,7 +285,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     }
 
     @Test
-    public void testMissingRequiredParameterInProjection() throws ParseException {
+    public void testMissingRequiredParameterInProjection() {
         SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
         Query query = Query.builder()

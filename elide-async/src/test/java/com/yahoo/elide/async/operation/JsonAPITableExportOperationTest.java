@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -87,7 +86,7 @@ public class JsonAPITableExportOperationTest {
     }
 
     @Test
-    public void testProcessQuery() throws URISyntaxException, IOException  {
+    public void testProcessQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "/tableExport?sort=principalName&fields=principalName";
@@ -108,7 +107,7 @@ public class JsonAPITableExportOperationTest {
     }
 
     @Test
-    public void testProcessBadEntityQuery() throws URISyntaxException, IOException  {
+    public void testProcessBadEntityQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "/tableExportInvalid?sort=principalName&fields=principalName";
@@ -127,7 +126,7 @@ public class JsonAPITableExportOperationTest {
     }
 
     @Test
-    public void testProcessBadQuery() throws URISyntaxException, IOException  {
+    public void testProcessBadQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "tableExport/^IllegalCharacter^";
