@@ -26,6 +26,7 @@ elide:
     export:
       enabled: true
       path: /export
+      extensionEnabled: true
   dynamic-config:
     path: src/test/resources/configs
     enabled: true

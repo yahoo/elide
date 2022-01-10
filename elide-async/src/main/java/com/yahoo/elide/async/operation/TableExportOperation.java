@@ -11,6 +11,7 @@ import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
 import com.yahoo.elide.async.export.validator.Validator;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -159,7 +160,10 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
         String downloadPath =  scope.getElideSettings().getExportApiPath();
         String baseURL = scope.getBaseUrlEndPoint();
-        return baseURL + downloadPath + "/" + exportObj.getId();
+        String extension = this.engine.isExtensionEnabled()
+                ? exportObj.getResultType().getFileExtensionType().getExtension()
+                : FileExtensionType.NONE.getExtension();
+        return baseURL + downloadPath + "/" + exportObj.getId() + extension;
     }
 
     /**

@@ -118,6 +118,16 @@ public interface ElideStandaloneAsyncSettings {
     }
 
     /**
+     * Enable the addition of extensions to Export attachments.
+     * If false, the attachments will be downloaded without extensions.
+     *
+     * @return Default: False
+     */
+    default boolean enableExtension() {
+        return false;
+    }
+
+    /**
      * Skip generating Header when exporting in CSV format.
      *
      * @return Default: False

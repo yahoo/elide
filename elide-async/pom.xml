@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.0.5-SNAPSHOT</version>
+        <version>6.0.6-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.0.5-SNAPSHOT</version>
+            <version>6.0.6-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -90,7 +90,7 @@
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-server</artifactId>
-            <version>2.33</version>
+            <version>${version.jersey}</version>
             <scope>test</scope>
         </dependency>
         <!-- JUnit -->

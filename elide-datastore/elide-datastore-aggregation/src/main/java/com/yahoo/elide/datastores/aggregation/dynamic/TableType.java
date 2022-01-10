@@ -76,6 +76,7 @@ import javax.persistence.Id;
 public class TableType implements Type<DynamicModelInstance> {
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     private static final String SPACE = " ";
+    private static final String PERIOD = ".";
     public static final Pattern NEWLINE = Pattern.compile(System.lineSeparator(), Pattern.LITERAL);
 
     protected Table table;
@@ -96,7 +97,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
     @Override
     public String getCanonicalName() {
-        return getName();
+        return getPackage().getName().concat(PERIOD).concat(getName());
     }
 
     @Override

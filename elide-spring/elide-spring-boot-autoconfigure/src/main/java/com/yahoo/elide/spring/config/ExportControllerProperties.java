@@ -21,6 +21,11 @@ public class ExportControllerProperties extends ControllerProperties {
     private boolean skipCSVHeader = false;
 
     /**
+     * Enable Adding Extension to table export attachments.
+     */
+    private boolean extensionEnabled = false;
+
+    /**
      * The URL path prefix for the controller.
      */
     private String path = "/export";

@@ -9,6 +9,16 @@ package com.yahoo.elide.async.models;
  * ENUM of supported result types.
  */
 public enum ResultType {
-    JSON,
-    CSV
+    JSON(FileExtensionType.JSON),
+    CSV(FileExtensionType.CSV);
+
+    private final FileExtensionType fileExtensionType;
+
+    ResultType(FileExtensionType fileExtensionType) {
+        this.fileExtensionType = fileExtensionType;
+    }
+
+    public FileExtensionType getFileExtensionType() {
+        return fileExtensionType;
+    }
 }

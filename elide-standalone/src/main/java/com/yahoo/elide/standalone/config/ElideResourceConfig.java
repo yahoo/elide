@@ -124,7 +124,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
             ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore,
                     settings.getObjectMapper());
-            Elide elide = new Elide(elideSettings);
+            Elide elide = new Elide(elideSettings, elideSettings.getDictionary().getScanner(), false);
 
             // Bind elide instance for injection into endpoint
             bind(elide).to(Elide.class).named("elide");
@@ -165,7 +165,8 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                 if (resultStorageEngine == null) {
-                    resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination());
+                    resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination(),
+                            asyncProperties.enableExtension());
                 }
                 bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 

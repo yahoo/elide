@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
+import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
 import io.reactivex.Observable;
 import lombok.Getter;
@@ -23,27 +24,32 @@ import javax.inject.Singleton;
 
 /**
  * Default implementation of ResultStorageEngine that stores results on local filesystem.
- * It supports Async Module to store results with async query.
+ * It supports Async Module to store results with Table Export query.
  */
 @Singleton
 @Slf4j
 @Getter
 public class FileResultStorageEngine implements ResultStorageEngine {
     @Setter private String basePath;
+    @Setter private boolean enableExtension;
 
     /**
      * Constructor.
      * @param basePath basePath for storing the files. Can be absolute or relative.
      */
-    public FileResultStorageEngine(String basePath) {
+    public FileResultStorageEngine(String basePath, boolean enableExtension) {
         this.basePath = basePath;
+        this.enableExtension = enableExtension;
     }
 
     @Override
     public TableExport storeResults(TableExport tableExport, Observable<String> result) {
-        log.debug("store AsyncResults for Download");
+        log.debug("store TableExportResults for Download");
+        String extension = this.isExtensionEnabled()
+                ? tableExport.getResultType().getFileExtensionType().getExtension()
+                : FileExtensionType.NONE.getExtension();
 
-        try (BufferedWriter writer = getWriter(tableExport.getId())) {
+        try (BufferedWriter writer = getWriter(tableExport.getId(), extension)) {
             result
                 .map(record -> record.concat(System.lineSeparator()))
                 .subscribe(
@@ -64,11 +70,11 @@ public class FileResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public Observable<String> getResultsByID(String asyncQueryID) {
-        log.debug("getAsyncResultsByID");
+    public Observable<String> getResultsByID(String tableExportID) {
+        log.debug("getTableExportResultsByID");
 
         return Observable.using(
-                () -> getReader(asyncQueryID),
+                () -> getReader(tableExportID),
                 reader -> Observable.fromIterable(() -> new Iterator<String>() {
                     private String record = null;
 
@@ -93,21 +99,26 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                 BufferedReader::close);
     }
 
-    private BufferedReader getReader(String asyncQueryID) {
+    private BufferedReader getReader(String tableExportID) {
         try {
-            return Files.newBufferedReader(Paths.get(basePath + File.separator + asyncQueryID));
+            return Files.newBufferedReader(Paths.get(basePath + File.separator + tableExportID));
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new IllegalStateException(RETRIEVE_ERROR, e);
         }
     }
 
-    private BufferedWriter getWriter(String asyncQueryID) {
+    private BufferedWriter getWriter(String tableExportID, String extension) {
         try {
-            return Files.newBufferedWriter(Paths.get(basePath + File.separator + asyncQueryID));
+            return Files.newBufferedWriter(Paths.get(basePath + File.separator + tableExportID + extension));
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new IllegalStateException(STORE_ERROR, e);
         }
+    }
+
+    @Override
+    public boolean isExtensionEnabled() {
+        return this.enableExtension;
     }
 }

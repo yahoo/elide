@@ -188,7 +188,6 @@ public class ElideAutoConfiguration {
         }
 
         Elide elide = new Elide(builder.build());
-        elide.doScans();
         return elide;
     }
 
