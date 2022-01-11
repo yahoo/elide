@@ -49,6 +49,8 @@ import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.test.graphql.elements.Arguments;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import example.PlayerStats;
@@ -1718,6 +1720,46 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("byDay", "2019-07-13"),
                                         field("byMonth", "2019-07"),
                                         field("byQuarter", "2019-07")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    /**
+     * Check if AggregationBeforeJoinOptimizer works with alias
+     * @throws Exception
+     */
+    @Test
+    public void testJoinBeforeAggregationWithAlias() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"highScore\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("countryIsoCode", "countryAlias", Arguments.emptyArgument())
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 1000),
+                                        field("countryAlias", "HKG")
+                                ),
+                                selections(
+                                        field("highScore", 2412),
+                                        field("countryAlias", "USA")
                                 )
                         )
                 )
