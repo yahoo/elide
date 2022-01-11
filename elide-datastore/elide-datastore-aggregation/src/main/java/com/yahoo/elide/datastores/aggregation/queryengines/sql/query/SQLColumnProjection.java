@@ -111,7 +111,7 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         boolean requiresJoin = requiresJoin(references);
 
-        boolean inProjection = source.getColumnProjection(getName(), getArguments(), true) != null;
+        boolean inProjection = source.getColumnProjection(getAlias(), getArguments(), true) != null;
 
         ColumnProjection outerProjection;
         Set<ColumnProjection> innerProjections;
