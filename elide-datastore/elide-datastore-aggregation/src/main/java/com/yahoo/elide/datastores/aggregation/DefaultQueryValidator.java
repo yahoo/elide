@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,10 +66,21 @@ public class DefaultQueryValidator implements QueryValidator {
             validatePredicate(query, predicate);
 
             extractFilterProjections(query, havingClause).stream().forEach(projection -> {
-                if (query.getColumnProjection(projection.getAlias(), projection.getArguments()) == null) {
+
+                Predicate<ColumnProjection> filterByNameAndArgs =
+                        (column) -> (column.getAlias().equals(projection.getAlias())
+                                || column.getName().equals(projection.getName())
+                                && column.getArguments().equals(projection.getArguments()));
+
+                //Query by (alias or name) and arguments.   The filter may or may not be using the alias.
+                if (query.getColumnProjection(filterByNameAndArgs) == null) {
+
+                    Predicate<ColumnProjection> filterByName =
+                            (column) -> (column.getAlias().equals(projection.getAlias())
+                                    || column.getName().equals(projection.getName()));
 
                     //The column wasn't projected at all.
-                    if (query.getColumnProjection(projection.getAlias()) == null) {
+                    if (query.getColumnProjection(filterByName) == null) {
                         throw new InvalidOperationException(String.format(
                                 "Post aggregation filtering on '%s' requires the field to be projected in the response",
                                 projection.getAlias()));
