@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -99,6 +100,18 @@ public interface Queryable {
     default ColumnProjection getColumnProjection(String name, Map<String, Argument> arguments) {
         return getColumnProjections().stream()
                 .filter(dim -> dim.getAlias().equals(name) && dim.getArguments().equals(arguments))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Retrieves a column by filter predicate
+     * @param filterPredicate A predicate to search for column projections.
+     * @return The column.
+     */
+    default ColumnProjection getColumnProjection(Predicate<ColumnProjection> filterPredicate) {
+        return getColumnProjections().stream()
+                .filter(filterPredicate)
                 .findFirst()
                 .orElse(null);
     }
