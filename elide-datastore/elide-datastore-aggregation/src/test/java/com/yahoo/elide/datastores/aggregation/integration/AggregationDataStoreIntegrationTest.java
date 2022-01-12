@@ -380,6 +380,40 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
+    public void parameterizedGraphQLFilterTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"orderRatio[numerator:orderMax][denominator:orderMax]>=.5;deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
+                                ),
+                                selections(
+                                        field("orderRatio", "ratio1", arguments(
+                                                argument("numerator", "\"orderMax\""),
+                                                argument("denominator", "\"orderMax\"")
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("ratio1", 1.0)
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void parameterizedGraphQLColumnTest() throws Exception {
         String graphQLRequest = document(
                 selection(
