@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -23,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import example.PlayerStats;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -56,11 +54,6 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-    }
-
-    @BeforeEach
-    public void setUp() {
-        when(scope.getDictionary()).thenReturn(dictionary);
     }
 
     @Test
