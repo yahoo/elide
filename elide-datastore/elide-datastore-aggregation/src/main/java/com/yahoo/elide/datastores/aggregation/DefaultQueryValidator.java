@@ -69,8 +69,8 @@ public class DefaultQueryValidator implements QueryValidator {
 
                 Predicate<ColumnProjection> filterByNameAndArgs =
                         (column) -> (column.getAlias().equals(projection.getAlias())
-                                || column.getName().equals(projection.getName())
-                                && column.getArguments().equals(projection.getArguments()));
+                                || column.getName().equals(projection.getName()))
+                                && column.getArguments().equals(projection.getArguments());
 
                 //Query by (alias or name) and arguments.   The filter may or may not be using the alias.
                 if (query.getColumnProjection(filterByNameAndArgs) == null) {
