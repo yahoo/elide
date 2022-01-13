@@ -1,5 +1,34 @@
 # Change Log
 
+## 6.0.6
+**Features
+   * [view commit](https://github.com/yahoo/elide/commit/4caaae234214edf6a61bea57531de79520604d54) File Extension Support for Export Attachments (#2475) 
+
+**Fixes
+   * [view commit](https://github.com/yahoo/elide/commit/93baacfea6628cc724b7fb880326a702651b939b) Make CacheKey Unique for same model name across namespaces (#2477) 
+   * [view commit](https://github.com/yahoo/elide/commit/c38857cd07318d5f09b9b087056d627ab01bf156) Cleanup code warnings (#2473) 
+   * [view commit](https://github.com/yahoo/elide/commit/ca46fc6726ed161767d46e1060566ca234cdec5e) Bump build-helper-maven-plugin from 3.2.0 to 3.3.0 (#2481) 
+   * [view commit](https://github.com/yahoo/elide/commit/0f0e94b66532890d4f2ed9f7f34bf7499192d73d) Bump HikariCP from 5.0.0 to 5.0.1 (#2484) 
+   * [view commit](https://github.com/yahoo/elide/commit/c8e3aad63bbdef64c32baf9c538f66e298e1e19a) Bump checkstyle from 9.2 to 9.2.1 (#2485) 
+   * [view commit](https://github.com/yahoo/elide/commit/d13c7b78872df5d4ed7c083dd3883502d4133d8c) Bump maven-site-plugin from 3.9.1 to 3.10.0 (#2480) 
+   * [view commit](https://github.com/yahoo/elide/commit/a5f46a0bb816ab57c43c9b9535d9fd2b8aeb088f) Bump maven-scm-api from 1.12.0 to 1.12.2 (#2479) 
+   * [view commit](https://github.com/yahoo/elide/commit/adb52de7d01eac1e53174d6b7fdc872b7bc81b92) Bump wagon-ssh-external from 3.4.3 to 3.5.1 (#2478) 
+   * [view commit](https://github.com/yahoo/elide/commit/fd9ebf4ffa3a625df38840df723ac1c43605eea9) Bump artemis-jms-client-all from 2.19.0 to 2.20.0 (#2482) 
+   * [view commit](https://github.com/yahoo/elide/commit/e090ab5ed5344760d6239c680515f203548c1596) use alias to get column projection in query plan translator and while nesting projection (#2493) 
+   * [view commit](https://github.com/yahoo/elide/commit/7bf5de6d098acb36b60d40619d35a536cfe1a4ee) Aggregation Store: Fix filter by alias with parameterized metric. (#2494) 
+   * [view commit](https://github.com/yahoo/elide/commit/7f7d029924799a40b07e60f6aaead95cade0136d) Bump maven-jar-plugin from 3.2.0 to 3.2.1 (#2492) 
+   * [view commit](https://github.com/yahoo/elide/commit/8ec4c15d5c04670d364925f390ac1eff6f5bbf3f) Bump log4j-to-slf4j from 2.17.0 to 2.17.1 (#2487) 
+   * [view commit](https://github.com/yahoo/elide/commit/5dcf985d17c967c8882eb23e72a1d1764f53e7dd) Bump swagger-core from 1.6.3 to 1.6.4 (#2488) 
+   * [view commit](https://github.com/yahoo/elide/commit/faf7c68aaf907d2601a0151e7723580369280883) Bump mockito-junit-jupiter from 4.1.0 to 4.2.0 (#2496) 
+   * [view commit](https://github.com/yahoo/elide/commit/5e337f4f3e28642e08daa971b567926594a5f10e) Bump artemis-server from 2.19.0 to 2.20.0 (#2495) 
+   * [view commit](https://github.com/yahoo/elide/commit/493d048bc23c3fdd5029d6db2ff92f84f4368902) Bump artemis-jms-server from 2.19.0 to 2.20.0 (#2491) 
+   * [view commit](https://github.com/yahoo/elide/commit/a074e01864cc7834766e3571e60e0a4c5a15a008) Bump system-lambda from 1.2.0 to 1.2.1 (#2490) 
+   * [view commit](https://github.com/yahoo/elide/commit/d3bb5583a78fcbea62279cb2fb7c99b7da1ac9c6) Bump maven-scm-provider-gitexe from 1.12.0 to 1.12.2 (#2489) 
+   * [view commit](https://github.com/yahoo/elide/commit/1fc1935a940bdcdb8d6b8d6bb17de95e8469b8d5) Bump maven-compiler-plugin from 3.8.1 to 3.9.0 (#2497) 
+   * [view commit](https://github.com/yahoo/elide/commit/104dd73fdba0237a30939764f7267744227e573a) Bump dependency-check-maven from 6.5.2 to 6.5.3 (#2499) 
+   * [view commit](https://github.com/yahoo/elide/commit/35cb0d02603445ca9997bcef5e8085486040d4b4) Bump maven-jar-plugin from 3.2.1 to 3.2.2 (#2498) 
+   * [view commit](https://github.com/yahoo/elide/commit/5d9ce37e2f15a2703f530e83bf9a52eb0632ae6d) Bump calcite-core from 1.28.0 to 1.29.0 (#2483) 
+
 ## 6.0.5
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/af4fdc3e859f9737b992f231a857793c912d3039) bump log4j2 (#2460) 
