@@ -433,7 +433,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.2.2</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-site-plugin</artifactId>
@@ -465,7 +465,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.9.0</version>
                 <configuration>
                     <source>${source.jdk.version}</source>
                     <target>${target.jdk.version}</target>
@@ -541,7 +541,7 @@
                     <dependency>
                         <groupId>org.apache.maven.scm</groupId>
                         <artifactId>maven-scm-provider-gitexe</artifactId>
-                        <version>1.12.0</version>
+                        <version>1.12.2</version>
                     </dependency>
 
                     <dependency>
@@ -659,7 +659,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.5.2</version>
+                <version>6.5.3</version>
                 <configuration>
                     <failBuildOnCVSS>7</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>

@@ -171,7 +171,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 directReferencedColumns.stream(),
                 indirectReferenceColumns.stream()
         ).forEach(column -> {
-            if (query.getColumnProjection(column.getName(), column.getArguments()) == null) {
+            if (query.getColumnProjection(column.getAlias(), column.getArguments()) == null) {
                 builder.column(column.withProjected(false));
             }
         });
