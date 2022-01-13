@@ -20,6 +20,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteIn
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteOuterAggregationExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteUtils;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlNode;
@@ -165,7 +167,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                         + dialect.getEndQuote()
                         + "?", "{{\\$" + "$1" + "}}");
 
-        boolean inProjection = source.getColumnProjection(getAlias(), arguments, true) != null;
+        String columnId = (source instanceof SQLTable) ? getName() : getAlias();
+        boolean inProjection = source.getColumnProjection(columnId, arguments, true) != null;
 
         ColumnProjection outerProjection = SQLMetricProjection.builder()
                 .projected(inProjection)

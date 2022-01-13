@@ -20,6 +20,8 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -104,7 +106,8 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
         boolean requiresJoin = SQLColumnProjection.requiresJoin(references);
 
-        boolean inProjection = source.getColumnProjection(getAlias(), getArguments(), true) != null;
+        String columnId = (source instanceof SQLTable) ? getName() : getAlias();
+        boolean inProjection = source.getColumnProjection(columnId, getArguments(), true) != null;
 
         ColumnProjection outerProjection;
         Set<ColumnProjection> innerProjections;

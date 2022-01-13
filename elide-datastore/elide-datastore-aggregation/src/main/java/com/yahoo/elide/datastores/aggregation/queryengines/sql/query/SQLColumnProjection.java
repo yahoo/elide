@@ -20,6 +20,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinRe
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,7 +113,8 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         boolean requiresJoin = requiresJoin(references);
 
-        boolean inProjection = source.getColumnProjection(getAlias(), getArguments(), true) != null;
+        String columnId = (source instanceof SQLTable) ? getName() : getAlias();
+        boolean inProjection = source.getColumnProjection(columnId, getArguments(), true) != null;
 
         ColumnProjection outerProjection;
         Set<ColumnProjection> innerProjections;
