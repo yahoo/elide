@@ -1,10 +1,10 @@
 # Change Log
 
 ## 6.0.6
-**Features
+**Features**
    * [view commit](https://github.com/yahoo/elide/commit/4caaae234214edf6a61bea57531de79520604d54) File Extension Support for Export Attachments (#2475) 
 
-**Fixes
+**Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/93baacfea6628cc724b7fb880326a702651b939b) Make CacheKey Unique for same model name across namespaces (#2477) 
    * [view commit](https://github.com/yahoo/elide/commit/c38857cd07318d5f09b9b087056d627ab01bf156) Cleanup code warnings (#2473) 
    * [view commit](https://github.com/yahoo/elide/commit/ca46fc6726ed161767d46e1060566ca234cdec5e) Bump build-helper-maven-plugin from 3.2.0 to 3.3.0 (#2481) 
