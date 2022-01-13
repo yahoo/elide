@@ -7,13 +7,10 @@ package com.yahoo.elide.datastores.aggregation;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromArgumentSet;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
@@ -47,7 +44,6 @@ public class EntityProjectionTranslator {
     private List<MetricProjection> metrics;
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
-    private EntityDictionary dictionary;
     private Boolean bypassCache;
     private RequestScope scope;
 
@@ -57,7 +53,6 @@ public class EntityProjectionTranslator {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
-        this.dictionary = scope.getDictionary();
         this.bypassCache  = bypassCache;
         this.scope = scope;
         dimensionProjections = resolveNonTimeDimensions();
@@ -124,7 +119,7 @@ public class EntityProjectionTranslator {
             if (queriedTable.getMetric(fieldName) != null) {
 
                 //If the query doesn't contain this metric.
-                if (metrics.stream().noneMatch((metric -> metric.getAlias().equals(fieldName)))) {
+                if (metrics.stream().noneMatch((metric -> metric.getName().equals(fieldName)))) {
 
                     //Construct a new projection and add it to the query.
                     MetricProjection havingMetric = engine.constructMetricProjection(
@@ -201,33 +196,5 @@ public class EntityProjectionTranslator {
                         attribute.getAlias(),
                         getArgumentMapFromArgumentSet(attribute.getArguments())))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Gets relationship names from {@link EntityProjection}.
-     * @return relationships list of {@link Relationship} names
-     */
-    private Set<String> getRelationships() {
-        return entityProjection.getRelationships().stream()
-                .map(Relationship::getName).collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    /**
-     * Gets attribute names from {@link EntityProjection}.
-     * @return relationships list of {@link Attribute} names
-     */
-    private Set<String> getAttributes() {
-        return entityProjection.getAttributes().stream()
-                .map(Attribute::getName).collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    /**
-     * Helper method to get all field names from the {@link EntityProjection}.
-     * @return allFields set of all field names
-     */
-    private Set<String> getAllFields() {
-        Set<String> allFields = getAttributes();
-        allFields.addAll(getRelationships());
-        return allFields;
     }
 }
