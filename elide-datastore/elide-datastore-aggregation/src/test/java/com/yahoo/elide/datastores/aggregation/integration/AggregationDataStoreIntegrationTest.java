@@ -49,6 +49,8 @@ import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.test.graphql.elements.Arguments;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import example.PlayerStats;
@@ -375,6 +377,109 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 ).toJSON())
             )
             .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void parameterizedGraphQLFilterNoAliasTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"orderRatio[numerator:orderMax][denominator:orderMax]>=.5;deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
+                                ),
+                                selections(
+                                        field("orderRatio", "ratio1", arguments(
+                                                argument("numerator", "\"orderMax\""),
+                                                argument("denominator", "\"orderMax\"")
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("ratio1", 1.0)
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void parameterizedGraphQLFilterWithAliasTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"ratio1>=.5;deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
+                                ),
+                                selections(
+                                        field("orderRatio", "ratio1", arguments(
+                                                argument("numerator", "\"orderMax\""),
+                                                argument("denominator", "\"orderMax\"")
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("ratio1", 1.0)
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void parameterizedGraphQLSortWithAliasTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\""),
+                                        argument("sort", "\"ratio1\"")
+                                ),
+                                selections(
+                                        field("orderRatio", "ratio1", arguments(
+                                                argument("numerator", "\"orderMax\""),
+                                                argument("denominator", "\"orderMax\"")
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("ratio1", 1.0)
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test
@@ -1718,6 +1823,46 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("byDay", "2019-07-13"),
                                         field("byMonth", "2019-07"),
                                         field("byQuarter", "2019-07")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    /**
+     * Check if AggregationBeforeJoinOptimizer works with alias
+     * @throws Exception
+     */
+    @Test
+    public void testJoinBeforeAggregationWithAlias() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"highScore\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("countryIsoCode", "countryAlias", Arguments.emptyArgument())
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 1000),
+                                        field("countryAlias", "HKG")
+                                ),
+                                selections(
+                                        field("highScore", 2412),
+                                        field("countryAlias", "USA")
                                 )
                         )
                 )
