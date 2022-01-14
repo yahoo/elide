@@ -113,7 +113,7 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         boolean requiresJoin = requiresJoin(references);
 
-        String columnId = (source instanceof SQLTable) ? getName() : getAlias();
+        String columnId = source.isRoot() ? getName() : getAlias();
         boolean inProjection = source.getColumnProjection(columnId, getArguments(), true) != null;
 
         ColumnProjection outerProjection;
