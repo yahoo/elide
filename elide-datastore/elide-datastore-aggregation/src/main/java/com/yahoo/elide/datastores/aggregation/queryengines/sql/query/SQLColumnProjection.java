@@ -20,8 +20,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinRe
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceExtractor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
