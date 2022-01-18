@@ -6,11 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
-import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
-
-import java.time.ZoneId;
 
 /**
  * H2 SQLDialect.

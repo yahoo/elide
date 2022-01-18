@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
-import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Hour;
 import org.junit.jupiter.api.Test;
 
