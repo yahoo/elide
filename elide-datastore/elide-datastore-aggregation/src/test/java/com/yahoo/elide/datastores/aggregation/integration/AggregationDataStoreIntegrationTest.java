@@ -1871,6 +1871,63 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
+    /**
+     * Check working of alias on simple metrics, 2-pass agg metrics, simple dimensions, join dimension, and date dimension.
+     *
+     * Note that Optimizer is not invoked because of 2 pass aggregation metrics.
+     * @throws Exception
+     */
+    @Test
+    public void testMetricsAndDimensionsWithAlias() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", "highScoreAlias", Arguments.emptyArgument()),
+                                        field("dailyAverageScorePerPeriod", "avgScoreAlias", Arguments.emptyArgument()),
+                                        field("overallRating", "ratingAlias", Arguments.emptyArgument()),
+                                        field("countryIsoCode", "countryAlias", Arguments.emptyArgument()),
+                                        field("recordedDate", "byDay", arguments(
+                                                argument("grain", TimeGrain.DAY)
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScoreAlias", 1000),
+                                        field("avgScoreAlias", 1000.0),
+                                        field("ratingAlias", "Good"),
+                                        field("countryAlias", "HKG"),
+                                        field("byDay", "2019-07-13")
+                                ),
+                                selections(
+                                        field("highScoreAlias", 1234),
+                                        field("avgScoreAlias", 1234),
+                                        field("ratingAlias", "Good"),
+                                        field("countryAlias", "USA"),
+                                        field("byDay", "2019-07-12")
+                                ),
+                                selections(
+                                        field("highScoreAlias", 2412),
+                                        field("avgScoreAlias", 2412),
+                                        field("ratingAlias", "Great"),
+                                        field("countryAlias", "USA"),
+                                        field("byDay", "2019-07-11")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
     @Test
     public void testTimeDimensionArgumentsInFilter() throws Exception {
 
