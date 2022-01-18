@@ -39,12 +39,4 @@ public class H2Dialect extends AbstractSqlDialect {
                 .withUnquotedCasing(Casing.UNCHANGED)
                 .withDatabaseProduct(SqlDialect.DatabaseProduct.H2));
     }
-
-    @Override
-    public Object translateTimeToJDBC(Time time) {
-        if (time.isSupportsHour()) {
-            return time.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        }
-        return time.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-    }
 }
