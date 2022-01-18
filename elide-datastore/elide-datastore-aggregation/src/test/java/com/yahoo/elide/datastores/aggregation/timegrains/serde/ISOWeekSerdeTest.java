@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -46,6 +48,28 @@ public class ISOWeekSerdeTest {
         Serde serde = new ISOWeek.ISOWeekSerde();
         assertThrows(IllegalArgumentException.class, () ->
             serde.deserialize(timestamp)
+        );
+    }
+
+    @Test
+    public void testDeserializeOffsetDateTime() {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
+        ISOWeek expectedDate = new ISOWeek(localDate);
+
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 06, 00, 00, 00, 00, ZoneOffset.UTC);
+
+        Serde serde = new ISOWeek.ISOWeekSerde();
+        Object actualDate = serde.deserialize(dateTime);
+        assertEquals(expectedDate, actualDate);
+    }
+
+    @Test
+    public void testDeserializeOffsetDateTimeNotMonday() {
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 01, 00, 00, 00, 00, ZoneOffset.UTC);
+
+        Serde serde = new ISOWeek.ISOWeekSerde();
+        assertThrows(IllegalArgumentException.class, () ->
+                serde.deserialize(dateTime)
         );
     }
 

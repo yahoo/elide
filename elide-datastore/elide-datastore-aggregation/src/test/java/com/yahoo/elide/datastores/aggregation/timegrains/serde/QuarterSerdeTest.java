@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -54,6 +56,26 @@ public class QuarterSerdeTest {
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Quarter.QuarterSerde();
         Object actualDate = serde.deserialize(timestamp);
+        assertEquals(expectedDate, actualDate);
+    }
+
+    @Test
+    public void testDeserializeOffsetDateTimeNotQuarterMonth() {
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 2, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+
+        Serde serde = new Quarter.QuarterSerde();
+        assertThrows(IllegalArgumentException.class, () ->
+                serde.deserialize(dateTime)
+        );
+    }
+
+    @Test
+    public void testDeserializeOffsetDateTime() {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        Quarter expectedDate = new Quarter(localDate);
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        Serde serde = new Quarter.QuarterSerde();
+        Object actualDate = serde.deserialize(dateTime);
         assertEquals(expectedDate, actualDate);
     }
 

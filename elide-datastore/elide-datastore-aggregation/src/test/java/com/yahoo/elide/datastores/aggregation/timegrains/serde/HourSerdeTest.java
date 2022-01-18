@@ -8,11 +8,14 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Hour;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -47,6 +50,17 @@ public class HourSerdeTest {
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Hour.HourSerde();
         Object actualDate = serde.deserialize(timestamp);
+        assertEquals(expectedDate, actualDate);
+    }
+
+    @Test
+    public void testDeserializeOffsetDateTime() {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 01, 00, 00);
+        Hour expectedDate = new Hour(localDate);
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 01, 01, 00, 00, 00, ZoneOffset.UTC);
+
+        Serde serde = new Hour.HourSerde();
+        Object actualDate = serde.deserialize(dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
