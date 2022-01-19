@@ -1,5 +1,10 @@
 # Change Log
 
+## 6.0.7
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/7a3552d76f8887ab62a60a968412ca442bf745a1) make getColumnProjection() method use different name for column Id for different source when alias are involved (#2500) 
+   * [view commit](https://github.com/yahoo/elide/commit/4c9bff306e4d0d0f9644c705a241edc7104cc1fe) Bump h2 from 2.0.202 to 2.0.206 (#2476) 
+
 ## 6.0.6
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/4caaae234214edf6a61bea57531de79520604d54) File Extension Support for Export Attachments (#2475) 
