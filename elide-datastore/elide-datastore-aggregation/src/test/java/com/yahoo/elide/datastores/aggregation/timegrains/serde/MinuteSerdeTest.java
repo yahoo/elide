@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -48,6 +50,17 @@ public class MinuteSerdeTest {
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Minute.MinuteSerde();
         Object actualDate = serde.deserialize(timestamp);
+        assertEquals(expectedDate, actualDate);
+    }
+
+    @Test
+    public void testDeserializeOffsetDateTime() {
+        String dateInString = "2020-01-01T01:18";
+        Minute expectedDate = new Minute(LocalDateTime.from(formatter.parse(dateInString)));
+
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 01, 01, 18, 0, 0, ZoneOffset.UTC);
+        Serde serde = new Minute.MinuteSerde();
+        Object actualDate = serde.deserialize(dateTime);
         assertEquals(expectedDate, actualDate);
     }
 

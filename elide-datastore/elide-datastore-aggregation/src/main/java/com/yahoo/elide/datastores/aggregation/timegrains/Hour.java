@@ -10,6 +10,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -37,6 +38,10 @@ public class Hour extends Time {
         public Hour deserialize(Object val) {
             if (val instanceof Date) {
                 return new Hour((Date) val);
+            }
+            if (val instanceof OffsetDateTime) {
+                OffsetDateTime offsetDateTime = (OffsetDateTime) val;
+                return new Hour(offsetDateTime.toLocalDateTime());
             }
             return new Hour(LocalDateTime.parse(val.toString(), FORMATTER));
         }

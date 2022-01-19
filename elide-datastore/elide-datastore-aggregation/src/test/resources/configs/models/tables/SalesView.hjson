@@ -163,7 +163,7 @@
           [
             {
               type: MONTH
-              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
+              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
             },
             {
               type: SECOND
@@ -206,7 +206,7 @@
           grains:
           [{
             type: MONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
           }]
         }
         {
@@ -230,7 +230,7 @@
           grains:
           [{
             type: YEAR
-            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy'), 'yyyy')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-01-01'), 'yyyy-MM-dd')
           }]
           filterTemplate: 'deliveryYear=={{deliveryYear}}'
         }
@@ -332,7 +332,7 @@
           grains:
           [{
             type: MONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
           }]
         }
       ]

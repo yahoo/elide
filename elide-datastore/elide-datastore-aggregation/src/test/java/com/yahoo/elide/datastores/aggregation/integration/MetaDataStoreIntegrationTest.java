@@ -438,8 +438,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("included.attributes.expression",
                         containsInAnyOrder(
                                 "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
-                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')",
-                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{$$column.expr}}, 'yyyy-'), 3 * QUARTER({{$$column.expr}}) - 2), 'yyyy-MM')"
+                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')",
+                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{$$column.expr}}, 'yyyy-'), LPAD(3 * QUARTER({{$$column.expr}}) - 2, 2, '0'), '-01'), 'yyyy-MM-dd')"
                         ));
     }
 

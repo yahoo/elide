@@ -10,6 +10,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +39,10 @@ public class Month extends Time {
         public Month deserialize(Object val) {
             if (val instanceof Date) {
                 return new Month((Date) val);
+            }
+            if (val instanceof OffsetDateTime) {
+                OffsetDateTime offsetDateTime = (OffsetDateTime) val;
+                return new Month(offsetDateTime.toLocalDateTime());
             }
             YearMonth yearMonth = YearMonth.parse(val.toString(), FORMATTER);
             LocalDateTime localDateTime = LocalDateTime.of(yearMonth.getYear(), yearMonth.getMonth(), 1, 0, 0);
