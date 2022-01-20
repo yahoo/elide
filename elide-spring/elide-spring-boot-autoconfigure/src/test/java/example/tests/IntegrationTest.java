@@ -26,7 +26,7 @@ public class IntegrationTest {
 
     @BeforeAll
     public void setUp() {
-        TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
+        TimeZone.setDefault(TimeZone.getTimeZone(System.getProperty("user.timezone")));
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
