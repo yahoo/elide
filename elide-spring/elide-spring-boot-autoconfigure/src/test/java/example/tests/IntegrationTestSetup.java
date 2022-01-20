@@ -9,6 +9,7 @@ import static org.mockito.Mockito.spy;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.RefreshableElide;
+import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -72,7 +73,7 @@ public class IntegrationTestSetup {
             }
         }
 
-        Elide elide = new Elide(builder.build());
+        Elide elide = new Elide(builder.build(), new TransactionRegistry(), dictionary.getScanner(), true);
 
         return new RefreshableElide(spy(elide));
     }

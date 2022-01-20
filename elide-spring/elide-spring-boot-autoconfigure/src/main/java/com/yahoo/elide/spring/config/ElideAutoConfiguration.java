@@ -203,7 +203,7 @@ public class ElideAutoConfiguration {
             }
         }
 
-        return new Elide(builder.build(), transactionRegistry, true);
+        Elide elide = new Elide(builder.build(), transactionRegistry, dictionary.getScanner(), true);
 
         return new RefreshableElide(elide);
     }
