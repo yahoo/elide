@@ -16,6 +16,7 @@ import lombok.Value;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,41 @@ public class QueryPlan implements Queryable {
     private List<TimeDimensionProjection> timeDimensionProjections;
 
     private FilterExpression whereFilter;
+
+    public boolean canMerge(QueryPlan other) {
+        if (other.nestDepth() != nestDepth()) {
+            return false;
+        }
+
+        if (! Objects.equals(other.whereFilter, whereFilter)) {
+            return false;
+        }
+
+        for (MetricProjection metric : metricProjections) {
+            MetricProjection otherMetric = other.getMetricProjection(metric.getName());
+            if (! metric.getExpression().equals(otherMetric.getExpression())) {
+                return false;
+            }
+        }
+
+        for (DimensionProjection dimension : getDimensionProjections()) {
+            DimensionProjection otherDimension = other.getDimensionProjection(dimension.getName());
+
+            if (! otherDimension.getArguments().equals(getArguments())) {
+                return false;
+            }
+        }
+
+        for (TimeDimensionProjection dimension : getTimeDimensionProjections()) {
+            TimeDimensionProjection otherDimension = other.getTimeDimensionProjection(dimension.getName());
+
+            if (! otherDimension.getArguments().equals(getArguments())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * Merges two query plans together.  The order of merged metrics and dimensions is preserved such that

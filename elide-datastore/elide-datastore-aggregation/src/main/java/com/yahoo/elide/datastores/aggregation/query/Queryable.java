@@ -193,6 +193,10 @@ public interface Queryable {
                 .collect(Collectors.toList());
     }
 
+    default FilterExpression getWhereFilter() {
+        return null;
+    }
+
     default List<ColumnProjection> getFilterProjections(FilterExpression expression) {
         List<ColumnProjection> results = new ArrayList<>();
         if (expression == null) {
