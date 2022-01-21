@@ -6,10 +6,13 @@
 package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -40,6 +43,7 @@ import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
@@ -47,6 +51,7 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.spring.controllers.SwaggerController;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -57,12 +62,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
-import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -102,6 +108,7 @@ public class ElideAutoConfiguration {
      * @return An instance of DynamicConfiguration.
      */
     @Bean
+    @Scope(SCOPE_PROTOTYPE)
     @ConditionalOnMissingBean
     @ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
     public DynamicConfiguration buildDynamicConfiguration(ClassScanner scanner,
@@ -110,6 +117,12 @@ public class ElideAutoConfiguration {
                 settings.getDynamicConfig().getPath());
         validator.readAndValidateConfigs();
         return validator;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public TransactionRegistry createRegistry() {
+        return new TransactionRegistry();
     }
 
     /**
@@ -139,16 +152,19 @@ public class ElideAutoConfiguration {
      * Creates the Elide instance with standard settings.
      * @param dictionary Stores the static metadata about Elide models.
      * @param dataStore The persistence store.
+     * @param transactionRegistry Global transaction registry.
      * @param settings Elide settings.
      * @return A new elide instance.
      */
     @Bean
+    @RefreshScope
     @ConditionalOnMissingBean
-    public Elide initializeElide(EntityDictionary dictionary,
-                                 DataStore dataStore,
-                                 ElideConfigProperties settings,
-                                 JsonApiMapper mapper,
-                                 ErrorMapper errorMapper) {
+    public RefreshableElide getRefreshableElide(EntityDictionary dictionary,
+                                                DataStore dataStore,
+                                                TransactionRegistry transactionRegistry,
+                                                ElideConfigProperties settings,
+                                                JsonApiMapper mapper,
+                                                ErrorMapper errorMapper) {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
@@ -187,8 +203,16 @@ public class ElideAutoConfiguration {
             }
         }
 
-        Elide elide = new Elide(builder.build());
-        return elide;
+        Elide elide = new Elide(builder.build(), transactionRegistry, dictionary.getScanner(), true);
+
+        return new RefreshableElide(elide);
+    }
+
+    @Bean
+    @RefreshScope
+    @ConditionalOnMissingBean
+    public QueryRunners getQueryRunners(RefreshableElide refreshableElide) {
+        return new QueryRunners(refreshableElide);
     }
 
     /**
@@ -227,6 +251,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
                                             ClassScanner scanner,
                                             @Autowired(required = false) DynamicConfiguration dynamicConfig,
@@ -281,6 +306,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
+    @Scope(SCOPE_PROTOTYPE)
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
                                         @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                         ElideConfigProperties settings,
@@ -333,6 +359,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
                                     ClassScanner scanner,
                                     @Autowired(required = false) QueryEngine queryEngine,
@@ -409,21 +436,27 @@ public class ElideAutoConfiguration {
 
     /**
      * Creates a singular swagger document for JSON-API.
-     * @param dictionary Contains the static metadata about Elide models.
+     * @param elide Singleton elide instance.
      * @param settings Elide configuration settings.
      * @return An instance of a JPA DataStore.
      */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
-    public Swagger buildSwagger(EntityDictionary dictionary, ElideConfigProperties settings) {
+    @RefreshScope
+    public SwaggerController.SwaggerRegistrations buildSwagger(
+            RefreshableElide elide,
+            ElideConfigProperties settings
+    ) {
+        EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
         Info info = new Info()
                 .title(settings.getSwagger().getName())
                 .version(settings.getSwagger().getVersion());
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
-
-        return builder.build().basePath(settings.getJsonApi().getPath());
+        return new SwaggerController.SwaggerRegistrations(
+                builder.build().basePath(settings.getJsonApi().getPath())
+        );
     }
 
     @Bean
@@ -440,6 +473,7 @@ public class ElideAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
     public JsonApiMapper mapper() {
         return new JsonApiMapper();
     }
@@ -470,6 +504,5 @@ public class ElideAutoConfiguration {
 
         return asyncProperties != null && asyncProperties.getExport() != null
                 && asyncProperties.getExport().isEnabled();
-
     }
 }

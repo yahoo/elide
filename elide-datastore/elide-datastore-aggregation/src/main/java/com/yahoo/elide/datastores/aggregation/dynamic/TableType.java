@@ -51,8 +51,6 @@ import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 import org.apache.commons.lang3.StringUtils;
 
-import lombok.EqualsAndHashCode;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
@@ -60,6 +58,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,7 +71,6 @@ import javax.persistence.Id;
 /**
  * A dynamic Elide model that wraps a deserialized HJSON table.
  */
-@EqualsAndHashCode
 public class TableType implements Type<DynamicModelInstance> {
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     private static final String SPACE = " ";
@@ -920,5 +918,22 @@ public class TableType implements Type<DynamicModelInstance> {
                 return table.getName();
             }
         };
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TableType tableType = (TableType) o;
+        return table.equals(tableType.table) && namespace.equals(tableType.namespace);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(table, namespace);
     }
 }

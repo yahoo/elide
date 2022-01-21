@@ -27,6 +27,7 @@ import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
+import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -124,7 +125,8 @@ public class ElideResourceConfig extends ResourceConfig {
 
             ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore,
                     settings.getObjectMapper());
-            Elide elide = new Elide(elideSettings, elideSettings.getDictionary().getScanner(), false);
+            Elide elide = new Elide(elideSettings, new TransactionRegistry(),
+                    elideSettings.getDictionary().getScanner(), false);
 
             // Bind elide instance for injection into endpoint
             bind(elide).to(Elide.class).named("elide");
