@@ -36,6 +36,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
     /**
      * Constructor.
      * @param basePath basePath for storing the files. Can be absolute or relative.
+     * @param enableExtension Enable file extensions.
      */
     public FileResultStorageEngine(String basePath, boolean enableExtension) {
         this.basePath = basePath;

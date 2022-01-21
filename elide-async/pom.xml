@@ -80,6 +80,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+
         <!-- Test -->
         <!-- For Export End-Point Test -->
         <dependency>
