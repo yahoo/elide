@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.google.common.collect.Streams;
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,6 +40,8 @@ public class QueryPlan implements Queryable {
     @Singular
     @NonNull
     private List<TimeDimensionProjection> timeDimensionProjections;
+
+    private FilterExpression whereFilter;
 
     /**
      * Merges two query plans together.  The order of merged metrics and dimensions is preserved such that

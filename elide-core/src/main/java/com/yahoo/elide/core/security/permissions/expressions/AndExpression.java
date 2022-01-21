@@ -11,6 +11,8 @@ import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import lombok.Getter;
 
+import java.util.Objects;
+
 /**
  * Representation for an "And" expression.
  */
@@ -65,5 +67,23 @@ public class AndExpression implements Expression {
 
         }
         return String.format("(%s) AND (%s)", left, right);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AndExpression that = (AndExpression) o;
+        return (Objects.equals(left, that.left) && Objects.equals(right, that.right))
+                || (Objects.equals(left, that.right) && Objects.equals(right, that.left));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(left, right);
     }
 }

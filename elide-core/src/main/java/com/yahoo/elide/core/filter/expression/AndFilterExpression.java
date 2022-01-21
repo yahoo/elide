@@ -5,13 +5,13 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
+
+import java.util.Objects;
 
 /**
  * An 'And' Filter FilterExpression.
  */
-@EqualsAndHashCode
 public class AndFilterExpression implements FilterExpression {
 
     @Getter private FilterExpression left;
@@ -57,5 +57,23 @@ public class AndFilterExpression implements FilterExpression {
     @Override
     public String toString() {
         return String.format("(%s AND %s)", left, right);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AndFilterExpression that = (AndFilterExpression) o;
+        return ((Objects.equals(left, that.left) && Objects.equals(right, that.right))
+                || (Objects.equals(left, that.right) && Objects.equals(right, that.left)));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(left, right);
     }
 }

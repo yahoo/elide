@@ -6,13 +6,13 @@
 
 package com.yahoo.elide.core.filter.expression;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
+
+import java.util.Objects;
 
 /**
  * An 'Or' Filter FilterExpression.
  */
-@EqualsAndHashCode
 public class OrFilterExpression implements FilterExpression {
 
     @Getter private FilterExpression left;
@@ -58,5 +58,23 @@ public class OrFilterExpression implements FilterExpression {
     @Override
     public String toString() {
         return String.format("(%s OR %s)", left, right);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        OrFilterExpression that = (OrFilterExpression) o;
+        return ((Objects.equals(left, that.left) && Objects.equals(right, that.right))
+                || (Objects.equals(left, that.right) && Objects.equals(right, that.left)));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(left, right);
     }
 }
