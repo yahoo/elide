@@ -1,5 +1,29 @@
 # Change Log
 
+## 6.1.0
+Minor release update for partial support for Elide configuration being 'refreshable' in Spring for a live service.  Advanced users overriding some beans may require compilation changes.  
+
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/c38eb980af7f953202cb53faaed14595d3709ed9) Refresh scope beans (#2409) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/833ea32e4a793bd1c7da1d1ad73417c216b1191a) [maven-release-plugin] prepare for nex
+t development iteration 
+   * [view commit](https://github.com/yahoo/elide/commit/7a3552d76f8887ab62a60a968412ca442bf745a1) make getColumnProjection() method use 
+different name for column Id for different source when alias are involved (#2500) 
+   * [view commit](https://github.com/yahoo/elide/commit/4c9bff306e4d0d0f9644c705a241edc7104cc1fe) Bump h2 from 2.0.202 to 2.0.206 (#2476
+) 
+   * [view commit](https://github.com/yahoo/elide/commit/c68b44abdf0b7465695f3fbc347cf3c044f4f1d5) Bump micrometer-core from 1.8.1 to 1.8
+.2 (#2505) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc8d202e113eaa319c2922e86d86d4a8eab31b41) Bump spring-core from 5.3.14 to 5.3.15
+ (#2504) 
+   * [view commit](https://github.com/yahoo/elide/commit/df1dfca185d72ce383b84d5ee803534d7ca16dd3) Bump spring-websocket from 5.3.14 to 5
+.3.15 (#2503) 
+   * [view commit](https://github.com/yahoo/elide/commit/2059c44511bdc4294dd5667baa7c0eed19bc0075) Bump slf4j-api from 1.7.32 to 1.7.33 (
+#2502) 
+   * [view commit](https://github.com/yahoo/elide/commit/5718774759f42be1b6b4f34c962d2b64457c3193) Bump log4j-over-slf4j from 1.7.32 to 1
+.7.33 (#2501) 
+
 ## 6.0.7
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/7a3552d76f8887ab62a60a968412ca442bf745a1) make getColumnProjection() method use different name for column Id for different source when alias are involved (#2500) 
