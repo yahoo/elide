@@ -9,8 +9,6 @@ package com.yahoo.elide.async.service.storageengine;
 import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
 
-import org.apache.commons.lang3.StringUtils;
-
 import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.Setter;
@@ -94,7 +92,7 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
                     }
                     @Override
                     public String next() {
-                        String record = StringUtils.EMPTY;
+                        StringBuilder record = new StringBuilder();
                         long end = recordRead[0] + BATCH_SIZE - 1;
 
                         if (end >= recordCount) {
@@ -105,14 +103,14 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
 
                         while (itr.hasNext()) {
                             String str = itr.next();
-                            record = record.concat(str).concat(System.lineSeparator());
+                            record.append(str).append(System.lineSeparator());
                         }
                         recordRead[0] = recordRead[0] + BATCH_SIZE;
 
                         if (recordRead[0] > recordCount) {
-                            record = record.substring(0, record.length() - 1);
+                            return record.substring(0, record.length() - 1);
                         }
-                        return record;
+                        return record.toString();
                     }
                 });
             }
