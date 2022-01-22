@@ -23,7 +23,10 @@ import java.io.IOException;
  * Test cases for RedisResultStorageEngine.
  */
 public class RedisResultStorageEngineTest {
+    private static final String HOST = "localhost";
     private static final int PORT = 6379;
+    private static final int EXPIRATION_SECONDS = 120;
+    private static final boolean EXTENSION_SUPPORT = false;
     private JedisPool jedisPool;
     private RedisServer redisServer;
 
@@ -31,7 +34,7 @@ public class RedisResultStorageEngineTest {
     public void setup() throws IOException {
         redisServer = new RedisServer(PORT);
         redisServer.start();
-        jedisPool = new JedisPool("localhost", PORT);
+        jedisPool = new JedisPool(HOST, PORT);
     }
 
     @AfterEach
@@ -83,7 +86,7 @@ public class RedisResultStorageEngineTest {
     }
 
     private String readResults(String queryId) {
-        RedisResultStorageEngine engine = new RedisResultStorageEngine(jedisPool, false, 120);
+        RedisResultStorageEngine engine = new RedisResultStorageEngine(jedisPool, EXTENSION_SUPPORT, EXPIRATION_SECONDS);
 
         return engine.getResultsByID(queryId).collect(() -> new StringBuilder(),
                 (resultBuilder, tempResult) -> {
@@ -96,7 +99,7 @@ public class RedisResultStorageEngineTest {
     }
 
     private void storeResults(String queryId, Observable<String> storable) {
-        RedisResultStorageEngine engine = new RedisResultStorageEngine(jedisPool, false, 120);
+        RedisResultStorageEngine engine = new RedisResultStorageEngine(jedisPool, EXTENSION_SUPPORT, EXPIRATION_SECONDS);
         TableExport query = new TableExport();
         query.setId(queryId);
 
