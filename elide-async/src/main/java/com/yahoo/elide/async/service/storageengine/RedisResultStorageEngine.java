@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
+import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
 import io.reactivex.Observable;
 import lombok.Getter;
@@ -14,7 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.time.Instant;
+import java.util.Iterator;
+
 import javax.inject.Singleton;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Implementation of ResultStorageEngine that stores results on Redis Cluster.
@@ -24,6 +30,7 @@ import javax.inject.Singleton;
 @Slf4j
 @Getter
 public class RedisResultStorageEngine implements ResultStorageEngine {
+    private static final int BATCH_SIZE = 500;
     @Setter private JedisPool jedisPool;
     @Setter private boolean enableExtension;
     @Setter private long expirationSeconds;
@@ -37,24 +44,29 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
     public RedisResultStorageEngine(JedisPool jedisPool, boolean enableExtension, long expirationSeconds) {
         this.jedisPool = jedisPool;
         this.enableExtension = enableExtension;
+        this.expirationSeconds = expirationSeconds;
     }
 
     @Override
     public TableExport storeResults(TableExport tableExport, Observable<String> result) {
         log.debug("store TableExportResults for Download");
+        String extension = this.isExtensionEnabled()
+                ? tableExport.getResultType().getFileExtensionType().getExtension()
+                : FileExtensionType.NONE.getExtension();
 
+        String key = tableExport.getId() + extension;
         try (Jedis jedis = jedisPool.getResource()) {
             result
-                .map(record -> record.concat(System.lineSeparator()))
+                .map(record -> record)
                 .subscribe(
                         recordCharArray -> {
-                            jedis.rpush(tableExport.getId(), recordCharArray);
+                            long i = jedis.rpush(key, recordCharArray);
                         },
                         throwable -> {
                             throw new IllegalStateException(STORE_ERROR, throwable);
                         }
                 );
-            jedis.expire(tableExport.getId(), expirationSeconds);
+            jedis.expire(key, expirationSeconds);
         } catch (Exception e) {
             throw new IllegalStateException(STORE_ERROR, e);
         }
@@ -70,44 +82,40 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
             long recordCount = jedis.llen(tableExportID);
 
             if (recordCount == 0) {
-            	throw new IllegalStateException(RETRIEVE_ERROR);
-            } else {
-                return Observable.fromIterable(() -> jedis.lrange(tableExportID, 0, -1).iterator());
-            }
-        }
-
-        /* Alternative approach to go through list one by one.
-        
-        // Workaround for Local variable defined in an enclosing scope must be final or effectively final -> use Array.
-
-        long[] recordRead = {0};
-        long[] recordCount = {0};
-
-        try (Jedis jedis = jedisPool.getResource()) {
-            recordCount[0] = jedis.llen(tableExportID);
-            if (recordCount[0] == 0) {
                 throw new IllegalStateException(RETRIEVE_ERROR);
-            }
-        }
-
-        return Observable.using(
-                () -> jedisPool.getResource(),
-                jedis -> Observable.fromIterable(() -> new Iterator<String>() {
+            } else {
+                // Workaround for Local variable defined in an enclosing scope must be final or effectively final -> use Array.
+                long[] recordRead = {0};
+                return Observable.fromIterable(() -> new Iterator<String>() {
                     @Override
                     public boolean hasNext() {
-                            return recordRead[0] < recordCount[0];
+                            return recordRead[0] < recordCount;
                     }
-
                     @Override
                     public String next() {
-                        long readCount = recordRead[0];
-                        String record = jedis.lindex(tableExportID, readCount++);
-                        recordRead[0] = readCount;
+                        String record = StringUtils.EMPTY;
+                        long end = recordRead[0] + BATCH_SIZE -1;
+
+                        if (end >= recordCount) {
+                            end = recordCount - 1;
+                        }
+
+                        Iterator<String> itr = jedis.lrange(tableExportID, recordRead[0], end).iterator();
+
+                        while (itr.hasNext()) {
+                            String str = itr.next();
+                            record = record.concat(str).concat(System.lineSeparator());
+                        }
+                        recordRead[0] = recordRead[0] + BATCH_SIZE;
+
+                        if(recordRead[0] > recordCount) {
+                            record = record.substring(0, record.length()-1);
+                        }
                         return record;
                     }
-                }),
-                Jedis::close);
-        */
+                });
+            }
+        }
     }
 
     @Override
