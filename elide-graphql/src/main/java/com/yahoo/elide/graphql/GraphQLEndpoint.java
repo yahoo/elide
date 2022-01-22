@@ -78,7 +78,8 @@ public class GraphQLEndpoint {
 
         ElideResponse response;
         if (runner == null) {
-            response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
+            response = buildErrorResponse(elide.getMapper().getObjectMapper(),
+                    new InvalidOperationException("Invalid API Version"), false);
         } else {
             response = runner.run(getBaseUrlEndpoint(uriInfo),
                                   graphQLDocument, user, UUID.randomUUID(), requestHeaders);

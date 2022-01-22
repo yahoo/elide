@@ -9,6 +9,7 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
@@ -16,6 +17,7 @@ import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +52,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 @Configuration
 @RequestMapping(value = "${elide.json-api.path}")
 @ConditionalOnExpression("${elide.json-api.enabled:false}")
+@RefreshScope
 public class JsonApiController {
 
     private final Elide elide;
@@ -58,10 +61,10 @@ public class JsonApiController {
     public static final String JSON_API_PATCH_CONTENT_TYPE = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 
     @Autowired
-    public JsonApiController(Elide elide, ElideConfigProperties settings) {
+    public JsonApiController(RefreshableElide refreshableElide, ElideConfigProperties settings) {
         log.debug("Started ~~");
         this.settings = settings;
-        this.elide = elide;
+        this.elide = refreshableElide.getElide();
     }
 
     private <K, V> MultivaluedHashMap<K, V> convert(MultiValueMap<K, V> springMVMap) {

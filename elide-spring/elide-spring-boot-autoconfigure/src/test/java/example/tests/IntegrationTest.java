@@ -5,6 +5,8 @@
  */
 package example.tests;
 
+import static io.restassured.RestAssured.given;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,5 +31,15 @@ public class IntegrationTest {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+    }
+
+    public void refreshServer() {
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/actuator/refresh")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_OK);
     }
 }

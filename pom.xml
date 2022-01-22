@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>6.0.7-SNAPSHOT</version>
+    <version>6.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -96,7 +96,7 @@
         <jsonpath.version>2.6.0</jsonpath.version>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <hibernate5.version>5.6.1.Final</hibernate5.version>
-        <slf4j-api.version>1.7.32</slf4j-api.version>
+        <slf4j-api.version>1.7.33</slf4j-api.version>
         <maven-site-plugin-version>3.10.0</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
 
@@ -127,7 +127,7 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
-                <version>1.7.32</version>
+                <version>1.7.33</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>

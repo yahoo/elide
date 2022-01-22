@@ -21,6 +21,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -133,7 +134,7 @@ public class ErrorMapperTest {
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, ErrorMapper errorMapper) {
         ElideSettings settings = getElideSettings(dataStore, dictionary, errorMapper);
-        return new Elide(settings, settings.getDictionary().getScanner(), false);
+        return new Elide(settings, new TransactionRegistry(), settings.getDictionary().getScanner(), false);
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, ErrorMapper errorMapper) {
