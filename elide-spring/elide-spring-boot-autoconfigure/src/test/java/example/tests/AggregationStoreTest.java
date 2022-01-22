@@ -38,6 +38,7 @@ import java.util.Map;
                     + "\t\t(2,150,'Bar');"
 })
 public class AggregationStoreTest extends IntegrationTest {
+
     /**
      * This test demonstrates an example test using the aggregation store.
      */

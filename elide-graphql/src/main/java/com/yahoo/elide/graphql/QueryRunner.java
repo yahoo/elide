@@ -35,6 +35,7 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.AsyncSerialExecutionStrategy;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -53,10 +54,14 @@ import javax.ws.rs.core.Response;
  */
 @Slf4j
 public class QueryRunner {
+
+    @Getter
     private final Elide elide;
     private GraphQL api;
-    private String apiVersion;
+    private ObjectMapper mapper;
 
+    @Getter
+    private String apiVersion;
 
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
@@ -70,6 +75,7 @@ public class QueryRunner {
     public QueryRunner(Elide elide, String apiVersion) {
         this.elide = elide;
         this.apiVersion = apiVersion;
+        this.mapper = elide.getMapper().getObjectMapper();
 
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
 
@@ -154,7 +160,7 @@ public class QueryRunner {
             log.debug("Invalid json body provided to GraphQL", e);
             // NOTE: Can't get at isVerbose setting here for hardcoding to false. If necessary, we can refactor
             // so this can be set appropriately.
-            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), false);
+            return buildErrorResponse(mapper, new InvalidEntityBodyException(graphQLDocument), false);
         }
 
         List<ElideResponse> responses = new ArrayList<>();
@@ -306,10 +312,10 @@ public class QueryRunner {
                     .build();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
-            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), isVerbose);
+            return buildErrorResponse(mapper, new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
-            return buildErrorResponse(elide, new TransactionException(e), isVerbose);
+            return buildErrorResponse(mapper, new TransactionException(e), isVerbose);
         } catch (RuntimeException e) {
             return handleRuntimeException(elide, e, isVerbose);
         } finally {
@@ -320,9 +326,10 @@ public class QueryRunner {
 
     public static ElideResponse handleRuntimeException(Elide elide, RuntimeException error, boolean isVerbose) {
         CustomErrorException mappedException = elide.mapError(error);
+        ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         if (mappedException != null) {
-            return buildErrorResponse(elide, mappedException, isVerbose);
+            return buildErrorResponse(mapper, mappedException, isVerbose);
         }
 
         if (error instanceof WebApplicationException) {
@@ -343,7 +350,7 @@ public class QueryRunner {
                 log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             }
 
-            return buildErrorResponse(elide, new HttpStatusException(200, e.getMessage()) {
+            return buildErrorResponse(mapper, new HttpStatusException(200, e.getMessage()) {
                 @Override
                 public int getStatus() {
                     return 200;
@@ -387,7 +394,7 @@ public class QueryRunner {
                 }
             }
             return buildErrorResponse(
-                    elide,
+                    mapper,
                     new CustomErrorException(HttpStatus.SC_OK, message, errorObjectsBuilder.build()),
                     isVerbose
             );
@@ -397,8 +404,7 @@ public class QueryRunner {
         throw new RuntimeException(error);
     }
 
-    public static ElideResponse buildErrorResponse(Elide elide, HttpStatusException error, boolean isVerbose) {
-        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+    public static ElideResponse buildErrorResponse(ObjectMapper mapper, HttpStatusException error, boolean isVerbose) {
         JsonNode errorNode;
         if (!(error instanceof CustomErrorException)) {
             // get the error message and optionally encode it

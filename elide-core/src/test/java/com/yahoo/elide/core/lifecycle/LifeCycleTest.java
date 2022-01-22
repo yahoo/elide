@@ -36,6 +36,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
@@ -1350,7 +1351,7 @@ public class LifeCycleTest {
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
         ElideSettings settings = getElideSettings(dataStore, dictionary, auditLogger);
-        return new Elide(settings, settings.getDictionary().getScanner(), false);
+        return new Elide(settings, new TransactionRegistry(), settings.getDictionary().getScanner(), false);
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {

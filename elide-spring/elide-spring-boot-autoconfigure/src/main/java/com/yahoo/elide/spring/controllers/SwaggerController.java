@@ -12,6 +12,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
  * Spring REST controller for exposing Swagger documentation.
  */
 @Slf4j
+@RefreshScope
 @RestController
 @Configuration
 @RequestMapping(value = "${elide.swagger.path}")
@@ -46,6 +48,20 @@ public class SwaggerController {
     //Maps api version & path to swagger document.
     protected Map<Pair<String, String>, String> documents;
     private static final String JSON_CONTENT_TYPE = "application/json";
+
+    /**
+     * Wraps a list of swagger registrations so that they can be wrapped with an AOP proxy.
+     */
+    @Data
+    @AllArgsConstructor
+    public static class SwaggerRegistrations {
+
+        public SwaggerRegistrations(Swagger doc) {
+            registrations = List.of(new SwaggerRegistration("", doc));
+        }
+
+        List<SwaggerRegistration> registrations;
+    }
 
     @Data
     @AllArgsConstructor
@@ -59,28 +75,18 @@ public class SwaggerController {
      *
      * @param docs A list of documents to register.
      */
-    @Autowired(required = false)
-    public SwaggerController(List<SwaggerRegistration> docs) {
+    @Autowired
+    public SwaggerController(SwaggerRegistrations docs) {
         log.debug("Started ~~");
         documents = new HashMap<>();
 
-        docs.forEach((doc) -> {
+        docs.getRegistrations().forEach((doc) -> {
             String apiVersion = doc.document.getInfo().getVersion();
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
             documents.put(Pair.of(apiVersion, apiPath), SwaggerBuilder.getDocument(doc.document));
         });
-    }
-
-    @Autowired(required = false)
-    public SwaggerController(Swagger doc) {
-        log.debug("Started ~~");
-        documents = new HashMap<>();
-        String apiVersion = doc.getInfo().getVersion();
-        apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
-
-        documents.put(Pair.of(apiVersion, ""), SwaggerBuilder.getDocument(doc));
     }
 
     @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)
