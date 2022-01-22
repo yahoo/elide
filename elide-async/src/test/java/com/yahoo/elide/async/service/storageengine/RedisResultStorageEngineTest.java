@@ -26,17 +26,17 @@ public class RedisResultStorageEngineTest {
     private static final int PORT = 6379;
     private JedisPool jedisPool;
     private RedisServer redisServer;
-    
+
     @BeforeEach
     public void setup() throws IOException {
-    	redisServer = new RedisServer(PORT);
-    	redisServer.start();
-    	jedisPool = new JedisPool("localhost", PORT);
+        redisServer = new RedisServer(PORT);
+        redisServer.start();
+        jedisPool = new JedisPool("localhost", PORT);
     }
 
     @AfterEach
     public void destroy() throws IOException {
-    	redisServer.stop();
+        redisServer.stop();
     }
 
     @Test
@@ -75,7 +75,7 @@ public class RedisResultStorageEngineTest {
     // Redis server does not exist.
     @Test
     public void testStoreResultsFail() throws IOException {
-    	destroy();
+        destroy();
         assertThrows(IllegalStateException.class, () ->
                 storeResults("store_results_fail",
                         Observable.fromArray(new String[]{"hi", "hello"}))
@@ -83,7 +83,7 @@ public class RedisResultStorageEngineTest {
     }
 
     private String readResults(String queryId) {
-    	RedisResultStorageEngine engine = new RedisResultStorageEngine(jedisPool, false, 120);
+        RedisResultStorageEngine engine = new RedisResultStorageEngine(jedisPool, false, 120);
 
         return engine.getResultsByID(queryId).collect(() -> new StringBuilder(),
                 (resultBuilder, tempResult) -> {

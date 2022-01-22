@@ -8,6 +8,9 @@ package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
+
+import org.apache.commons.lang3.StringUtils;
+
 import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,12 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.time.Instant;
 import java.util.Iterator;
 
 import javax.inject.Singleton;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Implementation of ResultStorageEngine that stores results on Redis Cluster.
@@ -77,14 +77,15 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
     @Override
     public Observable<String> getResultsByID(String tableExportID) {
         log.debug("getTableExportResultsByID");
-        
+
         try (Jedis jedis = jedisPool.getResource()) {
             long recordCount = jedis.llen(tableExportID);
 
             if (recordCount == 0) {
                 throw new IllegalStateException(RETRIEVE_ERROR);
             } else {
-                // Workaround for Local variable defined in an enclosing scope must be final or effectively final -> use Array.
+                // Workaround for Local variable defined in an enclosing scope must be final or effectively final;
+                // use Array.
                 long[] recordRead = {0};
                 return Observable.fromIterable(() -> new Iterator<String>() {
                     @Override
@@ -94,7 +95,7 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
                     @Override
                     public String next() {
                         String record = StringUtils.EMPTY;
-                        long end = recordRead[0] + BATCH_SIZE -1;
+                        long end = recordRead[0] + BATCH_SIZE - 1;
 
                         if (end >= recordCount) {
                             end = recordCount - 1;
@@ -108,8 +109,8 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
                         }
                         recordRead[0] = recordRead[0] + BATCH_SIZE;
 
-                        if(recordRead[0] > recordCount) {
-                            record = record.substring(0, record.length()-1);
+                        if (recordRead[0] > recordCount) {
+                            record = record.substring(0, record.length() - 1);
                         }
                         return record;
                     }
