@@ -101,16 +101,15 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
 
                         Iterator<String> itr = jedis.lrange(tableExportID, recordRead[0], end).iterator();
 
+                        // Combine the list into a single string.
                         while (itr.hasNext()) {
                             String str = itr.next();
                             record.append(str).append(System.lineSeparator());
                         }
                         recordRead[0] = recordRead[0] + BATCH_SIZE;
 
-                        if (recordRead[0] > recordCount) {
-                            return record.substring(0, record.length() - 1);
-                        }
-                        return record.toString();
+                        // Removing the last line separator because ExportEndPoint will add 1 more.
+                        return record.substring(0, record.length() - System.lineSeparator().length());
                     }
                 });
             }
