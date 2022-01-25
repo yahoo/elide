@@ -7,6 +7,8 @@
 package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.async.models.TableExportResult;
+
 import io.reactivex.Observable;
 
 /**
@@ -20,9 +22,9 @@ public interface ResultStorageEngine {
      * Stores the result of the query.
      * @param tableExport TableExport object
      * @param result is the observable result obtained by running the query
-     * @return String to store as attachment. Can be null.
+     * @return TableExportResult.
      */
-    public TableExport storeResults(TableExport tableExport, Observable<String> result);
+    public TableExportResult storeResults(TableExport tableExport, Observable<String> result);
 
     /**
      * Searches for the async query results by ID and returns the record.

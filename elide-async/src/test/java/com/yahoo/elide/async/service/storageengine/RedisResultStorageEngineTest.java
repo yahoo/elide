@@ -14,10 +14,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
 import redis.clients.jedis.JedisPool;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Test cases for RedisResultStorageEngine.
@@ -26,15 +29,18 @@ public class RedisResultStorageEngineTest {
     private static final String HOST = "localhost";
     private static final int PORT = 6379;
     private static final int EXPIRATION_SECONDS = 120;
+    private static final int BATCH_SIZE = 2;
     private static final boolean EXTENSION_SUPPORT = false;
     private JedisPool jedisPool;
     private RedisServer redisServer;
+    RedisResultStorageEngine engine;
 
     @BeforeEach
     public void setup() throws IOException {
         redisServer = new RedisServer(PORT);
         redisServer.start();
         jedisPool = new JedisPool(HOST, PORT);
+        engine = new RedisResultStorageEngine(jedisPool, EXTENSION_SUPPORT, EXPIRATION_SECONDS, BATCH_SIZE);
     }
 
     @AfterEach
@@ -45,7 +51,7 @@ public class RedisResultStorageEngineTest {
     @Test
     public void testReadNonExistent() {
         assertThrows(IllegalStateException.class, () ->
-                readResults("nonexisting_results")
+                verifyResults("nonexisting_results", Arrays.asList(""))
         );
     }
 
@@ -58,8 +64,7 @@ public class RedisResultStorageEngineTest {
         storeResults(queryId, Observable.fromArray(input));
 
         // verify contents of stored files are readable and match original
-        String finalResult = readResults(queryId);
-        assertEquals(validOutput, finalResult);
+        verifyResults("store_empty_results_success", Arrays.asList(validOutput));
     }
 
     @Test
@@ -71,8 +76,7 @@ public class RedisResultStorageEngineTest {
         storeResults(queryId, Observable.fromArray(input));
 
         // verify contents of stored files are readable and match original
-        String finalResult = readResults(queryId);
-        assertEquals(validOutput, finalResult);
+        verifyResults("store_results_success", Arrays.asList(validOutput));
     }
 
     // Redis server does not exist.
@@ -85,21 +89,32 @@ public class RedisResultStorageEngineTest {
         );
     }
 
-    private String readResults(String queryId) {
-        RedisResultStorageEngine engine = new RedisResultStorageEngine(jedisPool, EXTENSION_SUPPORT, EXPIRATION_SECONDS);
+    @Test
+    public void testReadResultsBatch() {
+        String queryId = "store_results_batch_success";
+        // 3 records > batchSize i.e 2
+        String validOutput = "hi\nhello\nbye";
+        String[] input = validOutput.split("\n");
 
-        return engine.getResultsByID(queryId).collect(() -> new StringBuilder(),
-                (resultBuilder, tempResult) -> {
-                    if (resultBuilder.length() > 0) {
-                        resultBuilder.append(System.lineSeparator());
-                    }
-                    resultBuilder.append(tempResult);
-                }
-            ).map(StringBuilder::toString).blockingGet();
+        storeResults(queryId, Observable.fromArray(input));
+
+        // 2 onnext calls will be returned.
+        // 1st call will have 2 records combined together as one. hi and hello.
+        // 2nd call will have 1 record only. bye.
+        verifyResults("store_results_batch_success", Arrays.asList("hi\nhello", "bye"));
+    }
+
+    private void verifyResults(String queryId, List<String> expected) {
+        TestObserver<String> subscriber = new TestObserver<>();
+
+        Observable<String> observable = engine.getResultsByID(queryId);
+
+        observable.subscribe(subscriber);
+        subscriber.assertComplete();
+        assertEquals(subscriber.getEvents().iterator().next(), expected);
     }
 
     private void storeResults(String queryId, Observable<String> storable) {
-        RedisResultStorageEngine engine = new RedisResultStorageEngine(jedisPool, EXTENSION_SUPPORT, EXPIRATION_SECONDS);
         TableExport query = new TableExport();
         query.setId(queryId);
 

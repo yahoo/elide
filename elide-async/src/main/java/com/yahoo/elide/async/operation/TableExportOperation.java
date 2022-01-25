@@ -103,7 +103,11 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             Observable<String> interimResults = concatStringWithObservable(preResult, results, true);
             Observable<String> finalResults = concatStringWithObservable(postResult, interimResults, false);
 
-            storeResults(exportObj, engine, finalResults);
+            TableExportResult result = storeResults(exportObj, engine, finalResults);
+
+            if (result != null && result.getMessage() != null) {
+                throw new IllegalStateException(result.getMessage());
+            }
 
             exportResult.setUrl(new URL(generateDownloadURL(exportObj, scope)));
             exportResult.setRecordCount(recordNumber);
@@ -171,9 +175,9 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param exportObj TableExport type object.
      * @param resultStorageEngine ResultStorageEngine instance.
      * @param result Observable of String Results to store.
-     * @return TableExport object.
+     * @return TableExportResult object.
      */
-    protected TableExport storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
+    protected TableExportResult storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
             Observable<String> result) {
         return resultStorageEngine.storeResults(exportObj, result);
     }

@@ -8,6 +8,7 @@ package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.async.models.TableExportResult;
 
 import io.reactivex.Observable;
 import lombok.Getter;
@@ -28,39 +29,48 @@ import javax.inject.Singleton;
 @Slf4j
 @Getter
 public class RedisResultStorageEngine implements ResultStorageEngine {
-    private static final int BATCH_SIZE = 500;
     @Setter private JedisPool jedisPool;
     @Setter private boolean enableExtension;
     @Setter private long expirationSeconds;
+    @Setter private long batchSize;
 
     /**
      * Constructor.
      * @param jedisPool Jedis Connection Pool to Redis clusteer.
      * @param enableExtension Enable file extensions.
      * @param expirationSeconds Expiration Time for results on Redis.
+     * @param batchSize Batch Size for retrieving from Redis.
      */
-    public RedisResultStorageEngine(JedisPool jedisPool, boolean enableExtension, long expirationSeconds) {
+    public RedisResultStorageEngine(JedisPool jedisPool, boolean enableExtension, long expirationSeconds,
+            long batchSize) {
         this.jedisPool = jedisPool;
         this.enableExtension = enableExtension;
         this.expirationSeconds = expirationSeconds;
+        this.batchSize = batchSize;
     }
 
     @Override
-    public TableExport storeResults(TableExport tableExport, Observable<String> result) {
+    public TableExportResult storeResults(TableExport tableExport, Observable<String> result) {
         log.debug("store TableExportResults for Download");
         String extension = this.isExtensionEnabled()
                 ? tableExport.getResultType().getFileExtensionType().getExtension()
                 : FileExtensionType.NONE.getExtension();
 
+        TableExportResult exportResult = new TableExportResult();
         String key = tableExport.getId() + extension;
         try (Jedis jedis = jedisPool.getResource()) {
             result
                 .map(record -> record)
                 .subscribe(
                         recordCharArray -> {
-                            long i = jedis.rpush(key, recordCharArray);
+                            jedis.rpush(key, recordCharArray);
                         },
                         throwable -> {
+                            StringBuilder message = new StringBuilder();
+                            message.append(throwable.getClass().getCanonicalName()).append(" : ");
+                            message.append(throwable.getMessage());
+                            exportResult.setMessage(message.toString());
+
                             throw new IllegalStateException(STORE_ERROR, throwable);
                         }
                 );
@@ -69,7 +79,7 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
             throw new IllegalStateException(STORE_ERROR, e);
         }
 
-        return tableExport;
+        return exportResult;
     }
 
     @Override
@@ -84,7 +94,7 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
             } else {
                 // Workaround for Local variable defined in an enclosing scope must be final or effectively final;
                 // use Array.
-                long[] recordRead = {0};
+                long[] recordRead = {0}; // index to start.
                 return Observable.fromIterable(() -> new Iterator<String>() {
                     @Override
                     public boolean hasNext() {
@@ -93,7 +103,7 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
                     @Override
                     public String next() {
                         StringBuilder record = new StringBuilder();
-                        long end = recordRead[0] + BATCH_SIZE - 1;
+                        long end = recordRead[0] + batchSize - 1; // index of last element.
 
                         if (end >= recordCount) {
                             end = recordCount - 1;
@@ -106,7 +116,7 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
                             String str = itr.next();
                             record.append(str).append(System.lineSeparator());
                         }
-                        recordRead[0] = recordRead[0] + BATCH_SIZE;
+                        recordRead[0] = end + 1; //index for next element to be read
 
                         // Removing the last line separator because ExportEndPoint will add 1 more.
                         return record.substring(0, record.length() - System.lineSeparator().length());

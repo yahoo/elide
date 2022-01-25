@@ -8,6 +8,8 @@ package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.async.models.TableExportResult;
+
 import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,12 +46,13 @@ public class FileResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public TableExport storeResults(TableExport tableExport, Observable<String> result) {
+    public TableExportResult storeResults(TableExport tableExport, Observable<String> result) {
         log.debug("store TableExportResults for Download");
         String extension = this.isExtensionEnabled()
                 ? tableExport.getResultType().getFileExtensionType().getExtension()
                 : FileExtensionType.NONE.getExtension();
 
+       TableExportResult exportResult = new TableExportResult();
         try (BufferedWriter writer = getWriter(tableExport.getId(), extension)) {
             result
                 .map(record -> record.concat(System.lineSeparator()))
@@ -59,6 +62,11 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                             writer.flush();
                         },
                         throwable -> {
+                            StringBuilder message = new StringBuilder();
+                            message.append(throwable.getClass().getCanonicalName()).append(" : ");
+                            message.append(throwable.getMessage());
+                            exportResult.setMessage(message.toString());
+
                             throw new IllegalStateException(STORE_ERROR, throwable);
                         },
                         writer::flush
@@ -67,7 +75,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             throw new IllegalStateException(STORE_ERROR, e);
         }
 
-        return tableExport;
+        return exportResult;
     }
 
     @Override
