@@ -398,7 +398,7 @@ public class SQLQueryEngine extends QueryEngine {
                     throw new UnsupportedOperationException("Incompatible metrics in client query.  Cannot merge "
                             + "into a single query");
                 }
-                mergedPlan = merger.merge(mergedPlan, queryPlan);
+                mergedPlan = merger.merge(queryPlan, mergedPlan);
             }
         }
 

@@ -32,7 +32,16 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
         }
 
         if (a.nestDepth() != b.nestDepth()) {
-            return false;
+            if (a.nestDepth() > b.nestDepth() && !b.canNest(metaDataStore)) {
+                return false;
+            }
+
+            if (b.nestDepth() > a.nestDepth() && !a.canNest(metaDataStore)) {
+                return false;
+            }
+
+            a = nestToDepth(a, b.nestDepth());
+            b = nestToDepth(b, a.nestDepth());
         }
 
         if (! Objects.equals(a.getWhereFilter(), b.getWhereFilter())) {
@@ -73,17 +82,8 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
             return b;
         }
 
-        while (a.nestDepth() > b.nestDepth()) {
-            //TODO - update the reference table on each call to nest.
-            //Needed for nesting depth > 2
-            b = b.nest(metaDataStore);
-        }
-
-        while (b.nestDepth() > a.nestDepth()) {
-            //TODO - update the reference table on each call to nest.
-            //Needed for nesting depth > 2
-            a = a.nest(metaDataStore);
-        }
+        a = nestToDepth(a, b.nestDepth());
+        b = nestToDepth(b, a.nestDepth());
 
         assert (a.isNested() || a.getSource().equals(b.getSource()));
 
@@ -101,7 +101,7 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
                     .source(a.getSource())
                     .metricProjections(metrics)
                     .dimensionProjections(dimensions)
-                    .whereFilter()
+                    .whereFilter(a.getWhereFilter())
                     .timeDimensionProjections(timeDimensions)
                     .build();
         }
@@ -112,5 +112,12 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
                 .dimensionProjections(dimensions)
                 .timeDimensionProjections(timeDimensions)
                 .build();
+    }
+
+    private QueryPlan nestToDepth(QueryPlan plan, int depth) {
+        while (plan.nestDepth() < depth) {
+            plan = plan.nest(metaDataStore);
+        }
+        return plan;
     }
 }

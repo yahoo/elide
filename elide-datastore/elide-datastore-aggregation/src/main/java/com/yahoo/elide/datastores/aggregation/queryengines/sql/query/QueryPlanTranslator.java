@@ -70,7 +70,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
             throw new UnsupportedOperationException("Cannot nest one or more dimensions from the client query");
         }
 
-        QueryPlan merged = merger.merge(plan, clientQueryPlan);
+        QueryPlan merged = merger.merge(clientQueryPlan, plan);
 
         //Decorate the result with filters, sorting, and pagination.
         return merged.accept(this).build();

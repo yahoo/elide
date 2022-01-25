@@ -6,8 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 /**
  * Merges multiple query plans into a smaller set (one if possible).
  */
