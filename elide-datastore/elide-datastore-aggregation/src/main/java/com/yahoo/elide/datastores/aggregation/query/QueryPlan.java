@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.google.common.collect.Streams;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
 import lombok.NonNull;
@@ -16,7 +15,6 @@ import lombok.Value;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,99 +41,6 @@ public class QueryPlan implements Queryable {
     private List<TimeDimensionProjection> timeDimensionProjections;
 
     private FilterExpression whereFilter;
-
-    /**
-     * After nesting a query plan, determine if the two plans can be merged together.
-     * @param other The plan to merge with.
-     * @return True if the plans can be merged.  False otherwise.
-     */
-    public boolean canMerge(QueryPlan other) {
-        if (other.nestDepth() != nestDepth()) {
-            return false;
-        }
-
-        if (! Objects.equals(other.whereFilter, whereFilter)) {
-            return false;
-        }
-
-        for (MetricProjection metric : metricProjections) {
-            MetricProjection otherMetric = other.getMetricProjection(metric.getName());
-            if (! metric.getExpression().equals(otherMetric.getExpression())) {
-                return false;
-            }
-        }
-
-        for (DimensionProjection dimension : getDimensionProjections()) {
-            DimensionProjection otherDimension = other.getDimensionProjection(dimension.getName());
-
-            if (! otherDimension.getArguments().equals(getArguments())) {
-                return false;
-            }
-        }
-
-        for (TimeDimensionProjection dimension : getTimeDimensionProjections()) {
-            TimeDimensionProjection otherDimension = other.getTimeDimensionProjection(dimension.getName());
-
-            if (! otherDimension.getArguments().equals(getArguments())) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Merges two query plans together.  The order of merged metrics and dimensions is preserved such that
-     * the current plan metrics and dimensions come after the requested plan metrics and dimensions.
-     * @param other The other query to merge.
-     * @return A new merged query plan.
-     */
-    public QueryPlan merge(QueryPlan other, MetaDataStore metaDataStore) {
-        QueryPlan self = this;
-
-        if (other == null) {
-            return this;
-        }
-
-        while (other.nestDepth() > self.nestDepth()) {
-            //TODO - update the reference table on each call to nest.
-            //Needed for nesting depth > 2
-            self = self.nest(metaDataStore);
-        }
-
-        while (self.nestDepth() > other.nestDepth()) {
-            //TODO - update the reference table on each call to nest.
-            //Needed for nesting depth > 2
-            other = other.nest(metaDataStore);
-        }
-
-        assert (self.isNested() || getSource().equals(other.getSource()));
-
-        Set<MetricProjection> metrics = Streams.concat(other.metricProjections.stream(),
-                self.metricProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Set<TimeDimensionProjection> timeDimensions = Streams.concat(other.timeDimensionProjections.stream(),
-                self.timeDimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Set<DimensionProjection> dimensions = Streams.concat(other.dimensionProjections.stream(),
-                self.dimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-
-        if (!self.isNested()) {
-            return QueryPlan.builder()
-                    .source(self.getSource())
-                    .metricProjections(metrics)
-                    .dimensionProjections(dimensions)
-                    .timeDimensionProjections(timeDimensions)
-                    .build();
-        }
-        Queryable mergedSource = ((QueryPlan) self.getSource()).merge((QueryPlan) other.getSource(), metaDataStore);
-        return QueryPlan.builder()
-                .source(mergedSource)
-                .metricProjections(metrics)
-                .dimensionProjections(dimensions)
-                .timeDimensionProjections(timeDimensions)
-                .build();
-    }
 
     /**
      * Tests whether or not this plan can be nested.
