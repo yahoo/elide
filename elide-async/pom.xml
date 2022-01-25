@@ -80,7 +80,19 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+
         <!-- Test -->
+        <dependency>
+            <groupId>com.github.codemonstur</groupId>
+            <artifactId>embedded-redis</artifactId>
+            <version>0.11.0</version>
+            <scope>test</scope>
+        </dependency>
         <!-- For Export End-Point Test -->
         <dependency>
             <groupId>javax.servlet</groupId>
