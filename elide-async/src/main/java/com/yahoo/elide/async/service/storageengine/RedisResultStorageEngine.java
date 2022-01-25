@@ -14,8 +14,7 @@ import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.UnifiedJedis;
 
 import java.util.Iterator;
 
@@ -29,7 +28,7 @@ import javax.inject.Singleton;
 @Slf4j
 @Getter
 public class RedisResultStorageEngine implements ResultStorageEngine {
-    @Setter private JedisPool jedisPool;
+    @Setter private UnifiedJedis jedis;
     @Setter private boolean enableExtension;
     @Setter private long expirationSeconds;
     @Setter private long batchSize;
@@ -41,9 +40,9 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
      * @param expirationSeconds Expiration Time for results on Redis.
      * @param batchSize Batch Size for retrieving from Redis.
      */
-    public RedisResultStorageEngine(JedisPool jedisPool, boolean enableExtension, long expirationSeconds,
+    public RedisResultStorageEngine(UnifiedJedis jedis, boolean enableExtension, long expirationSeconds,
             long batchSize) {
-        this.jedisPool = jedisPool;
+        this.jedis = jedis;
         this.enableExtension = enableExtension;
         this.expirationSeconds = expirationSeconds;
         this.batchSize = batchSize;
@@ -58,26 +57,23 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
 
         TableExportResult exportResult = new TableExportResult();
         String key = tableExport.getId() + extension;
-        try (Jedis jedis = jedisPool.getResource()) {
-            result
-                .map(record -> record)
-                .subscribe(
-                        recordCharArray -> {
-                            jedis.rpush(key, recordCharArray);
-                        },
-                        throwable -> {
-                            StringBuilder message = new StringBuilder();
-                            message.append(throwable.getClass().getCanonicalName()).append(" : ");
-                            message.append(throwable.getMessage());
-                            exportResult.setMessage(message.toString());
 
-                            throw new IllegalStateException(STORE_ERROR, throwable);
-                        }
-                );
-            jedis.expire(key, expirationSeconds);
-        } catch (Exception e) {
-            throw new IllegalStateException(STORE_ERROR, e);
-        }
+        result
+            .map(record -> record)
+            .subscribe(
+                    recordCharArray -> {
+                        jedis.rpush(key, recordCharArray);
+                    },
+                    throwable -> {
+                        StringBuilder message = new StringBuilder();
+                        message.append(throwable.getClass().getCanonicalName()).append(" : ");
+                        message.append(throwable.getMessage());
+                        exportResult.setMessage(message.toString());
+
+                        throw new IllegalStateException(STORE_ERROR, throwable);
+                    }
+            );
+        jedis.expire(key, expirationSeconds);
 
         return exportResult;
     }
@@ -86,43 +82,41 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
     public Observable<String> getResultsByID(String tableExportID) {
         log.debug("getTableExportResultsByID");
 
-        try (Jedis jedis = jedisPool.getResource()) {
-            long recordCount = jedis.llen(tableExportID);
+        long recordCount = jedis.llen(tableExportID);
 
-            if (recordCount == 0) {
-                throw new IllegalStateException(RETRIEVE_ERROR);
-            } else {
-                // Workaround for Local variable defined in an enclosing scope must be final or effectively final;
-                // use Array.
-                long[] recordRead = {0}; // index to start.
-                return Observable.fromIterable(() -> new Iterator<String>() {
-                    @Override
-                    public boolean hasNext() {
-                            return recordRead[0] < recordCount;
+        if (recordCount == 0) {
+            throw new IllegalStateException(RETRIEVE_ERROR);
+        } else {
+            // Workaround for Local variable defined in an enclosing scope must be final or effectively final;
+            // use Array.
+            long[] recordRead = {0}; // index to start.
+            return Observable.fromIterable(() -> new Iterator<String>() {
+                @Override
+                public boolean hasNext() {
+                        return recordRead[0] < recordCount;
+                }
+                @Override
+                public String next() {
+                    StringBuilder record = new StringBuilder();
+                    long end = recordRead[0] + batchSize - 1; // index of last element.
+
+                    if (end >= recordCount) {
+                        end = recordCount - 1;
                     }
-                    @Override
-                    public String next() {
-                        StringBuilder record = new StringBuilder();
-                        long end = recordRead[0] + batchSize - 1; // index of last element.
 
-                        if (end >= recordCount) {
-                            end = recordCount - 1;
-                        }
+                    Iterator<String> itr = jedis.lrange(tableExportID, recordRead[0], end).iterator();
 
-                        Iterator<String> itr = jedis.lrange(tableExportID, recordRead[0], end).iterator();
-
-                        // Combine the list into a single string.
-                        while (itr.hasNext()) {
-                            String str = itr.next();
-                            record.append(str).append(System.lineSeparator());
-                        }
-                        recordRead[0] = end + 1; //index for next element to be read
-
-                        // Removing the last line separator because ExportEndPoint will add 1 more.
-                        return record.substring(0, record.length() - System.lineSeparator().length());
+                    // Combine the list into a single string.
+                    while (itr.hasNext()) {
+                        String str = itr.next();
+                        record.append(str).append(System.lineSeparator());
                     }
-                });
-            }
+                    recordRead[0] = end + 1; //index for next element to be read
+
+                    // Removing the last line separator because ExportEndPoint will add 1 more.
+                    return record.substring(0, record.length() - System.lineSeparator().length());
+                }
+            });
         }
     }
 

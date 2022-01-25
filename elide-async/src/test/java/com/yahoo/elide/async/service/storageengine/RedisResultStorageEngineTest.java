@@ -15,7 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPooled;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
@@ -31,7 +32,7 @@ public class RedisResultStorageEngineTest {
     private static final int EXPIRATION_SECONDS = 120;
     private static final int BATCH_SIZE = 2;
     private static final boolean EXTENSION_SUPPORT = false;
-    private JedisPool jedisPool;
+    private JedisPooled jedisPool;
     private RedisServer redisServer;
     RedisResultStorageEngine engine;
 
@@ -39,7 +40,7 @@ public class RedisResultStorageEngineTest {
     public void setup() throws IOException {
         redisServer = new RedisServer(PORT);
         redisServer.start();
-        jedisPool = new JedisPool(HOST, PORT);
+        jedisPool = new JedisPooled(HOST, PORT);
         engine = new RedisResultStorageEngine(jedisPool, EXTENSION_SUPPORT, EXPIRATION_SECONDS, BATCH_SIZE);
     }
 
@@ -83,7 +84,7 @@ public class RedisResultStorageEngineTest {
     @Test
     public void testStoreResultsFail() throws IOException {
         destroy();
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(JedisConnectionException.class, () ->
                 storeResults("store_results_fail",
                         Observable.fromArray(new String[]{"hi", "hello"}))
         );
