@@ -44,6 +44,11 @@ public class QueryPlan implements Queryable {
 
     private FilterExpression whereFilter;
 
+    /**
+     * After nesting a query plan, determine if the two plans can be merged together.
+     * @param other The plan to merge with.
+     * @return True if the plans can be merged.  False otherwise.
+     */
     public boolean canMerge(QueryPlan other) {
         if (other.nestDepth() != nestDepth()) {
             return false;

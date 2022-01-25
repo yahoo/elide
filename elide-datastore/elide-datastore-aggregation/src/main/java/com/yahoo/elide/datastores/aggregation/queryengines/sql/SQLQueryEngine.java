@@ -27,11 +27,13 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -80,9 +82,10 @@ public class SQLQueryEngine extends QueryEngine {
     private final QueryValidator validator;
     private final FormulaValidator formulaValidator;
     private final Function<String, ConnectionDetails> connectionDetailsLookup;
+    private final QueryPlanMerger merger;
 
     public SQLQueryEngine(MetaDataStore metaDataStore, Function<String, ConnectionDetails> connectionDetailsLookup) {
-        this(metaDataStore, connectionDetailsLookup, new HashSet<>(),
+        this(metaDataStore, connectionDetailsLookup, new HashSet<>(), new DefaultQueryPlanMerger(metaDataStore),
                 new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
     }
 
@@ -91,12 +94,14 @@ public class SQLQueryEngine extends QueryEngine {
      * @param metaDataStore : MetaDataStore.
      * @param connectionDetailsLookup : maps a connection name to meta info about the connection.
      * @param optimizers The set of enabled optimizers.
+     * @param merger Merges multiple plans into a smaller set (one if possible)
      * @param validator Validates each incoming client query.
      */
     public SQLQueryEngine(
             MetaDataStore metaDataStore,
             Function<String, ConnectionDetails> connectionDetailsLookup,
             Set<Optimizer> optimizers,
+            QueryPlanMerger merger,
             QueryValidator validator
     ) {
 
@@ -109,6 +114,7 @@ public class SQLQueryEngine extends QueryEngine {
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
         this.optimizers = optimizers;
+        this.merger = merger;
     }
 
     private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = rs -> {
@@ -388,7 +394,11 @@ public class SQLQueryEngine extends QueryEngine {
                     throw new UnsupportedOperationException("Cannot merge a nested query with a metric that "
                             + "doesn't support nesting");
                 }
-                mergedPlan = queryPlan.merge(mergedPlan, metaDataStore);
+                if (! merger.canMerge(mergedPlan, queryPlan)) {
+                    throw new UnsupportedOperationException("Incompatible metrics in client query.  Cannot merge "
+                            + "into a single query");
+                }
+                mergedPlan = merger.merge(mergedPlan, queryPlan);
             }
         }
 

@@ -10,8 +10,10 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
@@ -37,10 +39,16 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     private boolean invoked = false;
 
     private MetaDataStore metaDataStore;
+    private QueryPlanMerger merger;
 
-    public QueryPlanTranslator(Query clientQuery, MetaDataStore metaDataStore) {
+    public QueryPlanTranslator(Query clientQuery, MetaDataStore metaDataStore, QueryPlanMerger merger) {
         this.metaDataStore = metaDataStore;
         this.clientQuery = clientQuery;
+        this.merger = merger;
+    }
+
+    public QueryPlanTranslator(Query clientQuery, MetaDataStore metaDataStore) {
+        this(clientQuery, metaDataStore, new DefaultQueryPlanMerger(metaDataStore));
     }
 
     /**
@@ -62,7 +70,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
             throw new UnsupportedOperationException("Cannot nest one or more dimensions from the client query");
         }
 
-        QueryPlan merged = clientQueryPlan.merge(plan, metaDataStore);
+        QueryPlan merged = merger.merge(plan, clientQueryPlan);
 
         //Decorate the result with filters, sorting, and pagination.
         return merged.accept(this).build();

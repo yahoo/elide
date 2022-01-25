@@ -14,7 +14,9 @@ import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -86,7 +88,8 @@ class ColumnArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
+        QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
         assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$column.args.mainArg2}}'.",
                         e.getMessage());
@@ -115,7 +118,8 @@ class ColumnArgumentValidatorTest {
         tables.add(mainTable);
         tables.add(joinTableBuilder.build());
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
+        QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
         assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$column.args.mainArg2}}'.",
                         e.getMessage());
@@ -151,7 +155,8 @@ class ColumnArgumentValidatorTest {
         tables.add(mainTable);
 
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
+        QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
         assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument type mismatch. Dependent Column: 'dim2' in table: 'namespace_MainTable'"
                         + " has same Argument: 'mainArg1' with type 'TEXT'.",
@@ -173,7 +178,8 @@ class ColumnArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
+        QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
         assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg1' is not defined but found '{{$$column.args.mainArg1}}'.",
                 e.getMessage());
@@ -195,7 +201,8 @@ class ColumnArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        assertDoesNotThrow(() -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
+        QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
+        assertDoesNotThrow(() -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
     }
 
     @Test
@@ -228,7 +235,8 @@ class ColumnArgumentValidatorTest {
         tables.add(mainTable);
 
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
+        QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
         assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'dependentArg1' with type 'INTEGER' is not defined but is"
                         + " required for Dependent Column: 'dim2' in table: 'namespace_MainTable'.",
@@ -263,7 +271,7 @@ class ColumnArgumentValidatorTest {
         tables.add(mainTable);
 
         MetaDataStore metaDataStore1 = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        assertDoesNotThrow(() -> new SQLQueryEngine(metaDataStore1, connectionLookup, optimizers, queryValidator));
+        assertDoesNotThrow(() -> new SQLQueryEngine(metaDataStore1, connectionLookup, optimizers, merger, queryValidator));
     }
 
     @Test
@@ -306,7 +314,8 @@ class ColumnArgumentValidatorTest {
         tables.add(joinTable);
 
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
+        QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
         assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'joinArg1' with type 'INTEGER' is not defined but is"
                         + " required for Dependent Column: 'joinCol' in table: 'namespace_JoinTable'.",
@@ -335,7 +344,7 @@ class ColumnArgumentValidatorTest {
         tables.add(joinTable);
 
         MetaDataStore metaDataStore1 = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        assertDoesNotThrow(() -> new SQLQueryEngine(metaDataStore1, connectionLookup, optimizers, queryValidator));
+        assertDoesNotThrow(() -> new SQLQueryEngine(metaDataStore1, connectionLookup, optimizers, merger, queryValidator));
     }
 
     @Test
@@ -369,7 +378,8 @@ class ColumnArgumentValidatorTest {
         tables.add(mainTable);
 
         MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
-        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, queryValidator));
+        QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
         assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Type mismatch of Fixed value provided for Dependent Column: 'dim2'"
                         + " in table: 'namespace_MainTable'. Pinned Value: 'foo' for Argument 'dependentArg1' with Type 'INTEGER' is invalid.",
