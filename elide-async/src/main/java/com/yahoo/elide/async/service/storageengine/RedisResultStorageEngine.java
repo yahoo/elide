@@ -35,7 +35,7 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
 
     /**
      * Constructor.
-     * @param jedisPool Jedis Connection Pool to Redis clusteer.
+     * @param jedis Jedis Connection Pool to Redis clusteer.
      * @param enableExtension Enable file extensions.
      * @param expirationSeconds Expiration Time for results on Redis.
      * @param batchSize Batch Size for retrieving from Redis.
