@@ -84,6 +84,7 @@ public class QueryPlan implements Queryable {
 
         QueryPlan inner = QueryPlan.builder()
                 .source(this.getSource())
+                .whereFilter(whereFilter)
                 .metricProjections(nestedMetrics.stream()
                         .map(Pair::getRight)
                         .flatMap(Set::stream)

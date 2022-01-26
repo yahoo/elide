@@ -68,7 +68,13 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
             }
         }
 
-        return true;
+        boolean result = true;
+
+        if (a.isNested()) {
+            result = canMerge((QueryPlan) a.getSource(), (QueryPlan) b.getSource());
+        }
+
+        return result;
     }
 
     @Override
