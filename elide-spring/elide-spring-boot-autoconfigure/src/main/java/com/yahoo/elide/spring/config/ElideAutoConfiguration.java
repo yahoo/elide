@@ -34,6 +34,7 @@ import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
@@ -341,6 +342,7 @@ public class ElideAutoConfiguration {
 
             return new SQLQueryEngine(metaDataStore, connectionDetailsLookup,
                     new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
+                    new DefaultQueryPlanMerger(metaDataStore),
                     new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
         MetaDataStore metaDataStore = new MetaDataStore(scanner, enableMetaDataStore);
