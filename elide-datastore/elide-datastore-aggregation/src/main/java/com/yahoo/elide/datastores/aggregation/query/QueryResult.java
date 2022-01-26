@@ -11,13 +11,17 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
 
+import java.io.Serializable;
+
 /**
  * A {@link QueryResult} contains the results from {@link QueryEngine#executeQuery(Query, QueryEngine.Transaction)}.
  * @param <T> The type/model of data being returned.
  */
 @Value
 @Builder
-public class QueryResult<T> {
+public class QueryResult<T> implements Serializable {
+    private static final long serialVersionUID = -3748307200186480683L;
+
     @NonNull
     private Iterable<T> data;
 
