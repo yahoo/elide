@@ -23,7 +23,7 @@ public class RedisCache implements Cache {
     /**
      * Constructor.
      * @param jedis Jedis Connection Pool to Redis clusteer.
-     * @param expirationSeconds Expiration Time for results on Redis.
+     * @param defaultExprirationMinutes Expiration Time for results on Redis.
      */
     public RedisCache(UnifiedJedis jedis, long defaultExprirationMinutes) {
         this.jedis = jedis;

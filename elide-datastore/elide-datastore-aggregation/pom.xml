@@ -146,7 +146,7 @@
         <dependency>
             <groupId>com.github.codemonstur</groupId>
             <artifactId>embedded-redis</artifactId>
-            <version>0.11.0</version>
+            <version>${embedded-redis.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- JUnit -->
