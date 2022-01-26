@@ -55,7 +55,7 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
         for (DimensionProjection dimension : a.getDimensionProjections()) {
             DimensionProjection otherDimension = b.getDimensionProjection(dimension.getName());
 
-            if (otherDimension != null && ! Objects.equals(otherDimension.getArguments(), a.getArguments())) {
+            if (otherDimension != null && ! Objects.equals(otherDimension.getArguments(), dimension.getArguments())) {
                 return false;
             }
         }
@@ -63,7 +63,7 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
         for (TimeDimensionProjection dimension : a.getTimeDimensionProjections()) {
             TimeDimensionProjection otherDimension = b.getTimeDimensionProjection(dimension.getName());
 
-            if (otherDimension != null && ! Objects.equals(otherDimension.getArguments(), a.getArguments())) {
+            if (otherDimension != null && ! Objects.equals(otherDimension.getArguments(), dimension.getArguments())) {
                 return false;
             }
         }

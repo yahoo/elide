@@ -9,9 +9,9 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.Singular;
-import lombok.Value;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -21,25 +21,29 @@ import java.util.stream.Collectors;
 /**
  * A {@link QueryPlan} is a partial Query bound to a particular Metric.
  */
-@Value
 @Builder
 public class QueryPlan implements Queryable {
 
     @NonNull
+    @Getter
     private Queryable source;
 
     @Singular
     @NonNull
+    @Getter
     private List<MetricProjection> metricProjections;
 
     @Singular
     @NonNull
+    @Getter
     private List<DimensionProjection> dimensionProjections;
 
     @Singular
     @NonNull
+    @Getter
     private List<TimeDimensionProjection> timeDimensionProjections;
 
+    @Getter
     private FilterExpression whereFilter;
 
     /**

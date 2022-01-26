@@ -402,7 +402,7 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }
 
-        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, metaDataStore);
+        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, metaDataStore, merger);
 
         Query merged = (mergedPlan == null)
                 ? QueryPlanTranslator.addHiddenProjections(metaDataStore, query).build()
