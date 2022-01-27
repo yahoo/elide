@@ -11,8 +11,6 @@ import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import lombok.Getter;
 
-import java.util.Objects;
-
 /**
  * Representation of an "or" expression.
  */
@@ -69,23 +67,5 @@ public class OrExpression implements Expression {
             return String.format("%s", left);
         }
         return String.format("(%s) OR (%s)", left, right);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        OrExpression that = (OrExpression) o;
-        return (Objects.equals(left, that.left) && Objects.equals(right, that.right))
-                || (Objects.equals(left, that.right) && Objects.equals(right, that.left));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(left, right);
     }
 }

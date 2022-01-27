@@ -11,8 +11,6 @@ import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import lombok.Getter;
 
-import java.util.Objects;
-
 /**
  * Representation of a "not" expression.
  */
@@ -53,22 +51,5 @@ public class NotExpression implements Expression {
     @Override
     public String toString() {
         return String.format("NOT (%s)", logical);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        NotExpression that = (NotExpression) o;
-        return logical.equals(that.logical);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(logical);
     }
 }
