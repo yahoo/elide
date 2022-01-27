@@ -83,14 +83,14 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>4.0.1</version>
+            <version>${jedis.version}</version>
         </dependency>
 
         <!-- Test -->
         <dependency>
             <groupId>com.github.codemonstur</groupId>
             <artifactId>embedded-redis</artifactId>
-            <version>0.11.0</version>
+            <version>${embedded-redis.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- For Export End-Point Test -->
