@@ -383,24 +383,22 @@ public class SQLQueryEngine extends QueryEngine {
      * @return A query that reflects each metric's individual query plan.
      */
     private Query expandMetricQueryPlans(Query query) {
-        QueryPlan mergedPlan = null;
 
-        //Expand each metric into its own query plan.  Merge them all together.
-        for (MetricProjection metricProjection : query.getMetricProjections()) {
-            QueryPlan queryPlan = metricProjection.resolve(query);
-            if (queryPlan != null) {
-                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(metaDataStore)) {
-                    //TODO - Run multiple queries.
-                    throw new UnsupportedOperationException("Cannot merge a nested query with a metric that "
-                            + "doesn't support nesting");
-                }
-                if (! merger.canMerge(mergedPlan, queryPlan)) {
-                    throw new UnsupportedOperationException("Incompatible metrics in client query.  Cannot merge "
-                            + "into a single query");
-                }
-                mergedPlan = merger.merge(queryPlan, mergedPlan);
-            }
+        //Expand each metric into its own query plan.
+        List<QueryPlan> toMerge = query.getMetricProjections().stream()
+                .map(projection -> projection.resolve(query))
+                .collect(Collectors.toList());
+
+        //Merge all the queries together.
+        List<QueryPlan> mergedPlans = merger.merge(toMerge);
+
+        //TODO - Support joins across plans rather than rejecting plans that don't merge.
+        if (mergedPlans.size() != 1) {
+            throw new UnsupportedOperationException("Incompatible metrics in client query.  Cannot merge "
+                    + "into a single query");
         }
+
+        QueryPlan mergedPlan = mergedPlans.get(0);
 
         QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, metaDataStore, merger);
 
