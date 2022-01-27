@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Streams;
 
 import java.util.LinkedHashSet;
@@ -27,9 +28,8 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
 
     @Override
     public boolean canMerge(QueryPlan a, QueryPlan b) {
-        if (a == null || b == null) {
-            return true;
-        }
+        Preconditions.checkNotNull(a);
+        Preconditions.checkNotNull(b);
 
         if (a.nestDepth() != b.nestDepth()) {
             if (a.nestDepth() > b.nestDepth() && !b.canNest(metaDataStore)) {
@@ -44,7 +44,8 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
             b = nestToDepth(b, a.nestDepth());
         }
 
-        if (! Objects.equals(a.getWhereFilter(), b.getWhereFilter())) {
+        boolean result = canMergeFilter(a, b);
+        if (! result) {
             return false;
         }
 
@@ -52,23 +53,16 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
          * Metrics can always coexist provided they have different aliases (which is enforced by the API).
          */
 
-        for (DimensionProjection dimension : a.getDimensionProjections()) {
-            DimensionProjection otherDimension = b.getDimensionProjection(dimension.getName());
-
-            if (otherDimension != null && ! Objects.equals(otherDimension.getArguments(), dimension.getArguments())) {
-                return false;
-            }
+        result = canMergeDimensions(a, b);
+        if (! result) {
+            return false;
         }
 
-        for (TimeDimensionProjection dimension : a.getTimeDimensionProjections()) {
-            TimeDimensionProjection otherDimension = b.getTimeDimensionProjection(dimension.getName());
+        result = canMergeTimeDimensions(a, b);
 
-            if (otherDimension != null && ! Objects.equals(otherDimension.getArguments(), dimension.getArguments())) {
-                return false;
-            }
+        if (!result) {
+            return false;
         }
-
-        boolean result = true;
 
         if (a.isNested()) {
             result = canMerge((QueryPlan) a.getSource(), (QueryPlan) b.getSource());
@@ -77,16 +71,39 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
         return result;
     }
 
+    protected boolean canMergeDimensions(QueryPlan a, QueryPlan b) {
+        for (DimensionProjection dimension : a.getDimensionProjections()) {
+            DimensionProjection otherDimension = b.getDimensionProjection(dimension.getName());
+
+            if (otherDimension != null && ! Objects.equals(otherDimension.getArguments(), dimension.getArguments())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected boolean canMergeTimeDimensions(QueryPlan a, QueryPlan b) {
+        for (TimeDimensionProjection dimension : a.getTimeDimensionProjections()) {
+            TimeDimensionProjection otherDimension = b.getTimeDimensionProjection(dimension.getName());
+
+            if (otherDimension != null && ! Objects.equals(otherDimension.getArguments(), dimension.getArguments())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected boolean canMergeFilter(QueryPlan a, QueryPlan b) {
+        if (! Objects.equals(a.getWhereFilter(), b.getWhereFilter())) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public QueryPlan merge(QueryPlan a, QueryPlan b) {
-
-        if (b == null) {
-            return a;
-        }
-
-        if (a == null) {
-            return b;
-        }
+        Preconditions.checkNotNull(a);
+        Preconditions.checkNotNull(b);
 
         a = nestToDepth(a, b.nestDepth());
         b = nestToDepth(b, a.nestDepth());
