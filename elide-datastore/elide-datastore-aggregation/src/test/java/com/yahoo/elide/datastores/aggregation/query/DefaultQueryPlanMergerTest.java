@@ -335,4 +335,51 @@ public class DefaultQueryPlanMergerTest {
         assertEquals(List.of(t2, t1), d.getTimeDimensionProjections());
         assertEquals(filterExpression, d.getWhereFilter());
     }
+
+    @Test
+    public void testMultipleMergeSuccess() {
+        QueryPlan a = mock(QueryPlan.class);
+        QueryPlan b = mock(QueryPlan.class);
+        QueryPlan c = mock(QueryPlan.class);
+
+        QueryPlanMerger merger = new QueryPlanMerger() {
+            @Override
+            public boolean canMerge(QueryPlan a, QueryPlan b) {
+                return true;
+            }
+
+            @Override
+            public QueryPlan merge(QueryPlan a, QueryPlan b) {
+                return mock(QueryPlan.class);
+            }
+        };
+
+        List<QueryPlan> results = merger.merge(List.of(a, b, c));
+
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    public void testMultipleMergeFailure() {
+        QueryPlan a = mock(QueryPlan.class);
+        QueryPlan b = mock(QueryPlan.class);
+        QueryPlan c = mock(QueryPlan.class);
+
+        QueryPlanMerger merger = new QueryPlanMerger() {
+            @Override
+            public boolean canMerge(QueryPlan a, QueryPlan b) {
+                return false;
+            }
+
+            @Override
+            public QueryPlan merge(QueryPlan a, QueryPlan b) {
+                return mock(QueryPlan.class);
+            }
+        };
+
+        List<QueryPlan> results = merger.merge(List.of(a, b, c));
+
+        assertEquals(3, results.size());
+        assertEquals(List.of(a,b,c), results);
+    }
 }
