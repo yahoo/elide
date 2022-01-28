@@ -1,5 +1,28 @@
 # Change Log
 
+## 6.1.1
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/6646ce31a465a6648dcb74fb96aeb5c6d39a22bc) Redis Cache for Aggregation Store (#25
+   * [view commit](https://github.com/yahoo/elide/commit/df5d023f43876264b63fd3becfbff57a4e889789) Redis Result Storage Engine (#2507)   
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/9c9d4ca1fa15047e24fffcf2a7e0e7a9a46e6791) Disabling subscription scanning throug
+h application yaml in Spring. (#2521)                                                                                                    
+   * [view commit](https://github.com/yahoo/elide/commit/c038599b4f4d1d7b9a688365e0157425daf19c5b) Bump h2 from 2.0.206 to 2.1.210 (#2508
+)                                                                                                                                        
+   * [view commit](https://github.com/yahoo/elide/commit/3e69dabdd9479a8c070b811299ab535f5ba7a1db) Bump hibernate5.version from 5.6.1.Fin
+al to 5.6.5.Final (#2516)                                                                                                                
+   * [view commit](https://github.com/yahoo/elide/commit/75db2ed70dc6f00368a626d3e2bde584699c8fc1) Bump log4j-over-slf4j from 1.7.33 to 1
+.7.35 (#2522)                                                                                                                            
+                                                                                                                                 
+   * [view commit](https://github.com/yahoo/elide/commit/b932cbcba8c9ba993a4fe5b3f859d5691fd976b4) Bump guice from 5.0.1 to 5.1.0 (#2523)
+                                                                                                                                         
+   * [view commit](https://github.com/yahoo/elide/commit/fd2ab7709a90f183ee09cbbec6628af49c003ef5) Bump jedis from 4.0.1 to 4.1.0 (#2525)
+                                                                                                                                         
+   * [view commit](https://github.com/yahoo/elide/commit/d53275d1fb55de45a62269f39e97f0cdd76b573e) Bump slf4j-api from 1.7.33 to 1.7.35 (
+#2519)                                                                                                                                   
+   * [view commit](https://github.com/yahoo/elide/commit/d0552c5750608391d52e3e3286469901726a7d06) Support filters on query plans (#2526)
+
 ## 6.1.0
 Minor release update for partial support for Elide configuration being 'refreshable' in Spring for a live service.  Advanced users overriding some beans may require compilation changes.  
 
