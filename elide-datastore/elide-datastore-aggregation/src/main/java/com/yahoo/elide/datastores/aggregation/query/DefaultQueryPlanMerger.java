@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 
 import com.google.common.base.Preconditions;
@@ -44,14 +45,15 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
             b = nestToDepth(b, a.nestDepth());
         }
 
-        boolean result = canMergeFilter(a, b);
+        boolean result = canMergeMetrics(a, b);
         if (! result) {
             return false;
         }
 
-        /*
-         * Metrics can always coexist provided they have different aliases (which is enforced by the API).
-         */
+        result = canMergeFilter(a, b);
+        if (! result) {
+            return false;
+        }
 
         result = canMergeDimensions(a, b);
         if (! result) {
@@ -69,6 +71,13 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
         }
 
         return result;
+    }
+
+    protected boolean canMergeMetrics(QueryPlan a, QueryPlan b) {
+        /*
+         * Metrics can always coexist provided they have different aliases (which is enforced by the API).
+         */
+        return true;
     }
 
     protected boolean canMergeDimensions(QueryPlan a, QueryPlan b) {
@@ -100,6 +109,25 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
         return true;
     }
 
+    protected FilterExpression mergeFilter(FilterExpression a, FilterExpression b) {
+        return a;
+    }
+
+    protected Set<MetricProjection> mergeMetrics(QueryPlan a, QueryPlan b) {
+        return Streams.concat(b.getMetricProjections().stream(),
+                a.getMetricProjections().stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    protected Set<DimensionProjection> mergeDimension(QueryPlan a, QueryPlan b) {
+        return Streams.concat(b.getDimensionProjections().stream(),
+                a.getDimensionProjections().stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    protected Set<TimeDimensionProjection> mergeTimeDimension(QueryPlan a, QueryPlan b) {
+        return Streams.concat(b.getTimeDimensionProjections().stream(),
+                a.getTimeDimensionProjections().stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
     @Override
     public QueryPlan merge(QueryPlan a, QueryPlan b) {
         Preconditions.checkNotNull(a);
@@ -110,21 +138,16 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
 
         assert (a.isNested() || a.getSource().equals(b.getSource()));
 
-        Set<MetricProjection> metrics = Streams.concat(b.getMetricProjections().stream(),
-                a.getMetricProjections().stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Set<TimeDimensionProjection> timeDimensions = Streams.concat(b.getTimeDimensionProjections().stream(),
-                a.getTimeDimensionProjections().stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Set<DimensionProjection> dimensions = Streams.concat(b.getDimensionProjections().stream(),
-                a.getDimensionProjections().stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<MetricProjection> metrics = mergeMetrics(a, b);
+        Set<TimeDimensionProjection> timeDimensions = mergeTimeDimension(a, b);
+        Set<DimensionProjection> dimensions = mergeDimension(a, b);
 
         if (!a.isNested()) {
             return QueryPlan.builder()
                     .source(a.getSource())
                     .metricProjections(metrics)
                     .dimensionProjections(dimensions)
-                    .whereFilter(a.getWhereFilter())
+                    .whereFilter(mergeFilter(a.getWhereFilter(), b.getWhereFilter()))
                     .timeDimensionProjections(timeDimensions)
                     .build();
         }

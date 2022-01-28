@@ -380,6 +380,6 @@ public class DefaultQueryPlanMergerTest {
         List<QueryPlan> results = merger.merge(List.of(a, b, c));
 
         assertEquals(3, results.size());
-        assertEquals(List.of(a,b,c), results);
+        assertEquals(List.of(a, b, c), results);
     }
 }
