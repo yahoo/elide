@@ -33,6 +33,7 @@ import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -521,7 +522,9 @@ public abstract class SQLUnitTest {
         Function<String, ConnectionDetails> connectionLookup = (name) ->
                 connectionDetailsMap.getOrDefault(name, new ConnectionDetails(dataSource, sqlDialect));
         engine = new SQLQueryEngine(metaDataStore, connectionLookup,
-                optimizers, new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
+                optimizers,
+                new DefaultQueryPlanMerger(metaDataStore),
+                new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
         playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);

@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -71,6 +72,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                 .queryEngine(new SQLQueryEngine(metaDataStore,
                         (name) -> connectionDetailsMap.getOrDefault(name, defaultConnectionDetails),
                         new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
+                        new DefaultQueryPlanMerger(metaDataStore),
                         new DefaultQueryValidator(metaDataStore.getMetadataDictionary())))
                 .queryLogger(new Slf4jQueryLogger())
                 .build();

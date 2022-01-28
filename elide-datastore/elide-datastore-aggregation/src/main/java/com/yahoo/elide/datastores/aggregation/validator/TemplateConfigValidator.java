@@ -10,6 +10,7 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
@@ -48,6 +49,7 @@ public class TemplateConfigValidator implements Validator {
 
         //Populates the metadata store with SQL tables.
         new SQLQueryEngine(metaDataStore, (unused) -> null, new HashSet<>(),
+                new DefaultQueryPlanMerger(metaDataStore),
                 new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
 
         return metaDataStore;

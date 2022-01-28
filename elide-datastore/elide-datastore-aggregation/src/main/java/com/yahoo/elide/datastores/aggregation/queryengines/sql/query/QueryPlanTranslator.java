@@ -6,10 +6,14 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
@@ -35,10 +39,16 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     private boolean invoked = false;
 
     private MetaDataStore metaDataStore;
+    private QueryPlanMerger merger;
 
-    public QueryPlanTranslator(Query clientQuery, MetaDataStore metaDataStore) {
+    public QueryPlanTranslator(Query clientQuery, MetaDataStore metaDataStore, QueryPlanMerger merger) {
         this.metaDataStore = metaDataStore;
         this.clientQuery = clientQuery;
+        this.merger = merger;
+    }
+
+    public QueryPlanTranslator(Query clientQuery, MetaDataStore metaDataStore) {
+        this(clientQuery, metaDataStore, new DefaultQueryPlanMerger(metaDataStore));
     }
 
     /**
@@ -60,7 +70,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
             throw new UnsupportedOperationException("Cannot nest one or more dimensions from the client query");
         }
 
-        QueryPlan merged = clientQueryPlan.merge(plan, metaDataStore);
+        QueryPlan merged = merger.merge(clientQueryPlan, plan);
 
         //Decorate the result with filters, sorting, and pagination.
         return merged.accept(this).build();
@@ -92,7 +102,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(plan.getDimensionProjections())
                 .timeDimensionProjections(plan.getTimeDimensionProjections())
-                .whereFilter(clientQuery.getWhereFilter())
+                .whereFilter(mergeFilters(plan, clientQuery))
                 .arguments(clientQuery.getArguments());
 
         return addHiddenProjections(metaDataStore, builder, clientQuery);
@@ -134,7 +144,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .dimensionProjections(plan.getDimensionProjections())
                 .timeDimensionProjections(plan.getTimeDimensionProjections())
                 .havingFilter(clientQuery.getHavingFilter())
-                .whereFilter(clientQuery.getWhereFilter())
+                .whereFilter(mergeFilters(plan, clientQuery))
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
                 .scope(clientQuery.getScope())
@@ -193,5 +203,21 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                         .arguments(query.getArguments());
 
         return addHiddenProjections(metaDataStore, builder, query);
+    }
+
+    private static FilterExpression mergeFilters(Queryable a, Queryable b) {
+        if (a.getWhereFilter() == null && b.getWhereFilter() == null) {
+            return null;
+        }
+
+        if (a.getWhereFilter() == null) {
+            return b.getWhereFilter();
+        }
+
+        if (b.getWhereFilter() == null) {
+            return a.getWhereFilter();
+        }
+
+        return new AndFilterExpression(a.getWhereFilter(), b.getWhereFilter());
     }
 }
