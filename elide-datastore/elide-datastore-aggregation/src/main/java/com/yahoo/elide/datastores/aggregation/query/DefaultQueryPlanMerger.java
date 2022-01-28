@@ -109,8 +109,8 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
         return true;
     }
 
-    protected FilterExpression mergeFilter(FilterExpression a, FilterExpression b) {
-        return a;
+    protected FilterExpression mergeFilter(QueryPlan a, QueryPlan b) {
+        return a.getWhereFilter();
     }
 
     protected Set<MetricProjection> mergeMetrics(QueryPlan a, QueryPlan b) {
@@ -147,7 +147,7 @@ public class DefaultQueryPlanMerger implements QueryPlanMerger {
                     .source(a.getSource())
                     .metricProjections(metrics)
                     .dimensionProjections(dimensions)
-                    .whereFilter(mergeFilter(a.getWhereFilter(), b.getWhereFilter()))
+                    .whereFilter(mergeFilter(a, b))
                     .timeDimensionProjections(timeDimensions)
                     .build();
         }
