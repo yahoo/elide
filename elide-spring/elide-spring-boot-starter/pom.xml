@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>6.0.7-SNAPSHOT</version>
+        <version>6.1.1-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,49 +44,49 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.0.7-SNAPSHOT</version>
+            <version>6.1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.0.7-SNAPSHOT</version>
+            <version>6.1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.0.7-SNAPSHOT</version>
+            <version>6.1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>6.0.7-SNAPSHOT</version>
+            <version>6.1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jms</artifactId>
-            <version>6.0.7-SNAPSHOT</version>
+            <version>6.1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>6.0.7-SNAPSHOT</version>
+            <version>6.1.1-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>6.0.7-SNAPSHOT</version>
+            <version>6.1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-spring-boot-autoconfigure</artifactId>
-            <version>6.0.7-SNAPSHOT</version>
+            <version>6.1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -102,7 +102,7 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.8.1</version>
+            <version>1.8.2</version>
         </dependency>
 
         <dependency>
