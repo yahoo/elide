@@ -2194,6 +2194,9 @@ public class EntityDictionary {
                 //We can't bind an attribute type if Elide can't create it...
                 || ! hasNoArgConstructor
 
+                //We don't bind Elide models as attributes.
+                ||  lookupIncludeClass(type) != null
+
                 //If there is a Serde, we assume the type is opaque to Elide....
                 || serdeLookup.apply(clazz) != null) {
             return false;

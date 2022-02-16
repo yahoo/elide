@@ -19,4 +19,7 @@ import java.util.Currency;
 public class Price {
     private BigDecimal units;
     private Currency currency;
+
+    //Ignored by Elide....
+    Book book;
 }
