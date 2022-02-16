@@ -39,6 +39,7 @@
 
     <properties>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
+        <version.tomcat>9.0.58</version.tomcat>
     </properties>
 
     <dependencies>
@@ -123,11 +124,13 @@
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
+            <version>${version.tomcat}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-websocket</artifactId>
+            <version>${version.tomcat}</version>
             <optional>true</optional>
         </dependency>
 
