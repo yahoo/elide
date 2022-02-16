@@ -1112,6 +1112,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(isComplexAttribute(ClassType.of(Book.class), "price"));
         //Test Java Type with no default constructor.
         assertFalse(isComplexAttribute(ClassType.of(Price.class), "currency"));
+        //Test embedded Elide model
+        assertFalse(isComplexAttribute(ClassType.of(Price.class), "book"));
         //Test String
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "title"));
         //Test primitive
