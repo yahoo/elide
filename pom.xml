@@ -128,7 +128,7 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
-                <version>1.7.35</version>
+                <version>1.7.36</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -421,7 +421,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>9.2.1</version>
+                            <version>9.3</version>
                             <scope>compile</scope>
                         </dependency>
                     </dependencies>
