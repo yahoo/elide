@@ -1,5 +1,30 @@
 # Change Log
 
+## 6.1.2
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/1355701e30f63ba7332e4b77efdf5166e21a3e61) Bump json-path from 2.6.0 to 2.7.0 (#2531) 
+   * [view commit](https://github.com/yahoo/elide/commit/1d105705f533d40b55469f3b6836935995e982b5) Ignoring Elide models embedded in complex attributes (#2535) 
+   * [view commit](https://github.com/yahoo/elide/commit/76a45fc895901fa212883e88a9be29fdad894b7c) Bump version.jetty from 9.4.44.v20210927 to 9.4.45.v20220203 (#2534) 
+   * [view commit](https://github.com/yahoo/elide/commit/0d1be94716765581ab230b5b1d77906d3882b283) Bump jedis from 4.1.0 to 4.1.1 (#2530) 
+   * [view commit](https://github.com/yahoo/elide/commit/73d2ce87b2af2a0dd2c4ad800030724d76f085e0) Bump mockito-core from 4.2.0 to 4.3.1 (#2518) 
+   * [view commit](https://github.com/yahoo/elide/commit/7367573a0aba833d1e1415b3ce74088e7ad695f0) Bump mockito-junit-jupiter from 4.2.0 to 4.3.1 (#2517) 
+   * [view commit](https://github.com/yahoo/elide/commit/72954a50f4f1e02cb257f9e7224491f1b3bef7a5) Bump spring.boot.version from 2.6.2 to 2.6.3 (#2510) 
+   * [view commit](https://github.com/yahoo/elide/commit/8a0cc1d198eb36d2e5681c44143230a969745534) Bump spring-cloud-context from 3.0.4 to 3.1.0 (#2512) 
+   * [view commit](https://github.com/yahoo/elide/commit/6409cb61e9555c6331f7e1b353456a0a11c51962) Bump classgraph from 4.8.138 to 4.8.139 (#2541) 
+   * [view commit](https://github.com/yahoo/elide/commit/b2c48a1dad67b1dbf28c80c4a9286360ea52ec91) Bump metrics.version from 4.2.7 to 4.2.8 (#2540) 
+   * [view commit](https://github.com/yahoo/elide/commit/cb3d4c05f60828757e239f75be13793d52841cbc) Bump maven-compiler-plugin from 3.9.0 to 3.10.0 (#2542) 
+   * [view commit](https://github.com/yahoo/elide/commit/a91983785f2f7c87857d13e5e64a00dd45a6c7f9) Bump log4j-over-slf4j from 1.7.35 to 1.7.36 (#2547) 
+   * [view commit](https://github.com/yahoo/elide/commit/d3377acdd7dd94f0919f305c3f19a5851ea1f342) Bump checkstyle from 9.2.1 to 9.3 (#2546) 
+   * [view commit](https://github.com/yahoo/elide/commit/a7f654cd10b74d452a08e6a9c12cdf7239eb3acc) Bump swagger-core from 1.6.4 to 1.6.5 (#2549) 
+   * [view commit](https://github.com/yahoo/elide/commit/43db0ba55f34e0052ac264fe95e676d4e3463d0d) Bump maven-javadoc-plugin from 3.3.1 to 3.3.2 (#2544) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc1855fee8f236ffbdd90c21a30c8b15fe5f6d59) Bump nexus-staging-maven-plugin from 1.6.8 to 1.6.11 (#2548) 
+   * [view commit](https://github.com/yahoo/elide/commit/dfa92a6b48532ce43a5518eefb57df19d73385de) Bump micrometer-core from 1.8.2 to 1.8.3 (#2545) 
+   * [view commit](https://github.com/yahoo/elide/commit/ecce96462be68acbf95f3ba73f0c8ba3d46ed9a1) Bump maven-site-plugin from 3.10.0 to 3.11.0 (#2543) 
+   * [view commit](https://github.com/yahoo/elide/commit/8d70b62b4650b9c7c9d6dd7276306301dca5839d) Bump spring-websocket from 5.3.15 to 5.3.16 (#2553) 
+   * [view commit](https://github.com/yahoo/elide/commit/4b31a018ec4abac13cf9238f78e585857c465195) Bump gson from 2.8.9 to 2.9.0 (#2552) 
+   * [view commit](https://github.com/yahoo/elide/commit/3c5932522440ea4e0298e55bbb8eebfdd5a06ba6) Bump slf4j-api from 1.7.35 to 1.7.36 (#2550) 
+   * [view commit](https://github.com/yahoo/elide/commit/69056c88fa6dbb13de0a667f5c50defcdc34093d) Bump spring-core from 5.3.15 to 5.3.16 (#2554) 
+
 ## 6.1.1
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/6646ce31a465a6648dcb74fb96aeb5c6d39a22bc) Redis Cache for Aggregation Store (#25
