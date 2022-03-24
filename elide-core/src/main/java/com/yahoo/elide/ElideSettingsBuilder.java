@@ -36,7 +36,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -80,7 +80,7 @@ public class ElideSettingsBuilder {
         this.joinFilterDialects = new ArrayList<>();
         this.subqueryFilterDialects = new ArrayList<>();
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
-        this.serdes = new HashMap<>();
+        this.serdes = new LinkedHashMap<>();
         this.enableJsonLinks = false;
 
         //By default, Elide supports epoch based dates.
