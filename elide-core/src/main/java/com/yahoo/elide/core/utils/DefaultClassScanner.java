@@ -15,7 +15,7 @@ import io.github.classgraph.ScanResult;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +74,7 @@ public class DefaultClassScanner implements ClassScanner {
                 startupCache.put(annotationName, scanResult.getClassesWithAnnotation(annotationName)
                         .stream()
                         .map(ClassInfo::loadClass)
-                        .collect(Collectors.toSet()));
+                        .collect(Collectors.toCollection(LinkedHashSet::new)));
 
             }
         }
@@ -91,18 +91,18 @@ public class DefaultClassScanner implements ClassScanner {
                 .filter(clazz ->
                         clazz.getPackage().getName().equals(packageName)
                                 || clazz.getPackage().getName().startsWith(packageName + "."))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
     public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations,
             FilterExpression filter) {
-        Set<Class<?>> result = new HashSet<>();
+        Set<Class<?>> result = new LinkedHashSet<>();
 
         for (Class<? extends Annotation> annotation : annotations) {
             result.addAll(startupCache.get(annotation.getCanonicalName()).stream()
                     .filter(filter::include)
-                    .collect(Collectors.toSet()));
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
         }
 
         return result;
@@ -124,7 +124,7 @@ public class DefaultClassScanner implements ClassScanner {
                 .enableClassInfo().whitelistPackages(packageName).scan()) {
             return scanResult.getAllClasses().stream()
                     .map((ClassInfo::loadClass))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
     }
 
