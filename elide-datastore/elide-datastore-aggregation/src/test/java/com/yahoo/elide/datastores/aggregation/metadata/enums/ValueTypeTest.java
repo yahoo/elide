@@ -168,6 +168,7 @@ public class ValueTypeTest {
         assertTrue(ValueType.TEXT.matches("XYZ"));
         assertTrue(ValueType.TEXT.matches("123abc"));
         assertTrue(ValueType.TEXT.matches("___XYZ123abcABC"));
+        assertTrue(ValueType.TEXT.matches("r2-d2"));
     }
 
     @Test
