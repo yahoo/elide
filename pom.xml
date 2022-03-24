@@ -87,7 +87,7 @@
         <version.antlr4>4.9.3</version.antlr4>
         <version.logback>1.2.10</version.logback>
         <version.jetty>9.4.45.v20220203</version.jetty>
-        <version.restassured>4.4.0</version.restassured>
+        <version.restassured>4.5.1</version.restassured>
         <version.jackson>2.13.2</version.jackson>
         <version.jersey>2.35</version.jersey>
         <version.junit>5.8.2</version.junit>
