@@ -29,7 +29,7 @@ public enum ValueType {
     INTEGER("^[+-]?\\d+$"),
     DECIMAL("^[+-]?((\\d+(\\.\\d+)?)|(\\.\\d+))$"),
     MONEY("^[+-]?((\\d+(\\.\\d+)?)|(\\.\\d+))$"),
-    TEXT("^[a-zA-Z0-9_]+$"),  //Very restricted to prevent SQL Injection
+    TEXT("^[a-zA-Z0-9_-]+$"),  //Very restricted to prevent SQL Injection
     COORDINATE("^(-?\\d+(\\.\\d+)?)|(-?\\d+(\\.\\d+)?),\\s*(-?\\d+(\\.\\d+)?)$"),
     BOOLEAN("^(?i)true|false(?-i)|0|1$"),
     ID("^[a-zA-Z0-9_]+$"),
