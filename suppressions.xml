@@ -2,30 +2,15 @@
 <suppressions
     xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
 
-    <!-- Invalid web socket CVE (flagging wrong package) -->
-    <suppress until="2021-12-01Z">
-        <cve>CVE-2020-11050</cve>
-    </suppress>
-
-    <!-- Invalid Spring Security CVE -->
-    <suppress until="2021-12-01Z">
-        <cve>CVE-2018-1258</cve>
-    </suppress>
-
-    <!-- Hibernate 3 CVE errors (only in the legacy hibernate 3 data store).  Use Hibernate 3 at your own risk. -->
-    <suppress until="2031-06-01Z">
-        <cve>CVE-2020-25638</cve>
-        <cve>CVE-2019-14900</cve>
-    </suppress>
 
     <!-- Tomcat - Only related to 'Windows Language Pack Installer" -->
-    <suppress>
+    <suppress until="2022-12-31">
         <cve>CVE-2020-0822</cve>
     </suppress>
 
-    <!-- Tomcat - Memory leak with websockets" -->
-    <suppress until="2021-12-31">
-        <cve>CVE-2021-42340</cve>
+    <!-- Jackson Databind - Looks like error in matching algorithm -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2020-36518</cve>
     </suppress>
 
 </suppressions>
