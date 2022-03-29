@@ -229,8 +229,8 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
         File file = createPath.toFile();
 
         if (file.exists()) {
-            log.error("File already exits: {}", file.getPath());
-            throw new IllegalStateException("File already exists: " + file.getPath());
+            log.debug("File already exits: {}", file.getPath());
+            return;
         }
 
         try {
