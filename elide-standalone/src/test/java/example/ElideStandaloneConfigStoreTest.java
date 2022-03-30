@@ -259,8 +259,7 @@ public class ElideStandaloneConfigStoreTest {
                                                         argument("data", String.format("["
                                                                         + "{ type: NAMESPACE, path: \\\"models/namespaces/namespace2.hjson\\\", content: %s },"
                                                                         + "{ type: NAMESPACE, path: \\\"models/namespaces/namespace3.hjson\\\", content: %s }"
-                                                                + "]"
-                                                                , hjson1, hjson2))
+                                                                + "]", hjson1, hjson2))
                                                 ),
                                                 selections(
                                                         field("id"),
