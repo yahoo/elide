@@ -39,6 +39,7 @@ import javax.persistence.Id;
 @DeletePermission(expression = ConfigChecks.CAN_DELETE_CONFIG)
 @CreatePermission(expression = ConfigChecks.CAN_CREATE_CONFIG)
 public class ConfigFile {
+
     public enum ConfigFileType {
         NAMESPACE,
         TABLE,
@@ -105,12 +106,12 @@ public class ConfigFile {
             return false;
         }
         ConfigFile that = (ConfigFile) o;
-        return id.equals(that.id);
+        return Objects.equals(path, that.path) && Objects.equals(version, that.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(path, version);
     }
 
     public static String toId(String path, String version) {

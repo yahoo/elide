@@ -116,7 +116,26 @@ public class QueryRunner {
      * @return is a mutation.
      */
     public static boolean isMutation(String query) {
-        return query != null && query.trim().startsWith(MUTATION);
+        if (query == null) {
+            return false;
+        }
+
+        String[] lines = query.split("\n");
+
+        StringBuilder withoutComments = new StringBuilder();
+
+        for (String line : lines) {
+            //Remove GraphiQL comment lines....
+            if (line.matches("^(\\s*)#.*")) {
+                continue;
+            }
+            withoutComments.append(line);
+            withoutComments.append("\n");
+        }
+
+        query = withoutComments.toString().trim();
+
+        return query.startsWith(MUTATION);
     }
 
     /**

@@ -259,6 +259,140 @@ public class ConfigStoreTest {
     }
 
     @Test
+    public void testTwoNamespaceCreateAndDelete() {
+        String hjson1 = "\\\"{\\\\n  namespaces:\\\\n  [\\\\n    {\\\\n      name: DemoNamespace2\\\\n      description: Namespace for Demo Purposes\\\\n      friendlyName: Demo Namespace\\\\n    }\\\\n  ]\\\\n}\\\"";
+
+        String hjson2 = "\\\"{\\\\n  namespaces:\\\\n  [\\\\n    {\\\\n      name: DemoNamespace3\\\\n      description: Namespace for Demo Purposes\\\\n      friendlyName: Demo Namespace\\\\n    }\\\\n  ]\\\\n}\\\"";
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        mutation(
+                                selection(
+                                        field("config",
+                                                arguments(
+                                                        argument("op", "UPSERT"),
+                                                        argument("data", String.format("["
+                                                                        + "{ type: NAMESPACE, path: \\\"models/namespaces/namespace2.hjson\\\", content: %s },"
+                                                                        + "{ type: NAMESPACE, path: \\\"models/namespaces/namespace3.hjson\\\", content: %s }"
+                                                                        + "]" , hjson1, hjson2))
+                                                ),
+                                                selections(
+                                                        field("id"),
+                                                        field("path")
+                                                )
+                                        )
+                                )
+                        )
+                ).toQuery() + "\" }")
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo(
+                        GraphQLDSL.document(
+                                selection(
+                                        field(
+                                                "config",
+                                                selections(
+                                                        field("id", "bW9kZWxzL25hbWVzcGFjZXMvbmFtZXNwYWNlMi5oanNvbg=="),
+                                                        field("path", "models/namespaces/namespace2.hjson")
+                                                ),
+                                                selections(
+                                                        field("id", "bW9kZWxzL25hbWVzcGFjZXMvbmFtZXNwYWNlMy5oanNvbg=="),
+                                                        field("path", "models/namespaces/namespace3.hjson")
+                                                )
+                                        )
+                                )
+                        ).toResponse()
+                ))
+                .statusCode(200);
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        mutation(
+                                selection(
+                                        field("config",
+                                                arguments(
+                                                        argument("op", "DELETE"),
+                                                        argument("ids", "[\\\"bW9kZWxzL25hbWVzcGFjZXMvbmFtZXNwYWNlMi5oanNvbg==\\\", \\\"bW9kZWxzL25hbWVzcGFjZXMvbmFtZXNwYWNlMy5oanNvbg==\\\"]")
+                                                ),
+                                                selections(
+                                                        field("id"),
+                                                        field("path")
+                                                )
+                                        )
+                                )
+                        )
+                ).toQuery() + "\" }")
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo("{\"data\":{\"config\":{\"edges\":[]}}}"))
+                .statusCode(200);
+
+    }
+
+    @Test
+    public void testTwoNamespaceCreationStatements() {
+        String query = "{ \"query\": \" mutation saveChanges {\\n  one: config(op: UPSERT, data: {id:\\\"one\\\", path: \\\"models/namespaces/oneDemoNamespaces.hjson\\\", type: NAMESPACE, content: \\\"{\\\\n  namespaces:\\\\n  [\\\\n    {\\\\n      name: DemoNamespace2\\\\n      description: Namespace for Demo Purposes\\\\n      friendlyName: Demo Namespace\\\\n    }\\\\n  ]\\\\n}\\\"}) {\\n    edges {\\n      node {\\n        id\\n      }\\n    }\\n  }\\n  two: config(op: UPSERT, data: {id: \\\"two\\\", path: \\\"models/namespaces/twoDemoNamespaces.hjson\\\", type: NAMESPACE, content: \\\"{\\\\n  namespaces:\\\\n  [\\\\n    {\\\\n      name: DemoNamespace3\\\\n      description: Namespace for Demo Purposes\\\\n      friendlyName: Demo Namespace\\\\n    }\\\\n  ]\\\\n}\\\"}) {\\n    edges {\\n      node {\\n        id\\n      }\\n    }\\n  }\\n} \" }";
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(query)
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo(
+                        GraphQLDSL.document(
+                                selections(
+                                        field(
+                                                "one",
+                                                selections(
+                                                        field("id", "bW9kZWxzL25hbWVzcGFjZXMvb25lRGVtb05hbWVzcGFjZXMuaGpzb24=")
+                                                )
+                                        ),
+                                        field(
+                                                "two",
+                                                selections(
+                                                        field("id", "bW9kZWxzL25hbWVzcGFjZXMvdHdvRGVtb05hbWVzcGFjZXMuaGpzb24=")
+                                                )
+                                        )
+                                )
+                        ).toResponse().replace(" ", "")
+                ))
+                .statusCode(200);
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        mutation(
+                                selection(
+                                        field("config",
+                                                arguments(
+                                                        argument("op", "DELETE"),
+                                                        argument("ids", "[\\\"bW9kZWxzL25hbWVzcGFjZXMvb25lRGVtb05hbWVzcGFjZXMuaGpzb24=\\\", \\\"bW9kZWxzL25hbWVzcGFjZXMvdHdvRGVtb05hbWVzcGFjZXMuaGpzb24=\\\"]")
+                                                ),
+                                                selections(
+                                                        field("id"),
+                                                        field("path")
+                                                )
+                                        )
+                                )
+                        )
+                ).toQuery() + "\" }")
+                .when()
+                .post("http://localhost:" + port + "/graphql")
+                .then()
+                .body(equalTo("{\"data\":{\"config\":{\"edges\":[]}}}"))
+                .statusCode(200);
+
+    }
+
+    @Test
     public void testJsonApiCreateFetchAndDelete() {
         String hjson = "{            \n"
                 + "  tables: [{     \n"
