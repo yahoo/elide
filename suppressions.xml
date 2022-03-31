@@ -7,10 +7,4 @@
     <suppress until="2022-12-31">
         <cve>CVE-2020-0822</cve>
     </suppress>
-
-    <!-- Jackson Databind - Looks like error in matching algorithm -->
-    <suppress until="2022-12-31">
-        <cve>CVE-2020-36518</cve>
-    </suppress>
-
 </suppressions>
