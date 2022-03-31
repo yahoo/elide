@@ -1,5 +1,18 @@
 # Change Log
 
+## 6.1.3
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/1a644f6f5afec9f0de8dbf89a56006d9f5b3058a) Bump log4j-to-slf4j from 2.17.1 to 2.17.2 (#2560) 
+ * [view commit](https://github.com/yahoo/elide/commit/d2c906859486a1837ebca6add7d7ec881380b9ea) Bump version.jackson from 2.12.5 to 2.13.1 (#2527) 
+ * [view commit](https://github.com/yahoo/elide/commit/588b69f120c8e914da4becc3f8b83b4d8b71d92e) Update: Make `-` a valid TEXT value type character (#2565) 
+ * [view commit](https://github.com/yahoo/elide/commit/5b7051da2a0cc9b97b2dd29c5b95a04a794a6901) Bump spring.boot.version from 2.6.3 to 2.6.5 (#2566) 
+ * [view commit](https://github.com/yahoo/elide/commit/5e67e547d60483696508e2e90460eee21c391491) Fix graphiql comment bug and config store issues creating multiple files in a single request. (#2571) 
+ * [view commit](https://github.com/yahoo/elide/commit/14ae1c4f31914f44ac3f347a80235947da3231f7) Bump jackson-databind from 2.13.2 to 2.13.2.1 (#2569) 
+ * [view commit](https://github.com/yahoo/elide/commit/78c636ed19e57a98e84243689dcf6f14c054681d) Bump hibernate5.version from 5.6.5.Final to 5.6.7.Final (#2568) 
+ * [view commit](https://github.com/yahoo/elide/commit/cf3bbfed579710352e4501487f7939a162a13c9c) Bump groovy.version from 3.0.9 to 3.0.10 (#2567) 
+ * [view commit](https://github.com/yahoo/elide/commit/507ba6ced3ef2ef68c484541481f9c5b7499f342) Bump nexus-staging-maven-plugin from 1.6.11 to 1.6.12 (#2559) 
+ * [view commit](https://github.com/yahoo/elide/commit/c7d44ce56eee1f0dced6afc1520fd93309614f6e) Bump spring-cloud-context from 3.1.0 to 3.1.1 (#2557) 
+
 ## 6.1.2
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/1355701e30f63ba7332e4b77efdf5166e21a3e61) Bump json-path from 2.6.0 to 2.7.0 (#2531) 
