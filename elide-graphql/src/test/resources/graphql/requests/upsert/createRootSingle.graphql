@@ -1,0 +1,10 @@
+mutation {
+  book(op: UPSERT, data: {title: "Book Numero Dos", publicationDate: "1984-12-25T00:00Z"} ) {
+    edges {
+      node {
+        title
+        publicationDate
+      }
+    }
+  }
+}

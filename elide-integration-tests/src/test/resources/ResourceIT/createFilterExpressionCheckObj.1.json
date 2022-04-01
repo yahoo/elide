@@ -1,9 +1,0 @@
-{
-    "data":{
-        "type":"filterExpressionCheckObj",
-        "id":"1",
-        "attributes":{
-            "name":"obj1"
-        }
-    }
-}

@@ -5,40 +5,37 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-import example.Child.InitCheck;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.type.Type;
 
-import javax.persistence.CascadeType;
+import java.util.Optional;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import java.util.Optional;
-import java.util.Set;
+import javax.persistence.Transient;
 
 /**
  * Child test bean.
  */
-@Entity
-@CreatePermission(any = { InitCheck.class })
-@SharePermission(any = { Role.ALL.class })
-@ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, Child.InitCheckOp.class})
-@Include
+@Entity(name = "childEntity")
+@CreatePermission(expression = "initCheck")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheck AND initCheckFilter")
+@Include(name = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",
@@ -47,35 +44,20 @@ import java.util.Set;
        operation = 0,
        logStatement = "CREATE Child {0} Parent {1}",
        logExpressions = {"${child.id}", "${parent.id}"})
-public class Child {
-    @JsonIgnore
-
-    private long id;
+public class Child extends BaseId {
     private Set<Parent> parents;
-
 
     private String name;
 
     private Set<Child> friends;
     private Child noReadAccess;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
     @ManyToMany(
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
             mappedBy = "children",
             targetEntity = Parent.class
         )
     // Contrived check for regression example. Should clean this up. No updating child 4 via parent 10
-    @UpdatePermission(all = Child4Parent10Check.class)
+    @UpdatePermission(expression = "child4Parent5")
     public Set<Parent> getParents() {
         return parents;
     }
@@ -110,7 +92,7 @@ public class Child {
     }
 
     @OneToOne(targetEntity = Child.class, fetch = FetchType.LAZY)
-    @ReadPermission(all = {Role.NONE.class})
+    @ReadPermission(expression = "Prefab.Role.None")
     public Child getNoReadAccess() {
         return noReadAccess;
     }
@@ -119,25 +101,34 @@ public class Child {
         this.noReadAccess = noReadAccess;
     }
 
-    /**
-     * Initialization validation check.
-     */
-    static public class InitCheck extends CommitCheck<Child> {
+    @Transient
+    @ComputedAttribute
+    @ReadPermission(expression = "FailCheckOp")
+    public String getComputedFailTest() {
+        return "computed";
+    }
+
+    public String setComputedFailTest(String unused) {
+        throw new IllegalAccessError();
+    }
+
+    static public class InitCheck extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (child.getParents() != null) {
-                return true;
-            }
-            return false;
+            return child.getParents() != null;
         }
     }
 
-    static public class InitCheckOp extends OperationCheck<Child> {
+    static public class InitCheckFilter extends FilterExpressionCheck<Child> {
+        @Override
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
+            return new NotNullPredicate(new Path.PathElement(Child.class, Long.class, "id"));
+        }
+    }
+
+    static public class FailCheckOp extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (child.getParents() != null) {
-                return true;
-            }
             return false;
         }
     }

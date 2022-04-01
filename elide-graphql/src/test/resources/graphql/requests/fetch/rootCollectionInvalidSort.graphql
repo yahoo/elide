@@ -1,0 +1,10 @@
+{
+  book(sort: "-title|unknown") {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}

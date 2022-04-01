@@ -6,13 +6,17 @@
 package example;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -25,40 +29,56 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "author")
-@Include(rootLevel = true)
-@SharePermission(any = {Role.ALL.class})
+@Include
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${author.name}"})
 public class Author {
+    public enum AuthorType {
+        EXCLUSIVE,
+        CONTRACTED,
+        FREELANCE
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter @Setter
     private Long id;
+
+    @Exclude
+    private String naturalKey = UUID.randomUUID().toString();
+
+    @Override
+    public int hashCode() {
+        return naturalKey.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Author && naturalKey.equals(((Author) obj).naturalKey);
+    }
+
+    @Getter @Setter
     private String name;
-    private Collection<Book> books = new ArrayList<>();
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     @ManyToMany(mappedBy = "authors")
-    public Collection<Book> getBooks() {
-        return books;
-    }
+    @Getter @Setter
+    private Collection<Book> books = new ArrayList<>();
 
-    public void setBooks(Collection<Book> books) {
-        this.books = books;
-    }
+    @Getter @Setter
+    private AuthorType type;
+
+    @Getter @Setter
+    private Address homeAddress;
+
+    @Getter @Setter
+    private Set<Address> vacationHomes;
+
+    @Getter @Setter
+    private Map<Object, Object> stuff;
+
+    @ElementCollection
+    @Getter @Setter
+    private Collection<String> awards;
 }

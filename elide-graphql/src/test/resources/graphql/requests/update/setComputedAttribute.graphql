@@ -1,0 +1,9 @@
+mutation {
+  author(op: UPDATE, ids: ["1"], data: {prefix: "MyPrefix", bookTitlesWithPrefix: ["I", "should", "do", "nothing!"]}) {
+    edges {
+      node {
+        bookTitlesWithPrefix
+      }
+    }
+  }
+}

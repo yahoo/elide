@@ -1,9 +1,0 @@
-{
-    "data":{
-        "type":"OneToOneNonRoot",
-        "id":"1",
-        "attributes":{
-            "test": "Other object"
-        }
-    }
-}

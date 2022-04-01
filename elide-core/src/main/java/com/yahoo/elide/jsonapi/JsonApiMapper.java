@@ -5,13 +5,12 @@
  */
 package com.yahoo.elide.jsonapi;
 
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.Patch;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.jsonapi.models.Patch;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,24 +22,21 @@ public class JsonApiMapper {
     private final ObjectMapper mapper;
 
     /**
-     * Instantiates a new JSON API OBJECT_MAPPER.
-     *
-     * @param dictionary the dictionary
+     * Instantiates a new Json Api Mapper.
      */
-    public JsonApiMapper(EntityDictionary dictionary) {
-        mapper = new ObjectMapper();
-        mapper.registerModule(JsonApiSerializer.getModule(dictionary));
+    public JsonApiMapper() {
+        this.mapper = new ObjectMapper();
+        mapper.registerModule(JsonApiSerializer.getModule());
     }
 
     /**
      * Instantiates a new Json Api Mapper.
      *
-     * @param dictionary the dictionary
      * @param mapper Custom object mapper to use internally for serializing/deserializing
      */
-    public JsonApiMapper(EntityDictionary dictionary, ObjectMapper mapper) {
+    public JsonApiMapper(ObjectMapper mapper) {
         this.mapper = mapper;
-        mapper.registerModule(JsonApiSerializer.getModule(dictionary));
+        mapper.registerModule(JsonApiSerializer.getModule());
     }
 
     /**

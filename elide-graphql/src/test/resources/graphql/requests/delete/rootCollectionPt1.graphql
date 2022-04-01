@@ -1,0 +1,10 @@
+mutation {
+  book(op:DELETE, ids: ["1", "2"]) {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}

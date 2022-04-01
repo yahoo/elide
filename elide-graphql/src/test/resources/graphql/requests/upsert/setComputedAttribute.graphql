@@ -1,0 +1,9 @@
+mutation {
+  author(op: UPSERT, data: {prefix: "MyPrefix", bookTitlesWithPrefix: ["I", "should", "do", "nothing!"]}) {
+    edges {
+      node {
+        bookTitlesWithPrefix
+      }
+    }
+  }
+}

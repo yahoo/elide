@@ -10,12 +10,14 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+
 import lombok.ToString;
+
+import java.util.Optional;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -25,34 +27,33 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.PrePersist;
 import javax.validation.constraints.NotNull;
-import java.util.Optional;
-import java.util.Set;
 
-@CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
-@ReadPermission(any = { Parent.InitCheckOp.class, Role.ALL.class })
-@UpdatePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
-@DeletePermission(any = { Parent.InitCheckOp.class, Role.ALL.class, Role.NONE.class })
-@Include(rootLevel = true, type = "parent") // optional here because class has this name
+@CreatePermission(expression = "parentInitCheck OR Prefab.Role.All")
+@ReadPermission(expression = "parentInitCheck OR Prefab.Role.All")
+@UpdatePermission(expression = "parentInitCheck OR Prefab.Role.All OR Prefab.Role.None")
+@DeletePermission(expression = "parentInitCheck OR Prefab.Role.All OR Prefab.Role.None")
+@Include(name = "parent") // optional here because class has this name
 @Entity
 @ToString
 public class Parent extends BaseId {
+    @ReadPermission(expression = "Prefab.Role.None")
+    public transient boolean init = false;
     private Set<Child> children;
     private Set<Parent> spouses;
     private String firstName;
     private String specialAttribute;
-    @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 
     @PrePersist
     public void doInit() {
         init = true;
     }
 
-    @ReadPermission(any = { Role.ALL.class, Role.NONE.class })
-    @UpdatePermission(any = { Role.ALL.class, Role.NONE.class })
+    @ReadPermission(expression = "Prefab.Role.All OR Prefab.Role.None")
+    @UpdatePermission(expression = "Prefab.Role.All OR Prefab.Role.None")
     // Hibernate
     @ManyToMany(
             targetEntity = Child.class,
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE }
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
     )
     @JoinTable(
             name = "Parent_Child",
@@ -89,8 +90,8 @@ public class Parent extends BaseId {
     }
 
     // Special attribute is to catch a corner case for patch extension
-    @ReadPermission(all = {Role.NONE.class})
-    @UpdatePermission(all = {SpecialValue.class})
+    @ReadPermission(expression = "Prefab.Role.None")
+    @UpdatePermission(expression = "specialValue")
     public String getSpecialAttribute() {
         return specialAttribute;
     }
@@ -99,23 +100,10 @@ public class Parent extends BaseId {
         this.specialAttribute = specialAttribute;
     }
 
-    static public class InitCheck extends CommitCheck<Parent> {
+    static public class InitCheck extends OperationCheck<Parent> {
         @Override
         public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (parent.getChildren() != null && parent.getSpouses() != null) {
-                return true;
-            }
-            return false;
-        }
-    }
-
-    static public class InitCheckOp extends OperationCheck<Parent> {
-        @Override
-        public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (parent.getChildren() != null && parent.getSpouses() != null) {
-                return true;
-            }
-            return false;
+            return parent.getChildren() != null && parent.getSpouses() != null;
         }
     }
 

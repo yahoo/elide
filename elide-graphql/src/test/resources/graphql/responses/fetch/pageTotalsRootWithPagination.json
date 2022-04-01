@@ -1,0 +1,18 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "2",
+          "title": "Libro Dos"
+        }
+      }
+    ],
+    "pageInfo": {
+      "totalRecords": 3,
+      "startCursor": "1",
+      "endCursor": "2",
+      "hasNextPage": true
+    }
+  }
+}

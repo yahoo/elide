@@ -1,0 +1,13 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "name": "abc",
+          "obj" : "bar"
+        }
+      }
+    ]
+  }
+}

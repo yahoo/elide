@@ -1,0 +1,19 @@
+{
+    // comma after admin is wrong, admin should be in quotes if using comma
+    roles:  [
+        admin,
+        guest,
+        dev
+        ]
+    rules: [
+        {
+            type: filter
+            filter: filter
+            name: User belongs to company
+        },
+        {
+            filter: filter
+            name: Principal is owner
+        },
+    ]
+}

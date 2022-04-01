@@ -5,12 +5,13 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,20 +21,21 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.util.Set;
 
-
-@Include(rootLevel = true, type = "left") // optional here because class has this name
+@Include(name = "left") // optional here because class has this name
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
-@DeletePermission(
-        any = {NegativeIntegerUserCheck.class}
-)
+@DeletePermission(expression = "negativeIntegerUser")
+@NonTransferable
 public class Left {
     @JsonIgnore
     private long id;
     private Set<Right> one2many;
     private Right one2one;
+    private NoDeleteEntity noDeleteOne2One;
+    private Set<Right> fieldLevelDelete;
+    private Right noUpdateOne2One;
+    private Set<Right> noInverseUpdate;
 
     @OneToOne(
             optional = false,
@@ -72,33 +74,54 @@ public class Left {
         return id;
     }
 
-    @UpdatePermission(
-           any = {Role.NONE.class}
-    )
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
             mappedBy = "noUpdateOne2One"
     )
-    public Right noUpdateOne2One;
+    public Right getNoUpdateOne2One() {
+        return noUpdateOne2One;
+    }
+
+    public void setNoUpdateOne2One(Right noUpdateOne2One) {
+        this.noUpdateOne2One = noUpdateOne2One;
+    }
 
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
             mappedBy = "noUpdate"
     )
-    public Set<Right> noInverseUpdate;
+    public Set<Right> getNoInverseUpdate() {
+        return noInverseUpdate;
+    }
+
+    public void setNoInverseUpdate(Set<Right> noInverseUpdate) {
+        this.noInverseUpdate = noInverseUpdate;
+    }
 
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = NoDeleteEntity.class
+
     )
-    public NoDeleteEntity noDeleteOne2One;
+    public NoDeleteEntity getNoDeleteOne2One() {
+        return noDeleteOne2One;
+    }
+
+    public void setNoDeleteOne2One(NoDeleteEntity noDeleteOne2One) {
+        this.noDeleteOne2One = noDeleteOne2One;
+    }
 
     @ManyToMany(
-        cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-        targetEntity = Right.class,
-        mappedBy = "allowDeleteAtFieldLevel"
+        cascade = { CascadeType.PERSIST, CascadeType.MERGE }
     )
-    public Set<Right> fieldLevelDelete;
+    public Set<Right> getFieldLevelDelete() {
+        return fieldLevelDelete;
+    }
+
+    public void setFieldLevelDelete(Set<Right> fieldLevelDelete) {
+        this.fieldLevelDelete = fieldLevelDelete;
+    }
 }

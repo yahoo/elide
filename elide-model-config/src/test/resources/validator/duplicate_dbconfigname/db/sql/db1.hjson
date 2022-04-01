@@ -1,0 +1,12 @@
+{
+  dbconfigs:
+  [
+    {
+      name: OracleConnection
+      url: jdbc:oracle:thin:@localhost:1521:testdb
+      driver: oracle.jdbc.driver.OracleDriver
+      user: guestoracle
+      dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect
+    }
+  ]
+}

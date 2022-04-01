@@ -1,68 +1,70 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2018, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide;
 
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TransactionRegistry;
+import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
+import com.yahoo.elide.core.dictionary.Injector;
+import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.core.exceptions.CustomErrorException;
+import com.yahoo.elide.core.exceptions.ErrorMapper;
+import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
+import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
-import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
-import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
-import com.yahoo.elide.extensions.JsonApiPatch;
-import com.yahoo.elide.extensions.PatchRequestScope;
-import com.yahoo.elide.generated.parsers.CoreLexer;
-import com.yahoo.elide.generated.parsers.CoreParser;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.extensions.JsonApiPatch;
+import com.yahoo.elide.jsonapi.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.parsers.DeleteVisitor;
-import com.yahoo.elide.parsers.GetVisitor;
-import com.yahoo.elide.parsers.PatchVisitor;
-import com.yahoo.elide.parsers.PostVisitor;
-import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.SecurityMode;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.executors.ActivePermissionExecutor;
-
+import com.yahoo.elide.jsonapi.parser.BaseVisitor;
+import com.yahoo.elide.jsonapi.parser.DeleteVisitor;
+import com.yahoo.elide.jsonapi.parser.GetVisitor;
+import com.yahoo.elide.jsonapi.parser.JsonApiParser;
+import com.yahoo.elide.jsonapi.parser.PatchVisitor;
+import com.yahoo.elide.jsonapi.parser.PostVisitor;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
-
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -70,604 +72,569 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 @Slf4j
 public class Elide {
+    public static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
+    public static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
+            "application/vnd.api+json; ext=jsonpatch";
 
-
-    private final AuditLogger auditLogger;
-    private final DataStore dataStore;
-    private final EntityDictionary dictionary;
-    private final JsonApiMapper mapper;
-    private final Function<RequestScope, PermissionExecutor> permissionExecutor;
-    private final List<JoinFilterDialect> joinFilterDialects;
-    private final List<SubqueryFilterDialect> subqueryFilterDialects;
-    private final boolean useFilterExpressions;
+    @Getter private final ElideSettings elideSettings;
+    @Getter private final AuditLogger auditLogger;
+    @Getter private final DataStore dataStore;
+    @Getter private final JsonApiMapper mapper;
+    @Getter private final ErrorMapper errorMapper;
+    @Getter private final TransactionRegistry transactionRegistry;
+    @Getter private final ClassScanner scanner;
+    private boolean initialized = false;
 
     /**
-     * Instantiates a new Elide.
+     * Instantiates a new Elide instance.
      *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @param dictionary the dictionary
-     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
+     * @param elideSettings Elide settings object.
      */
-    @Deprecated
-    public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
-        this(auditLogger, dataStore, dictionary, new JsonApiMapper(dictionary));
+    public Elide(
+            ElideSettings elideSettings
+    ) {
+        this(elideSettings, new TransactionRegistry(), elideSettings.getDictionary().getScanner(), false);
     }
 
     /**
-     * Instantiates a new Elide.
+     * Instantiates a new Elide instance.
      *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
+     * @param elideSettings Elide settings object.
+     * @param transactionRegistry Global transaction state.
      */
-    @Deprecated
-    public Elide(AuditLogger auditLogger, DataStore dataStore) {
-        this(auditLogger, dataStore, new EntityDictionary(new HashMap<>()));
+    public Elide(
+            ElideSettings elideSettings,
+            TransactionRegistry transactionRegistry
+    ) {
+        this(elideSettings, transactionRegistry, elideSettings.getDictionary().getScanner(), false);
     }
 
     /**
-     * Instantiates a new Elide.
+     * Instantiates a new Elide instance.
      *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @param dictionary the dictionary
-     * @param mapper Serializer/Deserializer for JSON API
-     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
+     * @param elideSettings Elide settings object.
+     * @param transactionRegistry Global transaction state.
+     * @param scanner Scans classes for Elide annotations.
+     * @param doScans Perform scans now.
      */
-    @Deprecated
-    public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary, JsonApiMapper mapper) {
-        this(
-                auditLogger,
-                dataStore,
-                dictionary,
-                mapper,
-                ActivePermissionExecutor::new,
-                Collections.singletonList(new DefaultFilterDialect(dictionary)),
-                Collections.singletonList(new DefaultFilterDialect(dictionary)),
-                false
-        );
-    }
+    public Elide(
+            ElideSettings elideSettings,
+            TransactionRegistry transactionRegistry,
+            ClassScanner scanner,
+            boolean doScans
+    ) {
+        this.elideSettings = elideSettings;
+        this.scanner = scanner;
+        this.auditLogger = elideSettings.getAuditLogger();
+        this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
+        this.mapper = elideSettings.getMapper();
+        this.errorMapper = elideSettings.getErrorMapper();
+        this.transactionRegistry = transactionRegistry;
 
-    /**
-     * Instantiates a new Elide.
-     *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @param dictionary the dictionary
-     * @param mapper Serializer/Deserializer for JSON API
-     * @param permissionExecutor Custom permission executor implementation
-     */
-    protected Elide(AuditLogger auditLogger,
-                  DataStore dataStore,
-                  EntityDictionary dictionary,
-                  JsonApiMapper mapper,
-                  Function<RequestScope, PermissionExecutor> permissionExecutor) {
-        this(
-            auditLogger,
-            dataStore,
-            dictionary,
-            mapper,
-            ActivePermissionExecutor::new,
-            Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            false
-        );
-    }
-
-    /**
-     * Instantiates a new Elide.
-     *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @param dictionary the dictionary
-     * @param mapper Serializer/Deserializer for JSON API
-     * @param permissionExecutor Custom permission executor implementation
-     * @param joinFilterDialects A list of filter parsers to use for filtering across types
-     * @param subqueryFilterDialects A list of filter parsers to use for filtering by type
-     * @param useFilterExpressions Whether or not to use Elide 3.0 filter expressions for DataStore interactions
-     */
-    protected Elide(AuditLogger auditLogger,
-                  DataStore dataStore,
-                  EntityDictionary dictionary,
-                  JsonApiMapper mapper,
-                  Function<RequestScope, PermissionExecutor> permissionExecutor,
-                  List<JoinFilterDialect> joinFilterDialects,
-                  List<SubqueryFilterDialect> subqueryFilterDialects,
-                  boolean useFilterExpressions) {
-        this.auditLogger = auditLogger;
-        this.dataStore = dataStore;
-        this.dictionary = dictionary;
-        dataStore.populateEntityDictionary(dictionary);
-        this.mapper = mapper;
-        this.permissionExecutor = permissionExecutor;
-        this.joinFilterDialects = joinFilterDialects;
-        this.subqueryFilterDialects = subqueryFilterDialects;
-        this.useFilterExpressions = useFilterExpressions;
-    }
-
-    /**
-     * Elide Builder for constructing an Elide instance.
-     */
-    public static class Builder {
-        private final DataStore dataStore;
-        private AuditLogger auditLogger;
-        private JsonApiMapper jsonApiMapper;
-        private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
-        private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
-        private List<JoinFilterDialect> joinFilterDialects;
-        private List<SubqueryFilterDialect> subqueryFilterDialects;
-        private boolean useFilterExpressions;
-
-        /**
-         * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
-         * providing a mapping of security checks.
-         *
-         * @param auditLogger the logger to use for audit annotations
-         * @param dataStore the datastore used to communicate with the persistence layer
-         * @deprecated 2.3 use {@link #Builder(DataStore)}
-         */
-        public Builder(AuditLogger auditLogger, DataStore dataStore) {
-            this.auditLogger = auditLogger;
-            this.dataStore = dataStore;
-            this.jsonApiMapper = new JsonApiMapper(entityDictionary);
-            this.joinFilterDialects = new ArrayList<>();
-            this.subqueryFilterDialects = new ArrayList<>();
-
+        if (doScans) {
+            doScans();
         }
+    }
 
-        /**
-         * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
-         * providing a mapping of security checks and uses the provided {@link Slf4jLogger} for audit.
-         *
-         * @param dataStore the datastore used to communicate with the persistence layer
-         */
-        public Builder(DataStore dataStore) {
-            this.dataStore = dataStore;
-            this.auditLogger = new Slf4jLogger();
-            this.jsonApiMapper = new JsonApiMapper(entityDictionary);
-            this.joinFilterDialects = new ArrayList<>();
-            this.subqueryFilterDialects = new ArrayList<>();
+    /**
+     * Scans & binds Elide models, scans for security check definitions, serde definitions, life cycle hooks
+     * and more.  Any dependency injection required by objects found from scans must be performed prior to this call.
+     */
+    public void doScans() {
+        if (! initialized) {
+            elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
+            registerCustomSerde();
+
+            //Scan for security checks prior to populating data stores in case they need them.
+            elideSettings.getDictionary().scanForSecurityChecks();
+
+            this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
+            initialized = true;
         }
+    }
 
-        public Elide build() {
-            if (joinFilterDialects.isEmpty()) {
-                joinFilterDialects.add(new DefaultFilterDialect(entityDictionary));
+    protected void registerCustomSerde() {
+        Injector injector = elideSettings.getDictionary().getInjector();
+        Set<Class<?>> classes = registerCustomSerdeScan();
+
+        for (Class<?> clazz : classes) {
+            if (!Serde.class.isAssignableFrom(clazz)) {
+                log.warn("Skipping Serde registration (not a Serde!): {}", clazz);
+                continue;
             }
+            Serde serde = (Serde) injector.instantiate(clazz);
+            injector.inject(serde);
 
-            if (subqueryFilterDialects.isEmpty()) {
-                subqueryFilterDialects.add(new DefaultFilterDialect(entityDictionary));
+            ElideTypeConverter converter = clazz.getAnnotation(ElideTypeConverter.class);
+            Class baseType = converter.type();
+            registerCustomSerde(baseType, serde, converter.name());
+
+            for (Class type : converter.subTypes()) {
+                if (!baseType.isAssignableFrom(type)) {
+                    throw new IllegalArgumentException("Mentioned type " + type
+                            + " not subtype of " + baseType);
+                }
+                registerCustomSerde(type, serde, converter.name());
             }
-
-            return new Elide(
-                    auditLogger,
-                    dataStore,
-                    entityDictionary,
-                    jsonApiMapper,
-                    permissionExecutorFunction,
-                    joinFilterDialects,
-                    subqueryFilterDialects,
-                    useFilterExpressions);
         }
+    }
 
-        @Deprecated
-        public Builder auditLogger(final AuditLogger auditLogger) {
-            return withAuditLogger(auditLogger);
-        }
+    protected void registerCustomSerde(Class<?> type, Serde serde, String name) {
+        log.info("Registering serde for type : {}", type);
+        CoerceUtil.register(type, serde);
+        registerCustomSerdeInObjectMapper(type, serde, name);
+    }
 
-        @Deprecated
-        public Builder entityDictionary(final EntityDictionary entityDictionary) {
-            return withEntityDictionary(entityDictionary);
-        }
-
-        @Deprecated
-        public Builder jsonApiMapper(final JsonApiMapper jsonApiMapper) {
-            return withJsonApiMapper(jsonApiMapper);
-        }
-
-        @Deprecated
-        public Builder permissionExecutor(final Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
-            return withPermissionExecutor(permissionExecutorFunction);
-        }
-
-        @Deprecated
-        public Builder permissionExecutor(final Class<? extends PermissionExecutor> permissionExecutorClass) {
-            return withPermissionExecutor(permissionExecutorClass);
-        }
-
-        public Builder withAuditLogger(AuditLogger auditLogger) {
-            this.auditLogger = auditLogger;
-            return this;
-        }
-
-        public Builder withEntityDictionary(EntityDictionary entityDictionary) {
-            this.entityDictionary = entityDictionary;
-            return this;
-        }
-
-        public Builder withJsonApiMapper(JsonApiMapper jsonApiMapper) {
-            this.jsonApiMapper = jsonApiMapper;
-            return this;
-        }
-
-        public Builder withPermissionExecutor(Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
-            this.permissionExecutorFunction = permissionExecutorFunction;
-            return this;
-        }
-
-        public Builder withPermissionExecutor(Class<? extends PermissionExecutor> permissionExecutorClass) {
-            permissionExecutorFunction = (requestScope) -> {
-                try {
-                    try {
-                        // Try to find a constructor with request scope
-                        Constructor<? extends PermissionExecutor> ctor =
-                                permissionExecutorClass.getDeclaredConstructor(RequestScope.class);
-                        return ctor.newInstance(requestScope);
-                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException
-                            | InstantiationException e) {
-                        // If that fails, try blank constructor
-                        return permissionExecutorClass.newInstance();
+    protected void registerCustomSerdeInObjectMapper(Class<?> type, Serde serde, String name) {
+        ObjectMapper objectMapper = mapper.getObjectMapper();
+        objectMapper.registerModule(new SimpleModule(name)
+                .addSerializer(type, new JsonSerializer<Object>() {
+                    @Override
+                    public void serialize(Object obj, JsonGenerator jsonGenerator,
+                                          SerializerProvider serializerProvider)
+                            throws IOException, JsonProcessingException {
+                        jsonGenerator.writeObject(serde.serialize(obj));
                     }
-                } catch (IllegalAccessException | InstantiationException e) {
-                    // Everything failed. Throw hands up, not sure how to proceed.
-                    throw new RuntimeException(e);
+                }));
+    }
+
+    protected Set<Class<?>> registerCustomSerdeScan() {
+        return scanner.getAnnotatedClasses(ElideTypeConverter.class);
+    }
+
+    /**
+     * Handle GET.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @return Elide response object
+     */
+    public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
+                             User opaqueUser, String apiVersion) {
+        return get(baseUrlEndPoint, path, queryParams, opaqueUser, apiVersion, UUID.randomUUID());
+    }
+
+    /**
+     * Handle GET.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
+                             User opaqueUser, String apiVersion, UUID requestId) {
+        return get(baseUrlEndPoint, path, queryParams, Collections.emptyMap(), opaqueUser, apiVersion, requestId);
+    }
+
+    /**
+     * Handle GET.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param queryParams the query params
+     * @param requestHeaders the request headers
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
+                             Map<String, List<String>> requestHeaders, User opaqueUser, String apiVersion,
+                             UUID requestId) {
+        if (elideSettings.isStrictQueryParams()) {
+            try {
+                verifyQueryParams(queryParams);
+            } catch (BadRequestException e) {
+                return buildErrorResponse(e, false);
+            }
+        }
+        return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
+            JsonApiDocument jsonApiDoc = new JsonApiDocument();
+            RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
+                    tx, user, queryParams, requestHeaders, requestId, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
+            BaseVisitor visitor = new GetVisitor(requestScope);
+            return visit(path, requestScope, visitor);
+        });
+    }
+
+    /**
+     * Handle POST.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @return Elide response object
+     */
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
+                              User opaqueUser, String apiVersion) {
+        return post(baseUrlEndPoint, path, jsonApiDocument, null, opaqueUser, apiVersion, UUID.randomUUID());
+    }
+
+    /**
+     * Handle POST.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
+                              MultivaluedMap<String, String> queryParams,
+                              User opaqueUser, String apiVersion, UUID requestId) {
+        return post(baseUrlEndPoint, path, jsonApiDocument, queryParams, Collections.emptyMap(),
+                    opaqueUser, apiVersion, requestId);
+    }
+
+    /**
+     * Handle POST.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param requestHeaders the request headers
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
+                              MultivaluedMap<String, String> queryParams, Map<String, List<String>> requestHeaders,
+                              User opaqueUser, String apiVersion, UUID requestId) {
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
+            JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
+            RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion,
+                    jsonApiDoc, tx, user, queryParams, requestHeaders, requestId, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
+            BaseVisitor visitor = new PostVisitor(requestScope);
+            return visit(path, requestScope, visitor);
+        });
+    }
+
+    /**
+     * Handle PATCH.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param contentType the content type
+     * @param accept the accept
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @return Elide response object
+     */
+    public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
+                               String path, String jsonApiDocument,
+                               User opaqueUser, String apiVersion) {
+        return patch(baseUrlEndPoint, contentType, accept, path, jsonApiDocument,
+                     null, opaqueUser, apiVersion, UUID.randomUUID());
+    }
+
+    /**
+     * Handle PATCH.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param contentType the content type
+     * @param accept the accept
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
+                               String path, String jsonApiDocument, MultivaluedMap<String, String> queryParams,
+                               User opaqueUser, String apiVersion, UUID requestId) {
+
+        return patch(baseUrlEndPoint, contentType, accept, path, jsonApiDocument, queryParams,
+                null, opaqueUser, apiVersion, requestId);
+    }
+
+    /**
+     * Handle PATCH.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param contentType the content type
+     * @param accept the accept
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param requestHeaders the request headers
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
+                               String path, String jsonApiDocument, MultivaluedMap<String, String> queryParams,
+                               Map<String, List<String>> requestHeaders, User opaqueUser,
+                               String apiVersion, UUID requestId) {
+
+        Handler<DataStoreTransaction, User, HandlerResult> handler;
+        if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
+            handler = (tx, user) -> {
+                PatchRequestScope requestScope = new PatchRequestScope(baseUrlEndPoint, path, apiVersion, tx,
+                        user, requestId, queryParams, requestHeaders, elideSettings);
+                try {
+                    Supplier<Pair<Integer, JsonNode>> responder =
+                            JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
+                    return new HandlerResult(requestScope, responder);
+                } catch (RuntimeException e) {
+                    return new HandlerResult(requestScope, e);
                 }
             };
-            return this;
+        } else {
+            handler = (tx, user) -> {
+                JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
+
+                RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
+                        tx, user, queryParams, requestHeaders, requestId, elideSettings);
+                requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                        requestScope).parsePath(path));
+                BaseVisitor visitor = new PatchVisitor(requestScope);
+                return visit(path, requestScope, visitor);
+            };
         }
 
-        public Builder withJoinFilterDialect(JoinFilterDialect dialect) {
-            useFilterExpressions = true;
-            joinFilterDialects.add(dialect);
-            return this;
-        }
-
-        public Builder withSubqueryFilterDialect(SubqueryFilterDialect dialect) {
-            useFilterExpressions = true;
-            subqueryFilterDialects.add(dialect);
-            return this;
-        }
-    }
-
-    /**
-     * Handle GET.
-     *
-     * @param path the path
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @param securityMode only for test mode
-     * @return Elide response object
-     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
-     */
-    @Deprecated
-    public ElideResponse get(
-            String path,
-            MultivaluedMap<String, String> queryParams,
-            Object opaqueUser,
-            SecurityMode securityMode) {
-
-        RequestScope requestScope = null;
-        boolean isVerbose = false;
-        try (DataStoreTransaction transaction = dataStore.beginReadTransaction()) {
-            final User user = transaction.accessUser(opaqueUser);
-            requestScope = new RequestScope(
-                    path,
-                    new JsonApiDocument(),
-                    transaction,
-                    user,
-                    dictionary,
-                    mapper,
-                    auditLogger,
-                    queryParams,
-                    securityMode,
-                    permissionExecutor,
-                    new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
-                    useFilterExpressions);
-
-            isVerbose = requestScope.getPermissionExecutor().isVerbose();
-            GetVisitor visitor = new GetVisitor(requestScope);
-            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-            transaction.preCommit();
-            requestScope.getPermissionExecutor().executeCommitChecks();
-            transaction.flush();
-            ElideResponse response = buildResponse(responder.get());
-            auditLogger.commit();
-            transaction.commit();
-            requestScope.runCommitTriggers();
-            if (log.isTraceEnabled()) {
-                requestScope.getPermissionExecutor().printCheckStats();
-            }
-            return response;
-        } catch (ForbiddenAccessException e) {
-            log.debug("{}", e.getLoggedMessage());
-            return buildErrorResponse(e, isVerbose);
-        } catch (HttpStatusException e) {
-            return buildErrorResponse(e, isVerbose);
-        } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e), isVerbose);
-        } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e), isVerbose);
-        } finally {
-            auditLogger.clear();
-        }
-    }
-
-    /**
-     * Handle GET.
-     *
-     * @param path the path
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse get(
-            String path,
-            MultivaluedMap<String, String> queryParams,
-            Object opaqueUser) {
-        return this.get(path, queryParams, opaqueUser, SecurityMode.SECURITY_ACTIVE);
-    }
-
-    /**
-     * Handle POST.
-     *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @param securityMode only for test mode
-     * @return Elide response object
-     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
-     */
-    @Deprecated
-    public ElideResponse post(
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser,
-            SecurityMode securityMode) {
-        RequestScope requestScope = null;
-        boolean isVerbose = false;
-        try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
-            User user = transaction.accessUser(opaqueUser);
-            JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-            requestScope = new RequestScope(path, doc,
-                    transaction,
-                    user,
-                    dictionary,
-                    mapper,
-                    auditLogger,
-                    securityMode,
-                    permissionExecutor);
-            isVerbose = requestScope.getPermissionExecutor().isVerbose();
-            PostVisitor visitor = new PostVisitor(requestScope);
-            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-            transaction.preCommit();
-            requestScope.getPermissionExecutor().executeCommitChecks();
-            requestScope.saveObjects();
-            transaction.flush();
-            ElideResponse response = buildResponse(responder.get());
-            auditLogger.commit();
-            transaction.commit();
-            requestScope.runCommitTriggers();
-            if (log.isTraceEnabled()) {
-                requestScope.getPermissionExecutor().printCheckStats();
-            }
-            return response;
-        } catch (ForbiddenAccessException e) {
-            log.debug("{}", e.getLoggedMessage());
-            return buildErrorResponse(e, isVerbose);
-        } catch (HttpStatusException e) {
-            return buildErrorResponse(e, isVerbose);
-        } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e), isVerbose);
-        } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e), isVerbose);
-        } finally {
-            auditLogger.clear();
-        }
-    }
-
-    /**
-     * Handle POST.
-     *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse post(
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser) {
-        return this.post(path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
-    }
-
-    /**
-     * Handle PATCH.
-     *
-     * @param contentType the content type
-     * @param accept the accept
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @param securityMode only for test mode
-     * @return Elide response object
-     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
-     */
-    @Deprecated
-    public ElideResponse patch(
-            String contentType,
-            String accept,
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser,
-            SecurityMode securityMode) {
-        RequestScope requestScope = null;
-        boolean isVerbose = false;
-        try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
-            User user = transaction.accessUser(opaqueUser);
-
-            Supplier<Pair<Integer, JsonNode>> responder;
-            if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
-                // build Outer RequestScope to be used for each action
-                PatchRequestScope patchRequestScope = new PatchRequestScope(path,
-                        transaction, user, dictionary, mapper, auditLogger, permissionExecutor);
-                requestScope = patchRequestScope;
-                isVerbose = requestScope.getPermissionExecutor().isVerbose();
-                responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
-            } else {
-                JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-                requestScope = new RequestScope(path, doc, transaction, user, dictionary, mapper, auditLogger,
-                        securityMode, permissionExecutor);
-                isVerbose = requestScope.getPermissionExecutor().isVerbose();
-                PatchVisitor visitor = new PatchVisitor(requestScope);
-                responder = visitor.visit(parse(path));
-            }
-            transaction.preCommit();
-            requestScope.getPermissionExecutor().executeCommitChecks();
-            requestScope.saveObjects();
-            transaction.flush();
-            ElideResponse response = buildResponse(responder.get());
-            auditLogger.commit();
-            transaction.commit();
-            requestScope.runCommitTriggers();
-            if (log.isTraceEnabled()) {
-                requestScope.getPermissionExecutor().printCheckStats();
-            }
-            return response;
-        } catch (ForbiddenAccessException e) {
-            log.debug("{}", e.getLoggedMessage());
-            return buildErrorResponse(e, isVerbose);
-        } catch (JsonPatchExtensionException e) {
-            return buildResponse(e.getResponse());
-        } catch (HttpStatusException e) {
-            return buildErrorResponse(e, isVerbose);
-        } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e), isVerbose);
-        } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e), isVerbose);
-        } finally {
-            auditLogger.clear();
-        }
-    }
-
-    /**
-     * Handle PATCH.
-     *
-     * @param contentType the content type
-     * @param accept the accept
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse patch(
-            String contentType,
-            String accept,
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser) {
-        return this.patch(contentType, accept, path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, handler);
     }
 
     /**
      * Handle DELETE.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
-     * @param securityMode only for test mode
+     * @param apiVersion the API version
      * @return Elide response object
-     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
-    @Deprecated
-    public ElideResponse delete(
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser,
-            SecurityMode securityMode) {
-        JsonApiDocument doc;
-        RequestScope requestScope = null;
-        boolean isVerbose = false;
-        try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
-            User user = transaction.accessUser(opaqueUser);
-            if (jsonApiDocument != null && !jsonApiDocument.equals("")) {
-                doc = mapper.readJsonApiDocument(jsonApiDocument);
-            } else {
-                doc = new JsonApiDocument();
-            }
-            requestScope = new RequestScope(
-                    path, doc, transaction, user, dictionary, mapper, auditLogger, securityMode, permissionExecutor);
-            isVerbose = requestScope.getPermissionExecutor().isVerbose();
-            DeleteVisitor visitor = new DeleteVisitor(requestScope);
-            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-            transaction.preCommit();
-            requestScope.getPermissionExecutor().executeCommitChecks();
-            requestScope.saveObjects();
-            transaction.flush();
-            ElideResponse response = buildResponse(responder.get());
-            auditLogger.commit();
-            transaction.commit();
-            requestScope.runCommitTriggers();
-            if (log.isTraceEnabled()) {
-                requestScope.getPermissionExecutor().printCheckStats();
-            }
-            return response;
-        } catch (ForbiddenAccessException e) {
-            log.debug("{}", e.getLoggedMessage());
-            return buildErrorResponse(e, isVerbose);
-        } catch (HttpStatusException e) {
-            return buildErrorResponse(e, isVerbose);
-        } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e), isVerbose);
-        } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e), isVerbose);
-        } finally {
-            auditLogger.clear();
-        }
+    public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
+                                User opaqueUser, String apiVersion) {
+        return delete(baseUrlEndPoint, path, jsonApiDocument, null, opaqueUser, apiVersion, UUID.randomUUID());
     }
 
     /**
      * Handle DELETE.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the path
      * @param jsonApiDocument the json api document
+     * @param queryParams the query params
      * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse delete(
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser) {
-        return this.delete(path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
+    public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
+                                MultivaluedMap<String, String> queryParams,
+                                User opaqueUser, String apiVersion, UUID requestId) {
+        return delete(baseUrlEndPoint, path, jsonApiDocument, queryParams, Collections.emptyMap(),
+                      opaqueUser, apiVersion, requestId);
     }
 
     /**
-     * Compile request to AST.
+     * Handle DELETE.
      *
-     * @param path request
-     * @return AST parse tree
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param requestHeaders the request headers
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
      */
-    public static ParseTree parse(String path) {
-        path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        ANTLRInputStream is = new ANTLRInputStream(path);
-        CoreLexer lexer = new CoreLexer(is);
-        lexer.removeErrorListeners();
-        lexer.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
-                    int charPositionInLine, String msg, RecognitionException e) {
-                throw new ParseCancellationException(msg, e);
-            }
+    public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
+                                MultivaluedMap<String, String> queryParams,
+                                Map<String, List<String>> requestHeaders,
+                                User opaqueUser, String apiVersion, UUID requestId) {
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
+            JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
+                    ? new JsonApiDocument()
+                    : mapper.readJsonApiDocument(jsonApiDocument);
+            RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
+                    tx, user, queryParams, requestHeaders, requestId, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
+            BaseVisitor visitor = new DeleteVisitor(requestScope);
+            return visit(path, requestScope, visitor);
         });
-        CoreParser parser = new CoreParser(new CommonTokenStream(lexer));
-        parser.setErrorHandler(new BailErrorStrategy());
-        return parser.start();
+    }
+
+    public HandlerResult visit(String path, RequestScope requestScope, BaseVisitor visitor) {
+        try {
+            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(JsonApiParser.parse(path));
+            return new HandlerResult(requestScope, responder);
+        } catch (RuntimeException e) {
+            return new HandlerResult(requestScope, e);
+        }
+    }
+
+    /**
+     * Handle JSON API requests.
+     *
+     * @param isReadOnly if the transaction is read only
+     * @param user the user object from the container
+     * @param transaction a transaction supplier
+     * @param requestId the Request ID
+     * @param handler a function that creates the request scope and request handler
+     * @return the response
+     */
+    protected ElideResponse handleRequest(boolean isReadOnly, User user,
+                                          Supplier<DataStoreTransaction> transaction, UUID requestId,
+                                          Handler<DataStoreTransaction, User, HandlerResult> handler) {
+        boolean isVerbose = false;
+        try (DataStoreTransaction tx = transaction.get()) {
+            transactionRegistry.addRunningTransaction(requestId, tx);
+            HandlerResult result = handler.handle(tx, user);
+            RequestScope requestScope = result.getRequestScope();
+            isVerbose = requestScope.getPermissionExecutor().isVerbose();
+            Supplier<Pair<Integer, JsonNode>> responder = result.getResponder();
+            tx.preCommit(requestScope);
+            requestScope.runQueuedPreSecurityTriggers();
+            requestScope.getPermissionExecutor().executeCommitChecks();
+            requestScope.runQueuedPreFlushTriggers();
+            if (!isReadOnly) {
+                requestScope.saveOrCreateObjects();
+            }
+            tx.flush(requestScope);
+
+            requestScope.runQueuedPreCommitTriggers();
+
+            ElideResponse response = buildResponse(responder.get());
+
+            auditLogger.commit();
+            tx.commit(requestScope);
+            requestScope.runQueuedPostCommitTriggers();
+
+            if (log.isTraceEnabled()) {
+                requestScope.getPermissionExecutor().logCheckStats();
+            }
+
+            return response;
+        } catch (JacksonException e) {
+            String message = (e.getLocation() != null && e.getLocation().getSourceRef() != null)
+                    ? e.getMessage() //This will leak Java class info if the location isn't known.
+                    : e.getOriginalMessage();
+
+            return buildErrorResponse(new BadRequestException(message), isVerbose);
+        } catch (IOException e) {
+            log.error("IO Exception uncaught by Elide", e);
+            return buildErrorResponse(new TransactionException(e), isVerbose);
+        } catch (RuntimeException e) {
+            return handleRuntimeException(e, isVerbose);
+        } finally {
+            transactionRegistry.removeRunningTransaction(requestId);
+            auditLogger.clear();
+        }
     }
 
     protected ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
-        return buildResponse(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse());
+        if (error instanceof InternalServerErrorException) {
+            log.error("Internal Server Error", error);
+        }
+
+        return buildResponse(isVerbose ? error.getVerboseErrorResponse()
+                : error.getErrorResponse());
+    }
+
+    private ElideResponse handleRuntimeException(RuntimeException error, boolean isVerbose) {
+        CustomErrorException mappedException = mapError(error);
+
+        if (mappedException != null) {
+            return buildErrorResponse(mappedException, isVerbose);
+        }
+
+        if (error instanceof WebApplicationException) {
+            throw error;
+        }
+
+        if (error instanceof ForbiddenAccessException) {
+            ForbiddenAccessException e = (ForbiddenAccessException) error;
+            if (log.isDebugEnabled()) {
+                log.debug("{}", e.getLoggedMessage());
+            }
+            return buildErrorResponse(e, isVerbose);
+        }
+
+        if (error instanceof JsonPatchExtensionException) {
+            JsonPatchExtensionException e = (JsonPatchExtensionException) error;
+            log.debug("JSON patch extension exception caught", e);
+            return buildErrorResponse(e, isVerbose);
+        }
+
+        if (error instanceof HttpStatusException) {
+            HttpStatusException e = (HttpStatusException) error;
+            log.debug("Caught HTTP status exception", e);
+            return buildErrorResponse(e, isVerbose);
+        }
+
+        if (error instanceof ParseCancellationException) {
+            ParseCancellationException e = (ParseCancellationException) error;
+            log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
+            return buildErrorResponse(new InvalidURLException(e), isVerbose);
+        }
+
+        if (error instanceof ConstraintViolationException) {
+            ConstraintViolationException e = (ConstraintViolationException) error;
+            log.debug("Constraint violation exception caught", e);
+            String message = "Constraint violation";
+            final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
+            for (ConstraintViolation<?> constraintViolation : e.getConstraintViolations()) {
+                errorObjectsBuilder.addError()
+                        .withDetail(constraintViolation.getMessage());
+                final String propertyPathString = constraintViolation.getPropertyPath().toString();
+                if (!propertyPathString.isEmpty()) {
+                    Map<String, Object> source = new HashMap<>(1);
+                    source.put("property", propertyPathString);
+                    errorObjectsBuilder.with("source", source);
+                }
+            }
+            return buildErrorResponse(
+                    new CustomErrorException(HttpStatus.SC_BAD_REQUEST, message, errorObjectsBuilder.build()),
+                    isVerbose
+            );
+        }
+
+        log.error("Error or exception uncaught by Elide", error);
+        throw new RuntimeException(error);
+    }
+
+    public CustomErrorException mapError(RuntimeException error) {
+        if (errorMapper != null) {
+            log.trace("Attempting to map unknown exception of type {}", error.getClass());
+            CustomErrorException customizedError = errorMapper.map(error);
+
+            if (customizedError != null) {
+                log.debug("Successfully mapped exception from type {} to {}",
+                        error.getClass(), customizedError.getClass());
+                return customizedError;
+            } else {
+                log.debug("No error mapping present for {}", error.getClass());
+            }
+        }
+
+        return null;
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {
@@ -678,6 +645,68 @@ public class Elide {
             return new ElideResponse(responseCode, body);
         } catch (JsonProcessingException e) {
             return new ElideResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString());
+        }
+    }
+
+    private void verifyQueryParams(MultivaluedMap<String, String> queryParams) {
+        String undefinedKeys = queryParams.keySet()
+                        .stream()
+                        .filter(Elide::notAValidKey)
+                        .collect(Collectors.joining(", "));
+
+        if (!undefinedKeys.isEmpty()) {
+            throw new BadRequestException("Found undefined keys in request: " + undefinedKeys);
+        }
+    }
+
+    private static boolean notAValidKey(String key) {
+        boolean validKey = key.equals("sort")
+                        || key.startsWith("filter")
+                        || (key.startsWith("fields[") && key.endsWith("]"))
+                        || key.startsWith("page[")
+                        || key.equals(EntityProjectionMaker.INCLUDE);
+        return !validKey;
+    }
+
+    /**
+     * A function that sets up the request handling objects.
+     *
+     * @param <DataStoreTransaction> the request's transaction
+     * @param <User> the request's user
+     * @param <HandlerResult> the request handling objects
+     */
+    @FunctionalInterface
+    public interface Handler<DataStoreTransaction, User, HandlerResult> {
+        HandlerResult handle(DataStoreTransaction a, User b) throws IOException;
+    }
+
+    /**
+     * A wrapper to return multiple values, less verbose than Pair.
+     */
+    protected static class HandlerResult {
+        protected RequestScope requestScope;
+        protected Supplier<Pair<Integer, JsonNode>> result;
+        protected RuntimeException cause;
+
+        protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, JsonNode>> result) {
+            this.requestScope = requestScope;
+            this.result = result;
+        }
+
+        public HandlerResult(RequestScope requestScope, RuntimeException cause) {
+            this.requestScope = requestScope;
+            this.cause = cause;
+        }
+
+        public Supplier<Pair<Integer, JsonNode>> getResponder() {
+            if (cause != null) {
+                throw cause;
+            }
+            return result;
+        }
+
+        public RequestScope getRequestScope() {
+            return requestScope;
         }
     }
 }

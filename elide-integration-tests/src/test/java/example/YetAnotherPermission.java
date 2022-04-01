@@ -8,31 +8,16 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
-@CreatePermission(any = {Role.ALL.class })
-@ReadPermission(all = {Role.NONE.class })
-@Include(rootLevel = true)
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.None")
+@Include
 @Entity
-public class YetAnotherPermission {
-    private Long id;
+public class YetAnotherPermission extends BaseId {
     private String hiddenName;
     private String youShouldBeAbleToRead;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getHiddenName() {
         return hiddenName;
@@ -42,7 +27,7 @@ public class YetAnotherPermission {
         this.hiddenName = hiddenName;
     }
 
-    @ReadPermission(any = {Role.ALL.class})
+    @ReadPermission(expression = "Prefab.Role.All")
     public String getYouShouldBeAbleToRead() {
         return youShouldBeAbleToRead;
     }

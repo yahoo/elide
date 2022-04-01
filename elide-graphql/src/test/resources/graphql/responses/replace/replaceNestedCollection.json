@@ -1,0 +1,72 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno",
+          "authors": {
+            "edges": [
+              {
+                "node": {
+                  "id": "3",
+                  "name": "My New Author"
+                }
+              },
+              {
+                "node": {
+                  "id": "1",
+                  "name": "Mark Twain"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "title": "Libro Dos",
+          "authors": {
+            "edges": [
+              {
+                "node": {
+                  "id": "4",
+                  "name": "My New Author"
+                }
+              },
+              {
+                "node": {
+                  "id": "1",
+                  "name": "Mark Twain"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "3",
+          "title": "Doctor Zhivago",
+          "authors": {
+            "edges": [
+              {
+                "node": {
+                  "id": "5",
+                  "name": "My New Author"
+                }
+              },
+              {
+                "node": {
+                  "id": "1",
+                  "name": "Mark Twain"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "name": "Ned Stark",
+          "books": {
+            "edges": [
+              {
+                "node": {
+                  "id": "1",
+                  "title": "Libro One",
+                  "authors": {
+                    "edges": [
+                      {
+                        "node": {
+                          "id": "1",
+                          "name": "Ned Stark"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

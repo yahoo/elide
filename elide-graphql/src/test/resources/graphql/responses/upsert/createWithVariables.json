@@ -1,0 +1,23 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "4",
+          "title": "My new book title from variable!",
+          "publicationDate": "1985-12-25T00:00Z",
+          "publisher": {
+            "edges": [
+              {
+                "node": {
+                  "id": "3",
+                  "name": "my new publisher"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

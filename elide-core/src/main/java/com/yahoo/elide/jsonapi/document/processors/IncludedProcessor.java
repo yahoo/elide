@@ -5,16 +5,20 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
-import com.google.common.collect.Lists;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.google.common.collect.Lists;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * A Document Processor that add requested relations to the include block of the JsonApiDocument.
@@ -30,9 +34,9 @@ public class IncludedProcessor implements DocumentProcessor {
      */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, PersistentResource resource,
-                        Optional<MultivaluedMap<String, String>> queryParams) {
+                        MultivaluedMap<String, String> queryParams) {
         if (isPresent(queryParams, INCLUDE)) {
-            addIncludedResources(jsonApiDocument, resource, queryParams.get().get(INCLUDE));
+            addIncludedResources(jsonApiDocument, resource, queryParams.get(INCLUDE));
         }
     }
 
@@ -42,12 +46,12 @@ public class IncludedProcessor implements DocumentProcessor {
      */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, Set<PersistentResource> resources,
-                        Optional<MultivaluedMap<String, String>> queryParams) {
+                        MultivaluedMap<String, String> queryParams) {
         if (isPresent(queryParams, INCLUDE)) {
 
             // Process include for each resource
             resources.forEach(resource ->
-                    addIncludedResources(jsonApiDocument, resource, queryParams.get().get(INCLUDE)));
+                    addIncludedResources(jsonApiDocument, resource, queryParams.get(INCLUDE)));
         }
     }
 
@@ -56,13 +60,16 @@ public class IncludedProcessor implements DocumentProcessor {
      */
     private void addIncludedResources(JsonApiDocument jsonApiDocument, PersistentResource rec,
             List<String> requestedRelationPaths) {
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(rec.getDictionary(), rec.getRequestScope());
+        EntityProjection projection = maker.parseInclude(rec.getResourceType());
         // Process each include relation path
         requestedRelationPaths.forEach(pathParam -> {
             List<String> pathList = Arrays.asList(pathParam.split(RELATION_PATH_SEPARATOR));
 
             pathList.forEach(requestedRelationPath -> {
                 List<String> relationPath = Lists.newArrayList(requestedRelationPath.split(RELATION_PATH_DELIMITER));
-                addResourcesForPath(jsonApiDocument, rec, relationPath);
+                addResourcesForPath(jsonApiDocument, rec, relationPath, projection);
             });
         });
     }
@@ -72,23 +79,34 @@ public class IncludedProcessor implements DocumentProcessor {
      * JsonApiDocument.
      */
     private void addResourcesForPath(JsonApiDocument jsonApiDocument, PersistentResource<?> rec,
-                                     List<String> relationPath) {
+                                     List<String> relationPath,
+                                     EntityProjection projection) {
 
         //Pop off a relation of relation path
         String relation = relationPath.remove(0);
 
-        rec.getRelationCheckedFiltered(relation).forEach(resource -> {
+        Set<PersistentResource> collection;
+        Relationship relationship = projection.getRelationship(relation).orElseThrow(IllegalStateException::new);
+        try {
+            collection = rec.getRelationCheckedFiltered(relationship).toList(LinkedHashSet::new).blockingGet();
+
+        } catch (ForbiddenAccessException e) {
+            return;
+        }
+
+        collection.forEach(resource -> {
             jsonApiDocument.addIncluded(resource.toResource());
 
             //If more relations left in the path, process a level deeper
             if (!relationPath.isEmpty()) {
                 //Use a copy of the relationPath to preserve the path for remaining branches of the relationship tree
-                addResourcesForPath(jsonApiDocument, resource, new ArrayList<>(relationPath));
+                addResourcesForPath(jsonApiDocument, resource, new ArrayList<>(relationPath),
+                        relationship.getProjection());
             }
         });
     }
 
-    private static boolean isPresent(Optional<MultivaluedMap<String, String>> queryParams, String key) {
-        return queryParams.isPresent() && queryParams.get().get(key) != null;
+    private static boolean isPresent(MultivaluedMap<String, String> queryParams, String key) {
+        return queryParams != null && queryParams.get(key) != null;
     }
 }

@@ -1,16 +1,16 @@
 [
     {
         "op":"replace",
-        "path":"/7/children/8",
+        "path":"/1/children/1",
         "value":{
             "type":"child",
-            "id":"8",
+            "id":"1",
             "relationships":{
                 "parents":{
                     "data":[
                         {
                             "type":"parent",
-                            "id":"5"
+                            "id":"4"
                         }
                     ]
                 }

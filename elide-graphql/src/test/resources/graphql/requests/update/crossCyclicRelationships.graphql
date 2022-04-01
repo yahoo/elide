@@ -1,0 +1,26 @@
+mutation {
+  author(op: UPDATE, data: {id: "1", name: "John Snow", books: [{id: "1", title: "Libro One", authors: [{id: "1", name: "Ned Stark"}]}]}) {
+    edges {
+      node {
+        id
+        name
+        books(ids: ["1"]) {
+          edges {
+            node {
+              id
+              title
+              authors(ids: ["1"]) {
+                edges {
+                  node {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

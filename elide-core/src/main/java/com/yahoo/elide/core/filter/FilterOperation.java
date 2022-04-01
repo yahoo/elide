@@ -5,13 +5,12 @@
  */
 package com.yahoo.elide.core.filter;
 
-import java.util.Set;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 
 /**
  * Interface for filter operations.
  * @param <T> the return type for apply
  */
 public interface FilterOperation<T> {
-    T apply(Predicate predicate);
-    T applyAll(Set<Predicate> predicates);
+    T apply(FilterPredicate expression);
 }

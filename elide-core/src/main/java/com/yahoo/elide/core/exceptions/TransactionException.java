@@ -5,17 +5,15 @@
  */
 package com.yahoo.elide.core.exceptions;
 
-import com.yahoo.elide.core.HttpStatus;
-
 /**
  * Requested object ID is.
  *
- * {@link com.yahoo.elide.core.HttpStatus#SC_LOCKED}
+ * {@link HttpStatus#SC_LOCKED}
  */
 public class TransactionException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public TransactionException(Throwable e) {
-        super(HttpStatus.SC_LOCKED, formatExceptionCause(e), null, e);
+        super(HttpStatus.SC_LOCKED, formatExceptionCause(e), e, null);
     }
 }

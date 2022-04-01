@@ -13,7 +13,7 @@ import javax.persistence.Entity;
  * Exclude Test bean.
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class OtherBean {
     private boolean excluded;
 }

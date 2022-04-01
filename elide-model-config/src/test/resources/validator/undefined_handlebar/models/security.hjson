@@ -1,0 +1,19 @@
+{
+    roles : [
+        admin
+        guest
+        // foobar is undefined
+        <% foobar %>
+        ]
+    rules: [
+        {
+            type: filter
+            filter: filter
+            name: User belongs to company
+        },
+        {
+            filter: filter
+            name: Principal is owner
+        },
+    ]
+}

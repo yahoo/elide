@@ -1,0 +1,13 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno",
+          "publicationDate":"2017-12-27T18:03Z"
+        }
+      }
+    ]
+  }
+}

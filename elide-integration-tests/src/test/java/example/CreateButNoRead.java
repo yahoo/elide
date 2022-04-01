@@ -8,14 +8,12 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 
 import java.util.Optional;
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
@@ -23,14 +21,14 @@ import javax.persistence.OneToMany;
 /**
  * A model intended to be ONLY created and read, but never updated
  */
-@Include(rootLevel = true)
+@Include
 @Entity
-@CreatePermission(any = {Role.ALL.class})
+@CreatePermission(expression = "Prefab.Role.All")
 public class CreateButNoRead extends BaseId {
     private Set<CreateButNoReadChild> otherObjects;
 
     @OneToMany(fetch = FetchType.LAZY)
-    @ReadPermission(any = {NOREAD.class})
+    @ReadPermission(expression = "noRead")
     public Set<CreateButNoReadChild> getOtherObjects() {
         return otherObjects;
     }

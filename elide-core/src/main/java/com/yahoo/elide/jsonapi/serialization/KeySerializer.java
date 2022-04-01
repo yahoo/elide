@@ -33,8 +33,7 @@ public class KeySerializer extends StdKeySerializer {
             str = ((Class<?>) value).getName();
         } else if (cls.isEnum()) {
             str = ((Enum<?>) value).name();
-        }
-        else {
+        } else {
             str = value.toString();
         }
         jgen.writeFieldName(str);

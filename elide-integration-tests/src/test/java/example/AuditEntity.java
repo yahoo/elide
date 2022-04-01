@@ -10,43 +10,26 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
+import java.util.List;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import java.util.List;
 
 @Entity
 @Audit(action = Audit.Action.CREATE,
         logStatement = "Created with value: {0}",
         logExpressions = {"${auditEntity.value}"})
-@Include(rootLevel = true)
-@ReadPermission(all = Role.ALL.class)
-@CreatePermission(all = Role.ALL.class)
-@DeletePermission(all = Role.ALL.class)
-@UpdatePermission(all = Role.ALL.class)
-@SharePermission(all = Role.ALL.class)
-public class AuditEntity {
-    private Long id;
+@Include
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
+public class AuditEntity extends BaseId {
     private AuditEntity otherEntity;
     private String value;
     private List<AuditEntityInverse> inverses;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     @OneToOne
     @Audit(action = Audit.Action.UPDATE,

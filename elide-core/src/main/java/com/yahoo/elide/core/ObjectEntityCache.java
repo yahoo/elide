@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class ObjectEntityCache {
      */
     public ObjectEntityCache() {
         resourceCache = new LinkedHashMap<>();
-        uuidReverseMap = new LinkedHashMap<>();
+        uuidReverseMap = new IdentityHashMap<>();
     }
 
     /**

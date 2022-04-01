@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015, Yahoo Inc.
+  ~ Copyright 2017, Yahoo Inc.
   ~ Licensed under the Apache License, Version 2.0
   ~ See LICENSE file in project root for terms.
   -->
@@ -9,18 +9,17 @@
     "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
     "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
-    <!-- MySQL session factory -->
+    <!-- H2 session factory -->
     <session-factory>
         <!-- local connection properties -->
         <!-- this is what we normally use -->
-        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
-        <!-- dialect for Mysql -->
-        <property name="dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
-
+        <property name="hibernate.connection.driver_class">org.h2.Driver</property>
+        <!-- dialect for H2 -->
+        <property name="dialect">org.hibernate.dialect.H2Dialect</property>
         <property name="hibernate.jdbc.batch_size">50</property>
         <property name="hibernate.jdbc.fetch_size">50</property>
 
-        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.show_sql">false</property>
 
         <property name="hibernate.transaction.factory_class">org.hibernate.transaction.JDBCTransactionFactory</property>
 
@@ -30,5 +29,8 @@
         <property name="hibernate.bytecode.use_reflection_optimizer">false</property>
 
         <property name="hibernate.current_session_context_class">thread</property>
+
+        <property name="hibernate.c3p0.unreturnedConnectionTimeout">60</property>
+        <property name="hibernate.c3p0.debugUnreturnedConnectionStackTraces">true</property>
     </session-factory>
 </hibernate-configuration>

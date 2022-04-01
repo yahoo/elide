@@ -1,0 +1,10 @@
+mutation {
+  book(op:UPDATE, data: [{id: "1", title: "abc"}, {id: "2", title: "xyz"}]) {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}

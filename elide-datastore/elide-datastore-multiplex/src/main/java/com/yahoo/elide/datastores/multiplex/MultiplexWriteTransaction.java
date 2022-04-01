@@ -5,30 +5,28 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-
-import com.google.common.collect.Lists;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.Field;
+import com.yahoo.elide.core.type.Method;
+import com.yahoo.elide.core.type.Type;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
@@ -50,34 +48,38 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public void save(Object entity) {
-        getTransaction(entity).save(entity);
-        dirtyObjects.add(this.multiplexManager.getSubManager(entity.getClass()), entity);
+    public <T> void save(T entity, RequestScope requestScope) {
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        getTransaction(entityType).save(entity, requestScope);
+        dirtyObjects.add(this.multiplexManager.getSubManager(entityType), entity);
     }
 
     @Override
-    public void delete(Object entity) {
-        getTransaction(entity).delete(entity);
-        dirtyObjects.add(this.multiplexManager.getSubManager(entity.getClass()), entity);
+    public <T> void delete(T entity, RequestScope requestScope) {
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        getTransaction(entityType).delete(entity, requestScope);
+        dirtyObjects.add(this.multiplexManager.getSubManager(entityType), entity);
     }
 
     @Override
-    public void commit() {
+    public void commit(RequestScope scope) {
         // flush all before commits
-        flush();
+        flush(scope);
 
         ArrayList<DataStore> commitList = new ArrayList<>();
         for (Entry<DataStore, DataStoreTransaction> entry : transactions.entrySet()) {
             try {
-                entry.getValue().commit();
+                entry.getValue().commit(scope);
                 commitList.add(entry.getKey());
+            } catch (HttpStatusException | WebApplicationException e) {
+                reverseTransactions(commitList, e, scope);
+                throw e;
             } catch (Error | RuntimeException e) {
                 TransactionException transactionException = new TransactionException(e);
-                reverseTransactions(commitList, transactionException);
+                reverseTransactions(commitList, transactionException, scope);
                 throw transactionException;
             }
         }
-        transactions.clear();
     }
 
     /**
@@ -85,19 +87,19 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      * @param restoreList List of database managers to reverse the last commit
      * @param cause cause to add any suppressed exceptions
      */
-    private void reverseTransactions(ArrayList<DataStore> restoreList, Throwable cause) {
+    private void reverseTransactions(ArrayList<DataStore> restoreList, Throwable cause, RequestScope requestScope) {
         for (DataStore dataStore : restoreList) {
             try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
                 List<Object> list = dirtyObjects.get(dataStore);
                 for (Object dirtyObject : list == null ? Collections.emptyList() : list) {
                     Object cloned = clonedObjects.get(dirtyObject);
                     if (cloned == NEWLY_CREATED_OBJECT) {
-                        transaction.delete(dirtyObject);
+                        transaction.delete(dirtyObject, requestScope);
                     } else {
-                        transaction.save(cloned);
+                        transaction.save(cloned, requestScope);
                     }
                 }
-                transaction.commit();
+                transaction.commit(requestScope);
             } catch (RuntimeException | IOException e) {
                 cause.addSuppressed(e);
             }
@@ -106,24 +108,24 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
 
     @SuppressWarnings("resource")
     @Override
-    public <T> T createObject(Class<T> createObject) {
-        DataStoreTransaction transaction = getTransaction(createObject);
-        T object = transaction.createObject(createObject);
+    public <T> void createObject(T entity, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
+        transaction.createObject(entity, scope);
         // mark this object as newly created to be deleted on reverse transaction
-        clonedObjects.put(object, NEWLY_CREATED_OBJECT);
-        return object;
-
+        clonedObjects.put(entity, NEWLY_CREATED_OBJECT);
     }
 
-    private <T> Iterable<T> hold(DataStoreTransaction transaction, Iterable<T> list) {
-        if (transaction != lastDataStoreTransaction) {
-            ArrayList<T> newList = Lists.newArrayList(list);
-            for (T object : newList) {
-                hold(transaction, object);
-            }
-            return newList;
+    private <T> DataStoreIterable<T> hold(DataStoreTransaction transaction, DataStoreIterable<T> list) {
+        ArrayList<T> newList = new ArrayList<>();
+        list.forEach(newList::add);
+        for (T object : newList) {
+            hold(transaction, object);
         }
-        return list;
+        return new DataStoreIterableBuilder<T>(newList)
+                .paginateInMemory(list.needsInMemoryPagination())
+                .filterInMemory(list.needsInMemoryFilter())
+                .sortInMemory(list.needsInMemorySort())
+                .build();
     }
 
     /**
@@ -133,9 +135,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      * @return original object
      */
     private <T> T hold(DataStoreTransaction subTransaction, T object) {
-        if (subTransaction != lastDataStoreTransaction) {
-            clonedObjects.put(object, cloneObject(object));
-        }
+        clonedObjects.put(object, cloneObject(object));
         return object;
     }
 
@@ -147,7 +147,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             return null;
         }
 
-        Class<?> cls = multiplexManager.getDictionary().lookupEntityClass(object.getClass());
+        Type<?> cls = multiplexManager.getDictionary().lookupBoundClass(EntityDictionary.getType(object));
         try {
             Object clone = cls.newInstance();
             for (Field field : cls.getFields()) {
@@ -172,78 +172,37 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public <T> T loadObject(Class<T> loadClass, Serializable id) {
-        DataStoreTransaction transaction = getTransaction(loadClass);
-        return hold(transaction, transaction.loadObject(loadClass, id));
+    public <T> T loadObject(EntityProjection projection,
+                             Serializable id,
+                             RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(projection.getType());
+        return hold(transaction, (T) transaction.loadObject(projection, id, scope));
     }
 
     @Override
-    @Deprecated
-    public <T> Iterable<T> loadObjects(Class<T> loadClass) {
-        DataStoreTransaction transaction = getTransaction(loadClass);
-        return hold(transaction, transaction.loadObjects(loadClass));
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection projection, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(projection.getType());
+        return hold(transaction, transaction.loadObjects(projection, scope));
     }
 
     @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Optional<FilterExpression> filterExpression,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        Object relation = transaction.getRelation(entity, relationshipType, relationName,
-                relationClass, dictionary, filterExpression, sorting, pagination);
-
-        if (relation instanceof Iterable) {
-            return hold(transaction, (Iterable) relation);
-        }
+    public <T, R> DataStoreIterable<R> getToManyRelation(DataStoreTransaction relationTx,
+                                                         T entity,
+                                                         Relationship relationship,
+                                                         RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
+        DataStoreIterable<R> relation = super.getToManyRelation(relationTx, entity, relationship, scope);
 
         return hold(transaction, relation);
     }
 
     @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        Object relation = transaction
-                .getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
-
-        if (relation instanceof Iterable) {
-            return hold(transaction, (Iterable) relation);
-        }
-
-        return hold(transaction, relation);
-    }
-
-    @Override
-    public <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        Object relation = transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
-                relationClass, dictionary, filters, sorting, pagination);
-
-        if (relation instanceof Iterable) {
-            return hold(transaction, (Iterable) relation);
-        }
+    public <T, R> R getToOneRelation(DataStoreTransaction relationTx,
+                                     T entity,
+                                     Relationship relationship,
+                                     RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
+        R relation = super.getToOneRelation(relationTx, entity, relationship, scope);
 
         return hold(transaction, relation);
     }

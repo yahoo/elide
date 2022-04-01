@@ -1,0 +1,9 @@
+{
+  author {
+    edges {
+      node {
+        bookTitlesWithPrefix
+      }
+    }
+  }
+}

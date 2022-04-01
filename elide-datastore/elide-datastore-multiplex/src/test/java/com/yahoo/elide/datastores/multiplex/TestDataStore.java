@@ -5,19 +5,17 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
+import com.yahoo.elide.core.request.EntityProjection;
 
-import javax.persistence.Entity;
 import java.io.IOException;
 import java.io.Serializable;
+import javax.persistence.Entity;
 
 class TestDataStore implements DataStore, DataStoreTransaction {
 
@@ -29,13 +27,7 @@ class TestDataStore implements DataStore, DataStoreTransaction {
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
-                .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
-        reflections.getTypesAnnotatedWith(Entity.class).stream()
-                .filter(entityAnnotatedClass -> entityAnnotatedClass.getPackage().getName()
-                        .startsWith(beanPackage.getName()))
-                .forEach(dictionary::bindEntity);
+        dictionary.getScanner().getAnnotatedClasses(beanPackage, Entity.class).stream().forEach(dictionary::bindEntity);
     }
 
     @Override
@@ -48,35 +40,43 @@ class TestDataStore implements DataStore, DataStoreTransaction {
     }
 
     @Override
-    public void save(Object entity) {
+    public void save(Object entity, RequestScope scope) {
     }
 
     @Override
-    public void delete(Object entity) {
+    public void delete(Object entity, RequestScope scope) {
         throw new UnsupportedOperationException(this.toString());
     }
 
     @Override
-    public void commit() {
+    public void flush(RequestScope scope) {
+        // Nothing
+    }
+
+    @Override
+    public void commit(RequestScope scope) {
         throw new UnsupportedOperationException(this.toString());
     }
 
     @Override
-    public <T> T createObject(Class<T> entityClass) {
-        try {
-            return entityClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException | Error | RuntimeException e) {
-            throw new TransactionException(e);
-        }
+    public void createObject(Object entity, RequestScope scope) {
+
     }
 
     @Override
-    public <T> T loadObject(Class<T> entityClass, Serializable id) {
+    public Object loadObject(EntityProjection projection,
+                             Serializable id,
+                             RequestScope scope) {
         throw new TransactionException(null);
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> entityClass) {
+    public DataStoreIterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
         throw new TransactionException(null);
+    }
+
+    @Override
+    public void cancel(RequestScope scope) {
+        // Nothing
     }
 }

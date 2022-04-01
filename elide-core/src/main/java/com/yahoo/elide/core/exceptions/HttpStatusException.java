@@ -5,14 +5,17 @@
  */
 package com.yahoo.elide.core.exceptions;
 
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.owasp.encoder.Encode;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Superclass for exceptions that return a Http error status.
@@ -22,71 +25,77 @@ import java.util.Map;
 public abstract class HttpStatusException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     protected final int status;
+    private final Optional<Supplier<String>> verboseMessageSupplier;
+
+    public HttpStatusException(int status, String message) {
+        this(status, message, (Throwable) null, null);
+    }
+
+    public HttpStatusException(int status, String message, Throwable cause, Supplier<String> verboseMessageSupplier) {
+        super(message, cause, true, log.isTraceEnabled());
+        this.status = status;
+        this.verboseMessageSupplier = Optional.ofNullable(verboseMessageSupplier);
+    }
+
+    protected static String formatExceptionCause(Throwable e) {
+        // if the throwable has a cause use that, otherwise the throwable is the cause
+        Throwable error = e.getCause() == null ? e : e.getCause();
+        return error != null
+                ? StringUtils.defaultIfBlank(error.getMessage(), error.toString())
+                : null;
+    }
+
+    /**
+     * Get a response detailing the error that occurred.
+     * Encode the error message to be safe for HTML.
+     * @return Pair containing status code and a JsonNode containing error details
+     */
+    public Pair<Integer, JsonNode> getErrorResponse() {
+        return buildResponse(getMessage());
+    }
+
+    /**
+     * Get a verbose response detailing the error that occurred.
+     * Encode the error message to be safe for HTML.
+     * @return Pair containing status code and a JsonNode containing error details
+     */
+    public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+        return buildResponse(getVerboseMessage());
+    }
+
+    private Pair<Integer, JsonNode> buildResponse(String message) {
+        String errorDetail = message;
+        errorDetail = Encode.forHtml(errorDetail);
+
+        ErrorObjects errors = ErrorObjects.builder().addError().withDetail(errorDetail).build();
+        JsonNode responseBody = OBJECT_MAPPER.convertValue(errors, JsonNode.class);
+
+        return Pair.of(getStatus(), responseBody);
+    }
+
+    public String getVerboseMessage() {
+        String result = verboseMessageSupplier.map(Supplier::get)
+                .orElseGet(this::getMessage);
+
+        if (result.equals(this.getMessage())) {
+            return result;
+        } else {
+
+            //return both the message and the verbose message.
+            return this.getMessage() + "\n" + result;
+        }
+    }
 
     public int getStatus() {
         return status;
     }
 
-    private final String verboseMessage;
-
-    public HttpStatusException(int status) {
-        this(status, null);
-    }
-
-    public HttpStatusException(int status, String message) {
-        this(status, message, null);
-    }
-
-    public HttpStatusException(int status, String message, String verboseMessage) {
-        this(status, message, verboseMessage, null);
-    }
-
-    public HttpStatusException(int status, String message, String verboseMessage, Throwable cause) {
-        super(message, cause, true, log.isTraceEnabled());
-        this.status = status;
-        this.verboseMessage = verboseMessage;
-    }
-
-    protected static String formatExceptionCause(Throwable e) {
-        // if the throwable has a cause use that, otherwise the throwable is the cause
-        Throwable error = e.getCause() == null
-                ? e
-                : e.getCause();
-        return error == null
-                ? null : error.getMessage() == null ? error.toString()
-                : error.getMessage();
-    }
-
-    public Pair<Integer, JsonNode> getErrorResponse() {
-        Map<String, List<String>> errors = Collections.singletonMap(
-                "errors", Collections.singletonList(toString())
-        );
-        return buildResponse(errors);
-    }
-
-    public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-        Map<String, List<String>> errors = Collections.singletonMap(
-                "errors", Collections.singletonList(getVerboseMessage())
-        );
-        return buildResponse(errors);
-    }
-
-    private Pair<Integer, JsonNode> buildResponse(Map<String, List<String>> errors) {
-        JsonNode responseBody = OBJECT_MAPPER.convertValue(errors, JsonNode.class);
-        return Pair.of(getStatus(), responseBody);
-    }
-
-    public String getVerboseMessage() {
-        return verboseMessage != null
-                ? verboseMessage
-                : toString();
-    }
-
     @Override
     public String toString() {
         String message = getMessage();
-        String className = getClass().getSimpleName();
+        String className = EntityDictionary.getSimpleName(ClassType.of(getClass()));
 
         if (message == null) {
             message = className;

@@ -10,37 +10,20 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
 
 @Entity
-@Include(rootLevel = true)
-@ReadPermission(all = Role.ALL.class)
-@CreatePermission(all = Role.ALL.class)
-@UpdatePermission(all = Role.ALL.class)
-@DeletePermission(all = Role.ALL.class)
-@SharePermission(all = Role.ALL.class)
-public class AuditEntityInverse {
-    private Long id;
+@Include
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.All")
+public class AuditEntityInverse extends BaseId {
     private List<AuditEntity> entities;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     @ManyToMany
     @Audit(action = Audit.Action.UPDATE,

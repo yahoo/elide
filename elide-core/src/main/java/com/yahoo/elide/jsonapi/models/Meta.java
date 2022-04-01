@@ -5,8 +5,10 @@
  */
 package com.yahoo.elide.jsonapi.models;
 
+import com.yahoo.elide.jsonapi.serialization.MetaDeserializer;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Map;
 
@@ -14,6 +16,7 @@ import java.util.Map;
  * Model for representing JSON API meta information.
  */
 @JsonAutoDetect
+@JsonDeserialize(using = MetaDeserializer.class)
 public class Meta extends KeyValMap {
 
     /**
@@ -26,7 +29,7 @@ public class Meta extends KeyValMap {
     }
 
     /**
-     * Expose the meta map so that it will be included in the returned JSON-API document
+     * Expose the meta map so that it will be included in the returned JSON-API document.
      *
      * @return the meta map
      */

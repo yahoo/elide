@@ -5,31 +5,39 @@
  */
 package example;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-@Include(rootLevel = true, type = "chapter")
-@SharePermission(all = {Role.ALL.class})
+@Include(name = "chapter")
+/**
+ * This class tests using JPA Field based access.
+ */
 public class Chapter {
-    private Long id;
-    @Getter @Setter private String title;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
+    private long id;
+
+    @Exclude
+    private String naturalKey = UUID.randomUUID().toString();
+
+    @Override
+    public int hashCode() {
+        return naturalKey.hashCode();
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Chapter && ((Chapter) obj).naturalKey.equals(naturalKey);
     }
+
+    @Getter @Setter private String title;
 }

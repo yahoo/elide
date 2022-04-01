@@ -6,46 +6,57 @@
 
 package com.yahoo.elide.parsers.expression;
 
-import com.google.common.collect.Sets;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.FilterExpressionCheck;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.UserCheck;
-import org.testng.Assert;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
+import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import javax.persistence.Entity;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
 public class CanPaginateVisitorTest {
 
-    private Map<String, Class<? extends Check>> checkMappings;
+    private static Map<String, Class<? extends Check>> checkMappings;
 
     public static final class TestOperationCheck extends OperationCheck<Object> {
         @Override
         public boolean ok(Object object,
-                          com.yahoo.elide.security.RequestScope requestScope,
+                          com.yahoo.elide.core.security.RequestScope requestScope,
                           Optional<ChangeSpec> changeSpec) {
             return false;
         }
     }
 
-    public static final class TestUserCheck extends UserCheck {
+    public static final class FalseUserCheck extends UserCheck {
+        @Override
+        public boolean ok(User user) {
+            return false;
+        }
+    }
+
+    public static final class TrueUserCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
             return true;
@@ -54,17 +65,18 @@ public class CanPaginateVisitorTest {
 
     public static final class TestFilterExpressionCheck extends FilterExpressionCheck<Object> {
         @Override
-        public FilterExpression getFilterExpression(com.yahoo.elide.security.RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
             return null;
         }
     }
 
 
-    @BeforeSuite
-    void init() {
+    @BeforeAll
+    public static void init() {
         checkMappings = new HashMap<>();
         checkMappings.put("In Memory Check", TestOperationCheck.class);
-        checkMappings.put("User Check", TestUserCheck.class);
+        checkMappings.put("False User Check", FalseUserCheck.class);
+        checkMappings.put("True User Check", TrueUserCheck.class);
         checkMappings.put("Filter Expression Check", TestFilterExpressionCheck.class);
     }
 
@@ -72,201 +84,268 @@ public class CanPaginateVisitorTest {
     @Test
     public void testNoPermissions() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
-            public String title;
+            @Id
+            private long id;
+            private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
 
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
     public void testClassOperationPermissions() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "In Memory Check")
         class Book {
-            public String title;
+            @Id
+            private long id;
+            private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
     public void testClassUserPermissions() throws Exception {
         @Entity
-        @Include
-        @ReadPermission(expression = "User Check")
+        @Include(rootLevel = false)
+        @ReadPermission(expression = "False User Check")
         class Book {
-            public String title;
+            @Id
+            private long id;
+            private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
     public void testFieldFilterPermissions() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "Filter Expression Check")
-            public String title;
+            private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
     public void testComplexTrueExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression =
-                    "(Filter Expression Check AND User Check) OR (Filter Expression Check OR NOT User Check)")
-            public String title;
+                    "(Filter Expression Check AND False User Check) OR (Filter Expression Check OR NOT False User Check)")
+            private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
-    public void testUserOROperationExpression() throws Exception {
+    public void testFalseUserOROperationExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
-            @ReadPermission(expression = "User Check OR In Memory Check")
-            public String title;
+            @Id
+            private long id;
+
+            @ReadPermission(expression = "False User Check OR In Memory Check")
+            private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
-    public void testUserAndOperationExpression() throws Exception {
+    public void testTrueUserOROperationExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
-            @ReadPermission(expression = "User Check AND In Memory Check")
-            public String title;
+            @Id
+            private long id;
+
+            @ReadPermission(expression = "True User Check OR In Memory Check")
+            private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
+    }
+
+    @Test
+    public void testFalseUserAndOperationExpression() throws Exception {
+        @Entity
+        @Include(rootLevel = false)
+        class Book {
+            @Id
+            private long id;
+
+            @ReadPermission(expression = "False User Check AND In Memory Check")
+            private String title;
+        }
+
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
+        dictionary.bindEntity(Book.class);
+        RequestScope scope = mock(RequestScope.class);
+
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
+    }
+
+    @Test
+    public void testTrueUserAndOperationExpression() throws Exception {
+        @Entity
+        @Include(rootLevel = false)
+        class Book {
+            @Id
+            private long id;
+
+            @ReadPermission(expression = "True User Check AND In Memory Check")
+            private String title;
+        }
+
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
+        dictionary.bindEntity(Book.class);
+        RequestScope scope = mock(RequestScope.class);
+
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
     public void testNotOperationExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "NOT In Memory Check")
-            public String title;
+            private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
     public void testMultipleFieldsNoPagination() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "Filter Expression Check")
-            public String title;
+            private String title;
 
             @ReadPermission(expression = "In Memory Check")
-            public Date publicationDate;
+            private Date publicationDate;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
     public void testMultipleFieldsPagination() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "In Memory Check")
         class Book {
-            @ReadPermission(expression = "Filter Expression Check")
-            public String title;
+            @Id
+            private long id;
 
             @ReadPermission(expression = "Filter Expression Check")
-            public Date publicationDate;
+            private String title;
+
+            @ReadPermission(expression = "Filter Expression Check")
+            private Date publicationDate;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Assert.assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
     public void testSparseFields() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "In Memory Check")
         class Book {
-            @ReadPermission(expression = "Filter Expression Check")
-            public String title;
+            @Id
+            private long id;
 
             @ReadPermission(expression = "Filter Expression Check")
-            public Date publicationDate;
+            private String title;
 
-            public boolean outOfPrint;
+            @ReadPermission(expression = "Filter Expression Check")
+            private Date publicationDate;
+
+            private boolean outOfPrint;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Map<String, Set<String>> sparseFields = new HashMap<>();
-        when(scope.getSparseFields()).thenReturn(sparseFields);
+        Set<String> sparseFields = new HashSet<>();
 
-        Assert.assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, sparseFields));
+        sparseFields.add("title");
+        sparseFields.add("publicationDate");
 
-        sparseFields.put("book", Sets.newHashSet("title", "publicationDate"));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, sparseFields));
 
-        Assert.assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        sparseFields.add("outOfPrint");
 
-        sparseFields.put("book", Sets.newHashSet("outOfPrint"));
-
-        Assert.assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, sparseFields));
     }
 }

@@ -5,12 +5,11 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,12 +19,10 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.util.Set;
 
 
-@Include(rootLevel = true, type = "right") // optional here because class has this name
-@SharePermission(any = {Role.ALL.class})
-@UpdatePermission(any = {Role.NONE.class})
+@Include(name = "right") // optional here because class has this name
+@UpdatePermission(expression = "Prefab.Role.None")
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
@@ -33,14 +30,15 @@ public class Right {
     private long id;
     private Left many2one;
     private Left one2one;
+    private Set<Left> allowDeleteAtFieldLevel;
+    private Left noUpdateOne2One;
+    private Set<Left> noUpdate;
 
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    @UpdatePermission(
-            any = { Role.ALL.class }
-    )
+    @UpdatePermission(expression = "Prefab.Role.All")
     public Left getOne2one() {
         return one2one;
     }
@@ -71,30 +69,41 @@ public class Right {
         return id;
     }
 
-    @UpdatePermission(
-           any = {Role.NONE.class}
-    )
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    public Left noUpdateOne2One;
+    public Left getNoUpdateOne2One() {
+        return noUpdateOne2One;
+    }
 
-    @UpdatePermission(
-           any = {Role.NONE.class}
-    )
+    public void setNoUpdateOne2One(Left noUpdateOne2One) {
+        this.noUpdateOne2One = noUpdateOne2One;
+    }
+
+    @UpdatePermission(expression = "Prefab.Role.None")
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    public Set<Left> noUpdate;
+    public Set<Left> getNoUpdate() {
+        return noUpdate;
+    }
+
+    public void setNoUpdate(Set<Left> noUpdate) {
+        this.noUpdate = noUpdate;
+    }
 
     @ManyToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = Left.class
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE }
     )
-    @UpdatePermission(
-            any = {Role.ALL.class}
-    )
-    public Set<Left> allowDeleteAtFieldLevel;
+    @UpdatePermission(expression = "Prefab.Role.All")
+    public Set<Left> getAllowDeleteAtFieldLevel() {
+        return allowDeleteAtFieldLevel;
+    }
+
+    public void setAllowDeleteAtFieldLevel(Set<Left> allowDeleteAtFieldLevel) {
+        this.allowDeleteAtFieldLevel = allowDeleteAtFieldLevel;
+    }
 }

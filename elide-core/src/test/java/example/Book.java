@@ -6,35 +6,49 @@
 package example;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedRelationship;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnCommit;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import example.Author.AuthorType;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * Model for books.
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
+@CreatePermission(expression = "Book operation check")
+@UpdatePermission(expression = "Book operation check")
+@DeletePermission(expression = "Book operation check")
 @Table(name = "book")
-@Include(rootLevel = true)
+@Include
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
+@AllArgsConstructor
+@NoArgsConstructor
 public class Book {
     private long id;
     private String title;
@@ -42,7 +56,9 @@ public class Book {
     private String language;
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
-    private boolean onCreateBookCalled = false;
+    private Publisher publisher = null;
+    private Collection<String> awards = new ArrayList<>();
+    private Price price;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -94,28 +110,58 @@ public class Book {
         this.authors = authors;
     }
 
-    @OnUpdate("title")
-    public void onUpdateTitle() {
-       // title attribute updated
+    @ElementCollection(targetClass = AuthorType.class)
+    @FilterExpressionPath("authors.type")
+    public Collection<AuthorType> getAuthorTypes() {
+        return getAuthors().stream().map(Author::getType).distinct().collect(Collectors.toList());
     }
 
-    @OnCommit("title")
-    public void onCommitTitle() {
-       // title attribute update committed
+
+    @ElementCollection(targetClass = String.class)
+    public Collection<String> getAwards() {
+        return awards;
     }
 
-    @OnCreate
-    public void onCreateBook() {
-        // book entity created
+    public void setAwards(Collection<String> awards) {
+        this.awards = awards;
     }
 
-    @OnCommit
-    public void onCommitBook() {
-       // book entity committed
+    @OneToOne
+    public Publisher getPublisher() {
+        return publisher;
     }
 
-    @OnDelete
-    public void onDeleteBook() {
-       // book entity deleted
+    public void setPublisher(Publisher publisher) {
+        this.publisher = publisher;
+    }
+
+    public Price getPrice() {
+        return price;
+    }
+
+    public void setPrice(Price price) {
+        this.price = price;
+    }
+
+    @Transient
+    @ComputedRelationship
+    @OneToOne
+    @FilterExpressionPath("publisher.editor")
+    @ReadPermission(expression = "Field path editor check")
+    public Editor getEditor() {
+        return getPublisher().getEditor();
+    }
+
+    public void checkPermission(RequestScope requestScope) {
+        // performs create permission check
+    }
+
+    static public class BookOperationCheck extends OperationCheck<Book> {
+        @Override
+        public boolean ok(Book book, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            // trigger method for testing
+            book.checkPermission(requestScope);
+            return true;
+        }
     }
 }

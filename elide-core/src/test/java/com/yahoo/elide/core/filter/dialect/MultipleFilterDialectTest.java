@@ -5,20 +5,24 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
-import com.beust.jcommander.internal.Lists;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import java.util.Collections;
-import java.util.Map;
-
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Tests MultipleFilterDialect
@@ -35,8 +39,8 @@ public class MultipleFilterDialectTest {
         FilterExpression filterExpression = mock(FilterExpression.class);
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Lists.newArrayList(dialect1, dialect2),
-                Collections.EMPTY_LIST
+                Arrays.asList(dialect1, dialect2),
+                Collections.emptyList()
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -51,15 +55,15 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(dialect2.parseGlobalExpression("/author", queryParams)).thenReturn(filterExpression);
+        when(dialect1.parseGlobalExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException(""));
+        when(dialect2.parseGlobalExpression("/author", queryParams, NO_VERSION)).thenReturn(filterExpression);
 
-        FilterExpression returnExpression = dialect.parseGlobalExpression("/author", queryParams);
+        FilterExpression returnExpression = dialect.parseGlobalExpression("/author", queryParams, NO_VERSION);
 
-        verify(dialect1, times(1)).parseGlobalExpression("/author", queryParams);
-        verify(dialect2, times(1)).parseGlobalExpression("/author", queryParams);
+        verify(dialect1, times(1)).parseGlobalExpression("/author", queryParams, NO_VERSION);
+        verify(dialect2, times(1)).parseGlobalExpression("/author", queryParams, NO_VERSION);
 
-        Assert.assertEquals(filterExpression, returnExpression);
+        assertEquals(returnExpression, filterExpression);
     }
 
     /**
@@ -69,11 +73,11 @@ public class MultipleFilterDialectTest {
     public void testTypedExpressionParsing() throws Exception {
         SubqueryFilterDialect dialect1 = mock(SubqueryFilterDialect.class);
         SubqueryFilterDialect dialect2 = mock(SubqueryFilterDialect.class);
-        Map<String, FilterExpression> expressionMap = Collections.EMPTY_MAP;
+        Map<String, FilterExpression> expressionMap = Collections.emptyMap();
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Collections.EMPTY_LIST,
-                Lists.newArrayList(dialect1, dialect2)
+                Collections.emptyList(),
+                Arrays.asList(dialect1, dialect2)
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -88,26 +92,26 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(dialect2.parseTypedExpression("/author", queryParams)).thenReturn(expressionMap);
+        when(dialect1.parseTypedExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException(""));
+        when(dialect2.parseTypedExpression("/author", queryParams, NO_VERSION)).thenReturn(expressionMap);
 
-        Map<String, FilterExpression> returnMap = dialect.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> returnMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
 
-        verify(dialect1, times(1)).parseTypedExpression("/author", queryParams);
-        verify(dialect2, times(1)).parseTypedExpression("/author", queryParams);
+        verify(dialect1, times(1)).parseTypedExpression("/author", queryParams, NO_VERSION);
+        verify(dialect2, times(1)).parseTypedExpression("/author", queryParams, NO_VERSION);
 
-        Assert.assertEquals(expressionMap, returnMap);
+        assertEquals(returnMap, expressionMap);
     }
 
     /**
      * Verify that missing dialects throws a ParseException
      */
-    @Test(expectedExceptions = ParseException.class)
+    @Test
     public void testMissingTypedDialect() throws Exception {
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Collections.EMPTY_LIST,
-                Collections.EMPTY_LIST
+                Collections.emptyList(),
+                Collections.emptyList()
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -122,18 +126,18 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        dialect.parseTypedExpression("/author", queryParams);
+        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/author", queryParams, NO_VERSION));
     }
 
     /**
      * Verify that missing dialects throws a ParseException
      */
-    @Test(expectedExceptions = ParseException.class)
+    @Test
     public void testMissingGlobalDialect() throws Exception {
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Collections.EMPTY_LIST,
-                Collections.EMPTY_LIST
+                Collections.emptyList(),
+                Collections.emptyList()
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -148,7 +152,7 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        dialect.parseGlobalExpression("/author", queryParams);
+        assertThrows(ParseException.class, () -> dialect.parseGlobalExpression("/author", queryParams, NO_VERSION));
     }
 
     /**
@@ -160,8 +164,8 @@ public class MultipleFilterDialectTest {
         JoinFilterDialect dialect2 = mock(JoinFilterDialect.class);
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Lists.newArrayList(dialect1, dialect2),
-                Collections.EMPTY_LIST
+                Arrays.asList(dialect1, dialect2),
+                Collections.emptyList()
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -176,13 +180,13 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("one"));
-        when(dialect2.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("two"));
+        when(dialect1.parseGlobalExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException("one"));
+        when(dialect2.parseGlobalExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException("two"));
 
         try {
-            dialect.parseGlobalExpression("/author", queryParams);
+            dialect.parseGlobalExpression("/author", queryParams, NO_VERSION);
         } catch (ParseException e) {
-            Assert.assertEquals(e.getMessage(), "two\none");
+            assertEquals("two\none", e.getMessage());
         }
     }
 
@@ -195,8 +199,8 @@ public class MultipleFilterDialectTest {
         SubqueryFilterDialect dialect2 = mock(SubqueryFilterDialect.class);
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Collections.EMPTY_LIST,
-                Lists.newArrayList(dialect1, dialect2)
+                Collections.emptyList(),
+                Arrays.asList(dialect1, dialect2)
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -211,13 +215,13 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("one"));
-        when(dialect2.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("two"));
+        when(dialect1.parseTypedExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException("one"));
+        when(dialect2.parseTypedExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException("two"));
 
         try {
-            dialect.parseTypedExpression("/author", queryParams);
+            dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
         } catch (ParseException e) {
-            Assert.assertEquals(e.getMessage(), "two\none");
+            assertEquals("two\none", e.getMessage());
         }
     }
 }

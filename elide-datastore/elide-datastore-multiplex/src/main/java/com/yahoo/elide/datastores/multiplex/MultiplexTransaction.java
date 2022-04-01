@@ -5,23 +5,26 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.FilterScope;
-import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -29,9 +32,8 @@ import java.util.Set;
  * If any commit fails in process, reverse any commits already completed.
  */
 public abstract class MultiplexTransaction implements DataStoreTransaction {
-    protected final LinkedHashMap<DataStore, DataStoreTransaction> transactions;
+    protected LinkedHashMap<DataStore, DataStoreTransaction> transactions;
     protected final MultiplexManager multiplexManager;
-    protected final DataStoreTransaction lastDataStoreTransaction;
 
     /**
      * Multiplex transaction handler.
@@ -40,75 +42,50 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     public MultiplexTransaction(MultiplexManager multiplexManager) {
         this.multiplexManager = multiplexManager;
         this.transactions = new LinkedHashMap<>(multiplexManager.dataStores.size());
-
-        // create each subordinate transaction
-        DataStoreTransaction transaction = null;
-        for (DataStore dataStore : multiplexManager.dataStores) {
-            transaction = beginTransaction(dataStore);
-            transactions.put(dataStore, transaction);
-        }
-        lastDataStoreTransaction = transaction;
     }
 
     protected abstract DataStoreTransaction beginTransaction(DataStore dataStore);
 
     @Override
-    public User accessUser(Object opaqueUser) {
-        User user = new User(opaqueUser);
-        for (DataStore dataStore : multiplexManager.dataStores) {
-            DataStoreTransaction transaction = transactions.get(dataStore);
-            user = transaction.accessUser(user.getOpaqueUser());
-        }
-        return user;
+    public <T> void createObject(T entity, RequestScope scope) {
+        getTransaction(EntityDictionary.getType(entity)).createObject(entity, scope);
     }
 
     @Override
-    public <T> T createObject(Class<T> createObject) {
-        return getTransaction(createObject).createObject(createObject);
+    public <T> T loadObject(EntityProjection projection,
+                             Serializable id,
+                             RequestScope scope) {
+        return getTransaction(projection.getType()).loadObject(projection, id, scope);
     }
 
     @Override
-    public <T> T loadObject(Class<T> loadClass, Serializable id) {
-        return getTransaction(loadClass).loadObject(loadClass, id);
+    public <T> DataStoreIterable<T> loadObjects(
+            EntityProjection projection,
+            RequestScope scope) {
+        return getTransaction(projection.getType()).loadObjects(projection, scope);
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> loadClass) {
-        return getTransaction(loadClass).loadObjects(loadClass);
+    public void flush(RequestScope requestScope) {
+        transactions.values().stream()
+                .filter(dataStoreTransaction -> dataStoreTransaction != null)
+                .forEach(dataStoreTransaction -> dataStoreTransaction.flush(requestScope));
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope filterScope) {
-        return getTransaction(entityClass).loadObjects(entityClass, filterScope);
+    public void preCommit(RequestScope scope) {
+        transactions.values().stream()
+                .filter(dataStoreTransaction -> dataStoreTransaction != null)
+                .forEach(tx -> tx.preCommit(scope));
     }
 
     @Override
-    public <T> T loadObject(Class<T> entityClass, Serializable id, Optional<FilterExpression> filterExpression) {
-        return getTransaction(entityClass).loadObject(entityClass, id, filterExpression);
-    }
-
-    @Override
-    @Deprecated
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        return getTransaction(entityClass).filterCollection(collection, entityClass, predicates);
-    }
-
-    @Override
-    public void flush() {
-        transactions.values().forEach(DataStoreTransaction::flush);
-    }
-
-    @Override
-    public void preCommit() {
-        transactions.values().forEach(DataStoreTransaction::preCommit);
-    }
-
-    @Override
-    public void commit() {
+    public void commit(RequestScope scope) {
         // flush all before commit
-        flush();
-        transactions.values().forEach(DataStoreTransaction::commit);
-        transactions.clear();
+        flush(scope);
+        transactions.values().stream()
+               .filter(dataStoreTransaction -> dataStoreTransaction != null)
+               .forEach(dataStoreTransaction -> dataStoreTransaction.commit(scope));
     }
 
     @Override
@@ -128,84 +105,135 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                 }
             }
         }
+        transactions.clear();
         if (cause != null) {
             throw cause;
         }
     }
 
     protected DataStoreTransaction getTransaction(Object object) {
-        return getTransaction(object.getClass());
+        return getTransaction(ClassType.of(object.getClass()));
     }
 
-    protected DataStoreTransaction getTransaction(Class<?> cls) {
-        DataStoreTransaction transaction = transactions.get(this.multiplexManager.getSubManager(cls));
+    protected DataStoreTransaction getTransaction(Type<?> cls) {
+        DataStore lookupDataStore = this.multiplexManager.getSubManager(cls);
+
+        DataStoreTransaction transaction = transactions.get(lookupDataStore);
         if (transaction == null) {
-            Class entityClass = multiplexManager.getDictionary().lookupEntityClass(cls);
-            throw new InvalidCollectionException(entityClass == null ? cls.getName() : entityClass.getName());
+            for (DataStore dataStore : multiplexManager.dataStores) {
+                if (dataStore.equals(lookupDataStore)) {
+                    transaction = beginTransaction(dataStore);
+                    transactions.put(dataStore, transaction);
+                    break;
+                }
+            }
+            if (transaction == null) {
+                throw new InvalidCollectionException(cls.getName());
+            }
         }
         return transaction;
     }
 
+    protected DataStoreTransaction getRelationTransaction(Object object, String relationName) {
+        EntityDictionary dictionary = multiplexManager.getDictionary();
+        Type<?> relationClass = dictionary.getParameterizedType(EntityDictionary.getType(object), relationName);
+        return getTransaction(relationClass);
+    }
+
     @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Optional<FilterExpression> filterExpression,
-            Sorting sorting,
-            Pagination pagination
+    public <T, R> DataStoreIterable<R> getToManyRelation(
+            DataStoreTransaction tx,
+            T entity,
+            Relationship relation,
+            RequestScope scope
     ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelation(entity, relationshipType, relationName,
-                relationClass, dictionary, filterExpression, sorting, pagination);
+        DataStoreTransaction relationTx = getRelationTransaction(entity, relation.getName());
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        DataStoreTransaction entityTransaction = getTransaction(entityType);
+
+        return entityTransaction.getToManyRelation(relationTx, entity, relation, scope);
     }
 
     @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
+    public <T, R> R getToOneRelation(
+            DataStoreTransaction tx,
+            T entity,
+            Relationship relation,
+            RequestScope scope
     ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
+        DataStoreTransaction relationTx = getRelationTransaction(entity, relation.getName());
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        DataStoreTransaction entityTransaction = getTransaction(entityType);
+
+        return entityTransaction.getToOneRelation(relationTx, entity, relation, scope);
     }
 
     @Override
-    public <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
-                relationClass, dictionary, filters, sorting, pagination);
+    public <T, R> void updateToManyRelation(DataStoreTransaction tx,
+                                     T entity, String relationName,
+                                     Set<R> newRelationships,
+                                     Set<R> deletedRelationships,
+                                     RequestScope scope) {
+        DataStoreTransaction relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
+        entityTransaction.updateToManyRelation(relationTx, entity, relationName,
+                newRelationships, deletedRelationships, scope);
     }
 
     @Override
-    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        return getTransaction(entityClass).loadObjectsWithSortingAndPagination(entityClass, filterScope);
+    public <T, R> void updateToOneRelation(DataStoreTransaction tx, T entity,
+                                    String relationName, R relationshipValue, RequestScope scope) {
+        DataStoreTransaction relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
+        entityTransaction.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
 
     @Override
-    public <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
-            EntityDictionary dictionary, Optional<Set<Predicate>> filters, Optional<Sorting> sorting,
-            Optional<Pagination> pagination) {
-        return getTransaction(entityClass).filterCollectionWithSortingAndPagination(
-                collection, entityClass, dictionary, filters, sorting, pagination);
+    public <T, R> R getAttribute(T entity, Attribute attribute, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
+        return transaction.getAttribute(entity, attribute, scope);
     }
 
     @Override
-    public <T> Long getTotalRecords(Class<T> entityClass) {
-        return getTransaction(entityClass).getTotalRecords(entityClass);
+    public <T> void setAttribute(T entity, Attribute attribute, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
+        transaction.setAttribute(entity, attribute, scope);
+    }
+
+    private Serializable extractId(FilterExpression filterExpression,
+                                   String idFieldName,
+                                   Type<?> relationClass) {
+        Collection<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
+        return predicates.stream()
+                .filter(p -> p.getEntityType() == relationClass && p.getOperator() == Operator.IN)
+                .filter(p -> p.getValues().size() == 1)
+                .filter(p -> p.getField().equals(idFieldName))
+                .findFirst()
+                .map(p -> (Serializable) p.getValues().get(0))
+                .orElse(null);
+    }
+
+    @Override
+    public void cancel(RequestScope scope) {
+        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.cancel(scope));
+    }
+
+    @Override
+    public <T> T getProperty(String propertyName) {
+        DataStore matchingStore = multiplexManager.dataStores.stream()
+                .filter(store -> propertyName.startsWith(store.getClass().getPackage().getName()))
+                .findFirst().orElse(null);
+
+        //Data store transaction properties must be prefixed with their package name.
+        if (matchingStore == null) {
+            return null;
+        }
+
+        if (! transactions.containsKey(matchingStore)) {
+            DataStoreTransaction tx = beginTransaction(matchingStore);
+            transactions.put(matchingStore, tx);
+        }
+
+        return transactions.get(matchingStore).getProperty(propertyName);
     }
 }

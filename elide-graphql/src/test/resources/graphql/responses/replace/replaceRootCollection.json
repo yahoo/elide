@@ -1,0 +1,31 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "4",
+          "title": "abc",
+          "authors": {
+            "edges": [
+              {
+                "node": {
+                  "id": "1",
+                  "name": "Mark Twain"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "5",
+          "title": "xyz",
+          "authors": {
+            "edges": []
+          }
+        }
+      }
+    ]
+  }
+}

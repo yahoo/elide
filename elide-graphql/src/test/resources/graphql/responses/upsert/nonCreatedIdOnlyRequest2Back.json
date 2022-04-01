@@ -1,0 +1,26 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "name": "John Snow",
+          "books": {
+            "edges": [
+              {
+                "node": {
+                  "title": "the new one"
+                }
+              },
+              {
+                "node": {
+                  "title": "updated again"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

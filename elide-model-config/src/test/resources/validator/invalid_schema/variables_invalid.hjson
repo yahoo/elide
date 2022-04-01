@@ -1,0 +1,11 @@
+{
+  //Comment
+  name : book
+  table : book
+  schema$ : [123]
+  description :
+  '''
+  valid schema for a book
+  '''
+  cardinality : null
+}

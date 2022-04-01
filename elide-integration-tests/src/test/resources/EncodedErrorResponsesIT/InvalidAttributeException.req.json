@@ -1,0 +1,13 @@
+[
+  {
+    "op":"add",
+    "path":"/-",
+    "value":{
+      "type":"parent",
+      "id":"nice",
+      "attributes":{
+        "badAttr":"no val"
+      }
+    }
+  }
+]

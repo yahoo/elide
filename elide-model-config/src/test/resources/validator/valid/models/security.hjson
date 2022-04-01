@@ -1,0 +1,19 @@
+{
+    roles : [
+        admin
+        gu.est user
+        member
+        user
+        ]
+    rules: [
+        {
+            type: filter
+            filter: filter
+            name: User belongs to company
+        },
+        {
+            filter: filter
+            name: Principal is owner
+        },
+    ]
+}

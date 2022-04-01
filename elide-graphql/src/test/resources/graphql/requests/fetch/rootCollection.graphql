@@ -1,0 +1,13 @@
+{
+  book {
+    edges {
+      node {
+        id
+        title
+        genre
+        language
+        publicationDate
+      }
+    }
+  }
+}

@@ -16,7 +16,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "assigned_id_string")
-@Include(rootLevel = true)
+@Include
 public class AssignedIdString {
     private String id;
     private int value;
@@ -36,5 +36,22 @@ public class AssignedIdString {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    @Override
+    public int hashCode() {
+        if (id == null) {
+            return super.hashCode();
+        }
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (id == null) {
+            return super.equals(obj);
+        }
+
+        return obj instanceof AssignedIdString && id.equals(((AssignedIdString) obj).id);
     }
 }

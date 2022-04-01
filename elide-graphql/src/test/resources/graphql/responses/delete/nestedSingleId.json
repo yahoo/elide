@@ -1,0 +1,14 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "books": {
+            "edges": [
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

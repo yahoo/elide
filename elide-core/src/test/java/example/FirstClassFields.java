@@ -10,17 +10,16 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
-@CreatePermission(all = {Role.NONE.class})
-@ReadPermission(all = {Role.NONE.class})
-@UpdatePermission(all = {Role.NONE.class})
-@DeletePermission(all = {Role.NONE.class})
-@Include(rootLevel = true)
+@CreatePermission(expression = "Prefab.Role.None")
+@ReadPermission(expression = "Prefab.Role.None")
+@UpdatePermission(expression = "Prefab.Role.None")
+@DeletePermission(expression = "Prefab.Role.None")
+@Include
 @Entity
 public class FirstClassFields {
     @Id
@@ -33,10 +32,10 @@ public class FirstClassFields {
     public Left private2;
 
     // Public vars
-    @ReadPermission(any = {Role.ALL.class})
+    @ReadPermission(expression = "Prefab.Role.All")
     public String public1;
 
-    @ReadPermission(any = {Role.ALL.class})
+    @ReadPermission(expression = "Prefab.Role.All")
     @OneToOne
     public Left public2;
 }

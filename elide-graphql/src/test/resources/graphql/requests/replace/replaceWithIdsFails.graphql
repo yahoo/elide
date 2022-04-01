@@ -1,0 +1,9 @@
+mutation {
+  book(op: REPLACE, ids: ["1"], data:{authors:[{id:"1"}]}) {
+    edges {
+      node {
+        title
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+query nestedCollectionFilter($Filter: String = "title==\"Libro U*\"") {
+  author(ids: ["1"]) {
+    edges {
+      node {
+        books(filter: $Filter) {
+          edges {
+            node {
+              id
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+}

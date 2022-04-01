@@ -1,9 +1,0 @@
-{
-    "data":{
-        "type":"assignedIdString",
-        "id":"user2",
-        "attributes": {
-            "value": 22
-        }
-    }
-}

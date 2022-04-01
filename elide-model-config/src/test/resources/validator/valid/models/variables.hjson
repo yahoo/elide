@@ -1,0 +1,8 @@
+{
+   foo: [1, 2, 3]
+   bar: blah
+   hour: hour_replace
+   measure_type: MAX
+   name: PlayerStats
+   table: player_stats
+}

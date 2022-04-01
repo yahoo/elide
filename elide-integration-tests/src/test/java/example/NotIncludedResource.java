@@ -8,27 +8,15 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
 
-@ReadPermission(any = {Role.ALL.class})
-@CreatePermission(any = {Role.ALL.class})
-@UpdatePermission(any = {Role.ALL.class})
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
 @Entity
-public class NotIncludedResource {
-    private Long id;
+public class NotIncludedResource extends BaseId {
     private String someParams;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getSomeParams() {
         return someParams;

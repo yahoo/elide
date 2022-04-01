@@ -1,0 +1,7 @@
+{
+  roles:
+  [
+    admin.user
+    guest user
+  ]
+}

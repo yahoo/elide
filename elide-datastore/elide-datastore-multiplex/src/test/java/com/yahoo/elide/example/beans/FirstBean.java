@@ -6,26 +6,22 @@
 package com.yahoo.elide.example.beans;
 
 import com.yahoo.elide.annotation.Include;
+import lombok.Data;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 /**
  * test bean.
  */
 @Entity
-@Include
+@Include(rootLevel = false)
+@Data
 public class FirstBean {
-    public int id;
-
-    public String name;
-
     @Id
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
+    @GeneratedValue
+    private String id;
+    private String name;
+    private ComplexAttribute complex;
 }

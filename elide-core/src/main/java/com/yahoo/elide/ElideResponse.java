@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide;
 
+import lombok.Builder;
 import lombok.Getter;
 
 /**
  * Elide response object.
  */
+@Builder
 public class ElideResponse {
     @Getter private final int responseCode;
     @Getter private final String body;

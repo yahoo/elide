@@ -1,0 +1,11 @@
+[
+  {
+    "op": "add",
+    "path": "/-",
+    "value": {
+      "id": "6",
+      "type": "parent",
+      "notARelationship": {}
+    }
+  }
+]

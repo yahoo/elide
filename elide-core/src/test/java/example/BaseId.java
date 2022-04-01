@@ -10,6 +10,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+/**
+ * Basic class that has an id.
+ */
 @MappedSuperclass
 public abstract class BaseId {
     private long id;

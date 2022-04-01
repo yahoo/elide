@@ -11,18 +11,18 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 
-@Include(rootLevel = true, type = "stringForId")
+@Include(name = "stringForId")
 @Entity
 public class StringId {
 
-    private String id;
+    private String surrogateKey;
 
     @Id
-    public String getId() {
-        return id;
+    public String getSurrogateKey() {
+        return surrogateKey;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setSurrogateKey(String surrogateKey) {
+        this.surrogateKey = surrogateKey;
     }
 }

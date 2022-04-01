@@ -1,0 +1,10 @@
+{
+  namespaces:
+  [
+    {
+      name: Default
+      description: Namespace for Test
+      friendlyName: Default
+    }
+  ]
+}

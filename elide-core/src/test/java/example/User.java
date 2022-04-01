@@ -5,11 +5,12 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,13 +18,12 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-import java.util.Set;
 
 /**
  * Used to test computed attributes.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 public class User {
     @JsonIgnore
     private long id;
@@ -66,6 +66,7 @@ public class User {
 
     /**
      * Sets the password but first reverses it.
+     * @param password password to encode
      */
     @ComputedAttribute
     @Transient

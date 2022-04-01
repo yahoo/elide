@@ -5,39 +5,34 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 /**
- * InMemoryFilterOperation
+ * InMemoryFilterOperation.
  */
-public class InMemoryFilterOperation implements FilterOperation<Set<java.util.function.Predicate>> {
-    private final EntityDictionary dictionary;
+public class InMemoryFilterOperation implements FilterOperation<Set<Predicate>> {
+    private final RequestScope requestScope;
 
-    public InMemoryFilterOperation(EntityDictionary dictionary) {
-        this.dictionary = dictionary;
+    public InMemoryFilterOperation(RequestScope requestScope) {
+        this.requestScope = requestScope;
     }
 
     @Override
-    public Set<java.util.function.Predicate> apply(Predicate predicate) {
-        return Collections.singleton(this.applyOperator(predicate));
+    public Set<Predicate> apply(FilterPredicate filterPredicate) {
+        return Collections.singleton(this.applyOperator(filterPredicate));
     }
 
-    @Override
-    public Set<java.util.function.Predicate> applyAll(Set<Predicate> predicates) {
-        return predicates.stream()
-                .map(this::applyOperator)
-                .collect(Collectors.toSet());
-    }
-
-    private java.util.function.Predicate applyOperator(Predicate predicate) {
-        return predicate.apply(dictionary);
+    private Predicate applyOperator(FilterPredicate filterPredicate) {
+        return filterPredicate.apply(requestScope);
     }
 
     public EntityDictionary getDictionary() {
-        return dictionary;
+        return requestScope.getDictionary();
     }
 }

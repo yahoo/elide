@@ -14,7 +14,7 @@ import javax.persistence.Id;
  * test bean.
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class SecondBean {
     @Id
     public int id;

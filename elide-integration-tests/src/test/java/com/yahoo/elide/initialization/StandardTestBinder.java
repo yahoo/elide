@@ -5,50 +5,68 @@
  */
 package com.yahoo.elide.initialization;
 
-import com.beust.jcommander.internal.Lists;
+import static org.mockito.Mockito.mock;
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import example.TestCheckMappings;
+import example.models.triggers.services.BillingService;
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Calendar;
 
 /**
  * Typical-use test binder for integration test resource configs.
  */
 public class StandardTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
+    private final ServiceLocator injector;
 
-    public StandardTestBinder(final AuditLogger auditLogger) {
+    public static final BillingService BILLING_SERVICE = mock(BillingService.class);
+
+    public StandardTestBinder(final AuditLogger auditLogger, final ServiceLocator injector) {
         this.auditLogger = auditLogger;
+        this.injector = injector;
     }
 
     @Override
     protected void configure() {
+        EntityDictionary dictionary = EntityDictionary.builder()
+                .injector(injector::inject)
+                .checks(TestCheckMappings.MAPPINGS)
+                .build();
+
+        bind(dictionary).to(EntityDictionary.class);
+
         // Elide instance
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
-                EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
-                RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+                RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
                 MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
-                        Lists.newArrayList(rsqlFilterStrategy, defaultFilterStrategy),
-                        Lists.newArrayList(rsqlFilterStrategy, defaultFilterStrategy)
+                        Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
+                        Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                Elide elide = new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
-                        .build();
+                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                        .build());
+
+                elide.doScans();
+                return elide;
             }
 
             @Override
@@ -57,18 +75,6 @@ public class StandardTestBinder extends AbstractBinder {
             }
         }).to(Elide.class).named("elide");
 
-        // User function
-        bindFactory(new Factory<JsonApiEndpoint.DefaultOpaqueUserFunction>() {
-            private final Integer user = 1;
-
-            @Override
-            public JsonApiEndpoint.DefaultOpaqueUserFunction provide() {
-                return v -> user;
-            }
-
-            @Override
-            public void dispose(JsonApiEndpoint.DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
-            }
-        }).to(JsonApiEndpoint.DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
+        bind(BILLING_SERVICE).to(BillingService.class);
     }
 }

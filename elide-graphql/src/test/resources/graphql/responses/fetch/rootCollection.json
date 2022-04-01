@@ -1,0 +1,33 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno",
+          "genre": null,
+          "language": null,
+          "publicationDate": "2017-12-27T18:03Z"
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "title": "Libro Dos",
+          "genre": null,
+          "language": null,
+          "publicationDate": "1970-01-01T00:00Z"
+        }
+      },
+      {
+        "node": {
+          "id": "3",
+          "title": "Doctor Zhivago",
+          "genre": null,
+          "language": null,
+          "publicationDate": null
+        }
+      }
+    ]
+  }
+}

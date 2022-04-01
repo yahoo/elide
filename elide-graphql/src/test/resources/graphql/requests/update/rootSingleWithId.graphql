@@ -1,0 +1,10 @@
+mutation {
+  author(op:UPDATE, data: {id: "1", name: "abc" }) {
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}

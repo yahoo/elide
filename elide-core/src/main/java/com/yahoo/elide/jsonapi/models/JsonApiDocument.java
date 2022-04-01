@@ -7,15 +7,17 @@ package com.yahoo.elide.jsonapi.models;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import lombok.ToString;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * JSON API Document.
@@ -41,13 +43,9 @@ public class JsonApiDocument {
 
     public void setData(Data<Resource> data) {
         this.data = data;
-        this.meta = null;
     }
 
     public Data<Resource> getData() {
-        if (data == null) {
-            return null;
-        }
         return data;
     }
 
@@ -83,12 +81,11 @@ public class JsonApiDocument {
 
     @Override
     public int hashCode() {
+        Collection<Resource> resources = data == null ? null : data.get();
         return new HashCodeBuilder(37, 79)
-            .append(data)
-            .append(meta)
-            .append(includedRecs)
+            .append(resources == null ? 0 : resources.stream().mapToInt(Object::hashCode).sum())
             .append(links)
-            .append(included)
+            .append(included == null ? 0 : included.stream().mapToInt(Object::hashCode).sum())
             .build();
     }
 
@@ -98,14 +95,12 @@ public class JsonApiDocument {
             return false;
         }
         JsonApiDocument other = (JsonApiDocument) obj;
-        Collection<Resource> resources = data.get();
-        if ((resources == null || other.getData().get() == null) && resources != other.getData().get()) {
+        Collection<Resource> resources = Optional.ofNullable(data).map(Data::get).orElseGet(Collections::emptySet);
+        Collection<Resource> otherResources =
+                Optional.ofNullable(other.data).map(Data::get).orElseGet(Collections::emptySet);
+
+        if (resources.size() != otherResources.size() || !resources.stream().allMatch(otherResources::contains)) {
             return false;
-        } else if (resources != null) {
-            if (resources.size() != other.getData().get().size()
-                || !resources.stream().allMatch(other.getData().get()::contains)) {
-                return false;
-            }
         }
         // TODO: Verify links and meta?
         if (other.getIncluded() == null) {

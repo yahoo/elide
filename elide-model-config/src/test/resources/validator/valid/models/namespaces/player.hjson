@@ -1,0 +1,10 @@
+{
+  namespaces:
+  [
+    {
+      name: PlayerNamespace
+      description: Namespace for Player Schema Tables
+      friendlyName: Player
+    }
+  ]
+}

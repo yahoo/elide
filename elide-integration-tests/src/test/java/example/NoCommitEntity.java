@@ -8,44 +8,33 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-import example.NoCommitEntity.NoCommitCheck;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Optional;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * No Update test bean.
  */
-@CreatePermission(all = { Role.ALL.class, NoCommitCheck.class })
-@UpdatePermission(all = { Role.ALL.class, NoCommitCheck.class })
-@Include(rootLevel = true, type = "nocommit")
+@CreatePermission(expression = "Prefab.Role.All AND noCommit")
+@UpdatePermission(expression = "Prefab.Role.All AND noCommit")
+@Include(name = "nocommit")
 // Hibernate
 @Entity
 @Table(name = "nocommit")
-public class NoCommitEntity {
-    static public class NoCommitCheck<T> extends CommitCheck<T> {
+public class NoCommitEntity extends BaseId {
+    @Getter @Setter
+    private String value;
+
+    static public class NoCommitCheck<T> extends OperationCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;
         }
-    }
-
-    private long id;
-
-    @Id @GeneratedValue
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 }

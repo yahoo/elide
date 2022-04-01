@@ -1,0 +1,26 @@
+{
+  tables: [{
+      name: PlayerStats
+      sql: PlayerStats
+      schema: gamedb
+      cardinality : large
+      hidden : false
+      readAccess : A user is admin or is a player in the game
+      joins: [
+          {
+             name: playerCountry
+             // undefined model PlayerContinent
+             to: PlayerContinent
+             kind: toOne
+             definition: '{{id}} = {{playerCountry.country_id}}'
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           type : TEXT
+           definition : '{{playerCountry.isoCode}}'
+         }
+      ]
+  }]
+}

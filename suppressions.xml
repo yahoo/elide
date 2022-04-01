@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions
+    xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
+
+
+    <!-- Tomcat - Only related to 'Windows Language Pack Installer" -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2020-0822</cve>
+    </suppress>
+</suppressions>

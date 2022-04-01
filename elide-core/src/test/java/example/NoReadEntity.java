@@ -7,30 +7,25 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.security.checks.prefab.Role;
+import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-@ReadPermission(all = { Role.NONE.class })
-@Include(rootLevel = true, type = "noread") // optional here because class has this name
+@ReadPermission(expression = "Prefab.Role.None")
+@Include(name = "noread") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "noread")
+@Data
 public class NoReadEntity {
+    @Id
     private long id;
-    public String field;
+
+    private String field;
 
     @OneToOne
-    public Child child;
-
-    @Id
-    public long getId() {
-        return id;
-    }
-    public void setId(long id) {
-        this.id = id;
-    }
+    private Child child;
 }

@@ -6,426 +6,463 @@
 
 package com.yahoo.elide.parsers.expression;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.EntityDictionary;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityPermissions;
+import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.FilterExpressionCheck;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.UserCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-import com.yahoo.elide.security.permissions.ExpressionResult;
-import com.yahoo.elide.security.permissions.expressions.Expression;
-import lombok.AllArgsConstructor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.TestUser;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.permissions.ExpressionResultCache;
+import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
+import com.yahoo.elide.core.security.permissions.expressions.Expression;
+import com.yahoo.elide.core.security.visitors.PermissionExpressionNormalizationVisitor;
+import com.yahoo.elide.core.security.visitors.PermissionExpressionVisitor;
+import com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor;
+import com.yahoo.elide.core.type.Type;
+import example.Author;
+import example.Book;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-
+@SuppressWarnings("StringEquality")
 public class PermissionToFilterExpressionVisitorTest {
+    private static final Path.PathElement AUTHOR_PATH = new Path.PathElement(Author.class, Book.class, "books");
+    private static final Path.PathElement BOOK_PATH = new Path.PathElement(Book.class, String.class, "title");
+    private static final PermissionExpressionNormalizationVisitor NORMALIZATION_VISITOR = new PermissionExpressionNormalizationVisitor();
+
+    private static final FilterExpression IN_PREDICATE = createDummyPredicate(Operator.IN);
+    private static final FilterExpression NOT_IN_PREDICATE = createDummyPredicate(Operator.NOT);
+    private static final FilterExpression LT_PREDICATE = createDummyPredicate(Operator.LT);
+    private static final FilterExpression GE_PREDICATE = createDummyPredicate(Operator.GE);
+
+    private static final String AND = "AND";
+    private static final String OR = "OR";
+    private static final String AND_NOT = "AND NOT";
+    private static final String OR_NOT = "OR NOT";
+    private static final List<String> OPS = Arrays.asList(AND, OR, AND_NOT, OR_NOT);
+
+    private static final String USER_ALLOW = "user has all access";
+    private static final String USER_DENY = "user has no access";
+    private static final String AT_OP_ALLOW = "Operation Allow";
+    private static final String AT_OP_DENY = "Operation Deny";
+    private static final String IN_FILTER = "in";
+    private static final String NOT_IN_FILTER = "notin";
+    private static final String LT_FILTER = "lt";
+    private static final String GE_FILTER = "ge";
+    private static final List<String> PERMISSIONS = Arrays.asList(AT_OP_ALLOW, AT_OP_DENY, USER_ALLOW, USER_DENY,
+            IN_FILTER, NOT_IN_FILTER, LT_FILTER, GE_FILTER);
+
     private EntityDictionary dictionary;
     private RequestScope requestScope;
+    private ElideSettings elideSettings;
+    private ExpressionResultCache cache;
 
-    @BeforeMethod
+    @BeforeEach
     public void setupEntityDictionary() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
-        checks.put("Allow", Permissions.Succeeds.class);
-        checks.put("Deny", Permissions.Fails.class);
-        checks.put("user has all access", Role.ALL.class);
-        checks.put("owner is user", FilterExpressionCheck1.class);
-        checks.put("user has no access", Role.NONE.class);
+        checks.put(AT_OP_ALLOW, Permissions.Succeeds.class);
+        checks.put(AT_OP_DENY, Permissions.Fails.class);
 
-        dictionary = new EntityDictionary(checks);
-        dictionary.bindEntity(Model.class);
-        dictionary.bindEntity(ComplexEntity.class);
-        dictionary.bindEntity(Good1.class);
-        dictionary.bindEntity(Good2.class);
-        dictionary.bindEntity(Good3.class);
-        dictionary.bindEntity(Good4.class);
-        dictionary.bindEntity(Good5.class);
-        dictionary.bindEntity(Good6.class);
-        dictionary.bindEntity(Good7.class);
-        dictionary.bindEntity(GOOD8.class);
-        dictionary.bindEntity(BAD1.class);
-        dictionary.bindEntity(BAD2.class);
-        dictionary.bindEntity(BAD4.class);
-        dictionary.bindEntity(GOOD9.class);
-        dictionary.bindEntity(GOOD10.class);
+        checks.put(USER_ALLOW, Role.ALL.class);
+        checks.put(USER_DENY, Role.NONE.class);
+
+        checks.put(IN_FILTER, Permissions.InFilterExpression.class);
+        checks.put(NOT_IN_FILTER, Permissions.NotInFilterExpression.class);
+        checks.put(LT_FILTER, Permissions.LessThanFilterExpression.class);
+        checks.put(GE_FILTER, Permissions.GreaterThanOrEqualFilterExpression.class);
+
+        dictionary = TestDictionary.getTestDictionary(checks);
+        elideSettings = new ElideSettingsBuilder(null)
+                .withEntityDictionary(dictionary)
+                .build();
+
         requestScope = newRequestScope();
+        cache = new ExpressionResultCache();
+    }
+
+    ///
+    /// Test filter extraction
+    ///
+    public static Stream<Arguments> identityProvider() {
+        return PERMISSIONS.stream().map(expression -> Arguments.of(expression, filterFor(expression)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("identityProvider")
+    public void testSingleFilterExpression(String permission, FilterExpression expected) {
+        FilterExpression computed = filterExpressionForPermissions(permission);
+        assertEquals(expected, computed,  String.format("%s != %s", permission, expected.toString()));
+    }
+
+    public static Stream<Arguments> notExpressionProvider() {
+        return PERMISSIONS.stream().map(expression -> Arguments.of(expression, negate(filterFor(expression))));
+    }
+
+    @ParameterizedTest
+    @MethodSource("notExpressionProvider")
+    public void testNotFilterExpression(String permission, FilterExpression expected) {
+        String expression = String.format("NOT %s", permission);
+        FilterExpression computed = filterExpressionForPermissions(expression);
+        assertEquals(expected, computed);
+    }
+
+    public static Stream<Arguments> simpleAndProvider() {
+        return OPS.stream().map(op ->
+                PERMISSIONS.stream().map(left ->
+                        PERMISSIONS.stream().map(right ->
+                                Arguments.of(left, op, right, buildFilter(left, op, right))
+                        )
+                ).reduce(Stream.empty(), Stream::concat)
+        ).reduce(Stream.empty(), Stream::concat);
+    }
+
+    @ParameterizedTest
+    @MethodSource("simpleAndProvider")
+    public void testSimpleExpression(String left, String op, String right, FilterExpression expected) {
+        String permission = String.format("%s %s %s", left, op, right);
+        FilterExpression computed = filterExpressionForPermissions(permission);
+        assertEquals(expected, computed,  String.format("%s != %s", permission, expected));
+
+        boolean specialCase = isSpecialCase(computed);
+        boolean isFilterable = containsOnlyFilterableExpressions(computed);
+        assertTrue(specialCase || isFilterable, String.format("compound expression contains unfilterable clause '%s'", computed));
+    }
+
+    public static Stream<Arguments> nestedExpressionProvider() {
+        return OPS.stream().map(outerOp ->
+                OPS.stream().map(innerOp ->
+                        PERMISSIONS.stream().map(left ->
+                                PERMISSIONS.stream().map(innerLeft ->
+                                        PERMISSIONS.stream().map(innerRight -> {
+                                            String innerPerm =
+                                                    String.format("%s %s %s", innerLeft, innerOp, innerRight);
+
+                                            return Arguments.of(
+                                                    left,
+                                                    outerOp,
+                                                    innerPerm,
+                                                    buildFilter(left, outerOp, innerLeft, innerOp, innerRight));
+                                        })
+                                ).reduce(Stream.empty(), Stream::concat)
+                        ).reduce(Stream.empty(), Stream::concat)
+                ).reduce(Stream.empty(), Stream::concat)
+        ).reduce(Stream.empty(), Stream::concat);
+    }
+
+    @ParameterizedTest
+    @MethodSource("nestedExpressionProvider")
+    public void testNestedExpressions(String left, String join, String compound, FilterExpression expected) {
+        String permission = String.format("%s %s (%s)", left, join, compound);
+        FilterExpression computed = filterExpressionForPermissions(permission);
+        assertEquals(expected, computed,  String.format("%s != %s", permission, computed));
+
+        boolean specialCase = isSpecialCase(computed);
+        boolean isFilterable = containsOnlyFilterableExpressions(computed);
+        assertTrue(specialCase || isFilterable, String.format("compound expression contains unfilterable clause '%s'", computed));
     }
 
     @Test
-    public void testParseCombinationExpression() {
-        ParseTree g1 = dictionary.getPermissionsForClass(Good1.class, ReadPermission.class);
-        ParseTree g2 = dictionary.getPermissionsForClass(Good2.class, ReadPermission.class);
-        ParseTree g3 = dictionary.getPermissionsForClass(Good3.class, ReadPermission.class);
-        ParseTree g4 = dictionary.getPermissionsForClass(Good4.class, ReadPermission.class);
-        ParseTree g5 = dictionary.getPermissionsForClass(Good5.class, ReadPermission.class);
-        ParseTree g6 = dictionary.getPermissionsForClass(Good6.class, ReadPermission.class);
-        ParseTree g7 = dictionary.getPermissionsForClass(Good7.class, ReadPermission.class);
-        ParseTree g8 = dictionary.getPermissionsForClass(GOOD8.class, ReadPermission.class);
-        ParseTree b1 = dictionary.getPermissionsForClass(BAD1.class, ReadPermission.class);
-        ParseTree b2 = dictionary.getPermissionsForClass(BAD2.class, ReadPermission.class);
-        ParseTree b4 = dictionary.getPermissionsForClass(BAD4.class, ReadPermission.class);
-        ParseTree g9 = dictionary.getPermissionsForClass(GOOD9.class, ReadPermission.class);
-        ParseTree g10 = dictionary.getPermissionsForClass(GOOD10.class, ReadPermission.class);
-        PermissionToFilterExpressionVisitor fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope);
-        FilterExpression expected = createDummyPredicate();
-        FilterExpression feg1 = fev.visit(g1);
-        Assert.assertEquals(expected, feg1);
-        FilterExpression feg2 = fev.visit(g2);
-        Assert.assertTrue(feg2 == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
-        //Assert.assertEquals(expected, feg2);
-        FilterExpression feg3 = fev.visit(g3);
-        Assert.assertTrue(feg3  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
-        FilterExpression feg4 = fev.visit(g4);
-        Assert.assertEquals(new OrFilterExpression(expected, expected), feg4);
-        FilterExpression feg5 = fev.visit(g5);
-        Assert.assertTrue(feg5  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
-        FilterExpression feg6 = fev.visit(g6);
-        Assert.assertEquals(new OrFilterExpression(expected, expected), feg6);
-        FilterExpression feg7 = fev.visit(g7);
-        Assert.assertTrue(feg7 == NO_EVALUATION_EXPRESSION);
-        FilterExpression feg8 = fev.visit(g8);
-        Assert.assertTrue(feg8  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
-        FilterExpression feb2 = fev.visit(b2);
-        Assert.assertTrue(feb2 == NO_EVALUATION_EXPRESSION || feb2  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
-        FilterExpression feb4 = fev.visit(b4);
-        Assert.assertTrue(feb4 == NO_EVALUATION_EXPRESSION || feb4  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
-        FilterExpression feg9 = fev.visit(g9);
-        Assert.assertTrue(feg9 == NO_EVALUATION_EXPRESSION || feg9  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
-        FilterExpression feg10 = fev.visit(g10);
-        Assert.assertTrue(feg10 == NO_EVALUATION_EXPRESSION || feg10  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
+    public void testTestMethods() {
+        List<FilterExpression> unfilterable = Arrays.asList(
+                FALSE_USER_CHECK_EXPRESSION, TRUE_USER_CHECK_EXPRESSION, NO_EVALUATION_EXPRESSION);
+
+        for (FilterExpression e : unfilterable) {
+            assertTrue(isSpecialCase(e), String.format("isSpecialCase(%s)", e));
+        }
+
+
+        assertTrue(containsOnlyFilterableExpressions(
+                new AndFilterExpression(IN_PREDICATE, NOT_IN_PREDICATE)
+        ));
+        assertTrue(containsOnlyFilterableExpressions(
+                new OrFilterExpression(IN_PREDICATE, NOT_IN_PREDICATE)
+        ));
+
+        assertFalse(containsOnlyFilterableExpressions(
+                new AndFilterExpression(IN_PREDICATE, FALSE_USER_CHECK_EXPRESSION)
+        ));
+        assertFalse(containsOnlyFilterableExpressions(
+                new OrFilterExpression(IN_PREDICATE, FALSE_USER_CHECK_EXPRESSION)
+        ));
+
+        assertFalse(containsOnlyFilterableExpressions(
+                new AndFilterExpression(IN_PREDICATE, new AndFilterExpression(IN_PREDICATE, TRUE_USER_CHECK_EXPRESSION))
+        ));
+        assertFalse(containsOnlyFilterableExpressions(
+                new OrFilterExpression(IN_PREDICATE, new OrFilterExpression(IN_PREDICATE, TRUE_USER_CHECK_EXPRESSION))
+        ));
+
+        FilterExpression negated, expected;
+
+        negated = negate(new OrFilterExpression(NOT_IN_PREDICATE, NOT_IN_PREDICATE));
+        expected = new AndFilterExpression(IN_PREDICATE, IN_PREDICATE);
+        assertEquals(expected, negated);
     }
 
-    @Test
-    public void testAndExpression() {
-        Expression expression = getExpressionForPermission(ReadPermission.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
-    }
-
-    @Test
-    public void testOrExpression() {
-        Expression expression = getExpressionForPermission(UpdatePermission.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
-    }
-
-    @Test
-    public void testNotExpression() {
-        Expression expression = getExpressionForPermission(DeletePermission.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
-    }
-
-    @Test
-    public void testComplexExpression() {
-        Expression expression = getExpressionForPermission(UpdatePermission.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
-    }
-
-    @Test
-    public void testComplexModelCreate() {
-        Expression expression = getExpressionForPermission(CreatePermission.class, ComplexEntity.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
-    }
-
-    @Test
-    public void testNamesWithSpaces() {
-        Expression expression = getExpressionForPermission(DeletePermission.class, ComplexEntity.class);
-        Expression expression2 = getExpressionForPermission(UpdatePermission.class, ComplexEntity.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
-        Assert.assertEquals(expression2.evaluate(), ExpressionResult.PASS);
-    }
-
-    private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
-        return getExpressionForPermission(permission, Model.class);
-    }
-
-    private Expression getExpressionForPermission(Class<? extends Annotation> permission, Class model) {
-        PermissionExpressionVisitor v = new PermissionExpressionVisitor(dictionary, DummyExpression::new);
-        ParseTree permissions = dictionary.getPermissionsForClass(model, permission);
-
-        return v.visit(permissions);
-    }
-
+    //
+    // Helpers
+    //
     public RequestScope newRequestScope() {
-        User john = new User("John");
-        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, dictionary, null, null);
+        User john = new TestUser("John");
+        return requestScope = new RequestScope(null, null, NO_VERSION, null, null, john, null, null, UUID.randomUUID(), elideSettings);
     }
 
-    @Entity
-    @Include
-    @ReadPermission(expression = "user has all access AND Allow")
-    @UpdatePermission(expression = "Allow or Deny")
-    @DeletePermission(expression = "Not Deny")
-    @CreatePermission(expression = "not Allow or not (Deny and Allow)")
-    static class Model {
+    private FilterExpression filterExpressionForPermissions(String permission) {
+        Function<Check, Expression> checkFn = (check) ->
+                new CheckExpression(check, null, requestScope, null, cache);
+        ParseTree expression = EntityPermissions.parseExpression(permission);
+        PermissionToFilterExpressionVisitor fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, null);
+        return expression
+                .accept(new PermissionExpressionVisitor(dictionary, checkFn))
+                .accept(NORMALIZATION_VISITOR)
+                .accept(fev);
     }
+
+    private static boolean isSpecialCase(FilterExpression expr) {
+        return expr == FALSE_USER_CHECK_EXPRESSION
+                || expr == TRUE_USER_CHECK_EXPRESSION
+                || expr == NO_EVALUATION_EXPRESSION;
+    }
+
+    private static boolean containsOnlyFilterableExpressions(FilterExpression expr) {
+        if (isSpecialCase(expr)) {
+            return false;
+        }
+
+        FilterExpression left, right;
+        if (expr instanceof OrFilterExpression) {
+            OrFilterExpression or = (OrFilterExpression) expr;
+            left = or.getLeft();
+            right = or.getRight();
+            return containsOnlyFilterableExpressions(left) && containsOnlyFilterableExpressions(right);
+        }
+        if (expr instanceof AndFilterExpression) {
+            AndFilterExpression and = (AndFilterExpression) expr;
+            left = and.getLeft();
+            right = and.getRight();
+            return containsOnlyFilterableExpressions(left) && containsOnlyFilterableExpressions(right);
+        }
+
+        return true;
+
+    }
+
+    private static FilterPredicate createDummyPredicate(Operator operator) {
+        List<Path.PathElement> pathList = Arrays.asList(AUTHOR_PATH, BOOK_PATH);
+        return new FilterPredicate(new Path(pathList), operator, Collections.singletonList("Harry Potter"));
+    }
+
+    private static boolean isFilterPermission(FilterExpression permission) {
+        return permission != TRUE_USER_CHECK_EXPRESSION
+                && permission != FALSE_USER_CHECK_EXPRESSION
+                && permission != NO_EVALUATION_EXPRESSION;
+    }
+
+    private static FilterExpression filterFor(String permission) {
+        switch (permission) {
+            case USER_ALLOW:    return TRUE_USER_CHECK_EXPRESSION;
+            case USER_DENY:     return FALSE_USER_CHECK_EXPRESSION;
+            case AT_OP_ALLOW:   return NO_EVALUATION_EXPRESSION;
+            case AT_OP_DENY:    return NO_EVALUATION_EXPRESSION;
+            case IN_FILTER:     return IN_PREDICATE;
+            case NOT_IN_FILTER: return NOT_IN_PREDICATE;
+            case LT_FILTER:     return LT_PREDICATE;
+            case GE_FILTER:     return GE_PREDICATE;
+        }
+        return null;
+    }
+
+    private static FilterExpression negate(FilterExpression expression) {
+        if (expression == TRUE_USER_CHECK_EXPRESSION) {
+            return FALSE_USER_CHECK_EXPRESSION;
+        }
+        if (expression == FALSE_USER_CHECK_EXPRESSION) {
+            return TRUE_USER_CHECK_EXPRESSION;
+        }
+        if (expression == NO_EVALUATION_EXPRESSION) {
+            return NO_EVALUATION_EXPRESSION;
+        }
+        if (expression instanceof FilterPredicate) {
+            FilterPredicate filter = (FilterPredicate) expression;
+            return filter.negate();
+        }
+        if (expression instanceof AndFilterExpression) {
+            AndFilterExpression and = (AndFilterExpression) expression;
+            return new OrFilterExpression(negate(and.getLeft()), negate(and.getRight()));
+        }
+        if (expression instanceof OrFilterExpression) {
+            OrFilterExpression or = (OrFilterExpression) expression;
+            return new AndFilterExpression(negate(or.getLeft()), negate(or.getRight()));
+        }
+        return expression;
+    }
+
+    private static FilterExpression buildFilter(String left, String op, String right) {
+        FilterExpression leftExpr = filterFor(left);
+        FilterExpression rightExpr = filterFor(right);
+        switch (op) {
+            case AND:
+                return filterForAndOf(leftExpr, rightExpr);
+            case OR:
+                return filterForOrOf(leftExpr, rightExpr);
+            case AND_NOT:
+                return filterForAndOf(leftExpr, negate(filterFor(right)));
+            case OR_NOT:
+                return filterForOrOf(leftExpr, negate(filterFor(right)));
+        }
+        return null;
+    }
+
+    private static FilterExpression buildFilter(String left, String op, String innerLeft, String innerOp, String innerRight) {
+        FilterExpression leftExpr = filterFor(left);
+        switch (op) {
+            case AND:
+                return filterForAndOf(leftExpr, buildFilter(innerLeft, innerOp, innerRight));
+            case OR:
+                return filterForOrOf(leftExpr, buildFilter(innerLeft, innerOp, innerRight));
+            case AND_NOT:
+                return filterForAndOf(leftExpr, buildNotFilter(innerLeft, innerOp, innerRight));
+            case OR_NOT:
+                return filterForOrOf(leftExpr, buildNotFilter(innerLeft, innerOp, innerRight));
+        }
+        return null;
+    }
+
+    private static FilterExpression buildNotFilter(String left, String op, String right) {
+        FilterExpression leftExpr = negate(filterFor(left));
+        switch (op) {
+            case AND:
+                return filterForOrOf(leftExpr, negate(filterFor(right)));
+            case OR:
+                return filterForAndOf(leftExpr, negate(filterFor(right)));
+            case AND_NOT:
+                return filterForOrOf(leftExpr, filterFor(right));
+            case OR_NOT:
+                return filterForAndOf(leftExpr, filterFor(right));
+        }
+        return null;
+    }
+
+    private static FilterExpression filterForAndOf(FilterExpression left, FilterExpression right) {
+        if (left == FALSE_USER_CHECK_EXPRESSION || right == FALSE_USER_CHECK_EXPRESSION) {
+            return FALSE_USER_CHECK_EXPRESSION;
+        }
+
+        if (!isFilterPermission(left)) {
+            return right;
+        }
+
+        if (!isFilterPermission(right)) {
+            return left;
+        }
+
+        return new AndFilterExpression(left, right);
+    }
+
+    private static FilterExpression filterForOrOf(FilterExpression left, FilterExpression right) {
+        if (left == TRUE_USER_CHECK_EXPRESSION || left == NO_EVALUATION_EXPRESSION) {
+            // left will not filter, return it
+            return left;
+        }
+
+        if (right == TRUE_USER_CHECK_EXPRESSION || right == NO_EVALUATION_EXPRESSION) {
+            // right will not filter, return it
+            return right;
+        }
+
+        if (left == FALSE_USER_CHECK_EXPRESSION && right == FALSE_USER_CHECK_EXPRESSION) {
+            // both false
+            return FALSE_USER_CHECK_EXPRESSION;
+        }
+
+        if (left == FALSE_USER_CHECK_EXPRESSION) {
+            return right;
+        }
+
+        if (right == FALSE_USER_CHECK_EXPRESSION) {
+            return left;
+        }
+
+        return new OrFilterExpression(left, right);
+    }
+
 
     public static class Permissions {
-        public static class Succeeds extends OperationCheck<Model> {
+        public static class Succeeds extends OperationCheck<Object> {
             @Override
-            public boolean ok(Model object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
                 return true;
             }
         }
 
-        public static class Fails extends OperationCheck<Model> {
+        public static class Fails extends OperationCheck<Object> {
             @Override
-            public boolean ok(Model object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
                 return false;
             }
         }
-    }
 
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user OR (user has all access OR Allow)")
-    @CreatePermission(expression = "(Deny or Allow) and (not Deny)")
-    @DeletePermission(expression = "user has all access or user has no access")
-    @UpdatePermission(expression = "user has all access and (user has no access or user has all access)")
-    static class ComplexEntity {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user AND Allow")
-    static class Good1 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user OR user has all access")
-    static class Good2 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user OR (user has all access AND user has all access)")
-    static class Good3 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user OR (owner is user AND user has all access)")
-    static class Good4 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user OR (owner is user OR user has all access)")
-    static class Good5 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "Allow AND (owner is user OR owner is user)")
-    static class Good6 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "Allow")
-    static class Good7 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user OR (Allow OR user has all access)")
-    static class BAD1 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user OR (Allow AND user has all access)")
-    static class BAD2 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "owner is user OR (Allow OR owner is user)")
-    static class BAD4 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "user has all access OR (Allow AND user has all access)")
-    static class GOOD9 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "user has all access AND (Allow OR user has all access)")
-    static class GOOD10 {
-    }
-
-    @Entity
-    @Include
-    @ReadPermission(expression = "user has all access AND (user has all access OR user has all access)")
-    static class GOOD8 {
-    }
-
-    @Entity
-    @Include(rootLevel = true)
-    @ReadPermission(expression = "owner is user AND user has all access")
-    @CreatePermission(expression = "(Deny or Allow) and (not Deny)")
-    @DeletePermission(expression = "user has all access or user has no access")
-    @UpdatePermission(expression = "user has all access and (user has no access or user has all access)")
-    public class Author {
-        private long id;
-        private String name;
-        private Collection<Book> books = new ArrayList<>();
-
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        public long getId() {
-            return id;
-        }
-
-        public void setId(long id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        @ManyToMany(mappedBy = "authors")
-        public Collection<Book> getBooks() {
-            return books;
-        }
-
-        public void setBooks(Collection<Book> books) {
-            this.books = books;
-        }
-    }
-
-    @Entity
-    @Include(rootLevel = true)
-    @ReadPermission(expression = "owner is user AND user has all access")
-    @CreatePermission(expression = "(Deny or Allow) and (not Deny)")
-    @DeletePermission(expression = "user has all access or user has no access")
-    @UpdatePermission(expression = "user has all access and (user has no access or user has all access)")
-    public class Book {
-        private long id;
-        private String title;
-        private String genre;
-        private String language;
-        private Collection<Author> authors = new ArrayList<>();
-
-        @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-        public long getId() {
-            return id;
-        }
-
-        public void setId(long id) {
-            this.id = id;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public String getGenre() {
-            return genre;
-        }
-
-        public void setGenre(String genre) {
-            this.genre = genre;
-        }
-
-        public String getLanguage() {
-            return language;
-        }
-
-        public void setLanguage(String language) {
-            this.language = language;
-        }
-
-        @ManyToMany
-        public Collection<Author> getAuthors() {
-            return authors;
-        }
-
-        public void setAuthors(Collection<Author> authors) {
-            this.authors = authors;
-        }
-    }
-
-    @AllArgsConstructor
-    public static class DummyExpression implements Expression {
-        Check check;
-
-        @Override
-        public ExpressionResult evaluate() {
-            boolean result;
-            if (check instanceof UserCheck) {
-                result = ((UserCheck) check).ok(null);
-            } else {
-                result = check.ok(null, null, null);
-            }
-
-            if (result) {
-                return ExpressionResult.PASS;
-            } else {
-                return ExpressionResult.FAIL;
+        public static class InFilterExpression extends FilterExpressionCheck {
+            @Override
+            public FilterPredicate getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+                return createDummyPredicate(Operator.IN);
             }
         }
-    }
 
-    public static Predicate createDummyPredicate() {
-        List<Predicate.PathElement> pathList = new ArrayList<>();
-        Predicate.PathElement path1 = new Predicate.PathElement(Author.class, "Author", Book.class, "books");
-        Predicate.PathElement path2 = new Predicate.PathElement(Book.class, "Book", String.class, "title");
-        pathList.add(path1);
-        pathList.add(path2);
-        Operator op = Operator.IN;
-        List<Object> value = new ArrayList<>();
-        value.add("Harry Potter");
-        return new Predicate(pathList, op, value);
-    }
-
-    public static class FilterExpressionCheck1 extends FilterExpressionCheck {
-
-        @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
-            return createDummyPredicate();
+        public static class NotInFilterExpression extends FilterExpressionCheck {
+            @Override
+            public FilterPredicate getFilterExpression(Type entityClass,
+                                                       com.yahoo.elide.core.security.RequestScope requestScope) {
+                return createDummyPredicate(Operator.NOT);
+            }
         }
 
-        public FilterExpressionCheck1() {
+        public static class LessThanFilterExpression extends FilterExpressionCheck {
+            @Override
+            public FilterPredicate getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+                return createDummyPredicate(Operator.LT);
+            }
+        }
 
+        public static class GreaterThanOrEqualFilterExpression extends FilterExpressionCheck {
+            @Override
+            public FilterPredicate getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+                return createDummyPredicate(Operator.GE);
+            }
         }
     }
 }

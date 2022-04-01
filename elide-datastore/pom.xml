@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>2.3.14-SNAPSHOT</version>
+        <version>6.1.4-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -40,15 +40,18 @@
 
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
-        <mysql.data.directory>${project.build.directory}/mysql-data</mysql.data.directory>
+        <mysql.data.directory>${java.io.tmpdir}/mysql-data</mysql.data.directory>
     </properties>
 
     <modules>
-        <module>elide-datastore-hibernate</module>
-        <module>elide-datastore-hibernate5</module>
-        <module>elide-datastore-hibernate3</module>
+        <module>elide-datastore-aggregation</module>
+        <module>elide-datastore-jpql</module>
+        <module>elide-datastore-jpa</module>
         <module>elide-datastore-inmemorydb</module>
         <module>elide-datastore-multiplex</module>
+        <module>elide-datastore-noop</module>
+        <module>elide-datastore-search</module>
+        <module>elide-datastore-jms</module>
     </modules>
 
     <dependencyManagement>
@@ -56,22 +59,22 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>2.3.14-SNAPSHOT</version>
+                <version>6.1.4-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-graphql</artifactId>
+                <version>6.1.4-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-test-helpers</artifactId>
+                <version>6.1.4-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
-                <version>4.3.2.Final</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>slf4j-api</artifactId>
-                        <groupId>org.slf4j</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>validation-api</artifactId>
-                        <groupId>javax.validation</groupId>
-                    </exclusion>
-                </exclusions>
+                <version>5.4.3.Final</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -87,6 +90,15 @@
             <artifactId>logback-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -94,7 +106,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.10</version>
+                    <version>3.3.0</version>
                     <executions>
                         <execution>
                             <id>add-source-generate-sources</id>
@@ -106,18 +118,6 @@
                                 <sources>
                                     <source>target/generated-sources/antlr4</source>
                                 </sources>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>reserve-network-port-pre-integration-test</id>
-                            <phase>pre-integration-test</phase>
-                            <goals>
-                                <goal>reserve-network-port</goal>
-                            </goals>
-                            <configuration>
-                                <portNames>
-                                    <portName>mysql.port</portName>
-                                </portNames>
                             </configuration>
                         </execution>
                         <execution>
@@ -136,64 +136,16 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
-                    <executions>
-                        <execution>
-                            <phase>pre-integration-test</phase>
-                            <goals>
-                                <goal>unpack</goal>
-                            </goals>
-                            <configuration>
-                                <artifactItems>
-                                    <artifactItem>
-                                        <groupId>com.jcabi</groupId>
-                                        <artifactId>mysql-dist</artifactId>
-                                        <version>5.6.14</version>
-                                        <classifier>${mysql.classifier}</classifier>
-                                        <type>zip</type>
-                                        <overWrite>false</overWrite>
-                                        <outputDirectory>${project.build.directory}/mysql-dist</outputDirectory>
-                                    </artifactItem>
-                                </artifactItems>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>com.jcabi</groupId>
-                    <artifactId>jcabi-mysql-maven-plugin</artifactId>
-                    <version>0.9</version>
-                    <executions>
-                        <execution>
-                            <id>mysql-test</id>
-                            <goals>
-                                <goal>classify</goal>
-                                <goal>start</goal>
-                                <goal>stop</goal>
-                            </goals>
-                            <configuration>
-                                <port>${mysql.port}</port>
-                                <data>${mysql.data.directory}</data>
-                                <socket>/tmp/elide.sock</socket>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>2.19</version>
                     <configuration>
                         <systemPropertyVariables>
-                            <mysql.port>${mysql.port}</mysql.port>
                             <restassured.port>${restassured.port}</restassured.port>
-                            <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
+                            <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
                         </systemPropertyVariables>
-                        <suiteXmlFiles>
-                            <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
-                            <suiteXmlFile>${project.basedir}/../testng-audit.xml</suiteXmlFile>
-                        </suiteXmlFiles>
+                        <includes>
+                            <include>%regex[.*IT.*]</include>
+                        </includes>
+                        <dependenciesToScan>com.yahoo.elide:elide-integration-tests</dependenciesToScan>
                     </configuration>
                     <executions>
                         <execution>

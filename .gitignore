@@ -8,3 +8,13 @@ test-output/
 *.iml
 bin
 dependency-reduced-pom.xml
+*.jar
+*.class
+*tags
+**.swp
+.project
+*/.project
+*/*/.project
+*.factorypath
+*.vscode
+.DS_Store

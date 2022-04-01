@@ -5,34 +5,33 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
-import com.google.common.collect.Sets;
-import com.yahoo.elide.audit.TestAuditLogger;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestRequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.security.User;
+import com.google.common.collect.Sets;
 import example.Child;
+import example.FunWithPermissions;
 import example.Parent;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-
-import static org.mockito.Mockito.mock;
-
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 public class IncludedProcessorTest {
     private static final String INCLUDE = "include";
@@ -48,17 +47,24 @@ public class IncludedProcessorTest {
     private PersistentResource<Child> childRecord3;
     private PersistentResource<Child> childRecord4;
 
-    @BeforeMethod
+    private PersistentResource<FunWithPermissions> funWithPermissionsRecord;
+
+    private DataStoreTransaction mockTransaction = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+    private TestRequestScope testScope;
+    private EntityDictionary dictionary;
+
+    @BeforeEach
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
+        dictionary.bindEntity(FunWithPermissions.class);
 
-        RequestScope goodUserScope = new RequestScope(null,
-                new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(1), dictionary, null, new TestAuditLogger());
+        reset(mockTransaction);
+
+        testScope = new TestRequestScope(mockTransaction, new TestUser("1"), dictionary);
 
         //Create objects
         Parent parent1 = newParent(1);
@@ -69,6 +75,8 @@ public class IncludedProcessorTest {
         Child child2 = newChild(3);
         Child child3 = newChild(4);
         Child child4 = newChild(5);
+
+        FunWithPermissions funWithPermissions = newFunWithPermissions(1);
 
         //Form relationships
         parent1.setSpouses(new HashSet<>(Collections.singletonList(parent2)));
@@ -81,14 +89,17 @@ public class IncludedProcessorTest {
         child3.setFriends(new HashSet<>(Collections.singletonList(child1)));
         child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
-        //Create Persistent Resources
-        parentRecord1 = new PersistentResource<>(parent1, goodUserScope);
-        parentRecord2 = new PersistentResource<>(parent2, goodUserScope);
-        parentRecord3 = new PersistentResource<>(parent3, goodUserScope);
-        childRecord1  = new PersistentResource<>(child1, goodUserScope);
-        childRecord2  = new PersistentResource<>(child2, goodUserScope);
-        childRecord3  = new PersistentResource<>(child3, goodUserScope);
-        childRecord4  = new PersistentResource<>(child4, goodUserScope);
+        //Create Persistent Resource
+        parentRecord1 = new PersistentResource<>(parent1, String.valueOf(parent1.getId()), testScope);
+        parentRecord2 = new PersistentResource<>(parent2, String.valueOf(parent2.getId()), testScope);
+        parentRecord3 = new PersistentResource<>(parent3, String.valueOf(parent3.getId()), testScope);
+        childRecord1  = new PersistentResource<>(child1, String.valueOf(child1.getId()), testScope);
+        childRecord2  = new PersistentResource<>(child2, String.valueOf(child2.getId()), testScope);
+        childRecord3  = new PersistentResource<>(child3, String.valueOf(child3.getId()), testScope);
+        childRecord4  = new PersistentResource<>(child4, String.valueOf(child4.getId()), testScope);
+
+        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions,
+                String.valueOf(funWithPermissions.getId()), testScope);
     }
 
     @Test
@@ -97,12 +108,13 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
-        includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
+        testScope.setQueryParams(queryParams);
+        includedProcessor.execute(jsonApiDocument, parentRecord1, queryParams);
 
         List<Resource> expectedIncluded = Collections.singletonList(childRecord1.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added single requested resource from 'include' query param");
     }
 
@@ -116,28 +128,31 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
-        includedProcessor.execute(jsonApiDocument, parents, Optional.of(queryParams));
+        testScope.setQueryParams(queryParams);
+        includedProcessor.execute(jsonApiDocument, parents, queryParams);
 
         List<Resource> expectedIncluded = Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added requested resource from all records");
     }
 
     @Test
     public void testExecuteSingleNestedRelation() throws Exception {
+
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
-        includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
+        testScope.setQueryParams(queryParams);
+        includedProcessor.execute(jsonApiDocument, parentRecord1, queryParams);
 
         List<Resource> expectedIncluded =
                 Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added single nested requested resources from 'include' query param");
     }
 
@@ -147,13 +162,14 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Arrays.asList("children", "spouses"));
-        includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
+        testScope.setQueryParams(queryParams);
+        includedProcessor.execute(jsonApiDocument, parentRecord1, queryParams);
 
         List<Resource> expectedIncluded =
                 Arrays.asList(childRecord1.toResource(), parentRecord2.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added single requested resource from 'include' query param");
     }
 
@@ -163,7 +179,8 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
-        includedProcessor.execute(jsonApiDocument, parentRecord3, Optional.of(queryParams));
+        testScope.setQueryParams(queryParams);
+        includedProcessor.execute(jsonApiDocument, parentRecord3, queryParams);
 
         Set<Resource> expectedIncluded =
                 Sets.newHashSet(
@@ -174,16 +191,29 @@ public class IncludedProcessorTest {
                 );
         Set<Resource> actualIncluded = new HashSet<>(jsonApiDocument.getIncluded());
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added multiple nested requested resource collections from 'include' query param");
+    }
+
+    @Test
+    public void testIncludeForbiddenRelationship() {
+        JsonApiDocument jsonApiDocument = new JsonApiDocument();
+
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put(INCLUDE, Collections.singletonList("relation1"));
+        testScope.setQueryParams(queryParams);
+        includedProcessor.execute(jsonApiDocument, funWithPermissionsRecord, queryParams);
+
+        assertNull(jsonApiDocument.getIncluded(),
+                "Included Processor included forbidden relationship");
     }
 
     @Test
     public void testNoQueryParams() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
-        includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.empty());
+        includedProcessor.execute(jsonApiDocument, parentRecord1, null);
 
-        Assert.assertNull(jsonApiDocument.getIncluded(),
+        assertNull(jsonApiDocument.getIncluded(),
                 "Included Processor adds no resources when not given query params");
     }
 
@@ -194,9 +224,10 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put("unused", Collections.emptyList());
-        includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
+        testScope.setQueryParams(queryParams);
+        includedProcessor.execute(jsonApiDocument, parentRecord1, queryParams);
 
-        Assert.assertNull(jsonApiDocument.getIncluded(),
+        assertNull(jsonApiDocument.getIncluded(),
                 "Included Processor adds no resources when not given query params");
     }
 
@@ -213,5 +244,12 @@ public class IncludedProcessorTest {
         child.setId(id);
         child.setParents(new HashSet<>());
         return child;
+    }
+
+    private FunWithPermissions newFunWithPermissions(int id) {
+        FunWithPermissions funWithPermissions = new FunWithPermissions();
+        funWithPermissions.setId(id);
+        funWithPermissions.setRelation1(new HashSet<>());
+        return funWithPermissions;
     }
 }

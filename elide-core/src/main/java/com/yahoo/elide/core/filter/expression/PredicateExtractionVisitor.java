@@ -5,42 +5,57 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import lombok.Getter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 
 /**
  * A Visitor which extracts the set of predicates from a filter FilterExpression.
  * Should only be used in Elide 2.0 scope
  */
-public class PredicateExtractionVisitor implements Visitor<Set<Predicate>> {
-    @Getter Set<Predicate> predicates = new HashSet<>();
+public class PredicateExtractionVisitor implements FilterExpressionVisitor<Collection<FilterPredicate>> {
+    @Getter Collection<FilterPredicate> filterPredicates;
 
-    @Override
-    public Set<Predicate> visitPredicate(Predicate predicate) {
-        predicates.add(predicate);
-        return predicates;
+    /**
+     * Defaults to extracting a set of predicates.
+     */
+    public PredicateExtractionVisitor() {
+        filterPredicates = new LinkedHashSet<>();
+    }
+
+    /**
+     * Extracts predicates into the provided collection.
+     * @param predicates The collection (list, set, etc) to store the predicates in.
+     */
+    public PredicateExtractionVisitor(Collection<FilterPredicate> predicates) {
+        filterPredicates = predicates;
     }
 
     @Override
-    public Set<Predicate> visitAndExpression(AndFilterExpression expression) {
-        predicates.addAll(expression.getLeft().accept(this));
-        predicates.addAll(expression.getRight().accept(this));
-        return predicates;
+    public Collection<FilterPredicate> visitPredicate(FilterPredicate filterPredicate) {
+        filterPredicates.add(filterPredicate);
+        return filterPredicates;
     }
 
     @Override
-    public Set<Predicate> visitOrExpression(OrFilterExpression expression) {
-        predicates.addAll(expression.getLeft().accept(this));
-        predicates.addAll(expression.getRight().accept(this));
-        return predicates;
+    public Collection<FilterPredicate> visitAndExpression(AndFilterExpression expression) {
+        expression.getLeft().accept(this);
+        expression.getRight().accept(this);
+        return filterPredicates;
     }
 
     @Override
-    public Set<Predicate> visitNotExpression(NotFilterExpression expression) {
-        predicates.addAll(expression.getNegated().accept(this));
-        return predicates;
+    public Collection<FilterPredicate> visitOrExpression(OrFilterExpression expression) {
+        expression.getLeft().accept(this);
+        expression.getRight().accept(this);
+        return filterPredicates;
+    }
+
+    @Override
+    public Collection<FilterPredicate> visitNotExpression(NotFilterExpression expression) {
+        expression.getNegated().accept(this);
+        return filterPredicates;
     }
 }

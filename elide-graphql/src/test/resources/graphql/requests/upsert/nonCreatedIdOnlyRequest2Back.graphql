@@ -1,0 +1,17 @@
+mutation {
+  author(op:UPSERT, data: {id: "1", name: "John Snow", books: [{id: "3", title: "updated again"}, {id: "123", title: "the new one"}, {id: "2", title: "newish title"}]}) {
+    edges {
+      node {
+        id
+        name
+        books(ids: ["3", "123"], sort: "title") {
+          edges {
+            node {
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,9 +1,0 @@
-{
-    "data":{
-        "type":"OneToOneRoot",
-        "id":"1",
-        "attributes":{
-            "name": "test123"
-        }
-    }
-}

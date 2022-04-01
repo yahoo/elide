@@ -1,0 +1,13 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "2",
+          "title": "Libro Dos",
+          "publicationDate":"1970-01-01T00:00Z"
+        }
+      }
+    ]
+  }
+}

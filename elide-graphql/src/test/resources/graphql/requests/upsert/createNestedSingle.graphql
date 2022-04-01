@@ -1,0 +1,16 @@
+mutation {
+  author(ids: ["1"]) {
+    edges {
+      node {
+        id
+        books(op: UPSERT, data: {title: "Book Numero Dos"}) {
+          edges {
+            node {
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+}

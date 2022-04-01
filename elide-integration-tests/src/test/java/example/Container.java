@@ -6,51 +6,39 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 
+import java.util.Collection;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.util.Collection;
 
 /**
  * Container for shareables and unshareables.
  */
 @Entity
 @Table(name = "container")
-@Include(rootLevel = true, type = "container")
-public class Container {
-    private long id;
-    private Collection<Unshareable> unshareables;
-    private Collection<Shareable> shareables;
+@Include(name = "container")
+@NonTransferable
+public class Container extends BaseId {
+    private Collection<Untransferable> untransferables;
+    private Collection<Transferable> transferables;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
+    @OneToMany(mappedBy = "container")
+    public Collection<Untransferable> getUntransferables() {
+        return untransferables;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setUntransferables(Collection<Untransferable> untransferables) {
+        this.untransferables = untransferables;
     }
 
     @OneToMany(mappedBy = "container")
-    public Collection<Unshareable> getUnshareables() {
-        return unshareables;
+    public Collection<Transferable> getTransferables() {
+        return transferables;
     }
 
-    public void setUnshareables(Collection<Unshareable> unshareables) {
-        this.unshareables = unshareables;
-    }
-
-    @OneToMany(mappedBy = "container")
-    public Collection<Shareable> getShareables() {
-        return shareables;
-    }
-
-    public void setShareables(Collection<Shareable> shareables) {
-        this.shareables = shareables;
+    public void setTransferables(Collection<Transferable> transferables) {
+        this.transferables = transferables;
     }
 }

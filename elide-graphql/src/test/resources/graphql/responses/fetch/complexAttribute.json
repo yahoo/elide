@@ -1,0 +1,32 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno",
+          "price": {
+            "units" : 123,
+            "currency" : {
+              "currencyCode" : "USD"
+            }
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "title": "Libro Dos",
+          "price": null
+        }
+      },
+      {
+        "node": {
+          "id": "3",
+          "title": "Doctor Zhivago",
+          "price": null
+        }
+      }
+    ]
+  }
+}

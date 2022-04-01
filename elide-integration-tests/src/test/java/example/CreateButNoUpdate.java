@@ -9,36 +9,48 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Common;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 /**
  * A model intended to be ONLY created and read, but never updated.
  */
-@Include(rootLevel = true)
+@Include
 @Entity
-@CreatePermission(any = {Role.ALL.class})
-@ReadPermission(any = {Role.ALL.class})
-@UpdatePermission(any = {Common.UpdateOnCreate.class, Role.NONE.class})
-public class CreateButNoUpdate {
-    public Long id;
-    public String textValue;
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.None")
+public class CreateButNoUpdate extends BaseId {
+    private String textValue;
 
-    @UpdatePermission(all = {Role.NONE.class})
-    public String cannotModify = "unmodified";
+    private String cannotModify = "unmodified";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
+    private CreateButNoUpdate toOneRelation;
+
+    @CreatePermission(expression = "Prefab.Role.None")
+    public String getCannotModify() {
+        return cannotModify;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setCannotModify(String cannotModify) {
+        this.cannotModify = cannotModify;
+    }
+
+    public void setTextValue(String textValue) {
+        this.textValue = textValue;
+    }
+
+    public String getTextValue() {
+        return textValue;
+    }
+
+    @OneToOne
+    public CreateButNoUpdate getToOneRelation() {
+        return toOneRelation;
+    }
+
+    public void setToOneRelation(CreateButNoUpdate toOneRelation) {
+        this.toOneRelation = toOneRelation;
     }
 }

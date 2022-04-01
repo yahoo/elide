@@ -5,18 +5,21 @@
  */
 package com.yahoo.elide.jsonapi.models;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-
+import com.yahoo.elide.core.exceptions.UnknownEntityException;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.jsonapi.serialization.KeySerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.yahoo.elide.core.exceptions.UnknownEntityException;
-import com.yahoo.elide.jsonapi.serialization.KeySerializer;
-import lombok.ToString;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import lombok.ToString;
 
 import java.util.Map;
 import java.util.Objects;
@@ -30,6 +33,9 @@ import java.util.Objects;
  */
 @ToString
 public class Resource {
+
+    //Doesn't work currently - https://github.com/FasterXML/jackson-databind/issues/230
+    @JsonProperty(required = true)
     private String type;
     private String id;
     private Map<String, Object> attributes;
@@ -40,6 +46,9 @@ public class Resource {
     public Resource(String type, String id) {
         this.type = type;
         this.id = id;
+        if (id == null) {
+            throw new InvalidObjectIdentifierException(id, type);
+        }
     }
 
     public Resource(@JsonProperty("type") String type,
@@ -57,7 +66,7 @@ public class Resource {
     }
 
     public String getId() {
-        return (id == null) ? null : id;
+        return id;
     }
 
     public void setRelationships(Map<String, Relationship> relationships) {
@@ -66,13 +75,13 @@ public class Resource {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Map<String, Relationship> getRelationships() {
-        return relationships == null || relationships.isEmpty() ? null : relationships;
+        return MapUtils.isEmpty(relationships) ? null : relationships;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonSerialize(keyUsing = KeySerializer.class)
     public Map<String, Object> getAttributes() {
-        return attributes == null || attributes.isEmpty() ? null : attributes;
+        return MapUtils.isEmpty(attributes) ? null : attributes;
     }
 
     public void setId(String id) {
@@ -139,12 +148,23 @@ public class Resource {
         return false;
     }
 
-    public PersistentResource toPersistentResource(RequestScope requestScope)
+    public PersistentResource<?> toPersistentResource(RequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
-        Class<?> cls = requestScope.getDictionary().getEntityClass(type);
+        EntityDictionary dictionary = requestScope.getDictionary();
+
+        Type<?> cls = dictionary.getEntityClass(type, requestScope.getApiVersion());
+
         if (cls == null) {
             throw new UnknownEntityException(type);
         }
-        return PersistentResource.loadRecord(cls, id, requestScope);
+        if (id == null) {
+            throw new InvalidObjectIdentifierException(id, type);
+        }
+
+        EntityProjection projection = EntityProjection.builder()
+            .type(cls)
+            .build();
+
+        return PersistentResource.loadRecord(projection, id, requestScope);
     }
 }

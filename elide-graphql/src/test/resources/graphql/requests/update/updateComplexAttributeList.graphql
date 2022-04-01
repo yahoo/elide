@@ -1,0 +1,19 @@
+mutation {
+  book(op:UPDATE,
+  data: {
+         id: "1",
+         priceHistory: [{ units: 125 }, { units: 126, currency: { currencyCode: "USD" }}]
+      }) {
+    edges {
+      node {
+        id
+        priceHistory {
+           units,
+           currency {
+             currencyCode
+           }
+        }
+      }
+    }
+  }
+}

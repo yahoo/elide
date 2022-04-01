@@ -16,7 +16,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "assigned_id_long")
-@Include(rootLevel = true)
+@Include
 public class AssignedIdLong {
     private long id;
     private int value;
@@ -36,5 +36,15 @@ public class AssignedIdLong {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof AssignedIdLong && ((AssignedIdLong) obj).id == id;
     }
 }

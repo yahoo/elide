@@ -9,37 +9,21 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 
 @Include(rootLevel = false)
-@ReadPermission(any = {Role.ALL.class})
-@CreatePermission(any = {Role.ALL.class})
-@UpdatePermission(any = {Role.ALL.class})
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
 @Entity
-public class OneToOneNonRoot {
-    private Long id;
-
+public class OneToOneNonRoot extends BaseId {
     private String test;
 
     private OneToOneRoot root;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getTest() {
         return test;

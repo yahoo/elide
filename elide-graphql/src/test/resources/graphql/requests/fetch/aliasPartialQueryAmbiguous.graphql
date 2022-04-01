@@ -1,0 +1,23 @@
+{
+  book(ids: ["1"]) {
+    edges {
+      node {
+        alias: id
+      }
+    }
+  }
+  book(ids: ["1"]) {
+    edges {
+      node {
+        alias: authors {
+          edges {
+            node {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}

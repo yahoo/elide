@@ -5,19 +5,13 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
@@ -26,19 +20,59 @@ import javax.persistence.Table;
 /**
  * Right test bean.
  */
-@Include(rootLevel = true, type = "right") // optional here because class has this name
+@Include(name = "right") // optional here because class has this name
 @Entity
 @Table(name = "xright")     // right is SQL keyword
-public class Right {
-    @JsonIgnore
-    private long id;
+public class Right extends BaseId {
     private Left many2one;
     private Left one2one;
+    private Left noUpdateOne2One;
+    private Set<Left> noUpdate;
+    private Set<Left> noDelete;
+
+    @UpdatePermission(expression = "Prefab.Role.None")
+    @OneToOne(
+            targetEntity = Left.class,
+            fetch = FetchType.LAZY
+    )
+    public Left getNoUpdateOne2One() {
+        return noUpdateOne2One;
+    }
+
+    public void setNoUpdateOne2One(Left noUpdateOne2One) {
+        this.noUpdateOne2One = noUpdateOne2One;
+    }
+
+    @UpdatePermission(expression = "Prefab.Role.None")
+    @ManyToMany(
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
+            targetEntity = Left.class
+    )
+    public Set<Left> getNoUpdate() {
+        return noUpdate;
+    }
+
+    public void setNoUpdate(Set<Left> noUpdate) {
+        this.noUpdate = noUpdate;
+    }
+
+    @ManyToMany(
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
+            targetEntity = Left.class
+    )
+    public Set<Left> getNoDelete() {
+        return noDelete;
+    }
+
+    public void setNoDelete(Set<Left> noDelete) {
+        this.noDelete = noDelete;
+    }
 
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class,
             fetch = FetchType.LAZY
+
     )
     public Left getOne2one() {
         return one2one;
@@ -60,39 +94,4 @@ public class Right {
     public Left getMany2one() {
         return many2one;
     }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    @UpdatePermission(
-           any = {Role.NONE.class}
-    )
-    @OneToOne(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = Left.class,
-            fetch = FetchType.LAZY
-    )
-    public Left noUpdateOne2One;
-
-    @UpdatePermission(
-           any = {Role.NONE.class}
-    )
-    @ManyToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = Left.class
-    )
-    public Set<Left> noUpdate;
-
-    @ManyToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = Left.class
-    )
-    public Set<Left> noDelete;
 }

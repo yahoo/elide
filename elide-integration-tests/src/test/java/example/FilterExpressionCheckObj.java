@@ -7,48 +7,34 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.security.*;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.type.Type;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 
 /**
  * Model for filterExpressionCheckObj.
  */
 @Entity
 @Table(name = "filterExpressionCheckObj")
-@Include(rootLevel = true)
-@SharePermission(any = {Role.ALL.class})
-@ReadPermission(any = {FilterExpressionCheckObj.CheckLE.class, Role.NONE.class})  //ReadPermission for object id <= 2
-public class FilterExpressionCheckObj {
-    private long id;
+@Include
+@ReadPermission(expression = "checkLE OR Prefab.Role.None")  //ReadPermission for object id <= 2
+public class FilterExpressionCheckObj extends BaseId {
     private String name;
 
     private Collection<AnotherFilterExpressionCheckObj> listOfAnotherObjs = new ArrayList<>();
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
     //This field only display for id == User.id (which is 1 in IT)
-    @ReadPermission(all = {CheckRestrictUser.class})
+    @ReadPermission(expression = "checkRestrictUser")
     public String getName() {
         return name;
     }
@@ -67,25 +53,23 @@ public class FilterExpressionCheckObj {
     }
 
     //Predicate that restrict resource's id to be the same as cuurent User's id.
-    public static Predicate createUserPredicate(RequestScope requestScope, boolean setUserId, long setId) {
-        List<Predicate.PathElement> pathList = new ArrayList<>();
-        Predicate.PathElement path1 = new Predicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
-        pathList.add(path1);
+    public static FilterPredicate createUserPredicate(RequestScope requestScope, boolean setUserId, long setId) {
+        Path.PathElement path1 = new Path.PathElement(FilterExpressionCheckObj.class, long.class, "id");
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
-        int userId = (int) requestScope.getUser().getOpaqueUser();
+        int userId = Integer.valueOf(requestScope.getUser().getPrincipal().getName());
         if (setUserId) {
             value.add(setId);
         } else {
             value.add((long) userId);
         }
-        return new Predicate(pathList, op, value);
+        return new FilterPredicate(path1, op, value);
     }
 
     public static class CheckRestrictUser extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Type entityClass, RequestScope requestScope) {
             return createUserPredicate(requestScope, false, 1L);
         }
 
@@ -97,14 +81,12 @@ public class FilterExpressionCheckObj {
     public static class CheckLE extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
-            List<Predicate.PathElement> pathList = new ArrayList<>();
-            Predicate.PathElement path1 = new Predicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
-            pathList.add(path1);
+        public FilterPredicate getFilterExpression(Type entityClass, RequestScope requestScope) {
+            Path.PathElement path1 = new Path.PathElement(FilterExpressionCheckObj.class, long.class, "id");
             Operator op = Operator.LE;
             List<Object> value = new ArrayList<>();
             value.add((long) 2);
-            return new Predicate(pathList, op, value);
+            return new FilterPredicate(path1, op, value);
         }
 
         public CheckLE() {

@@ -1,0 +1,23 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "priceHistory": [
+            {
+              "units": 125,
+              "currency": null
+            },
+            {
+              "units": 126,
+              "currency": {
+                "currencyCode" : "USD"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

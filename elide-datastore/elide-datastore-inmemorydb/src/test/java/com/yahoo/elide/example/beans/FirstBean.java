@@ -8,24 +8,26 @@ package com.yahoo.elide.example.beans;
 import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 /**
  * test bean.
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class FirstBean {
-    public int id;
+    public String id;
 
     public String name;
 
     @Id
-    public int getId() {
+    @GeneratedValue
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 }

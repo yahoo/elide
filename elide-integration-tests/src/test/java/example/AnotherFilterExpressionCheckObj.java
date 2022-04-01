@@ -7,32 +7,29 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.security.*;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.type.Type;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 
 /**
  * Model for anotherFilterExpressionCheckObj.
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
 @Table(name = "anotherFilterExpressionCheckObj")
-@ReadPermission(any = {AnotherFilterExpressionCheckObj.CheckActsLikeFilter.class})
-@Include(rootLevel = true)
-public class AnotherFilterExpressionCheckObj {
-    private long id;
+@ReadPermission(expression = "checkActsLikeFilter")
+@Include
+public class AnotherFilterExpressionCheckObj extends BaseId {
     private String anotherName;
     private long createDate = 0;
 
@@ -63,32 +60,19 @@ public class AnotherFilterExpressionCheckObj {
         this.createDate = createDate;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public static Predicate createFilterPredicate() {
-        List<Predicate.PathElement> pathList = new ArrayList<>();
-        Predicate.PathElement path1 = new Predicate.PathElement(AnotherFilterExpressionCheckObj.class,
-                "anotherFilterExpressionCheckObj",
+    public static FilterPredicate createFilterPredicate() {
+        Path.PathElement path1 = new Path.PathElement(AnotherFilterExpressionCheckObj.class,
                 long.class, "createDate");
-        pathList.add(path1);
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
         value.add(1999L);
-        return new Predicate(pathList, op, value);
+        return new FilterPredicate(path1, op, value);
     }
 
     public static class CheckActsLikeFilter extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
             return createFilterPredicate();
         }
 

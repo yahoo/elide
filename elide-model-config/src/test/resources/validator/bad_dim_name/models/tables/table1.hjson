@@ -1,0 +1,23 @@
+{
+  tables: [
+    {
+      name: Country
+      table: country
+      cardinality: Small
+      dimensions:
+      [
+        {
+          name: id
+          type: Text
+          definition: '{{id}}'
+        }
+        {
+          // unsupported: name starts with '_'
+          name: _region
+          type: Text
+          definition: '{{region}}'
+        }
+      ]
+    }
+  ]
+}

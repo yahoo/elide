@@ -6,18 +6,17 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@SharePermission(all = { Role.NONE.class })
-@Include(rootLevel = true, type = "noshare") // optional here because class has this name
+@Include(name = "noshare") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "noshare")
+@NonTransferable
 public class NoShareEntity {
     private long id;
 
