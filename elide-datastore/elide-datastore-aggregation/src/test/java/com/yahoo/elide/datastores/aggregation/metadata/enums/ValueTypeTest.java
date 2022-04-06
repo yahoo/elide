@@ -34,6 +34,9 @@ public class ValueTypeTest {
     public void testInvalidTimeValues() {
         assertFalse(ValueType.TIME.matches("foo"));
         assertFalse(ValueType.TIME.matches("2017;"));
+        assertFalse(ValueType.COORDINATE.matches("DROP TABLE"));
+        //SQL Comment
+        assertFalse(ValueType.ID.matches("--"));
     }
 
     @Test
@@ -63,6 +66,9 @@ public class ValueTypeTest {
         assertFalse(ValueType.DECIMAL.matches("foo"));
         assertFalse(ValueType.DECIMAL.matches("01.00.00"));
         assertFalse(ValueType.DECIMAL.matches("1;"));
+        assertFalse(ValueType.COORDINATE.matches("DROP TABLE"));
+        //SQL Comment
+        assertFalse(ValueType.ID.matches("--"));
     }
 
     @Test
@@ -91,6 +97,9 @@ public class ValueTypeTest {
         assertFalse(ValueType.COORDINATE.matches("+1.1"));
         assertFalse(ValueType.COORDINATE.matches("1.1, 1.1, 1.1"));
         assertFalse(ValueType.COORDINATE.matches("FOO"));
+        assertFalse(ValueType.COORDINATE.matches("DROP TABLE"));
+        //SQL Comment
+        assertFalse(ValueType.ID.matches("--"));
     }
 
     @Test
@@ -98,6 +107,9 @@ public class ValueTypeTest {
         assertFalse(ValueType.MONEY.matches("foo"));
         assertFalse(ValueType.MONEY.matches("01.00.00"));
         assertFalse(ValueType.MONEY.matches("1;"));
+        assertFalse(ValueType.COORDINATE.matches("DROP TABLE"));
+        //SQL Comment
+        assertFalse(ValueType.ID.matches("--"));
     }
 
     @Test
@@ -139,6 +151,9 @@ public class ValueTypeTest {
         assertFalse(ValueType.INTEGER.matches(".00"));
         assertFalse(ValueType.INTEGER.matches("1."));
         assertFalse(ValueType.INTEGER.matches("1;"));
+        assertFalse(ValueType.COORDINATE.matches("DROP TABLE"));
+        //SQL Comment
+        assertFalse(ValueType.ID.matches("--"));
     }
 
     @Test
@@ -158,6 +173,9 @@ public class ValueTypeTest {
         assertFalse(ValueType.BOOLEAN.matches(".00"));
         assertFalse(ValueType.BOOLEAN.matches("1."));
         assertFalse(ValueType.BOOLEAN.matches("1;"));
+        assertFalse(ValueType.COORDINATE.matches("DROP TABLE"));
+        //SQL Comment
+        assertFalse(ValueType.ID.matches("--"));
     }
 
     @Test
@@ -178,6 +196,8 @@ public class ValueTypeTest {
         assertFalse(ValueType.TEXT.matches("1."));
         assertFalse(ValueType.TEXT.matches("DROP TABLE"));
         assertFalse(ValueType.TEXT.matches("1;"));
+        //SQL Comment
+        assertFalse(ValueType.ID.matches("--"));
     }
 
     @Test
@@ -198,5 +218,7 @@ public class ValueTypeTest {
         assertFalse(ValueType.ID.matches("1."));
         assertFalse(ValueType.ID.matches("DROP TABLE"));
         assertFalse(ValueType.ID.matches("1;"));
+        //SQL Comment
+        assertFalse(ValueType.ID.matches("--"));
     }
 }
