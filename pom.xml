@@ -87,7 +87,7 @@
         <version.antlr4>4.9.3</version.antlr4>
         <version.jetty>9.4.46.v20220331</version.jetty>
         <version.logback>1.2.11</version.logback>
-        <version.restassured>4.4.0</version.restassured>
+        <version.restassured>5.0.1</version.restassured>
         <version.jackson>2.13.2</version.jackson>
         <version.jackson.databind>2.13.2.1</version.jackson.databind>
         <version.jersey>2.35</version.jersey>
@@ -559,7 +559,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.7</version>
+                <version>0.8.8</version>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
@@ -661,7 +661,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.5.3</version>
+                <version>7.0.4</version>
                 <configuration>
                     <failBuildOnCVSS>7</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
