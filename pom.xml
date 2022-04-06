@@ -85,8 +85,8 @@
 
         <!-- dependency versions -->
         <version.antlr4>4.9.3</version.antlr4>
-        <version.logback>1.2.10</version.logback>
         <version.jetty>9.4.46.v20220331</version.jetty>
+        <version.logback>1.2.11</version.logback>
         <version.restassured>4.4.0</version.restassured>
         <version.jackson>2.13.2</version.jackson>
         <version.jackson.databind>2.13.2.1</version.jackson.databind>
@@ -134,7 +134,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>31.0.1-jre</version>
+                <version>31.1-jre</version>
             </dependency>
             <dependency>
                 <groupId>javax.inject</groupId>
@@ -385,7 +385,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>3.0.0-M6</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
