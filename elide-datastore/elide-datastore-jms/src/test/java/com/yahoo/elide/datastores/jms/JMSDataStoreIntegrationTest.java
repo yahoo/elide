@@ -41,7 +41,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import graphql.ExecutionResult;
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
@@ -103,14 +102,14 @@ public class JMSDataStoreIntegrationTest {
         servletHolder.setInitOrder(1);
         servletHolder.setInitParameter("jersey.config.server.provider.packages",
                 JsonApiEndpoint.class.getPackage().getName());
-        servletHolder.setInitParameter("javax.ws.rs.Application", TestResourceConfig.class.getName());
+        servletHolder.setInitParameter("jakarta.ws.rs.Application", TestResourceConfig.class.getName());
 
         //GraphQL API
         ServletHolder graphqlServlet = servletContextHandler.addServlet(ServletContainer.class, "/graphQL/*");
         graphqlServlet.setInitOrder(2);
         graphqlServlet.setInitParameter("jersey.config.server.provider.packages",
                 com.yahoo.elide.graphql.GraphQLEndpoint.class.getPackage().getName());
-        graphqlServlet.setInitParameter("javax.ws.rs.Application", TestResourceConfig.class.getName());
+        graphqlServlet.setInitParameter("jakarta.ws.rs.Application", TestResourceConfig.class.getName());
 
         // GraphQL subscription endpoint
         ServerContainer container  = WebSocketServerContainerInitializer.configureContext(servletContextHandler);

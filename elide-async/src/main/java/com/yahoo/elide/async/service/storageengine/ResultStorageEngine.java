@@ -8,7 +8,6 @@ package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
-
 import io.reactivex.Observable;
 
 /**

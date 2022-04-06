@@ -14,7 +14,6 @@ import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionFieldSerde;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.Test;
-
 import lombok.Data;
 
 import java.util.Date;

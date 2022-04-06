@@ -63,6 +63,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import jakarta.ws.rs.WebApplicationException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +96,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Transient;
-import javax.ws.rs.WebApplicationException;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.

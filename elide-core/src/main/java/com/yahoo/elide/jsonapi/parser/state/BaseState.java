@@ -24,9 +24,9 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.tuple.Pair;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.function.Supplier;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Base class for state information.

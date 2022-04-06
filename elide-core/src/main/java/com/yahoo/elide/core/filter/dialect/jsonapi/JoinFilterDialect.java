@@ -7,8 +7,8 @@ package com.yahoo.elide.core.filter.dialect.jsonapi;
 
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import jakarta.ws.rs.core.MultivaluedMap;
 
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Parses a filter for one or more entity types that results in a join between them.

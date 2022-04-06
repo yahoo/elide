@@ -40,8 +40,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
-
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 /**
  * Example functional test.

@@ -13,7 +13,6 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -35,11 +34,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Example functional test.

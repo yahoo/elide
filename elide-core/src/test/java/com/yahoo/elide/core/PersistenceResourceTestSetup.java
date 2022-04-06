@@ -54,6 +54,7 @@ import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.StrictNoTransfer;
 import example.nontransferable.Untransferable;
 import io.reactivex.Observable;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
@@ -70,7 +71,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import javax.ws.rs.core.MultivaluedMap;
 
 public class PersistenceResourceTestSetup extends PersistentResource {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);

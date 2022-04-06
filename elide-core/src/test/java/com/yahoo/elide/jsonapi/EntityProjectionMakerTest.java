@@ -33,12 +33,12 @@ import example.Publisher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

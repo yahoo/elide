@@ -15,7 +15,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
@@ -32,7 +31,6 @@ import com.yahoo.elide.core.lifecycle.PropertyTestModel;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

@@ -55,6 +55,8 @@ import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -62,8 +64,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.validation.ConstraintViolationException;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.

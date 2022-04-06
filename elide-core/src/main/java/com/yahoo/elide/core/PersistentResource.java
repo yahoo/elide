@@ -11,7 +11,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.getType;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
-
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -52,16 +51,13 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import io.reactivex.Observable;
 import lombok.NonNull;
 

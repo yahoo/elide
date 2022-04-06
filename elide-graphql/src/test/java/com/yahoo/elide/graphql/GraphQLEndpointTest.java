@@ -48,6 +48,11 @@ import graphqlEndpointTestModels.DisallowTransfer;
 import graphqlEndpointTestModels.Incident;
 import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 
 import java.io.IOException;
 import java.net.URI;
@@ -59,11 +64,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 /**
  * GraphQL endpoint tests tested against the in-memory store.

@@ -25,7 +25,6 @@ import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
-
 import example.PlayerStats;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

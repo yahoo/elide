@@ -9,7 +9,6 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -50,7 +50,6 @@ import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.test.graphql.elements.Arguments;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import example.PlayerStats;
@@ -66,6 +65,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.SecurityContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,9 +82,6 @@ import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
 
 /**
  * Integration tests for {@link AggregationDataStore}.

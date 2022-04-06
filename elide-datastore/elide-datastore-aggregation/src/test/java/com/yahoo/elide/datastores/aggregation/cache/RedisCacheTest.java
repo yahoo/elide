@@ -7,9 +7,7 @@ package com.yahoo.elide.datastores.aggregation.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

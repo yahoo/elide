@@ -8,7 +8,6 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-
 import hooks.JobLifeCycleHook;
 import lombok.Data;
 

@@ -14,12 +14,12 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.security.User;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.util.UUID;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * JSON API implementation of AsyncQueryOperation for executing the query provided in AsyncQuery.

@@ -44,13 +44,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import io.restassured.response.Response;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.SecurityContext;
 import lombok.Data;
 
 import java.io.IOException;
 import java.security.Principal;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.SecurityContext;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncIT extends AsyncApiIT {

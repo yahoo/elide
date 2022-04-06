@@ -15,7 +15,6 @@ import com.yahoo.elide.graphql.subscriptions.hooks.NotifyTopicLifeCycleHook;
 import com.google.gson.GsonBuilder;
 import example.Chat;
 import example.ChatBot;
-
 import lombok.Data;
 
 import java.util.Optional;

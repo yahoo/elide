@@ -47,6 +47,7 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import jakarta.ws.rs.core.Context;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,7 +63,6 @@ import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
-import javax.ws.rs.core.Context;
 
 /**
  * Elide application resource configuration file.

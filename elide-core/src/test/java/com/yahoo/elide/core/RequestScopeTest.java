@@ -14,14 +14,14 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.Test;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 public class RequestScopeTest {
     @Test

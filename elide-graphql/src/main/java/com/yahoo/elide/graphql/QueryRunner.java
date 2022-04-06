@@ -35,6 +35,8 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.AsyncSerialExecutionStrategy;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,8 +48,6 @@ import java.util.Map;
 import java.util.UUID;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 
 /**
  * Entry point for REST endpoints to execute GraphQL queries.

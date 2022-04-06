@@ -23,7 +23,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.audit.LogMessage;
@@ -49,12 +48,10 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import example.Address;
 import example.Author;
 import example.Book;
@@ -83,15 +80,15 @@ import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.StrictNoTransfer;
 import example.nontransferable.Untransferable;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
-
 import io.reactivex.Observable;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import nocreate.NoCreateEntity;
 
 import java.math.BigDecimal;
@@ -111,9 +108,6 @@ import java.util.UUID;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Test PersistentResource.

@@ -43,6 +43,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import jakarta.ws.rs.core.MediaType;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,7 +52,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneConfigStoreTest {

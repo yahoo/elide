@@ -23,8 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import io.restassured.response.Response;
-
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 /**
  * Basic functional tests to test Async service setup, JSONAPI and GRAPHQL endpoints.

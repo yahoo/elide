@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.jms.websocket;
 
 import static com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket.DEFAULT_USER_FACTORY;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -23,7 +22,6 @@ import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
 import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import lombok.AccessLevel;

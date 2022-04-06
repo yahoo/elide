@@ -18,7 +18,6 @@ import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import example.models.Post;
-
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
 import java.util.Properties;

@@ -16,9 +16,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.modelconfig.io.FileLoader;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import com.yahoo.elide.modelconfig.validator.Validator;
-
 import org.apache.commons.io.FileUtils;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;

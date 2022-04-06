@@ -33,7 +33,6 @@ import com.yahoo.elide.modelconfig.validator.Validator;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;

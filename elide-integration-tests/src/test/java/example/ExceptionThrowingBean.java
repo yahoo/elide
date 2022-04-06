@@ -7,12 +7,12 @@ package example;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 
 @Include
 @Entity

@@ -18,6 +18,8 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Type;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -26,8 +28,6 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
  * Multiplex transaction handler.

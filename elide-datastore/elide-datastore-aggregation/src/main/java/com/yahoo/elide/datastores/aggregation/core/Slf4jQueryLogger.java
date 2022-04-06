@@ -11,12 +11,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Default Slf4j Logging Implementation of QueryLogger for Elide.

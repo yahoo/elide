@@ -16,6 +16,8 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +27,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.UUID;
 import javax.inject.Singleton;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Utility class which implements AsyncAPIDAO.

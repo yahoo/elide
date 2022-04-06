@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -51,9 +50,7 @@ import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
-
 import com.google.common.collect.Sets;
-
 import example.Address;
 import example.Book;
 import example.Child;
@@ -65,7 +62,6 @@ import example.LineItem;
 import example.Parent;
 import example.TestCheckMappings;
 import example.User;
-
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,15 +71,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.owasp.encoder.Encode;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.Response.Status;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * The type Config resource test.

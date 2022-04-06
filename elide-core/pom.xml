@@ -58,9 +58,9 @@
             <version>${version.antlr4}</version>
         </dependency>
         <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <version>2.1.1</version>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>javax.persistence</groupId>

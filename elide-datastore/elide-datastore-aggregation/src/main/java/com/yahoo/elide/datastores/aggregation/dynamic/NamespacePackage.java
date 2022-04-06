@@ -11,7 +11,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
-
 import lombok.EqualsAndHashCode;
 
 import java.lang.annotation.Annotation;

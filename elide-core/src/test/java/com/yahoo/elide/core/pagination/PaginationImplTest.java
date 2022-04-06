@@ -17,8 +17,8 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.type.ClassType;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.junit.jupiter.api.Test;
+import jakarta.ws.rs.core.MultivaluedMap;
 
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Tests parsing the page params for json-api pagination.
