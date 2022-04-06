@@ -114,7 +114,7 @@ public class DefaultClassScanner implements ClassScanner {
     }
 
     @Override
-    public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ...annotations) {
+    public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ... annotations) {
         return getAnnotatedClasses(Arrays.asList(annotations));
     }
 
