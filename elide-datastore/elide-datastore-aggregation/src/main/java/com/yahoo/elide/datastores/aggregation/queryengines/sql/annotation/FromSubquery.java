@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation;
 
+import com.yahoo.elide.datastores.aggregation.query.DefaultTableSQLMaker;
 import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
 
 import java.lang.annotation.Documented;
@@ -22,7 +23,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface FromSubquery {
-
     /**
      * The SQL subquery.
      *
@@ -35,7 +35,7 @@ public @interface FromSubquery {
      *
      * @return The class of the subquery generator.
      */
-    Class<? extends TableSQLMaker> maker();
+    Class<? extends TableSQLMaker> maker() default DefaultTableSQLMaker.class;
 
     /**
      * DB Connection Name for this query.

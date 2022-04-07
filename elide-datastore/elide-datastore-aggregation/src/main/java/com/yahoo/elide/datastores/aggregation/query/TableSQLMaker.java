@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 @FunctionalInterface
 public interface TableSQLMaker {
-
     /**
      * Constructs dynamic SQL given a specific client query.
      * @param clientQuery the client query.
