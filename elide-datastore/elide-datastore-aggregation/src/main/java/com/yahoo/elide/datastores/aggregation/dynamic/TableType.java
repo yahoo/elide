@@ -41,6 +41,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
+import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Argument;
@@ -282,6 +283,19 @@ public class TableType implements Type<DynamicModelInstance> {
                 @Override
                 public String sql() {
                     return table.getSql();
+                }
+
+                @Override
+                public Class<? extends TableSQLMaker> maker() {
+                    if (table.getMaker() == null || table.getMaker().isEmpty()) {
+                        return null;
+                    }
+
+                    try {
+                        return (Class<? extends TableSQLMaker>) Class.forName(table.getMaker());
+                    } catch (ClassNotFoundException e) {
+                        throw new IllegalStateException(e);
+                    }
                 }
 
                 @Override
