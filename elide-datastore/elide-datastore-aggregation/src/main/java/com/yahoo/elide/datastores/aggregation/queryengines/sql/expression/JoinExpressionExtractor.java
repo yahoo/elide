@@ -22,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -42,12 +43,14 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
     private final Set<String> joinExpressions = new LinkedHashSet<>();
 
     private final ColumnContext context;
+    private final Query clientQuery;
 
     private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
 
-    public JoinExpressionExtractor(ColumnContext context) {
+    public JoinExpressionExtractor(ColumnContext context, Query clientQuery) {
         this.context = context;
+        this.clientQuery = clientQuery;
         this.metaDataStore = context.getMetaDataStore();
         this.dictionary = context.getMetaDataStore().getMetadataDictionary();
     }
@@ -74,7 +77,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                         .tableArguments(this.context.getTableArguments())
                         .build();
 
-        JoinExpressionExtractor visitor = new JoinExpressionExtractor(newCtx);
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(newCtx, clientQuery);
         reference.getReferences().forEach(ref -> {
             joinExpressions.addAll(ref.accept(visitor));
         });
@@ -151,7 +154,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
         // If reference within current join reference is of type PhysicalReference, then below visitor doesn't matter.
         // If it is of type LogicalReference, then visitLogicalReference method will recreate visitor with correct
         // value of ColumnProjection in context.
-        JoinExpressionExtractor visitor = new JoinExpressionExtractor(currentCtx);
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(currentCtx, clientQuery);
         joinExpressions.addAll(reference.getReference().accept(visitor));
         return joinExpressions;
     }
@@ -167,11 +170,12 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
         if (hasSql(cls)) {
             // Resolve any table arguments with in FromSubquery or Subselect
             TableContext context = TableContext.builder().tableArguments(columnCtx.getTableArguments()).build();
-            String selectSql = context.resolve(resolveTableOrSubselect(dictionary, cls));
+            String selectSql = context.resolve(resolveTableOrSubselect(dictionary, cls, clientQuery));
             return OPEN_BRACKET + selectSql + CLOSE_BRACKET;
         }
 
-        return applyQuotes(resolveTableOrSubselect(dictionary, cls), columnCtx.getQueryable().getDialect());
+        return applyQuotes(resolveTableOrSubselect(dictionary, cls, clientQuery),
+                columnCtx.getQueryable().getDialect());
     }
 
     @Override

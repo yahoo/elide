@@ -26,7 +26,9 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -336,12 +338,18 @@ public class SQLTable extends Table implements Queryable {
      * Maps an entity class to a physical table or subselect query, if neither {@link javax.persistence.Table}
      * nor {@link Subselect} annotation is present on this class, try {@link FromTable} and {@link FromSubquery}.
      * @param cls The entity class.
+     * @param clientQuery the client query.
      * @return The physical SQL table or subselect query.
      */
-    public static String resolveTableOrSubselect(EntityDictionary dictionary, Type<?> cls) {
+    public static String resolveTableOrSubselect(EntityDictionary dictionary, Type<?> cls, Query clientQuery) {
         if (hasSql(cls)) {
             if (cls.isAnnotationPresent(FromSubquery.class)) {
-                return dictionary.getAnnotation(cls, FromSubquery.class).sql();
+                FromSubquery fromSubquery = dictionary.getAnnotation(cls, FromSubquery.class);
+                if (fromSubquery.maker() != null) {
+                    TableSQLMaker maker = dictionary.getInjector().instantiate(fromSubquery.maker());
+                    return maker.make(clientQuery);
+                }
+                return fromSubquery.sql();
             }
             return dictionary.getAnnotation(cls, Subselect.class).value();
         }
