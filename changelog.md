@@ -1,5 +1,38 @@
 # Change Log
 
+## 6.1.4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/e94d36ad948a540f7a45af858b7b44d554f8656a) Bump spring-core from 5.3.16 to 5.3.18 in /elide-model-config (#2572) 
+   * [view commit](https://github.com/yahoo/elide/commit/aec37097a746370ff66b4f61179b6e6934be4d32) Revert "Update: Make `-` a valid TEXT value type character (#2565)" (#2581) 
+   * [view commit](https://github.com/yahoo/elide/commit/95f94a9c32b3ef666134f33954118a846ec6acde) Bumping Spring to work around CVE (#2583) 
+   * [view commit](https://github.com/yahoo/elide/commit/78fe93d45db5300760a1f82be0acd733d442c162) Added explicit tests for SQL comment dependency injection for Aggregation Store. (#2582) 
+   * [view commit](https://github.com/yahoo/elide/commit/95f183de6c3a72b6101f734790b8ef11a73d25f0) Bump version.logback from 1.2.10 to 1.2.11 (#2580) 
+   * [view commit](https://github.com/yahoo/elide/commit/d840018519a560a3cdff463753b29ace42a14c8f) Bump artemis-jms-client-all from 2.20.0 to 2.21.0 (#2578) 
+   * [view commit](https://github.com/yahoo/elide/commit/1c5d17363d7802ff1f2f2297aac1bd5247f26b45) Bump spring-websocket from 5.3.16 to 5.3.18 (#2573) 
+   * [view commit](https://github.com/yahoo/elide/commit/ba0202fceecb20dfb9657344d500581d5ca1d09c) Bump guava from 31.0.1-jre to 31.1-jre (#2577) 
+   * [view commit](https://github.com/yahoo/elide/commit/5b741bdfe6e63eae8f6393d04acd609e0f8891f6) Bump maven-surefire-plugin from 3.0.0-M5 to 3.0.0-M6 (#2579) 
+   * [view commit](https://github.com/yahoo/elide/commit/28f3be8d6bf08d4a71e6309d5a1aaacb1c584314) Bump version.jetty from 9.4.45.v20220203 to 9.4.46.v20220331 (#2576) 
+   * [view commit](https://github.com/yahoo/elide/commit/a78159a6fea97bb9dfdf54d9cc532d4357d4e2c9) Bump swagger-core from 1.6.5 to 1.6.6 (#2587) 
+   * [view commit](https://github.com/yahoo/elide/commit/284597a59355afee97d612a0609be63227a2f737) Bump log4j-api from 2.17.1 to 2.17.2 (#2588) 
+   * [view commit](https://github.com/yahoo/elide/commit/90e6f1aa230efeedb34fe3e2d715ae8884e756b5) Bump calcite-core from 1.29.0 to 1.30.0 (#2586) 
+   * [view commit](https://github.com/yahoo/elide/commit/58dcf77e1fba9df8b36d0b03fc5469090a46a2f3) Bump metrics.version from 4.2.8 to 4.2.9 (#2585) 
+   * [view commit](https://github.com/yahoo/elide/commit/106b3e19ef2888ce3b300f76b65d0a33c3740425) Bump checkstyle from 9.3 to 10.1 (#2589) 
+   * [view commit](https://github.com/yahoo/elide/commit/a9e6d6d7877e4e9f7f13b8b44ced26f2c26241da) Bump graphql-java from 17.3 to 18.0 (#2592) 
+   * [view commit](https://github.com/yahoo/elide/commit/ab3afd37c594c6b3ccd68e095fcd150227892585) Bump jacoco-maven-plugin from 0.8.7 to 0.8.8 (#2593) 
+   * [view commit](https://github.com/yahoo/elide/commit/925b02523bd784c3fc02c11f31684f9927055bec) Bump dependency-check-maven from 6.5.3 to 7.0.4 (#2591) 
+   * [view commit](https://github.com/yahoo/elide/commit/38827720a6824b9a10532610b6aca41a78dd5ff3) Bump artemis-jms-server from 2.20.0 to 2.21.0 (#2590) 
+   * [view commit](https://github.com/yahoo/elide/commit/acee8737a326dd4573ae4154582dc391b02c5eb7) Bump version.restassured from 4.4.0 to 5.0.1 (#2584) 
+   * [view commit](https://github.com/yahoo/elide/commit/b9ad7bf4b3097ba840230bb184733ba4eb06256b) Bump classgraph from 4.8.139 to 4.8.143 (#2598) 
+   * [view commit](https://github.com/yahoo/elide/commit/15660637f034bd357d8216de983933cfb7b658ed) Bump mockito-junit-jupiter from 4.3.1 to 4.4.0 (#2597) 
+   * [view commit](https://github.com/yahoo/elide/commit/52d407fb6b946676f013ab8a19f182e02d05b5cf) Bump mockito-core from 4.3.1 to 4.4.0 (#2594) 
+   * [view commit](https://github.com/yahoo/elide/commit/f585b6a212a7a9364a63b994419c30a7eb637e7a) Bump caffeine from 3.0.5 to 3.0.6 (#2595) 
+   * [view commit](https://github.com/yahoo/elide/commit/880e88a4ca5234ee9b4b94924000542072dbfc99) Bump artemis-server from 2.20.0 to 2.21.0 (#2600) 
+   * [view commit](https://github.com/yahoo/elide/commit/2f4912f96ff518727e68d91d0abcadf4de9b9161) Bump jedis from 4.1.1 to 4.2.1 (#2599) 
+   * [view commit](https://github.com/yahoo/elide/commit/1f1a58e4b19a93bb38a01699e4d8a4cd6ff8ab4f) Bump jackson-databind from 2.13.2.1 to 2.13.2.2 (#2603) 
+   * [view commit](https://github.com/yahoo/elide/commit/bfcabe310e29691b6ce87c88cd75165c72952987) Bump maven-compiler-plugin from 3.10.0 to 3.10.1 (#2602) 
+   * [view commit](https://github.com/yahoo/elide/commit/f872d11a8b12bbcf28f42327813981de7325b4a6) Bump micrometer-core from 1.8.3 to 1.8.4 (#2596) 
+   * [view commit](https://github.com/yahoo/elide/commit/a2578aa8eeb4ba218eaaddb45f57b9b2e15c072d) Fixes #2601 (#2604) 
+
 ## 6.1.3
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/1a644f6f5afec9f0de8dbf89a56006d9f5b3058a) Bump log4j-to-slf4j from 2.17.1 to 2.17.2 (#2560) 
