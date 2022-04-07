@@ -21,7 +21,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -30,15 +29,12 @@ import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.lifecycle.FieldTestModel;
 import com.yahoo.elide.core.lifecycle.LegacyTestModel;
 import com.yahoo.elide.core.lifecycle.PropertyTestModel;
-import com.yahoo.elide.core.security.TestUser;
-import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.UUID;
 
 /**
  * Tests the error mapping logic.
