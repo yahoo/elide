@@ -329,18 +329,41 @@ public class QueryRunner {
 
             return ElideResponse.builder().responseCode(HttpStatus.SC_OK).body(mapper.writeValueAsString(result))
                     .build();
-        } catch (JsonProcessingException e) {
-            log.debug("Invalid json body provided to GraphQL", e);
-            return buildErrorResponse(mapper, new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
-            log.error("Uncaught IO Exception by Elide in GraphQL", e);
-            return buildErrorResponse(mapper, new TransactionException(e), isVerbose);
+            return handleNonRuntimeException(elide, e, graphQLDocument, isVerbose);
         } catch (RuntimeException e) {
             return handleRuntimeException(elide, e, isVerbose);
         } finally {
             elide.getTransactionRegistry().removeRunningTransaction(requestId);
             elide.getAuditLogger().clear();
         }
+    }
+
+    public static ElideResponse handleNonRuntimeException(
+            Elide elide,
+            Exception error,
+            String graphQLDocument,
+            boolean isVerbose
+    ) {
+        CustomErrorException mappedException = elide.mapError(error);
+        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+
+        if (mappedException != null) {
+            return buildErrorResponse(mapper, mappedException, isVerbose);
+        }
+
+        if (error instanceof JsonProcessingException) {
+            log.debug("Invalid json body provided to GraphQL", error);
+            return buildErrorResponse(mapper, new InvalidEntityBodyException(graphQLDocument), isVerbose);
+        }
+
+        if (error instanceof IOException) {
+            log.error("Uncaught IO Exception by Elide in GraphQL", error);
+            return buildErrorResponse(mapper, new TransactionException(error), isVerbose);
+        }
+
+        log.error("Error or exception uncaught by Elide", error);
+        throw new RuntimeException(error);
     }
 
     public static ElideResponse handleRuntimeException(Elide elide, RuntimeException error, boolean isVerbose) {
