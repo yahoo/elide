@@ -2973,7 +2973,6 @@ public class ResourceIT extends IntegrationTest {
                 .body(req)
                 .patch("/book")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
     }

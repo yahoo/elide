@@ -532,15 +532,8 @@ public class Elide {
             }
 
             return response;
-        } catch (JacksonException e) {
-            String message = (e.getLocation() != null && e.getLocation().getSourceRef() != null)
-                    ? e.getMessage() //This will leak Java class info if the location isn't known.
-                    : e.getOriginalMessage();
-
-            return buildErrorResponse(new BadRequestException(message), isVerbose);
         } catch (IOException e) {
-            log.error("IO Exception uncaught by Elide", e);
-            return buildErrorResponse(new TransactionException(e), isVerbose);
+            return handleNonRuntimeException(e, isVerbose);
         } catch (RuntimeException e) {
             return handleRuntimeException(e, isVerbose);
         } finally {
@@ -556,6 +549,31 @@ public class Elide {
 
         return buildResponse(isVerbose ? error.getVerboseErrorResponse()
                 : error.getErrorResponse());
+    }
+
+    private ElideResponse handleNonRuntimeException(Exception error, boolean isVerbose) {
+        CustomErrorException mappedException = mapError(error);
+        if (mappedException != null) {
+            return buildErrorResponse(mappedException, isVerbose);
+        }
+
+        if (error instanceof JacksonException) {
+            JacksonException jacksonException = (JacksonException) error;
+            String message = (jacksonException.getLocation() != null
+                    && jacksonException.getLocation().getSourceRef() != null)
+                    ? error.getMessage() //This will leak Java class info if the location isn't known.
+                    : jacksonException.getOriginalMessage();
+
+            return buildErrorResponse(new BadRequestException(message), isVerbose);
+        }
+
+        if (error instanceof IOException) {
+            log.error("IO Exception uncaught by Elide", error);
+            return buildErrorResponse(new TransactionException(error), isVerbose);
+        }
+
+        log.error("Error or exception uncaught by Elide", error);
+        throw new RuntimeException(error);
     }
 
     private ElideResponse handleRuntimeException(RuntimeException error, boolean isVerbose) {
@@ -620,7 +638,7 @@ public class Elide {
         throw new RuntimeException(error);
     }
 
-    public CustomErrorException mapError(RuntimeException error) {
+    public CustomErrorException mapError(Exception error) {
         if (errorMapper != null) {
             log.trace("Attempting to map unknown exception of type {}", error.getClass());
             CustomErrorException customizedError = errorMapper.map(error);
