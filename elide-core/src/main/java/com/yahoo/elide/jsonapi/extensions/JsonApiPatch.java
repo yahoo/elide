@@ -171,7 +171,12 @@ public class JsonApiPatch {
                 }
                 String[] combined = ArrayUtils.addAll(rootUri.split("/"), action.patch.getPath().split("/"));
                 String fullPath = String.join("/", combined).replace("/-", "");
-                switch (action.patch.getOperation()) {
+
+                Patch.Operation operation = action.patch.getOperation();
+                if (operation == null) {
+                    throw new InvalidEntityBodyException("Patch extension operation cannot be null.");
+                }
+                switch (operation) {
                     case ADD:
                         result = handleAddOp(fullPath, action.patch.getValue(), requestScope, action);
                         break;
