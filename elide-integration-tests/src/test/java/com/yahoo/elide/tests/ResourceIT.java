@@ -23,6 +23,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.nullValue;
@@ -1440,6 +1441,22 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
+    }
+
+    @Test
+    public void invalidPatchNullOp() {
+        String request = jsonParser.getJson("/ResourceIT/patchExtNullOp.req.json");
+
+        String detail = "Patch extension operation cannot be null.";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail[0]", containsString(Encode.forHtml(detail)));
     }
 
     @Test
