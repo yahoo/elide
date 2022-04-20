@@ -498,9 +498,10 @@ public class Elide {
      * @param transaction a transaction supplier
      * @param requestId the Request ID
      * @param handler a function that creates the request scope and request handler
+     * @param <T> The response type (JsonNode or JsonApiDocument)
      * @return the response
      */
-    protected ElideResponse handleRequest(boolean isReadOnly, User user,
+    protected <T> ElideResponse handleRequest(boolean isReadOnly, User user,
                                           Supplier<DataStoreTransaction> transaction, UUID requestId,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
@@ -509,7 +510,7 @@ public class Elide {
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
-            Supplier<Pair<Integer, JsonApiDocument>> responder = result.getResponder();
+            Supplier<Pair<Integer, T>> responder = result.getResponder();
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
