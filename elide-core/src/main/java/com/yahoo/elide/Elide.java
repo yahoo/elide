@@ -483,7 +483,7 @@ public class Elide {
 
     public HandlerResult visit(String path, RequestScope requestScope, BaseVisitor visitor) {
         try {
-            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(JsonApiParser.parse(path));
+            Supplier<Pair<Integer, JsonApiDocument>> responder = visitor.visit(JsonApiParser.parse(path));
             return new HandlerResult(requestScope, responder);
         } catch (RuntimeException e) {
             return new HandlerResult(requestScope, e);
@@ -498,9 +498,10 @@ public class Elide {
      * @param transaction a transaction supplier
      * @param requestId the Request ID
      * @param handler a function that creates the request scope and request handler
+     * @param <T> The response type (JsonNode or JsonApiDocument)
      * @return the response
      */
-    protected ElideResponse handleRequest(boolean isReadOnly, User user,
+    protected <T> ElideResponse handleRequest(boolean isReadOnly, User user,
                                           Supplier<DataStoreTransaction> transaction, UUID requestId,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
@@ -509,7 +510,7 @@ public class Elide {
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
-            Supplier<Pair<Integer, JsonNode>> responder = result.getResponder();
+            Supplier<Pair<Integer, T>> responder = result.getResponder();
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
@@ -655,9 +656,9 @@ public class Elide {
         return null;
     }
 
-    protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {
+    protected <T> ElideResponse buildResponse(Pair<Integer, T> response) {
         try {
-            JsonNode responseNode = response.getRight();
+            T responseNode = response.getRight();
             Integer responseCode = response.getLeft();
             String body = responseNode == null ? null : mapper.writeJsonApiDocument(responseNode);
             return new ElideResponse(responseCode, body);
@@ -700,13 +701,14 @@ public class Elide {
 
     /**
      * A wrapper to return multiple values, less verbose than Pair.
+     * @param <T> Response type.
      */
-    protected static class HandlerResult {
+    protected static class HandlerResult<T> {
         protected RequestScope requestScope;
-        protected Supplier<Pair<Integer, JsonNode>> result;
+        protected Supplier<Pair<Integer, T>> result;
         protected RuntimeException cause;
 
-        protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, JsonNode>> result) {
+        protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, T>> result) {
             this.requestScope = requestScope;
             this.result = result;
         }
@@ -716,7 +718,7 @@ public class Elide {
             this.cause = cause;
         }
 
-        public Supplier<Pair<Integer, JsonNode>> getResponder() {
+        public Supplier<Pair<Integer, T>> getResponder() {
             if (cause != null) {
                 throw cause;
             }
