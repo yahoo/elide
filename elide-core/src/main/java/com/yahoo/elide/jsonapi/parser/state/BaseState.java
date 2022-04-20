@@ -22,7 +22,6 @@ import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Supplier;
@@ -122,7 +121,7 @@ public abstract class BaseState {
      * @return the supplier
      * @throws HttpStatusException the http status exception
      */
-    public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) throws HttpStatusException {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
@@ -133,7 +132,7 @@ public abstract class BaseState {
      * @return the supplier
      * @throws HttpStatusException the http status exception
      */
-    public Supplier<Pair<Integer, JsonNode>> handlePatch(StateContext state) throws HttpStatusException {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePatch(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
@@ -144,7 +143,7 @@ public abstract class BaseState {
      * @return the supplier
      * @throws HttpStatusException the http status exception
      */
-    public Supplier<Pair<Integer, JsonNode>> handlePost(StateContext state) throws HttpStatusException {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
@@ -155,7 +154,7 @@ public abstract class BaseState {
      * @return the supplier
      * @throws HttpStatusException the http status exception
      */
-    public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) throws HttpStatusException {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleDelete(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
@@ -166,7 +165,7 @@ public abstract class BaseState {
      * @param stateContext a state that contains reference to request scope where we can get status code for update
      * @return a supplier of PATH response
      */
-    protected static Supplier<Pair<Integer, JsonNode>> constructPatchResponse(
+    protected static Supplier<Pair<Integer, JsonApiDocument>> constructPatchResponse(
             PersistentResource record,
             StateContext stateContext) {
         RequestScope requestScope = stateContext.getRequestScope();
@@ -177,7 +176,7 @@ public abstract class BaseState {
         );
     }
 
-    protected static JsonNode getResponseBody(PersistentResource resource, RequestScope requestScope) {
+    protected static JsonApiDocument getResponseBody(PersistentResource resource, RequestScope requestScope) {
         MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
@@ -189,6 +188,6 @@ public abstract class BaseState {
         DocumentProcessor includedProcessor = new IncludedProcessor();
         includedProcessor.execute(jsonApiDocument, resource, queryParams);
 
-        return requestScope.getMapper().toJsonObject(jsonApiDocument);
+        return jsonApiDocument;
     }
 }

@@ -13,14 +13,12 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -52,10 +50,9 @@ public class RelationshipTerminalState extends BaseState {
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument doc = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        JsonApiMapper mapper = requestScope.getMapper();
         MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
 
         Map<String, Relationship> relationships = record.toResource(parentProjection).getRelationships();
@@ -72,7 +69,7 @@ public class RelationshipTerminalState extends BaseState {
             DocumentProcessor includedProcessor = new IncludedProcessor();
             includedProcessor.execute(doc, record, queryParams);
 
-            return () -> Pair.of(HttpStatus.SC_OK, mapper.toJsonObject(doc));
+            return () -> Pair.of(HttpStatus.SC_OK, doc);
         }
 
         // Handle no data for relationship
@@ -83,21 +80,21 @@ public class RelationshipTerminalState extends BaseState {
         } else {
             throw new IllegalStateException("Failed to GET a relationship; relationship is neither toMany nor toOne");
         }
-        return () -> Pair.of(HttpStatus.SC_OK, mapper.toJsonObject(doc));
+        return () -> Pair.of(HttpStatus.SC_OK, doc);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handlePatch(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePatch(StateContext state) {
         return handleRequest(state, this::patch);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handlePost(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) {
         return handleRequest(state, this::post);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleDelete(StateContext state) {
         return handleRequest(state, this::delete);
     }
 
@@ -105,7 +102,7 @@ public class RelationshipTerminalState extends BaseState {
      * Base on the JSON API docs relationship updates MUST return 204 unless the server has made additional modification
      * to the relationship. http://jsonapi.org/format/#crud-updating-relationship-responses
      */
-    private Supplier<Pair<Integer, JsonNode>> handleRequest(StateContext state,
+    private Supplier<Pair<Integer, JsonApiDocument>> handleRequest(StateContext state,
                                                             BiPredicate<Data<Resource>, RequestScope> handler) {
         Data<Resource> data = state.getJsonApiDocument().getData();
         handler.test(data, state.getRequestScope());
