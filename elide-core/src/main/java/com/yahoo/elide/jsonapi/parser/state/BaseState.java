@@ -121,7 +121,7 @@ public abstract class BaseState {
      * @return the supplier
      * @throws HttpStatusException the http status exception
      */
-    public <T> Supplier<Pair<Integer, T>> handleGet(StateContext state) throws HttpStatusException {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
@@ -132,7 +132,7 @@ public abstract class BaseState {
      * @return the supplier
      * @throws HttpStatusException the http status exception
      */
-    public <T> Supplier<Pair<Integer, T>> handlePatch(StateContext state) throws HttpStatusException {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePatch(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
@@ -143,7 +143,7 @@ public abstract class BaseState {
      * @return the supplier
      * @throws HttpStatusException the http status exception
      */
-    public <T> Supplier<Pair<Integer, T>> handlePost(StateContext state) throws HttpStatusException {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
@@ -154,7 +154,7 @@ public abstract class BaseState {
      * @return the supplier
      * @throws HttpStatusException the http status exception
      */
-    public <T> Supplier<Pair<Integer, T>> handleDelete(StateContext state) throws HttpStatusException {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleDelete(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
@@ -165,14 +165,14 @@ public abstract class BaseState {
      * @param stateContext a state that contains reference to request scope where we can get status code for update
      * @return a supplier of PATH response
      */
-    protected static <T> Supplier<Pair<Integer, T>> constructPatchResponse(
+    protected static Supplier<Pair<Integer, JsonApiDocument>> constructPatchResponse(
             PersistentResource record,
             StateContext stateContext) {
         RequestScope requestScope = stateContext.getRequestScope();
         int updateStatusCode = requestScope.getUpdateStatusCode();
         return () -> Pair.of(
                 updateStatusCode,
-                updateStatusCode == HttpStatus.SC_NO_CONTENT ? null : (T) getResponseBody(record, requestScope)
+                updateStatusCode == HttpStatus.SC_NO_CONTENT ? null : getResponseBody(record, requestScope)
         );
     }
 

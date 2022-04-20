@@ -50,7 +50,7 @@ public class RelationshipTerminalState extends BaseState {
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handleGet(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument doc = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
         MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
@@ -69,7 +69,7 @@ public class RelationshipTerminalState extends BaseState {
             DocumentProcessor includedProcessor = new IncludedProcessor();
             includedProcessor.execute(doc, record, queryParams);
 
-            return () -> Pair.of(HttpStatus.SC_OK, (T) doc);
+            return () -> Pair.of(HttpStatus.SC_OK, doc);
         }
 
         // Handle no data for relationship
@@ -80,21 +80,21 @@ public class RelationshipTerminalState extends BaseState {
         } else {
             throw new IllegalStateException("Failed to GET a relationship; relationship is neither toMany nor toOne");
         }
-        return () -> Pair.of(HttpStatus.SC_OK, (T) doc);
+        return () -> Pair.of(HttpStatus.SC_OK, doc);
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handlePatch(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePatch(StateContext state) {
         return handleRequest(state, this::patch);
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handlePost(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) {
         return handleRequest(state, this::post);
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handleDelete(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleDelete(StateContext state) {
         return handleRequest(state, this::delete);
     }
 
@@ -102,7 +102,7 @@ public class RelationshipTerminalState extends BaseState {
      * Base on the JSON API docs relationship updates MUST return 204 unless the server has made additional modification
      * to the relationship. http://jsonapi.org/format/#crud-updating-relationship-responses
      */
-    private <T> Supplier<Pair<Integer, T>> handleRequest(StateContext state,
+    private Supplier<Pair<Integer, JsonApiDocument>> handleRequest(StateContext state,
                                                             BiPredicate<Data<Resource>, RequestScope> handler) {
         Data<Resource> data = state.getJsonApiDocument().getData();
         handler.test(data, state.getRequestScope());

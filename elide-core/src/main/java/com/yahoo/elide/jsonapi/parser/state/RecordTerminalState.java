@@ -42,20 +42,20 @@ public class RecordTerminalState extends BaseState {
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handleGet(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         ObjectMapper mapper = state.getRequestScope().getMapper().getObjectMapper();
-        return () -> Pair.of(HttpStatus.SC_OK, (T) getResponseBody(record, state.getRequestScope()));
+        return () -> Pair.of(HttpStatus.SC_OK, getResponseBody(record, state.getRequestScope()));
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handlePost(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) {
         return collectionTerminalState
                 .orElseThrow(() -> new InvalidOperationException("Cannot POST to a record."))
                 .handlePost(state);
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handlePatch(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePatch(StateContext state) {
         JsonApiDocument jsonApiDocument = state.getJsonApiDocument();
 
         Data<Resource> data = jsonApiDocument.getData();
@@ -78,7 +78,7 @@ public class RecordTerminalState extends BaseState {
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handleDelete(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleDelete(StateContext state) {
         record.deleteResource();
         return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
     }

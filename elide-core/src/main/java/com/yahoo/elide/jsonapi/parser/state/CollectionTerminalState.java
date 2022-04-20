@@ -66,7 +66,7 @@ public class CollectionTerminalState extends BaseState {
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handleGet(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
         MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
@@ -109,11 +109,11 @@ public class CollectionTerminalState extends BaseState {
             jsonApiDocument.setMeta(meta);
         }
 
-        return () -> Pair.of(HttpStatus.SC_OK, (T) jsonApiDocument);
+        return () -> Pair.of(HttpStatus.SC_OK, jsonApiDocument);
     }
 
     @Override
-    public <T> Supplier<Pair<Integer, T>> handlePost(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) {
         RequestScope requestScope = state.getRequestScope();
         JsonApiMapper mapper = requestScope.getMapper();
 
@@ -122,7 +122,7 @@ public class CollectionTerminalState extends BaseState {
         return () -> {
             JsonApiDocument returnDoc = new JsonApiDocument();
             returnDoc.setData(new Data<>(newObject.toResource()));
-            return Pair.of(HttpStatus.SC_CREATED, (T) returnDoc);
+            return Pair.of(HttpStatus.SC_CREATED, returnDoc);
         };
     }
 

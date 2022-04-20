@@ -103,19 +103,19 @@ public class StateContext {
         currentState.handle(this, ctx);
     }
 
-    public <T> Supplier<Pair<Integer, T>> handleGet() {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleGet() {
         return currentState.handleGet(this);
     }
 
-    public <T> Supplier<Pair<Integer, T>> handlePatch() {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePatch() {
         return currentState.handlePatch(this);
     }
 
-    public <T> Supplier<Pair<Integer, T>> handlePost() {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePost() {
         return currentState.handlePost(this);
     }
 
-    public <T> Supplier<Pair<Integer, T>> handleDelete() {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleDelete() {
         return currentState.handleDelete(this);
     }
 }
