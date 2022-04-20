@@ -15,7 +15,6 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityConte
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.extern.slf4j.Slf4j;
 
@@ -104,19 +103,19 @@ public class StateContext {
         currentState.handle(this, ctx);
     }
 
-    public Supplier<Pair<Integer, JsonNode>> handleGet() {
+    public <T> Supplier<Pair<Integer, T>> handleGet() {
         return currentState.handleGet(this);
     }
 
-    public Supplier<Pair<Integer, JsonNode>> handlePatch() {
+    public <T> Supplier<Pair<Integer, T>> handlePatch() {
         return currentState.handlePatch(this);
     }
 
-    public Supplier<Pair<Integer, JsonNode>> handlePost() {
+    public <T> Supplier<Pair<Integer, T>> handlePost() {
         return currentState.handlePost(this);
     }
 
-    public Supplier<Pair<Integer, JsonNode>> handleDelete() {
+    public <T> Supplier<Pair<Integer, T>> handleDelete() {
         return currentState.handleDelete(this);
     }
 }

@@ -70,6 +70,7 @@ import org.mockito.quality.Strictness;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
@@ -371,7 +372,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         type("SalesNamespace_orderDetails"),
                         id("0"),
                         attributes(
-                            attr("orderRatio", 1)
+                            attr("orderRatio", new BigDecimal("1.0000000000000000000000000000000000000000"))
                         )
                     )
                 ).toJSON())

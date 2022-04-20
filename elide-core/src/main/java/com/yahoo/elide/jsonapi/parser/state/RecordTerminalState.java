@@ -14,7 +14,6 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.ToString;
@@ -43,20 +42,20 @@ public class RecordTerminalState extends BaseState {
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
+    public <T> Supplier<Pair<Integer, T>> handleGet(StateContext state) {
         ObjectMapper mapper = state.getRequestScope().getMapper().getObjectMapper();
-        return () -> Pair.of(HttpStatus.SC_OK, getResponseBody(record, state.getRequestScope()));
+        return () -> Pair.of(HttpStatus.SC_OK, (T) getResponseBody(record, state.getRequestScope()));
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handlePost(StateContext state) {
+    public <T> Supplier<Pair<Integer, T>> handlePost(StateContext state) {
         return collectionTerminalState
                 .orElseThrow(() -> new InvalidOperationException("Cannot POST to a record."))
                 .handlePost(state);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handlePatch(StateContext state) {
+    public <T> Supplier<Pair<Integer, T>> handlePatch(StateContext state) {
         JsonApiDocument jsonApiDocument = state.getJsonApiDocument();
 
         Data<Resource> data = jsonApiDocument.getData();
@@ -79,7 +78,7 @@ public class RecordTerminalState extends BaseState {
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) {
+    public <T> Supplier<Pair<Integer, T>> handleDelete(StateContext state) {
         record.deleteResource();
         return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
     }

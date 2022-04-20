@@ -72,6 +72,17 @@ public class JsonApiMapper {
     }
 
     /**
+     * Write json api document.
+     *
+     * @param node the node
+     * @return the string
+     * @throws JsonProcessingException the json processing exception
+     */
+    public <T> String writeJsonApiDocument(T node) throws JsonProcessingException {
+        return mapper.writeValueAsString(node);
+    }
+
+    /**
      * Read json api document.
      *
      * @param doc the doc
