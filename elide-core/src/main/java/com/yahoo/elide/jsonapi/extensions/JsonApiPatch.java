@@ -11,6 +11,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Patch;
@@ -22,7 +23,6 @@ import com.yahoo.elide.jsonapi.parser.PostVisitor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -134,13 +134,13 @@ public class JsonApiPatch {
      */
     private Supplier<Pair<Integer, JsonNode>> processActions(PatchRequestScope requestScope) {
         try {
-            List<Supplier<Pair<Integer, JsonNode>>> results = handleActions(requestScope);
+            List<Supplier<Pair<Integer, JsonApiDocument>>> results = handleActions(requestScope);
 
             postProcessRelationships(requestScope);
 
             return () -> {
                 try {
-                    return Pair.of(HttpStatus.SC_OK, mergeResponse(results));
+                    return Pair.of(HttpStatus.SC_OK, mergeResponse(results, requestScope.getMapper()));
                 } catch (HttpStatusException e) {
                     throwErrorResponse();
                     // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
@@ -160,9 +160,9 @@ public class JsonApiPatch {
      * @param requestScope outer request scope
      * @return List of responders
      */
-    private List<Supplier<Pair<Integer, JsonNode>>> handleActions(PatchRequestScope requestScope) {
+    private List<Supplier<Pair<Integer, JsonApiDocument>>> handleActions(PatchRequestScope requestScope) {
         return actions.stream().map(action -> {
-            Supplier<Pair<Integer, JsonNode>> result;
+            Supplier<Pair<Integer, JsonApiDocument>> result;
             try {
                 String path = action.patch.getPath();
                 if (path == null) {
@@ -171,7 +171,12 @@ public class JsonApiPatch {
                 }
                 String[] combined = ArrayUtils.addAll(rootUri.split("/"), action.patch.getPath().split("/"));
                 String fullPath = String.join("/", combined).replace("/-", "");
-                switch (action.patch.getOperation()) {
+
+                Patch.Operation operation = action.patch.getOperation();
+                if (operation == null) {
+                    throw new InvalidEntityBodyException("Patch extension operation cannot be null.");
+                }
+                switch (operation) {
                     case ADD:
                         result = handleAddOp(fullPath, action.patch.getValue(), requestScope, action);
                         break;
@@ -196,7 +201,7 @@ public class JsonApiPatch {
     /**
      * Add a document via patch extension.
      */
-    private Supplier<Pair<Integer, JsonNode>> handleAddOp(
+    private Supplier<Pair<Integer, JsonApiDocument>> handleAddOp(
             String path, JsonNode patchValue, PatchRequestScope requestScope, PatchAction action) {
         try {
             JsonApiDocument value = requestScope.getMapper().readJsonApiPatchExtValue(patchValue);
@@ -234,7 +239,7 @@ public class JsonApiPatch {
     /**
      * Replace data via patch extension.
      */
-    private Supplier<Pair<Integer, JsonNode>> handleReplaceOp(
+    private Supplier<Pair<Integer, JsonApiDocument>> handleReplaceOp(
             String path, JsonNode patchVal, PatchRequestScope requestScope, PatchAction action) {
         try {
             JsonApiDocument value = requestScope.getMapper().readJsonApiPatchExtValue(patchVal);
@@ -260,7 +265,7 @@ public class JsonApiPatch {
     /**
      * Remove data via patch extension.
      */
-    private Supplier<Pair<Integer, JsonNode>> handleRemoveOp(String path,
+    private Supplier<Pair<Integer, JsonApiDocument>> handleRemoveOp(String path,
                                                              JsonNode patchValue,
                                                              PatchRequestScope requestScope) {
         try {
@@ -384,13 +389,20 @@ public class JsonApiPatch {
     /**
      * Merge response documents to create final response.
      */
-    private static JsonNode mergeResponse(List<Supplier<Pair<Integer, JsonNode>>> results) {
+    private static JsonNode mergeResponse(
+            List<Supplier<Pair<Integer, JsonApiDocument>>> results,
+            JsonApiMapper mapper
+    ) {
         ArrayNode list = JsonNodeFactory.instance.arrayNode();
-        for (Supplier<Pair<Integer, JsonNode>> result : results) {
-            JsonNode node = result.get().getRight();
-            if (node == null || node instanceof NullNode) {
+        for (Supplier<Pair<Integer, JsonApiDocument>> result : results) {
+            JsonNode node;
+            JsonApiDocument document = result.get().getRight();
+            if (document == null) {
                 node = JsonNodeFactory.instance.objectNode().set("data", null);
+            } else {
+                node = mapper.toJsonObject(document);
             }
+
             list.add(node);
         }
         return list;

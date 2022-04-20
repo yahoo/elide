@@ -40,17 +40,6 @@ public class JsonApiMapper {
     }
 
     /**
-     * Write out JSON API Document as a string.
-     *
-     * @param jsonApiDocument the json api document
-     * @return Document as string
-     * @throws JsonProcessingException the json processing exception
-     */
-    public String writeJsonApiDocument(JsonApiDocument jsonApiDocument) throws JsonProcessingException {
-        return mapper.writeValueAsString(jsonApiDocument);
-    }
-
-    /**
      * To json object.
      *
      * @param jsonApiDocument the json api document
@@ -63,12 +52,13 @@ public class JsonApiMapper {
     /**
      * Write json api document.
      *
-     * @param node the node
+     * @param doc the document
+     * @param <T> The type of document object so serialize
      * @return the string
      * @throws JsonProcessingException the json processing exception
      */
-    public String writeJsonApiDocument(JsonNode node) throws JsonProcessingException {
-        return mapper.writeValueAsString(node);
+    public <T> String writeJsonApiDocument(T doc) throws JsonProcessingException {
+        return mapper.writeValueAsString(doc);
     }
 
     /**

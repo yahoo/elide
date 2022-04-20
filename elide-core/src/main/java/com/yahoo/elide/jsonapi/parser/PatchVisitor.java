@@ -7,7 +7,7 @@ package com.yahoo.elide.jsonapi.parser;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.generated.parsers.CoreParser.QueryContext;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Supplier;
@@ -27,7 +27,7 @@ public class PatchVisitor extends BaseVisitor {
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> visitQuery(QueryContext ctx) {
+    public Supplier<Pair<Integer, JsonApiDocument>> visitQuery(QueryContext ctx) {
         return state.handlePatch();
     }
 }
