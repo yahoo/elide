@@ -81,6 +81,7 @@ public class ElideSettingsBuilder {
         this.jsonApiMapper = new JsonApiMapper();
         this.joinFilterDialects = new ArrayList<>();
         this.subqueryFilterDialects = new ArrayList<>();
+        this.headerProcessor = HeaderUtils::lowercaseAndRemoveAuthHeaders;
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
         this.serdes = new LinkedHashMap<>();
         this.enableJsonLinks = false;
