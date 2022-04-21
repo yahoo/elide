@@ -293,7 +293,7 @@ public class TableType implements Type<DynamicModelInstance> {
                     }
 
                     try {
-                        return (Class<? extends TableSQLMaker>) Class.forName(table.getMaker());
+                        return Class.forName(table.getMaker()).asSubclass(TableSQLMaker.class);
                     } catch (ClassNotFoundException e) {
                         throw new IllegalStateException(e);
                     }
