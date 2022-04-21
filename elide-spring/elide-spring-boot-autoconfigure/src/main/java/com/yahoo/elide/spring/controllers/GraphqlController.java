@@ -54,6 +54,7 @@ public class GraphqlController {
     private final ElideConfigProperties settings;
     private final QueryRunners runners;
     private final ObjectMapper mapper;
+    private final HeaderUtils.HeaderProcessor headerProcessor;
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
@@ -61,10 +62,12 @@ public class GraphqlController {
     public GraphqlController(
             QueryRunners runners,
             JsonApiMapper jsonApiMapper,
+            HeaderUtils.HeaderProcessor headerProcessor,
             ElideConfigProperties settings) {
         log.debug("Started ~~");
         this.runners = runners;
         this.settings = settings;
+        this.headerProcessor = headerProcessor;
         this.mapper = jsonApiMapper.getObjectMapper();
     }
 
@@ -81,8 +84,7 @@ public class GraphqlController {
                                                  @RequestBody String graphQLDocument, Authentication principal) {
         final User user = new AuthenticationUser(principal);
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final QueryRunner runner = runners.getRunner(apiVersion);
         final String baseUrl = getBaseUrlEndpoint();
 
