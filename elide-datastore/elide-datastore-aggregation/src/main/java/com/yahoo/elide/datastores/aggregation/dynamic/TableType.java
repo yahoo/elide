@@ -272,7 +272,8 @@ public class TableType implements Type<DynamicModelInstance> {
 
         annotations.put(Include.class, getIncludeAnnotation(table));
 
-        if (table.getSql() != null && !table.getSql().isEmpty()) {
+        if ((table.getSql() != null && !table.getSql().isEmpty())
+                || (table.getMaker() != null && !table.getMaker().isEmpty())) {
             annotations.put(FromSubquery.class, new FromSubquery() {
 
                 @Override

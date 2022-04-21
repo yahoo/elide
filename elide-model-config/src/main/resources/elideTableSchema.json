@@ -537,6 +537,21 @@
                                 "description": "SQL query which is used to populate the table.",
                                 "type": "string"
                             },
+                            "dbConnectionName": {
+                                "title": "DB Connection Name",
+                                "description": "The database connection name for this model.",
+                                "type": "string",
+                                "format": "elideName"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "sql",
+                            "dimensions"
+                        ]
+                    },
+                    {
+                        "properties": {
                             "maker": {
                                 "title": "Table SQL maker function",
                                 "description": "JVM function to invoke to generate the SQL query which is used to populate the table.",
@@ -552,7 +567,7 @@
                         },
                         "required": [
                             "name",
-                            "sql",
+                            "maker",
                             "dimensions"
                         ]
                     },
