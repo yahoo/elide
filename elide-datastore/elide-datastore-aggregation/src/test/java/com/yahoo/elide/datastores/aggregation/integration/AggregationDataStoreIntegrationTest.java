@@ -560,7 +560,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("playerRank", 1)
                                 ),
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("overallRating", "Great"),
                                         field("countryIsoCode", "USA"),
                                         field("playerRank", 2)
@@ -676,7 +676,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("playerLevel", 1)
                                 ),
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("playerLevel", 2)
                                 )
                         )
@@ -1017,7 +1017,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "playerStats",
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("countryIsoCode", "USA")
                                 ),
                                 selections(
@@ -1166,7 +1166,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("countryViewIsoCode", "HKG")
                                 ),
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("countryViewIsoCode", "USA")
                                 )
                         )
@@ -1253,7 +1253,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.id", hasItems("0", "1", "2"))
-                .body("data.attributes.highScore", hasItems(1000, 1234, 2412))
+                .body("data.attributes.highScore", hasItems(1000, 1234, 3147483647L))
                 .body("data.attributes.countryIsoCode", hasItems("USA", "HKG"));
     }
 
@@ -1862,7 +1862,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("countryAlias", "HKG")
                                 ),
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("countryAlias", "USA")
                                 )
                         )
@@ -1916,8 +1916,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("byDay", "2019-07-12")
                                 ),
                                 selections(
-                                        field("highScoreAlias", 2412),
-                                        field("avgScoreAlias", 2412),
+                                        field("highScoreAlias", 3147483647L),
+                                        field("avgScoreAlias", 3147483647L),
                                         field("ratingAlias", "Great"),
                                         field("countryAlias", "USA"),
                                         field("byDay", "2019-07-11")

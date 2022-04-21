@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static graphql.Assert.assertNotNull;
+import static graphql.scalars.ExtendedScalars.GraphQLBigInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -204,7 +205,7 @@ public class ModelBuilderTest {
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_TITLE).getType());
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_GENRE).getType());
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_LANGUAGE).getType());
-        assertEquals(Scalars.GraphQLInt, bookType.getFieldDefinition(FIELD_PUBLISH_DATE).getType());
+        assertEquals(GraphQLBigInteger, bookType.getFieldDefinition(FIELD_PUBLISH_DATE).getType());
         assertEquals(JavaPrimitives.GraphQLBigDecimal, bookType.getFieldDefinition(FIELD_WEIGHT_LBS).getType());
 
         GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
@@ -231,7 +232,7 @@ public class ModelBuilderTest {
         assertEquals(Scalars.GraphQLString, bookInputType.getField(FIELD_TITLE).getType());
         assertEquals(Scalars.GraphQLString, bookInputType.getField(FIELD_GENRE).getType());
         assertEquals(Scalars.GraphQLString, bookInputType.getField(FIELD_LANGUAGE).getType());
-        assertEquals(Scalars.GraphQLInt, bookInputType.getField(FIELD_PUBLISH_DATE).getType());
+        assertEquals(GraphQLBigInteger, bookInputType.getField(FIELD_PUBLISH_DATE).getType());
 
         GraphQLList authorsInputType = (GraphQLList) bookInputType.getField(FIELD_AUTHORS).getType();
         assertEquals(authorInputType, authorsInputType.getWrappedType());
