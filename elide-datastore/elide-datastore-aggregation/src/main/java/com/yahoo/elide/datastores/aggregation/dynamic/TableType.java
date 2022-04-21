@@ -314,7 +314,7 @@ public class TableType implements Type<DynamicModelInstance> {
                 @Override
                 public String name() {
                     String tableName = table.getTable();
-                    if (table.getSchema() != null && ! table.getSchema().isEmpty()) {
+                    if (StringUtils.isNotEmpty(table.getSchema())) {
                         return table.getSchema() + "." + tableName;
 
                     }
@@ -377,7 +377,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public CardinalitySize size() {
-                if (table.getCardinality() == null || table.getCardinality().isEmpty()) {
+                if (StringUtils.isEmpty(table.getCardinality())) {
                     return CardinalitySize.UNKNOWN;
                 }
                 return CardinalitySize.valueOf(table.getCardinality().toUpperCase(Locale.ENGLISH));
@@ -530,7 +530,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public Class<? extends MetricProjectionMaker> maker() {
-                if (measure.getMaker() == null || measure.getMaker().isEmpty()) {
+                if (StringUtils.isEmpty(measure.getMaker())) {
                     return DefaultMetricProjectionMaker.class;
                 }
 
@@ -646,7 +646,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public CardinalitySize size() {
-                if (dimension.getCardinality() == null || dimension.getCardinality().isEmpty()) {
+                if (StringUtils.isEmpty(dimension.getCardinality())) {
                     return CardinalitySize.UNKNOWN;
                 }
                 return CardinalitySize.valueOf(dimension.getCardinality().toUpperCase(Locale.ENGLISH));
