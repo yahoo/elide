@@ -287,7 +287,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public Class<? extends TableSQLMaker> maker() {
-                    if (table.getMaker() == null || table.getMaker().isEmpty()) {
+                    if (StringUtils.isEmpty(table.getMaker())) {
                         return null;
                     }
 
