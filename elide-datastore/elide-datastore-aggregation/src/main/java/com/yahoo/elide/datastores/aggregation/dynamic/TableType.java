@@ -536,7 +536,7 @@ public class TableType implements Type<DynamicModelInstance> {
                 }
 
                 try {
-                    return (Class<? extends MetricProjectionMaker>) Class.forName(measure.getMaker());
+                    return Class.forName(measure.getMaker()).asSubclass(MetricProjectionMaker.class);
                 } catch (ClassNotFoundException e) {
                     throw new IllegalStateException(e);
                 }
