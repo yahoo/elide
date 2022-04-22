@@ -46,6 +46,7 @@ import java.util.Set;
     "arguments",
     "extend",
     "sql",
+    "maker",
     "table",
     "dbConnectionName",
     "filterTemplate"
@@ -127,6 +128,9 @@ public class Table implements Named {
 
     @JsonProperty("sql")
     private String sql;
+
+    @JsonProperty("maker")
+    private String maker;
 
     @JsonProperty("table")
     private String table;
