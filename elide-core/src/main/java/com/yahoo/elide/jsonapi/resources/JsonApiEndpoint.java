@@ -43,11 +43,13 @@ import javax.ws.rs.core.UriInfo;
 @Path("/")
 public class JsonApiEndpoint {
     protected final Elide elide;
+    protected final HeaderUtils.HeaderProcessor headerProcessor;
 
     @Inject
     public JsonApiEndpoint(
             @Named("elide") Elide elide) {
         this.elide = elide;
+        this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
     }
 
     /**
@@ -71,8 +73,7 @@ public class JsonApiEndpoint {
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
-        Map<String, List<String>> requestHeaders =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
         return build(elide.post(getBaseUrlEndpoint(uriInfo), path, jsonapiDocument,
                 queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
@@ -96,8 +97,7 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
-        Map<String, List<String>> requestHeaders =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
         return build(elide.get(getBaseUrlEndpoint(uriInfo), path, queryParams,
@@ -129,8 +129,7 @@ public class JsonApiEndpoint {
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
-        Map<String, List<String>> requestHeaders =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
         return build(elide.patch(getBaseUrlEndpoint(uriInfo), contentType, accept, path,
                                  jsonapiDocument, queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
@@ -158,8 +157,7 @@ public class JsonApiEndpoint {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String apiVersion =
                 HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
-        Map<String, List<String>> requestHeaders =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
         return build(elide.delete(getBaseUrlEndpoint(uriInfo), path, jsonApiDocument, queryParams, requestHeaders,
                                   user, apiVersion, UUID.randomUUID()));

@@ -19,6 +19,11 @@ import java.util.stream.Collectors;
  */
 public class HeaderUtils {
 
+    @FunctionalInterface
+    public interface HeaderProcessor {
+        Map<String, List<String>> process(Map<String, List<String>> headers);
+    }
+
     /**
      * Resolve value of api version from request headers.
      * @param headers HttpHeaders
