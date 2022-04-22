@@ -12,6 +12,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.TableArgReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -63,8 +64,15 @@ public class TableArgumentValidator {
     private void verifyTableArgsInTableSql() {
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
+        Query mockQuery =  Query.builder()
+                .source(table)
+                .dimensionProjections(table.getDimensionProjections())
+                .metricProjections(table.getMetricProjections())
+                .timeDimensionProjections(table.getTimeDimensionProjections())
+                .build();
+
         if (hasSql(tableClass)) {
-            String selectSql = resolveTableOrSubselect(dictionary, tableClass);
+            String selectSql = resolveTableOrSubselect(dictionary, tableClass, mockQuery);
             verifyTableArgsExists(selectSql, "in table's sql.");
         }
     }

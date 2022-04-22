@@ -18,6 +18,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
+import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ public class IntegrationTestSetup {
     public RefreshableElide initializeElide(EntityDictionary dictionary,
                                             DataStore dataStore,
                                             ElideConfigProperties settings,
+                                            HeaderUtils.HeaderProcessor headerProcessor,
                                             JsonApiMapper mapper,
                                             ErrorMapper errorMapper) {
 
@@ -46,6 +48,7 @@ public class IntegrationTestSetup {
                 .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .withAuditLogger(new Slf4jLogger())
                 .withBaseUrl(settings.getBaseUrl())
+                .withHeaderProcessor(headerProcessor)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .withJsonApiPath(settings.getJsonApi().getPath())
                 .withGraphQLApiPath(settings.getGraphql().getPath());
