@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
@@ -134,11 +135,21 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
         TableContext context = TableContext.builder().tableArguments(clientQuery.getArguments()).build();
 
-        String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
-                ? "(" + context.resolve(tableCls.getAnnotation(FromSubquery.class).sql()) + ")"
-                : tableCls.isAnnotationPresent(FromTable.class)
-                ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
-                : applyQuotes(table.getName());
+        String tableStatement;
+        if (tableCls.isAnnotationPresent(FromSubquery.class)) {
+            FromSubquery fromSubquery = tableCls.getAnnotation(FromSubquery.class);
+            Class<? extends TableSQLMaker> makerClass = fromSubquery.maker();
+            if (makerClass != null) {
+                TableSQLMaker maker = dictionary.getInjector().instantiate(makerClass);
+                tableStatement = "(" + context.resolve(maker.make(clientQuery)) + ")";
+            } else {
+                tableStatement = "(" + context.resolve(fromSubquery.sql()) + ")";
+            }
+        } else {
+            tableStatement = tableCls.isAnnotationPresent(FromTable.class)
+                    ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
+                    : applyQuotes(table.getName());
+        }
 
         return builder.fromClause(getFromClause(tableStatement, tableAlias, dialect));
     }
@@ -305,7 +316,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                         .tableArguments(query.getArguments())
                         .build();
 
-        JoinExpressionExtractor visitor = new JoinExpressionExtractor(context);
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(context, clientQuery);
         List<Reference> references = parser.parse(query.getSource(), column);
         references.forEach(ref -> joinExpressions.addAll(ref.accept(visitor)));
         return joinExpressions;

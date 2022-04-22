@@ -41,6 +41,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
+import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Argument;
@@ -271,7 +272,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
         annotations.put(Include.class, getIncludeAnnotation(table));
 
-        if (table.getSql() != null && !table.getSql().isEmpty()) {
+        if (StringUtils.isNotEmpty(table.getSql()) || StringUtils.isNotEmpty(table.getMaker())) {
             annotations.put(FromSubquery.class, new FromSubquery() {
 
                 @Override
@@ -282,6 +283,19 @@ public class TableType implements Type<DynamicModelInstance> {
                 @Override
                 public String sql() {
                     return table.getSql();
+                }
+
+                @Override
+                public Class<? extends TableSQLMaker> maker() {
+                    if (StringUtils.isEmpty(table.getMaker())) {
+                        return null;
+                    }
+
+                    try {
+                        return Class.forName(table.getMaker()).asSubclass(TableSQLMaker.class);
+                    } catch (ClassNotFoundException e) {
+                        throw new IllegalStateException(e);
+                    }
                 }
 
                 @Override
@@ -300,7 +314,7 @@ public class TableType implements Type<DynamicModelInstance> {
                 @Override
                 public String name() {
                     String tableName = table.getTable();
-                    if (table.getSchema() != null && ! table.getSchema().isEmpty()) {
+                    if (StringUtils.isNotEmpty(table.getSchema())) {
                         return table.getSchema() + "." + tableName;
 
                     }
@@ -363,7 +377,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public CardinalitySize size() {
-                if (table.getCardinality() == null || table.getCardinality().isEmpty()) {
+                if (StringUtils.isEmpty(table.getCardinality())) {
                     return CardinalitySize.UNKNOWN;
                 }
                 return CardinalitySize.valueOf(table.getCardinality().toUpperCase(Locale.ENGLISH));
@@ -516,12 +530,12 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public Class<? extends MetricProjectionMaker> maker() {
-                if (measure.getMaker() == null || measure.getMaker().isEmpty()) {
+                if (StringUtils.isEmpty(measure.getMaker())) {
                     return DefaultMetricProjectionMaker.class;
                 }
 
                 try {
-                    return (Class<? extends MetricProjectionMaker>) Class.forName(measure.getMaker());
+                    return Class.forName(measure.getMaker()).asSubclass(MetricProjectionMaker.class);
                 } catch (ClassNotFoundException e) {
                     throw new IllegalStateException(e);
                 }
@@ -632,7 +646,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public CardinalitySize size() {
-                if (dimension.getCardinality() == null || dimension.getCardinality().isEmpty()) {
+                if (StringUtils.isEmpty(dimension.getCardinality())) {
                     return CardinalitySize.UNKNOWN;
                 }
                 return CardinalitySize.valueOf(dimension.getCardinality().toUpperCase(Locale.ENGLISH));

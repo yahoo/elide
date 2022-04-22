@@ -57,6 +57,7 @@ public class JsonApiController {
 
     private final Elide elide;
     private final ElideConfigProperties settings;
+    private final HeaderUtils.HeaderProcessor headerProcessor;
     public static final String JSON_API_CONTENT_TYPE = JSONAPI_CONTENT_TYPE;
     public static final String JSON_API_PATCH_CONTENT_TYPE = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 
@@ -65,6 +66,7 @@ public class JsonApiController {
         log.debug("Started ~~");
         this.settings = settings;
         this.elide = refreshableElide.getElide();
+        this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
     }
 
     private <K, V> MultivaluedHashMap<K, V> convert(MultiValueMap<K, V> springMVMap) {
@@ -78,8 +80,7 @@ public class JsonApiController {
                                                      @RequestParam MultiValueMap<String, String> allRequestParams,
                                                      HttpServletRequest request, Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -101,8 +102,7 @@ public class JsonApiController {
                                                       @RequestBody String body,
                                                       HttpServletRequest request, Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -123,8 +123,7 @@ public class JsonApiController {
                                                        @RequestBody String body,
                                                        HttpServletRequest request, Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -147,8 +146,7 @@ public class JsonApiController {
                                                         HttpServletRequest request,
                                                         Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -172,8 +170,7 @@ public class JsonApiController {
             HttpServletRequest request,
             Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();

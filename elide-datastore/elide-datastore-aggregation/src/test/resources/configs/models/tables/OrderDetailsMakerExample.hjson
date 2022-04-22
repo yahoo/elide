@@ -1,0 +1,247 @@
+{
+  tables:
+  [
+    {
+      name: orderDetails2
+      maker: example.tables.OrderDetailsMaker
+      dbConnectionName: SalesDBConnection
+      cardinality: large
+      readAccess: guest user
+      namespace: SalesNamespace
+      filterTemplate : deliveryTime>={{start}};deliveryTime<{{end}}
+      arguments:
+      [
+        { // An argument that can be used to divide orderTotal to convert orders in Millions, Thousands, etc.
+          name: denominator
+          type: DECIMAL
+          default: 1
+        }
+      ]
+      joins:
+      [
+        {
+          name: customer
+          to: customerDetails
+          namespace: SalesNamespace
+          type: Left
+          // References Physical Columns
+          definition: '{{$customer_id}} = {{ customer.$id}}'
+        }
+        {
+          name: delivery
+          to: deliveryDetails
+          namespace: SalesNamespace
+          kind: toOne
+          // References Logical Columns, multiple join condition
+          definition: '''
+          {{ orderId}} = {{delivery.orderId}} AND
+          {{ delivery.$delivered_on }} >= '{{ $$table.args.start }}' AND
+          {{ delivery.$delivered_on }} < '{{ $$table.args.end }}'
+          '''
+        }
+      ]
+      measures:
+      [
+        {
+          name: orderRatio
+          type: DECIMAL
+          maker: example.metrics.MetricRatio
+          arguments:
+          [
+             {
+               name: numerator
+               type: TEXT
+               values: ['orderTotal', 'orderMax']
+               default: 'orderTotal'
+             }
+             {
+               name: denominator
+               type: TEXT
+               values: ['orderTotal', 'orderMax']
+               default: 'orderTotal'
+             }
+          ]
+        }
+        {
+          name: orderTotal
+          type: DECIMAL
+          // TODO : Use Arguments
+          definition: 'SUM({{ $order_total }})'
+          readAccess: admin.user
+          arguments:
+          [
+            { // An argument that can be used to divide orderTotal to convert orders in Millions, Thousands, etc.
+              name: precision
+              type: DECIMAL
+              default: 0.00
+            }
+          ]
+        },
+        {
+          name: orderMax
+          type: DECIMAL
+          // TODO : Use Arguments
+          maker: example.metrics.SalesViewOrderMax
+          readAccess: admin.user
+          arguments:
+          [
+            { // An argument that can be used to divide orderTotal to convert orders in Millions, Thousands, etc.
+              name: precision
+              type: DECIMAL
+              default: 0.00
+            }
+          ]
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: orderId
+          type: TEXT
+          definition: '{{ $order_id }}'
+          readAccess: guest user
+        }
+        {
+          name: courierName
+          type: TEXT
+          definition: '{{delivery.$courier_name}}'
+          readAccess: operator
+        }
+        {
+          name: customerRegion
+          type: TEXT
+          definition: '{{customer.customerRegion}}'
+          readAccess: operator
+          cardinality: small
+        }
+        //Tests a reference to an enum Java dimension stored as VARCHAR coerced to a string.
+        {
+          name: customerRegionType1
+          type: ENUM_TEXT
+          definition: '{{customer.region.placeType}}'
+          readAccess: guest user
+        }
+        //Tests a reference to an enum Java dimension stored as INT coerced to the enum.
+        {
+          name: customerRegionType2
+          type: ENUM_ORDINAL
+          definition: '{{customer.region.ordinalPlaceType}}'
+          readAccess: guest user
+          values: ['COUNTRY', 'STATE', 'COUNTY', 'TOWN', 'PLACE']
+        }
+        {
+          name: customerRegionRegion
+          type: TEXT
+          definition: '{{customer.region.region}}'
+          readAccess: operator
+          tableSource: {
+            table: regionDetails
+            column: region
+          }
+        }
+        {
+          name: zipCode
+          type: INTEGER
+          definition: '{{zipCodeHidden}}'
+          readAccess: operator
+        }
+
+        {
+          name: zipCodeHidden
+          type: INTEGER
+          hidden: true
+          definition: '{{customer.zipCode}}'
+          readAccess: operator
+        }
+        {
+          name: orderTime
+          type: TIME
+          // Physical Column Reference in same table
+          definition: '{{$created_on}}'
+          readAccess: guest user
+          grains:
+          [
+            {
+              type: MONTH
+              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+            },
+            {
+              type: SECOND
+              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
+            },
+            {
+              type: DAY
+              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+            }
+          ]
+        }
+        {
+          name: deliveryTime
+          type: TIME
+          // Physical Column Reference in referred table
+          definition: '{{delivery.$delivered_on}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: SECOND
+          }]
+        }
+        {
+          name: deliveryDate
+          type: TIME
+          // Logical Column Reference in referred table, which references Physical column in referred table
+          definition: '{{delivery.time}}'
+          readAccess: guest user
+          grains:
+          [{
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+          }]
+        }
+        {
+          name: deliveryMonth
+          type: TIME
+          // Logical Column Reference in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{delivery.month}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: MONTH
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+          }]
+        }
+        {
+          name: deliveryHour
+          type: TIME
+          // Logical Column Reference in same table, which references Physical column in referred table
+          definition: '{{deliveryTime}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: HOUR
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd HH'), 'yyyy-MM-dd HH')
+          }]
+        }
+        {
+          name: deliveryYear
+          type: TIME
+          // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{deliveryMonth}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: YEAR
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-01-01'), 'yyyy-MM-dd')
+          }]
+          filterTemplate: 'deliveryYear=={{deliveryYear}}'
+        }
+        {
+          name: deliveryDefault
+          type: TIME
+          // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{delivery.time}}'
+          readAccess: guest user
+        }
+      ]
+    }
+  ]
+}

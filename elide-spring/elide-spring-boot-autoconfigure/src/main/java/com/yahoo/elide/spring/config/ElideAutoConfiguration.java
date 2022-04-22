@@ -54,6 +54,7 @@ import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.spring.controllers.SwaggerController;
 import com.yahoo.elide.swagger.SwaggerBuilder;
+import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,6 +154,7 @@ public class ElideAutoConfiguration {
      * Creates the Elide instance with standard settings.
      * @param dictionary Stores the static metadata about Elide models.
      * @param dataStore The persistence store.
+     * @param headerProcessor HTTP header function which is invoked for every request.
      * @param transactionRegistry Global transaction registry.
      * @param settings Elide settings.
      * @return A new elide instance.
@@ -162,6 +164,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     public RefreshableElide getRefreshableElide(EntityDictionary dictionary,
                                                 DataStore dataStore,
+                                                HeaderUtils.HeaderProcessor headerProcessor,
                                                 TransactionRegistry transactionRegistry,
                                                 ElideConfigProperties settings,
                                                 JsonApiMapper mapper,
@@ -179,6 +182,7 @@ public class ElideAutoConfiguration {
                 .withBaseUrl(settings.getBaseUrl())
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .withJsonApiPath(settings.getJsonApi().getPath())
+                .withHeaderProcessor(headerProcessor)
                 .withGraphQLApiPath(settings.getGraphql().getPath());
 
         if (settings.isVerboseErrors()) {
@@ -214,6 +218,22 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     public QueryRunners getQueryRunners(RefreshableElide refreshableElide) {
         return new QueryRunners(refreshableElide);
+    }
+
+    /**
+     * Function which preprocesses HTTP request headers before storing them in the RequestScope.
+     * @param settings Configuration settings
+     * @return A function which processes HTTP Headers.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public HeaderUtils.HeaderProcessor getHeaderProcessor(ElideConfigProperties settings) {
+        if (settings.isStripAuthorizatonHeaders()) {
+            return HeaderUtils::lowercaseAndRemoveAuthHeaders;
+        } else {
+            //Identity Function
+            return (a) -> a;
+        }
     }
 
     /**
