@@ -75,4 +75,9 @@ public class ElideConfigProperties {
      * Turns on/off verbose error responses.
      */
     private boolean verboseErrors = false;
+
+    /**
+     * Remove Authorization headers from RequestScope to prevent accidental logging of security credentials.
+     */
+    private boolean stripAuthorizatonHeaders = true;
 }

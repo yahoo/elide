@@ -30,6 +30,7 @@ import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import com.yahoo.elide.core.utils.coerce.converters.URLSerde;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.JSONApiLinks;
+import com.yahoo.elide.utils.HeaderUtils;
 
 import java.net.URL;
 import java.time.Instant;
@@ -56,6 +57,7 @@ public class ElideSettingsBuilder {
     private List<SubqueryFilterDialect> subqueryFilterDialects;
     private FilterDialect graphqlFilterDialect;
     private JSONApiLinks jsonApiLinks;
+    private HeaderUtils.HeaderProcessor headerProcessor;
     private Map<Class, Serde> serdes;
     private int defaultMaxPageSize = PaginationImpl.MAX_PAGE_LIMIT;
     private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
@@ -79,6 +81,7 @@ public class ElideSettingsBuilder {
         this.jsonApiMapper = new JsonApiMapper();
         this.joinFilterDialects = new ArrayList<>();
         this.subqueryFilterDialects = new ArrayList<>();
+        this.headerProcessor = HeaderUtils::lowercaseAndRemoveAuthHeaders;
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
         this.serdes = new LinkedHashMap<>();
         this.enableJsonLinks = false;
@@ -118,6 +121,7 @@ public class ElideSettingsBuilder {
                 subqueryFilterDialects,
                 graphqlFilterDialect,
                 jsonApiLinks,
+                headerProcessor,
                 defaultMaxPageSize,
                 defaultPageSize,
                 updateStatusCode,
@@ -228,6 +232,11 @@ public class ElideSettingsBuilder {
     public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
         this.enableJsonLinks = true;
         this.jsonApiLinks = links;
+        return this;
+    }
+
+    public ElideSettingsBuilder withHeaderProcessor(HeaderUtils.HeaderProcessor headerProcessor) {
+        this.headerProcessor = headerProcessor;
         return this;
     }
 

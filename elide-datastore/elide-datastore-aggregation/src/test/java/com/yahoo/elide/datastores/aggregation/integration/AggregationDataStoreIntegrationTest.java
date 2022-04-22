@@ -560,7 +560,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("playerRank", 1)
                                 ),
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("overallRating", "Great"),
                                         field("countryIsoCode", "USA"),
                                         field("playerRank", 2)
@@ -676,7 +676,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("playerLevel", 1)
                                 ),
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("playerLevel", 2)
                                 )
                         )
@@ -1017,7 +1017,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "playerStats",
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("countryIsoCode", "USA")
                                 ),
                                 selections(
@@ -1166,7 +1166,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("countryViewIsoCode", "HKG")
                                 ),
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("countryViewIsoCode", "USA")
                                 )
                         )
@@ -1253,7 +1253,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.id", hasItems("0", "1", "2"))
-                .body("data.attributes.highScore", hasItems(1000, 1234, 2412))
+                .body("data.attributes.highScore", hasItems(1000, 1234, 3147483647L))
                 .body("data.attributes.countryIsoCode", hasItems("USA", "HKG"));
     }
 
@@ -1429,6 +1429,144 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 selections(
                         field(
                                 "SalesNamespace_orderDetails",
+                                selections(
+                                        field("courierName", "FEDEX"),
+                                        field("deliveryTime", "2020-09-11T16:30:11"),
+                                        field("deliveryHour", "2020-09-11T16"),
+                                        field("deliveryDate", "2020-09-11"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryYear", "2020"),
+                                        field("bySecond", "2020-09-08T16:30:11"),
+                                        field("deliveryDefault", "2020-09-11"),
+                                        field("byDay", "2020-09-08"),
+                                        field("byMonth", "2020-09"),
+                                        field("customerRegion", "Virginia"),
+                                        field("customerRegionRegion", "Virginia"),
+                                        field("orderTotal", 84.11F),
+                                        field("zipCode", 20166),
+                                        field("orderId", "order-1b")
+                                ),
+                                selections(
+                                        field("courierName", "FEDEX"),
+                                        field("deliveryTime", "2020-09-11T16:30:11"),
+                                        field("deliveryHour", "2020-09-11T16"),
+                                        field("deliveryDate", "2020-09-11"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryYear", "2020"),
+                                        field("bySecond", "2020-09-08T16:30:11"),
+                                        field("deliveryDefault", "2020-09-11"),
+                                        field("byDay", "2020-09-08"),
+                                        field("byMonth", "2020-09"),
+                                        field("customerRegion", "Virginia"),
+                                        field("customerRegionRegion", "Virginia"),
+                                        field("orderTotal", 97.36F),
+                                        field("zipCode", 20166),
+                                        field("orderId", "order-1c")
+                                ),
+                                selections(
+                                        field("courierName", "UPS"),
+                                        field("deliveryTime", "2020-09-05T16:30:11"),
+                                        field("deliveryHour", "2020-09-05T16"),
+                                        field("deliveryDate", "2020-09-05"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryYear", "2020"),
+                                        field("bySecond", "2020-08-30T16:30:11"),
+                                        field("deliveryDefault", "2020-09-05"),
+                                        field("byDay", "2020-08-30"),
+                                        field("byMonth", "2020-08"),
+                                        field("customerRegion", "Virginia"),
+                                        field("customerRegionRegion", "Virginia"),
+                                        field("orderTotal", 103.72F),
+                                        field("zipCode", 20166),
+                                        field("orderId", "order-1a")
+                                ),
+                                selections(
+                                        field("courierName", "UPS"),
+                                        field("deliveryTime", "2020-09-13T16:30:11"),
+                                        field("deliveryHour", "2020-09-13T16"),
+                                        field("deliveryDate", "2020-09-13"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryYear", "2020"),
+                                        field("bySecond", "2020-09-09T16:30:11"),
+                                        field("deliveryDefault", "2020-09-13"),
+                                        field("byDay", "2020-09-09"),
+                                        field("byMonth", "2020-09"),
+                                        field("customerRegion", (String) null, false),
+                                        field("customerRegionRegion", (String) null, false),
+                                        field("orderTotal", 78.87F),
+                                        field("zipCode", 0),
+                                        field("orderId", "order-null-enum")
+                                ),
+                                selections(
+                                        field("courierName", "UPS"),
+                                        field("deliveryTime", "2020-09-13T16:30:11"),
+                                        field("deliveryHour", "2020-09-13T16"),
+                                        field("deliveryDate", "2020-09-13"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryYear", "2020"),
+                                        field("bySecond", "2020-09-09T16:30:11"),
+                                        field("deliveryDefault", "2020-09-13"),
+                                        field("byDay", "2020-09-09"),
+                                        field("byMonth", "2020-09"),
+                                        field("customerRegion", "Virginia"),
+                                        field("customerRegionRegion", "Virginia"),
+                                        field("orderTotal", 78.87F),
+                                        field("zipCode", 20170),
+                                        field("orderId", "order-3b")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    /**
+     * Verifies tableMaker logic.  Duplicates everything query for orderDetails (no maker) on
+     * orderDetails2 (maker).
+     * @throws Exception
+     */
+    @Test
+    public void testTableMaker() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails2",
+                                arguments(
+                                        argument("sort", "\"courierName,deliveryDate,orderTotal,customerRegion\""),
+                                        argument("filter", "\"deliveryYear=='2020';(deliveryTime>='2020-08-01';deliveryTime<'2020-12-31');(deliveryDate>='2020-09-01',orderTotal>50)\"")
+                                ),
+                                selections(
+                                        field("courierName"),
+                                        field("deliveryTime"),
+                                        field("deliveryHour"),
+                                        field("deliveryDate"),
+                                        field("deliveryMonth"),
+                                        field("deliveryYear"),
+                                        field("deliveryDefault"),
+                                        field("orderTime", "bySecond", arguments(
+                                                argument("grain", TimeGrain.SECOND)
+                                        )),
+                                        field("orderTime", "byDay", arguments(
+                                                argument("grain", TimeGrain.DAY)
+                                        )),
+                                        field("orderTime", "byMonth", arguments(
+                                                argument("grain", TimeGrain.MONTH)
+                                        )),
+                                        field("customerRegion"),
+                                        field("customerRegionRegion"),
+                                        field("orderTotal"),
+                                        field("zipCode"),
+                                        field("orderId")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails2",
                                 selections(
                                         field("courierName", "FEDEX"),
                                         field("deliveryTime", "2020-09-11T16:30:11"),
@@ -1862,7 +2000,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("countryAlias", "HKG")
                                 ),
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 3147483647L),
                                         field("countryAlias", "USA")
                                 )
                         )
@@ -1916,8 +2054,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("byDay", "2019-07-12")
                                 ),
                                 selections(
-                                        field("highScoreAlias", 2412),
-                                        field("avgScoreAlias", 2412),
+                                        field("highScoreAlias", 3147483647L),
+                                        field("avgScoreAlias", 3147483647L),
                                         field("ratingAlias", "Great"),
                                         field("countryAlias", "USA"),
                                         field("byDay", "2019-07-11")
