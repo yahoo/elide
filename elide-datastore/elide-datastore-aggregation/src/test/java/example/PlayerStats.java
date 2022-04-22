@@ -73,7 +73,7 @@ public class PlayerStats extends ParameterizedModel {
     /**
      * A metric.
      */
-    private float dailyAverageScorePerPeriod;
+    private double dailyAverageScorePerPeriod;
 
     /**
      * A degenerate dimension.
@@ -178,11 +178,11 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @MetricFormula(maker = DailyAverageScorePerPeriodMaker.class)
-    public float getDailyAverageScorePerPeriod() {
+    public double getDailyAverageScorePerPeriod() {
         return fetch("dailyAverageScorePerPeriod", dailyAverageScorePerPeriod);
     }
 
-    public void setDailyAverageScorePerPeriod(final float dailyAverageScorePerPeriod) {
+    public void setDailyAverageScorePerPeriod(final double dailyAverageScorePerPeriod) {
         this.dailyAverageScorePerPeriod = dailyAverageScorePerPeriod;
     }
 
