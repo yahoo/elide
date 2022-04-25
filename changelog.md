@@ -1,5 +1,31 @@
 # Change Log
 
+## 6.1.5
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/d7b8635bcba15ce8103e0cebd42ee6825dfa982d) Aggregation store dynamic table sql (#2626) 
+ * [view commit](https://github.com/yahoo/elide/commit/abb32869ab0e97b8ceaa1bd61b53c579b4ca1c65) Header filtering config (#2627) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/c8dd203ff2dd7aa772c25f66b85b694d428ead08) Bump h2 from 2.1.210 to 2.1.212 (#2606) 
+ * [view commit](https://github.com/yahoo/elide/commit/18df59e522559aa6f9329c2127096ab3c8c8bb9e) Fixes #2615 (#2616) 
+ * [view commit](https://github.com/yahoo/elide/commit/2aa70c7433ff601eeb94711175d0c7fe5cb08c43) Removed unnecessary conversion to JsonNode when serializing JSON-API … (#2618) 
+ * [view commit](https://github.com/yahoo/elide/commit/6a5f8bc3d6eba21182f3eafa5c2b996492430091) Bump spring-core from 5.3.18 to 5.3.19 (#2609) 
+ * [view commit](https://github.com/yahoo/elide/commit/e15ec1cbb44ac64a4b2ee13798a60cf398ed81ec) Bump spring-websocket from 5.3.18 to 5.3.19 (#2611) 
+ * [view commit](https://github.com/yahoo/elide/commit/7dca40789acb914af4ba8c9c5ea287b819dd7cd8) Bump classgraph from 4.8.143 to 4.8.146 (#2610) 
+ * [view commit](https://github.com/yahoo/elide/commit/ec67bf5cda12410178ada8064faf28e2a936cfc9) Bump lombok from 1.18.22 to 1.18.24 (#2614) 
+ * [view commit](https://github.com/yahoo/elide/commit/9d5b98b5d41e8676f149ce1669d1826b766acd1b) fix: support big number aggregations (#2628) 
+ * [view commit](https://github.com/yahoo/elide/commit/c0a05167ad9caa5b1a55dfac08f4664805825e4c) Bump maven-javadoc-plugin from 3.3.2 to 3.4.0 (#2623) 
+ * [view commit](https://github.com/yahoo/elide/commit/35edc6b4b61060e64c428cdbaa8089eec3e5bee6) Bump jedis from 4.2.1 to 4.2.2 (#2621) 
+ * [view commit](https://github.com/yahoo/elide/commit/625e0eb638fc099472607532b46caaef59e30c64) Bump hibernate5.version from 5.6.7.Final to 5.6.8.Final (#2613) 
+ * [view commit](https://github.com/yahoo/elide/commit/818f959ecff6d493942a12923eaac436ef9d16cd) Bump maven-site-plugin from 3.11.0 to 3.12.0 (#2629) 
+ * [view commit](https://github.com/yahoo/elide/commit/f6d3b687dc287623cfcf19254a7c166f467866f4) Bump micrometer-core from 1.8.4 to 1.8.5 (#2624) 
+ * [view commit](https://github.com/yahoo/elide/commit/263beb90c0ea2270937fc7429ba44735fa3b84cb) Bump spring.boot.version from 2.6.6 to 2.6.7 (#2631) 
+ * [view commit](https://github.com/yahoo/elide/commit/d8e2a86e0793724714c606ea43ec07a9292db636) Bump graphql-java-extended-scalars from 17.0 to 18.0 (#2630) 
+ * [view commit](https://github.com/yahoo/elide/commit/e4e14fdcf219d557ff71c6bf3cfedeaa2ef84f9e) Bump nexus-staging-maven-plugin from 1.6.12 to 1.6.13 (#2634) 
+ * [view commit](https://github.com/yahoo/elide/commit/886262b597e64bc4e03c057cd0843f717fffd8e1) Bump mockito-junit-jupiter from 4.4.0 to 4.5.1 (#2633) 
+ * [view commit](https://github.com/yahoo/elide/commit/dca470023c7a34a5d0b5d4dfd969493c0fccdb1b) Bump checkstyle from 10.1 to 10.2 (#2635) 
+ * [view commit](https://github.com/yahoo/elide/commit/7762d7f09e02a24b2c1ccb302c6a6f6c734c5512) Bump dependency-check-maven from 7.0.4 to 7.1.0 (#2636) 
+
 ## 6.1.4
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/e94d36ad948a540f7a45af858b7b44d554f8656a) Bump spring-core from 5.3.16 to 5.3.18 in /elide-model-config (#2572) 
