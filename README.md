@@ -210,7 +210,7 @@ Please refer to [the contributing.md file](CONTRIBUTING.md) for information abou
 
 If you are contributing to Elide using an IDE, such as IntelliJ, make sure to install the [Lombok](https://projectlombok.org/) plugin.
 
-Community chat is now on [discord](https://discord.com/widget?id=869678398241398854&theme=dark).
+Community chat is now on [discord](https://discord.com/widget?id=869678398241398854&theme=dark).  Join by clicking [here](https://discord.gg/3vh8ac57cc).
 Legacy discussion is archived on [spectrum](https://spectrum.chat/elide).
 
 ## License
