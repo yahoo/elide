@@ -10,10 +10,12 @@ import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.apollographql.federation.graphqljava.Federation;
 import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -218,7 +220,8 @@ public class ModelBuilder {
                                 inputObjectRegistry.values())))
                 .build();
 
-        return schema;
+        //Enable Apollo Federation
+        return Federation.transform(schema).build();
     }
 
     /**

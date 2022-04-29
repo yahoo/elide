@@ -162,7 +162,7 @@ public class GraphQLEntityProjectionMaker {
             Field rootSelectionField = (Field) rootSelection;
             String entityName = rootSelectionField.getName();
             String aliasName = rootSelectionField.getAlias();
-            if (SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
+            if ("_service".equals(entityName) || SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
                 // '__schema' and '__type' would not be handled by entity projection
                 return;
             }
