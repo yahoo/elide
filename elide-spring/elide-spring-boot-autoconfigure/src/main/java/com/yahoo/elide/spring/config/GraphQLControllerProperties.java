@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
 public class GraphQLControllerProperties extends ControllerProperties {
 
     /**
-     * Turns on/off Apollo federation schema
+     * Turns on/off Apollo federation schema.
      */
     boolean enableFederation = false;
 }
