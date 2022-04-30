@@ -162,10 +162,13 @@ public class GraphQLEntityProjectionMaker {
             Field rootSelectionField = (Field) rootSelection;
             String entityName = rootSelectionField.getName();
             String aliasName = rootSelectionField.getAlias();
+
+            //_service comes from Apollo federation spec
             if ("_service".equals(entityName) || SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
-                // '__schema' and '__type' would not be handled by entity projection
+                // '_service' and '__schema' and '__type' would not be handled by entity projection
                 return;
             }
+
             Type<?> entityType = getRootEntity(rootSelectionField.getName(), apiVersion);
             if (entityType == null) {
                 throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
