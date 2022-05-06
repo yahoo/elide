@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Sorting;
@@ -102,8 +104,10 @@ public class ModelBuilderTest {
     @Test
     public void testInternalModelConflict() {
         DataFetcher fetcher = mock(DataFetcher.class);
+        ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
@@ -124,8 +128,10 @@ public class ModelBuilderTest {
     @Test
     public void testPageInfoObject() {
         DataFetcher fetcher = mock(DataFetcher.class);
+        ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
@@ -136,8 +142,10 @@ public class ModelBuilderTest {
     @Test
     public void testRelationshipParameters() {
         DataFetcher fetcher = mock(DataFetcher.class);
+        ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
         GraphQLObjectType root = schema.getQueryType();
@@ -173,8 +181,10 @@ public class ModelBuilderTest {
     @Test
     public void testBuild() {
         DataFetcher fetcher = mock(DataFetcher.class);
+        ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
@@ -251,8 +261,10 @@ public class ModelBuilderTest {
         dictionary.addArgumentsToAttribute(ClassType.of(Book.class), FIELD_PUBLISH_DATE, arguments);
 
         DataFetcher fetcher = mock(DataFetcher.class);
+        ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
@@ -270,8 +282,10 @@ public class ModelBuilderTest {
         dictionary.addArgumentToEntity(ClassType.of(Author.class), new ArgumentType("filterAuthor", ClassType.STRING_TYPE));
 
         DataFetcher fetcher = mock(DataFetcher.class);
+        ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 

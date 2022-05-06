@@ -81,6 +81,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(filterDialect)
                 .withSubqueryFilterDialect(filterDialect)
+                .withGraphQLFederation(true)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
 
