@@ -10,10 +10,13 @@ import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
+
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.apollographql.federation.graphqljava.Federation;
 import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -72,6 +75,8 @@ public class ModelBuilder {
     private Set<Type<?>> excludedEntities;
     private Set<GraphQLObjectType> objectTypes;
 
+    private boolean enableFederation;
+
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
      * @param entityDictionary elide entity dictionary
@@ -80,6 +85,7 @@ public class ModelBuilder {
      */
     public ModelBuilder(EntityDictionary entityDictionary,
                         NonEntityDictionary nonEntityDictionary,
+                        ElideSettings settings,
                         DataFetcher dataFetcher, String apiVersion) {
         objectTypes = new HashSet<>();
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
@@ -88,6 +94,7 @@ public class ModelBuilder {
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
         this.dataFetcher = dataFetcher;
         this.apiVersion = apiVersion;
+        this.enableFederation = settings.isEnableGraphQLFederation();
 
         relationshipOpArg = newArgument()
                 .name(ARGUMENT_OPERATION)
@@ -218,6 +225,8 @@ public class ModelBuilder {
                                 inputObjectRegistry.values())))
                 .build();
 
+        //Enable Apollo Federation
+        schema = (enableFederation) ? Federation.transform(schema).build() : schema;
         return schema;
     }
 

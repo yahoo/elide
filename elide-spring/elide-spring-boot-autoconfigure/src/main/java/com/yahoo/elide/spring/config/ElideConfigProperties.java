@@ -23,7 +23,7 @@ public class ElideConfigProperties {
     /**
      * Settings for the GraphQL controller.
      */
-    private ControllerProperties graphql;
+    private GraphQLControllerProperties graphql;
 
     /**
      * Settings for the Swagger document controller.

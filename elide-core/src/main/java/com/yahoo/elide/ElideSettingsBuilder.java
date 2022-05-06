@@ -63,6 +63,8 @@ public class ElideSettingsBuilder {
     private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
     private int updateStatusCode;
     private boolean enableJsonLinks;
+
+    private boolean enableGraphQLFederation;
     private boolean strictQueryParams = true;
     private String baseUrl = "";
     private String jsonApiPath;
@@ -85,6 +87,7 @@ public class ElideSettingsBuilder {
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
         this.serdes = new LinkedHashMap<>();
         this.enableJsonLinks = false;
+        this.enableGraphQLFederation = false;
 
         //By default, Elide supports epoch based dates.
         this.withEpochDates();
@@ -128,6 +131,7 @@ public class ElideSettingsBuilder {
                 serdes,
                 enableJsonLinks,
                 strictQueryParams,
+                enableGraphQLFederation,
                 baseUrl,
                 jsonApiPath,
                 graphQLApiPath,
@@ -257,6 +261,11 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withStrictQueryParams(boolean enabled) {
         this.strictQueryParams = enabled;
+        return this;
+    }
+
+    public ElideSettingsBuilder withGraphQLFederation(boolean enabled) {
+        this.enableGraphQLFederation = enabled;
         return this;
     }
 }

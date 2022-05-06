@@ -85,7 +85,7 @@ public class QueryRunner {
 
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(nonEntityDictionary);
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(),
-                nonEntityDictionary, fetcher, apiVersion);
+                nonEntityDictionary, elide.getElideSettings(), fetcher, apiVersion);
 
         api = GraphQL.newGraphQL(builder.build())
                 .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
