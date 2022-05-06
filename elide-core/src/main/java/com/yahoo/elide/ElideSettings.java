@@ -47,6 +47,7 @@ public class ElideSettings {
     @Getter private final Map<Class, Serde> serdes;
     @Getter private final boolean enableJsonLinks;
     @Getter private final boolean strictQueryParams;
+    @Getter private final boolean enableGraphQLFederation;
     @Getter private final String baseUrl;
     @Getter private final String jsonApiPath;
     @Getter private final String graphQLApiPath;

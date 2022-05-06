@@ -195,6 +195,10 @@ public class ElideAutoConfiguration {
             builder.withExportApiPath(settings.getAsync().getExport().getPath());
         }
 
+        if (settings.getGraphql() != null && settings.getGraphql().enableFederation) {
+            builder.withGraphQLFederation(true);
+        }
+
         if (settings.getJsonApi() != null
                 && settings.getJsonApi().isEnabled()
                 && settings.getJsonApi().isEnableLinks()) {
