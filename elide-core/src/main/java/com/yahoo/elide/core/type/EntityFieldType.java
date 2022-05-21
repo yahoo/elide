@@ -53,7 +53,7 @@ public class EntityFieldType extends FieldType {
 
     @Override
     public Type<?> getParameterizedType(Type<?> parentType, Optional<Integer> index) {
-        if (toMany && index.isPresent() && targetEntity != null) {
+        if (index.isPresent() && targetEntity != null) {
                 return targetEntity;
         }
         return super.getParameterizedType(parentType, index);
