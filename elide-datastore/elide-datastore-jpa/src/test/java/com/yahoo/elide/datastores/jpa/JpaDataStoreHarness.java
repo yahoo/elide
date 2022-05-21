@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
 import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
+import example.models.targetEntity.SWE;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
 
@@ -67,6 +68,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
         try {
             bindClasses.addAll(scanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(SWE.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));

@@ -6,16 +6,24 @@
 
 package com.yahoo.elide.targetEntity;
 
-import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.initialization.IntegrationTest;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
-
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.*;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+
+import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.initialization.IntegrationTest;
+import org.junit.jupiter.api.Test;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TargetEntityIT extends IntegrationTest {
@@ -29,7 +37,6 @@ public class TargetEntityIT extends IntegrationTest {
                         datum(
                                 resource(
                                         type("swe"),
-                                        id(null),
                                         attributes(
                                                 attr("name", "peon")
                                         )
@@ -38,6 +45,7 @@ public class TargetEntityIT extends IntegrationTest {
                 )
                 .post("/swe")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_CREATED)
                 .body("data.id", equalTo("1"));
 
@@ -48,7 +56,6 @@ public class TargetEntityIT extends IntegrationTest {
                         datum(
                                 resource(
                                         type("boss"),
-                                        id(null),
                                         attributes(
                                                 attr("name", "boss")
                                         ),
@@ -60,6 +67,7 @@ public class TargetEntityIT extends IntegrationTest {
                 )
                 .post("/boss")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_CREATED)
                 .body("data.id", equalTo("1"));
 
@@ -68,6 +76,7 @@ public class TargetEntityIT extends IntegrationTest {
                 .when()
                 .get("/boss/1")
                 .then()
+                .log().all()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body("data.id", equalTo("1"),
                         "data.relationships.reports.data.id", contains("1"),

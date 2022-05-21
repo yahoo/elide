@@ -9,15 +9,14 @@ package example.models.targetEntity;
 import com.yahoo.elide.annotation.Include;
 import lombok.Data;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 @Include(name = "swe")
 @Data
+@Entity
 public class SWE {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private String name;

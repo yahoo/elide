@@ -9,17 +9,16 @@ package example.models.targetEntity;
 import com.yahoo.elide.annotation.Include;
 import lombok.Data;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import java.util.Set;
+import javax.persistence.*;
 
 @Include(name = "boss")
 @Data
+@Entity(name = "boss")
 public class Manager implements Employee {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private String name;
