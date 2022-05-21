@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Aaron Klish Inc.
+ * Copyright 2022, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -7,11 +7,12 @@ package com.yahoo.elide.core.type;
 
 import lombok.EqualsAndHashCode;
 
+import java.util.Optional;
+
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import java.util.Optional;
 
 /**
  * Elide Method that wraps a Java Method for a JPA entity.  If the method is a relationship with targetEntity set,
@@ -44,7 +45,7 @@ public class EntityMethodType extends MethodType {
 
     @Override
     public Type<?> getReturnType() {
-        if (!toMany && targetEntity != null) {
+        if (! toMany && targetEntity != null) {
             return targetEntity;
         }
 
@@ -53,7 +54,7 @@ public class EntityMethodType extends MethodType {
 
     @Override
     public Type<?> getParameterizedReturnType(Type<?> parentType, Optional<Integer> index) {
-        if (targetEntity != null) {
+        if (toMany && index.isPresent() && targetEntity != null) {
             return targetEntity;
         }
 

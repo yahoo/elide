@@ -637,7 +637,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 "getType returns the type of surrogate key");
 
         // Test targetEntity on a method.
-        assertEquals(ClassType.of(Book.class), getType(ClassType.of(Author.class), "products"));
+        assertEquals(ClassType.of(Collection.class), getType(ClassType.of(Author.class), "products"));
     }
 
     @Test

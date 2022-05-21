@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Aaron Klish.
+ * Copyright 2022, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -7,11 +7,12 @@ package com.yahoo.elide.core.type;
 
 import lombok.EqualsAndHashCode;
 
+import java.util.Optional;
+
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import java.util.Optional;
 
 /**
  * Elide field that wraps a Java field for a JPA entity.  If the field is a relationship with targetEntity set,
@@ -39,7 +40,6 @@ public class EntityFieldType extends FieldType {
         } else if (field.isAnnotationPresent(ManyToOne.class)) {
             entityType = field.getAnnotation(ManyToOne.class).targetEntity();
         }
-
         targetEntity = entityType == null || entityType.equals(void.class) ? null : ClassType.of(entityType);
     }
 
@@ -53,8 +53,8 @@ public class EntityFieldType extends FieldType {
 
     @Override
     public Type<?> getParameterizedType(Type<?> parentType, Optional<Integer> index) {
-        if (targetEntity != null) {
-            return targetEntity;
+        if (toMany && index.isPresent() && targetEntity != null) {
+                return targetEntity;
         }
         return super.getParameterizedType(parentType, index);
     }
