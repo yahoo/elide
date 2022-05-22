@@ -8,6 +8,7 @@ package example.models.targetEntity;
 
 import com.yahoo.elide.annotation.Include;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 
@@ -22,5 +23,6 @@ public class SWE {
     private String name;
 
     @OneToOne(targetEntity = Manager.class)
+    @EqualsAndHashCode.Exclude
     private Employee boss;
 }

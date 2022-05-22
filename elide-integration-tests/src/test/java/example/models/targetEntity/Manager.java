@@ -8,6 +8,7 @@ package example.models.targetEntity;
 
 import com.yahoo.elide.annotation.Include;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Set;
 import javax.persistence.*;
@@ -24,5 +25,6 @@ public class Manager implements Employee {
     private String name;
 
     @OneToMany(targetEntity = SWE.class, mappedBy = "boss")
+    @EqualsAndHashCode.Exclude
     Set<Employee> reports;
 }
