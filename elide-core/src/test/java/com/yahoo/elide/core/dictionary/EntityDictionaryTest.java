@@ -422,7 +422,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 "getParameterizedType returns the correct targetEntity type of a to-many relationship");
 
         assertEquals(ClassType.of(Manager.class), getParameterizedType(ClassType.of(Employee.class), "boss"),
-                "getType returns the correct generic type of a to-one relationship");
+                "getParameterizedType returns the correct generic type of a to-one relationship");
     }
 
     @Test
