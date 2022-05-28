@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.core.type;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -14,8 +16,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EntityMethodTypeTest {
 
