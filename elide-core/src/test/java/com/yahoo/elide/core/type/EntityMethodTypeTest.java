@@ -39,6 +39,10 @@ public class EntityMethodTypeTest {
         public Object getField4() {
             return null;
         }
+
+        public Object getField5() {
+            return null;
+        }
     }
 
     @Test
@@ -46,7 +50,7 @@ public class EntityMethodTypeTest {
 
         Type<?> type = ClassType.of(TestModel.class);
 
-        String [] methodNames = {"getField1", "getField2", "getField3", "getField4"};
+        String [] methodNames = {"getField1", "getField2", "getField3", "getField4", "getField5"};
 
         for (String methodName : methodNames) {
             Method method = type.getMethod(methodName);
@@ -65,5 +69,8 @@ public class EntityMethodTypeTest {
             Method method = type.getMethod(methodName);
             assertEquals(ClassType.STRING_TYPE, method.getParameterizedReturnType(type, Optional.of(0)));
         }
+
+        Method method = type.getMethod("getField5");
+        assertEquals(ClassType.OBJECT_TYPE, method.getParameterizedReturnType(type, Optional.of(0)));
     }
 }

@@ -30,6 +30,8 @@ public class EntityFieldTypeTest {
 
         @ManyToMany(targetEntity = String.class)
         Object field4;
+
+        Object field5;
     }
 
     @Test
@@ -37,7 +39,7 @@ public class EntityFieldTypeTest {
 
         Type<?> type = ClassType.of(TestModel.class);
 
-        String [] fieldNames = {"field1", "field2", "field3", "field4"};
+        String [] fieldNames = {"field1", "field2", "field3", "field4", "field5"};
 
         for (String fieldName : fieldNames) {
             Field field = type.getDeclaredField(fieldName);
@@ -56,5 +58,8 @@ public class EntityFieldTypeTest {
             Field field = type.getDeclaredField(fieldName);
             assertEquals(ClassType.STRING_TYPE, field.getParameterizedType(type, Optional.of(0)));
         }
+
+        Field field = type.getDeclaredField("field5");
+        assertEquals(ClassType.OBJECT_TYPE, field.getParameterizedType(type, Optional.of(0)));
     }
 }
