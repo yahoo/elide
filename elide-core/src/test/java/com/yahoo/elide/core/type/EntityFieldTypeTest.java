@@ -8,11 +8,12 @@ package com.yahoo.elide.core.type;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
