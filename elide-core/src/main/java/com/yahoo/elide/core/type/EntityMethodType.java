@@ -44,17 +44,8 @@ public class EntityMethodType extends MethodType {
     }
 
     @Override
-    public Type<?> getReturnType() {
-        if (! toMany && targetEntity != null) {
-            return targetEntity;
-        }
-
-        return super.getReturnType();
-    }
-
-    @Override
     public Type<?> getParameterizedReturnType(Type<?> parentType, Optional<Integer> index) {
-        if (index.isPresent() && targetEntity != null) {
+        if (targetEntity != null) {
             return targetEntity;
         }
 

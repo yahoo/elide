@@ -44,16 +44,8 @@ public class EntityFieldType extends FieldType {
     }
 
     @Override
-    public Type<?> getType() {
-        if (!toMany && targetEntity != null) {
-            return targetEntity;
-        }
-        return super.getType();
-    }
-
-    @Override
     public Type<?> getParameterizedType(Type<?> parentType, Optional<Integer> index) {
-        if (index.isPresent() && targetEntity != null) {
+        if (targetEntity != null) {
                 return targetEntity;
         }
         return super.getParameterizedType(parentType, index);

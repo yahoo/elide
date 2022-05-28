@@ -414,26 +414,21 @@ public class EntityBinding {
         RelationshipType type;
         String mappedBy = "";
         CascadeType[] cascadeTypes = new CascadeType[0];
-        Class<?> entityType = void.class;
         if (oneToMany) {
             type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_MANY : RelationshipType.ONE_TO_MANY;
             mappedBy = fieldOrMethod.getAnnotation(OneToMany.class).mappedBy();
             cascadeTypes = fieldOrMethod.getAnnotation(OneToMany.class).cascade();
-            entityType = fieldOrMethod.getAnnotation(OneToMany.class).targetEntity();
         } else if (oneToOne) {
             type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_ONE : RelationshipType.ONE_TO_ONE;
             mappedBy = fieldOrMethod.getAnnotation(OneToOne.class).mappedBy();
             cascadeTypes = fieldOrMethod.getAnnotation(OneToOne.class).cascade();
-            entityType = fieldOrMethod.getAnnotation(OneToOne.class).targetEntity();
         } else if (manyToMany) {
             type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_MANY : RelationshipType.MANY_TO_MANY;
             mappedBy = fieldOrMethod.getAnnotation(ManyToMany.class).mappedBy();
             cascadeTypes = fieldOrMethod.getAnnotation(ManyToMany.class).cascade();
-            entityType = fieldOrMethod.getAnnotation(ManyToMany.class).targetEntity();
         } else if (manyToOne) {
             type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_ONE : RelationshipType.MANY_TO_ONE;
             cascadeTypes = fieldOrMethod.getAnnotation(ManyToOne.class).cascade();
-            entityType = fieldOrMethod.getAnnotation(ManyToOne.class).targetEntity();
         } else if (toOne) {
             type = RelationshipType.COMPUTED_ONE_TO_ONE;
         } else if (toMany) {
@@ -444,10 +439,6 @@ public class EntityBinding {
         relationshipTypes.put(fieldName, type);
         relationshipToInverse.put(fieldName, mappedBy);
         relationshipToCascadeTypes.put(fieldName, cascadeTypes);
-
-        if (! entityType.equals(void.class) && type.isToOne()) {
-            fieldType = ClassType.of(entityType);
-        }
 
         if (!isHidden) {
             relationshipsDeque.push(fieldName);
@@ -525,9 +516,11 @@ public class EntityBinding {
      * @param fieldOrMethod field or method
      * @return field type
      */
-    public static Type<?> getFieldType(Type<?> parentClass,
-                                         AccessibleObject fieldOrMethod) {
-        return getFieldType(parentClass, fieldOrMethod, Optional.empty());
+    public static Type<?> getFieldType(Type<?> parentClass, AccessibleObject fieldOrMethod) {
+        if (fieldOrMethod instanceof Field) {
+            return ((Field) fieldOrMethod).getType();
+        }
+        return ((Method) fieldOrMethod).getReturnType();
     }
 
     /**
