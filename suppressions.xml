@@ -18,7 +18,7 @@
         <cve>CVE-2022-29885</cve>
     </suppress>
 
-    <!-- There is not fix for hibernate search -->
+    <!-- There is no fix for hibernate search -->
     <suppress until="2022-12-31">
         <cve>CVE-2017-12629</cve>
     </suppress>
