@@ -11,7 +11,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Set;
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Include(name = "boss")
 @Data
