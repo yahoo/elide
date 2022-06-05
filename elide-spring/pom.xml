@@ -40,7 +40,7 @@
 
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
-        <spring.boot.version>2.6.7</spring.boot.version>
+        <spring.boot.version>2.6.8</spring.boot.version>
         <groovy.version>3.0.10</groovy.version>
         <tomcat.version>9.0.58</tomcat.version>
     </properties>
@@ -69,7 +69,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-websocket</artifactId>
-                <version>5.3.19</version>
+                <version>5.3.20</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>

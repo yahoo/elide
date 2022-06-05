@@ -49,7 +49,7 @@ import javax.persistence.Transient;
         logExpressions = {"${book.title}"})
 @AllArgsConstructor
 @NoArgsConstructor
-public class Book {
+public class Book implements Product {
     private long id;
     private String title;
     private String genre;

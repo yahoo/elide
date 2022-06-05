@@ -415,6 +415,14 @@ public class EntityDictionaryTest extends EntityDictionary {
                 ClassType.of(Employee.class),
                 getParameterizedType(ClassType.of(Manager.class), "minions"),
                 "getParameterizedType returns the correct generic type of a to-many relationship");
+
+        assertEquals(
+                ClassType.of(Book.class),
+                getParameterizedType(ClassType.of(Author.class), "products"),
+                "getParameterizedType returns the correct targetEntity type of a to-many relationship");
+
+        assertEquals(ClassType.of(Manager.class), getParameterizedType(ClassType.of(Employee.class), "boss"),
+                "getParameterizedType returns the correct generic type of a to-one relationship");
     }
 
     @Test
@@ -611,7 +619,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals(ClassType.of(String.class), getType(ClassType.of(Friend.class), "name"),
                 "getType returns the type of attribute when defined in a super class");
 
-        assertEquals(ClassType.of(Manager.class), getType(ClassType.of(Employee.class), "boss"),
+        assertEquals(ClassType.of(Object.class), getType(ClassType.of(Employee.class), "boss"),
                 "getType returns the correct generic type of a to-one relationship");
 
         assertEquals(ClassType.of(Set.class), getType(ClassType.of(Manager.class), "minions"),
@@ -630,6 +638,9 @@ public class EntityDictionaryTest extends EntityDictionary {
                 "getType returns the type of surrogate key");
         assertEquals(ClassType.of(String.class), getType(ClassType.of(StringId.class), "id"),
                 "getType returns the type of surrogate key");
+
+        // Test targetEntity on a method.
+        assertEquals(ClassType.of(Collection.class), getType(ClassType.of(Author.class), "products"));
     }
 
     @Test
