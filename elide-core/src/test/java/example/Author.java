@@ -66,6 +66,10 @@ public class Author {
     @Getter @Setter
     private Collection<Book> books = new ArrayList<>();
 
+    @ManyToMany(targetEntity = Book.class, mappedBy = "authors")
+    @Getter @Setter
+    private Collection<Product> products = new ArrayList<>();
+
     @Getter @Setter
     private AuthorType type;
 
