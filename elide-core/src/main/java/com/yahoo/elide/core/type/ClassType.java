@@ -179,7 +179,7 @@ public class ClassType<T> implements Type<T> {
             return null;
         }
 
-        return new FieldType(field);
+        return new EntityFieldType(field);
     }
 
     private static Method constructMethod(java.lang.reflect.Executable method) {
@@ -187,7 +187,7 @@ public class ClassType<T> implements Type<T> {
             return null;
         }
 
-        return new MethodType(method);
+        return new EntityMethodType(method);
     }
 
     private static Package constructPackage(java.lang.Package pkg) {

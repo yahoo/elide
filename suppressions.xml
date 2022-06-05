@@ -7,4 +7,20 @@
     <suppress until="2022-12-31">
         <cve>CVE-2020-0822</cve>
     </suppress>
+
+    <suppress until="2022-12-31">
+        <notes><![CDATA[Ignored since we are not vulnerable]]></notes>
+        <cve>CVE-2016-1000027</cve>
+    </suppress>
+
+    <!-- Tomcat - Not really used by Elide (only for tests) -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-29885</cve>
+    </suppress>
+
+    <!-- There is no fix for hibernate search -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2017-12629</cve>
+    </suppress>
+
 </suppressions>
