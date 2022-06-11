@@ -1,5 +1,40 @@
 # Change Log
 
+## 6.1.6
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/af3e1d9d64479e3ca0f5141bec8b906843d11248) Minimum to expose _service.sdl for Apollo federation. (#2640) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/ba7faef135fe9085e9959d2bb286574cf7e2a843) Adding explicit discord link. 
+ * [view commit](https://github.com/yahoo/elide/commit/8adc4439ded747d4dd1191ad5fed6131bde39cb6) Add Injector Bean (#2637) 
+ * [view commit](https://github.com/yahoo/elide/commit/d8cdbb9204a27c6083473f6433bda076384f978c) Bump caffeine from 3.0.6 to 3.1.0 (#2643) 
+ * [view commit](https://github.com/yahoo/elide/commit/cb500d13439d63b267e6219e35e672d7d32b3b82) Bump spring-cloud-context from 3.1.1 to 3.1.2 (#2642) 
+ * [view commit](https://github.com/yahoo/elide/commit/6eb767cd30faa745479bb8910de3937ba5eed971) Bump graphql-java from 18.0 to 18.1 (#2645) 
+ * [view commit](https://github.com/yahoo/elide/commit/4b3f318fdb6486185ecb17bcde47f3b32d461df0) Bump jedis from 4.2.2 to 4.2.3 (#2646) 
+ * [view commit](https://github.com/yahoo/elide/commit/ae34fede3835c107617dbc448ce32573ad5ec8e8) Issue2650 (#2653) 
+ * [view commit](https://github.com/yahoo/elide/commit/26669553093b2d85b385c7298fd53a7225c4cf4d) Bump spring-core from 5.3.19 to 5.3.20 in /elide-model-config (#2654) 
+ * [view commit](https://github.com/yahoo/elide/commit/2b5759ac2fc589f2da9a08c45577f28d37f4e4ad) Bump federation-graphql-java-support from 2.0.0-alpha.5 to 2.0.1 (#2655) 
+ * [view commit](https://github.com/yahoo/elide/commit/c5583f4a79fe501742d57dc9a2b65078f870d8f3) Bump javassist from 3.28.0-GA to 3.29.0-GA (#2651) 
+ * [view commit](https://github.com/yahoo/elide/commit/9dd4ffc25d8318edcf167d10e4dd6e053d0061d0) Bump artemis-jms-server from 2.21.0 to 2.22.0 (#2644) 
+ * [view commit](https://github.com/yahoo/elide/commit/a7d8c2435177faadfe97554dc107fd822025b6c9) Bump artemis-server from 2.21.0 to 2.22.0 (#2647) 
+ * [view commit](https://github.com/yahoo/elide/commit/a2e9e205351b090c1186fd03298e1d5f86591c99) Bump version.restassured from 5.0.1 to 5.1.0 (#2658) 
+ * [view commit](https://github.com/yahoo/elide/commit/403132f7569c2b568b38f653bd1a08c681e9d53f) Bump micrometer-core from 1.8.5 to 1.9.0 (#2657) 
+ * [view commit](https://github.com/yahoo/elide/commit/dfcb6a3cd5a3748259380f58d525eeda6fb1d4f1) Bump hibernate5.version from 5.6.8.Final to 5.6.9.Final (#2659) 
+ * [view commit](https://github.com/yahoo/elide/commit/144909516ffa9e99d7a6f1cb8c86d8737b2603bf) Bump spring.boot.version from 2.6.8 to 2.7.0 (#2663) 
+ * [view commit](https://github.com/yahoo/elide/commit/b24f7aa63971d67def337add1dab69cd6cf80508) Bump mockito-junit-jupiter from 4.5.1 to 4.6.1 (#2661) 
+ * [view commit](https://github.com/yahoo/elide/commit/42ce8325fcd0719b5d2d47c263a668b08b332a87) Bump caffeine from 3.1.0 to 3.1.1 (#2660) 
+ * [view commit](https://github.com/yahoo/elide/commit/c806f4b6373277b9f7c5b1841dc01811cf1b21c8) Bump spring-cloud-context from 3.1.2 to 3.1.3 (#2666) 
+ * [view commit](https://github.com/yahoo/elide/commit/fe1615198a05f18f73e08f64218eabd02da27660) Bump jackson-databind from 2.13.2.2 to 2.13.3 (#2665) 
+ * [view commit](https://github.com/yahoo/elide/commit/f0d5019d7a2dd96643022bb37f45b882cab2f3bd) Bump maven-surefire-plugin from 3.0.0-M6 to 3.0.0-M7 (#2664) 
+ * [view commit](https://github.com/yahoo/elide/commit/c9da5e7e3ede34269de31eef55e2362790e9a050) Bump version.jackson from 2.13.2 to 2.13.3 (#2662) 
+ * [view commit](https://github.com/yahoo/elide/commit/e7cb5a5bf3e3f8f5b0f02331b079270605959324) Bump maven-scm-api from 1.12.2 to 1.13.0 (#2667) 
+ * [view commit](https://github.com/yahoo/elide/commit/9cd66ef30f62bd5bced39d7cedb487deb759324e) Bump maven-scm-provider-gitexe from 1.12.2 to 1.13.0 (#2668) 
+ * [view commit](https://github.com/yahoo/elide/commit/44bcaa3eb7af39ec8d33eba863fdca467e1d1a7c) Bump graphql-java-extended-scalars from 18.0 to 18.1 (#2669) 
+ * [view commit](https://github.com/yahoo/elide/commit/0602ae73e28a0733b8d0fd77990d6754993bc394) Bump groovy.version from 3.0.10 to 3.0.11 (#2670) 
+ * [view commit](https://github.com/yahoo/elide/commit/a01f79633bee592f4cce5c31d8adaba62974553c) Bump checkstyle from 10.2 to 10.3 (#2671) 
+ * [view commit](https://github.com/yahoo/elide/commit/0cac28a628c89f5c2ae60dd3c7f77a7833d8e3fb) Bump artemis-jms-client-all from 2.21.0 to 2.22.0 (#2672) 
+ * [view commit](https://github.com/yahoo/elide/commit/6175753e11e39cadf5075eec72e16dee4c0f23c1) Bump classgraph from 4.8.146 to 4.8.147 (#2673) 
+
 ## 6.1.5
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/d7b8635bcba15ce8103e0cebd42ee6825dfa982d) Aggregation store dynamic table sql (#2626) 
