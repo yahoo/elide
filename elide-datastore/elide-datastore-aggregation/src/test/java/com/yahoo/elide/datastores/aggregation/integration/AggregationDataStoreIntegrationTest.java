@@ -55,8 +55,10 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import example.PlayerStats;
 import example.TestCheckMappings;
+
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,6 +68,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import redis.embedded.RedisServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,10 +96,13 @@ import javax.ws.rs.core.SecurityContext;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest {
+    private static final int PORT = 6379;
 
     @Mock private static SecurityContext securityContextMock;
 
     public static DynamicConfigValidator VALIDATOR;
+
+    private RedisServer redisServer;
 
     static {
         VALIDATOR = new DynamicConfigValidator(DefaultClassScanner.getInstance(), "src/test/resources/configs");
@@ -142,6 +149,21 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     @BeforeAll
     public void beforeAll() {
         SQLUnitTest.init();
+        try {
+            redisServer = new RedisServer(PORT);
+            redisServer.start();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @AfterAll
+    public void afterEverything() {
+        try {
+            redisServer.stop();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @BeforeEach

@@ -11,6 +11,7 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
+import com.yahoo.elide.datastores.aggregation.cache.RedisCache;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
@@ -25,6 +26,8 @@ import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.hibernate.Session;
 import lombok.AllArgsConstructor;
 
+import redis.clients.jedis.JedisPooled;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,6 +39,10 @@ import javax.sql.DataSource;
 
 @AllArgsConstructor
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
+    private static final String HOST = "localhost";
+    private static final int PORT = 6379;
+    private static final int EXPIRATION_MINUTES = 2;
+
     private EntityManagerFactory entityManagerFactory;
     private ConnectionDetails defaultConnectionDetails;
     private Map<String, ConnectionDetails> connectionDetailsMap;
@@ -52,6 +59,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
     @Override
     public DataStore getDataStore() {
+        JedisPooled jedisPool = new JedisPooled(HOST, PORT);
+        RedisCache cache = new RedisCache(jedisPool, EXPIRATION_MINUTES);
 
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
 
@@ -75,6 +84,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                         new DefaultQueryPlanMerger(metaDataStore),
                         new DefaultQueryValidator(metaDataStore.getMetadataDictionary())))
                 .queryLogger(new Slf4jQueryLogger())
+                .cache(cache)
                 .build();
 
         Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
