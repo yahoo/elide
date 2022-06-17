@@ -6,6 +6,7 @@
 package com.yahoo.elide.modelconfig.model;
 
 import static com.yahoo.elide.modelconfig.model.NamespaceConfig.DEFAULT;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -14,6 +15,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
  * Joins describe the SQL expression necessary to join two physical tables.
@@ -33,7 +36,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Join implements Named {
+public class Join implements Named, Serializable {
 
     @JsonProperty("name")
     private String name;

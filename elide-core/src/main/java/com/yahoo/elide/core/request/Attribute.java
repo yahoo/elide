@@ -22,7 +22,7 @@ import java.util.Set;
  */
 @Data
 @Builder
-public class Attribute implements Serializable{
+public class Attribute implements Serializable {
     private static final long serialVersionUID = 3009706331255770579L;
 
     @NonNull

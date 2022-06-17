@@ -6,12 +6,13 @@
 
 package com.yahoo.elide.core.type;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 
 /**
  * Base interface for fields and methods.
  */
-public interface AccessibleObject extends Member {
+public interface AccessibleObject extends Member, Serializable {
 
     /**
      * The name of the field or method.

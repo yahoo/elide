@@ -81,7 +81,7 @@ public class TableType implements Type<DynamicModelInstance>, Serializable {
     public static final Pattern NEWLINE = Pattern.compile(System.lineSeparator(), Pattern.LITERAL);
 
     protected Table table;
-    private Map<Class<? extends Annotation>, Annotation> annotations;
+    private transient Map<Class<? extends Annotation>, Annotation> annotations;
     private Map<String, Field> fields;
     private Package namespace;
 

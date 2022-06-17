@@ -10,6 +10,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import org.hibernate.annotations.Subselect;
 import lombok.Data;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -21,7 +23,7 @@ import javax.persistence.Id;
 @Entity
 @Include
 @Subselect(value = "select * from countries")
-public class SubCountry {
+public class SubCountry implements Serializable {
 
     private String id;
 

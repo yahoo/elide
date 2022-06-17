@@ -14,6 +14,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * Grain can have SQL expressions that can substitute column
  * with the dimension definition expression.
@@ -28,7 +30,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Grain {
+public class Grain implements Serializable {
 
 
     @JsonProperty("type")

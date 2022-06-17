@@ -30,7 +30,7 @@ public class NamespacePackage implements Package {
             new NamespacePackage(EMPTY, "Default Namespace", DEFAULT, NO_VERSION);
 
     protected NamespaceConfig namespace;
-    private Map<Class<? extends Annotation>, Annotation> annotations;
+    private transient Map<Class<? extends Annotation>, Annotation> annotations;
 
     public NamespacePackage(NamespaceConfig namespace) {
         if (namespace.getName().equals(DEFAULT)) {

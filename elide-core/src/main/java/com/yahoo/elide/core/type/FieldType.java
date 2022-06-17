@@ -9,6 +9,7 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
@@ -18,8 +19,8 @@ import java.util.Optional;
  */
 @AllArgsConstructor
 @EqualsAndHashCode
-public class FieldType implements Field {
-
+public class FieldType implements Field, Serializable {
+    private static final long serialVersionUID = -1949519786163885434L;
     private java.lang.reflect.Field field;
 
     @Override

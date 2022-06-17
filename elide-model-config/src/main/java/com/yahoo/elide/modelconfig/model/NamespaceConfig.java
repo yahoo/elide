@@ -6,6 +6,7 @@
 package com.yahoo.elide.modelconfig.model;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -14,6 +15,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
  * Namespace Config JSON.
@@ -31,7 +34,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NamespaceConfig implements Named {
+public class NamespaceConfig implements Named, Serializable {
 
     public static String DEFAULT = "default";
 

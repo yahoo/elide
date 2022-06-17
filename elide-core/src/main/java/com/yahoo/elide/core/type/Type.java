@@ -15,6 +15,7 @@ import java.util.Optional;
  * @param <T> The underlying Java class.
  */
 public interface Type<T> extends java.lang.reflect.Type, Serializable {
+    static final long serialVersionUID = -51926356467315522L;
 
     /**
      * Gets the canonical name of the class containing no $ symbols.
