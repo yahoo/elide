@@ -55,7 +55,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import example.PlayerStats;
 import example.TestCheckMappings;
-
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeAll;
@@ -172,7 +171,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     protected Map<String, ConnectionDetails> createConnectionDetailsMap(ConnectionDetails defaultConnectionDetails) {
        Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-       // Add an entry for "mycon" connection which is not from hjson
+        // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
         // Add connection details fetched from hjson
         VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig ->

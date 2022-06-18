@@ -8,7 +8,6 @@ package example;
 import static example.TimeGrainDefinitions.DATE_FORMAT;
 import static example.TimeGrainDefinitions.MONTH_FORMAT;
 import static example.TimeGrainDefinitions.QUARTER_FORMAT;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
@@ -35,8 +34,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -56,8 +53,7 @@ import javax.persistence.Id;
         hints = {"AggregateBeforeJoin", "NoJoinBeforeAggregate"},
         size = CardinalitySize.LARGE
 )
-public class PlayerStats extends ParameterizedModel implements Serializable {
-    private static final long serialVersionUID = 5564238496528922164L;
+public class PlayerStats extends ParameterizedModel {
 
     /**
      * PK.

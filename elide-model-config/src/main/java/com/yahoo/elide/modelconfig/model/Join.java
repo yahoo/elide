@@ -6,7 +6,6 @@
 package com.yahoo.elide.modelconfig.model;
 
 import static com.yahoo.elide.modelconfig.model.NamespaceConfig.DEFAULT;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -35,6 +34,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class Join implements Named {
+    private static final long serialVersionUID = -1416294756711914111L;
 
     @JsonProperty("name")
     private String name;

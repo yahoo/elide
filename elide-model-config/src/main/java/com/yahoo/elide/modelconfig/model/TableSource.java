@@ -37,6 +37,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class TableSource implements Serializable {
+    private static final long serialVersionUID = 5721654374755116755L;
 
     @JsonProperty("table")
     private String table;

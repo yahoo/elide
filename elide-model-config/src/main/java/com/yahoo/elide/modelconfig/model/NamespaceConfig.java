@@ -6,7 +6,6 @@
 package com.yahoo.elide.modelconfig.model;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -33,6 +32,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class NamespaceConfig implements Named {
+    private static final long serialVersionUID = 279959092479649876L;
 
     public static String DEFAULT = "default";
 

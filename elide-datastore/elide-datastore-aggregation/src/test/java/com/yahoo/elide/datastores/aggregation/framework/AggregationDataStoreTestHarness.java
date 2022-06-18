@@ -24,7 +24,6 @@ import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.hibernate.Session;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,7 +35,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 @AllArgsConstructor
-@Getter
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private EntityManagerFactory entityManagerFactory;
     private ConnectionDetails defaultConnectionDetails;

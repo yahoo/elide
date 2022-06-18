@@ -31,7 +31,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Builder
 public class Grain implements Serializable {
-
+    private static final long serialVersionUID = -6253818551445562327L;
 
     @JsonProperty("type")
     private Grain.GrainType type;

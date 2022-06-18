@@ -6,13 +6,12 @@
 
 package com.yahoo.elide.core.type;
 
-import java.io.Serializable;
 import java.util.Optional;
 
 /**
  * A field in an Elide type.
  */
-public interface Field extends AccessibleObject, Serializable {
+public interface Field extends AccessibleObject {
 
     /**
      * Get the value of the field.

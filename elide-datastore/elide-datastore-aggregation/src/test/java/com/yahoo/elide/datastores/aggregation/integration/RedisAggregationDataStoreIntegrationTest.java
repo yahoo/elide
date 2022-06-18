@@ -6,12 +6,9 @@
 package com.yahoo.elide.datastores.aggregation.integration;
 
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.RedisAggregationDataStoreTestHarness;
-import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
-import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,7 +25,7 @@ import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 
 /**
- * Integration tests for {@link AggregationDataStore}.
+ * Integration tests for {@link AggregationDataStore} using Redis for cache.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -38,16 +35,6 @@ public class RedisAggregationDataStoreIntegrationTest extends AggregationDataSto
 
     private RedisServer redisServer;
 
-    static {
-        VALIDATOR = new DynamicConfigValidator(DefaultClassScanner.getInstance(), "src/test/resources/configs");
-
-        try {
-            VALIDATOR.readAndValidateConfigs();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     public RedisAggregationDataStoreIntegrationTest() {
         super();
     }
@@ -55,7 +42,7 @@ public class RedisAggregationDataStoreIntegrationTest extends AggregationDataSto
     @BeforeAll
     @Override
     public void beforeAll() {
-        SQLUnitTest.init();
+        super.beforeAll();
         try {
             redisServer = new RedisServer(PORT);
             redisServer.start();
