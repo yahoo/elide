@@ -16,8 +16,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 /**
  * Namespace Config JSON.
  */
@@ -34,7 +32,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NamespaceConfig implements Named, Serializable {
+public class NamespaceConfig implements Named {
 
     public static String DEFAULT = "default";
 

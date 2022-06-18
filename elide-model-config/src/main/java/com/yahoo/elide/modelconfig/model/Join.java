@@ -16,8 +16,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 /**
  * Joins describe the SQL expression necessary to join two physical tables.
  * Joins can be used when defining dimension columns that reference other tables.
@@ -36,7 +34,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Join implements Named, Serializable {
+public class Join implements Named {
 
     @JsonProperty("name")
     private String name;

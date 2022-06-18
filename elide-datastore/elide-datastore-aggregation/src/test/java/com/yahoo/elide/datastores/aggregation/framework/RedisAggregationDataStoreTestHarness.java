@@ -6,11 +6,11 @@
 package com.yahoo.elide.datastores.aggregation.framework;
 
 import com.yahoo.elide.core.datastore.DataStore;
-import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
+import com.yahoo.elide.datastores.aggregation.cache.RedisCache;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
@@ -23,8 +23,8 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.hibernate.Session;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+
+import redis.clients.jedis.JedisPooled;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,35 +35,39 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-@AllArgsConstructor
-@Getter
-public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
-    private EntityManagerFactory entityManagerFactory;
-    private ConnectionDetails defaultConnectionDetails;
-    private Map<String, ConnectionDetails> connectionDetailsMap;
-    private DynamicConfigValidator validator;
+public class RedisAggregationDataStoreTestHarness extends AggregationDataStoreTestHarness {
+    private static final String HOST = "localhost";
+    private static final int PORT = 6379;
+    private static final int EXPIRATION_MINUTES = 2;
 
-    public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource) {
-        this(entityManagerFactory, new ConnectionDetails(defaultDataSource, SQLDialectFactory.getDefaultDialect()));
+    public RedisAggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, ConnectionDetails defaultConnectionDetails,
+            Map<String, ConnectionDetails> connectionDetailsMap, DynamicConfigValidator validator) {
+        super(entityManagerFactory, defaultConnectionDetails, connectionDetailsMap, validator);
     }
 
-    public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory,
+    public RedisAggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource) {
+        super(entityManagerFactory, new ConnectionDetails(defaultDataSource, SQLDialectFactory.getDefaultDialect()));
+    }
+
+    public RedisAggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory,
                     ConnectionDetails defaultConnectionDetails) {
-        this(entityManagerFactory, defaultConnectionDetails, Collections.emptyMap(), null);
+        super(entityManagerFactory, defaultConnectionDetails, Collections.emptyMap(), null);
     }
 
     @Override
     public DataStore getDataStore() {
+        JedisPooled jedisPool = new JedisPooled(HOST, PORT);
+        RedisCache cache = new RedisCache(jedisPool, EXPIRATION_MINUTES);
 
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
 
         ClassScanner scanner = DefaultClassScanner.getInstance();
 
         MetaDataStore metaDataStore;
-        if (validator != null) {
+        if (getValidator() != null) {
            metaDataStore = new MetaDataStore(scanner,
-                   validator.getElideTableConfig().getTables(),
-                   validator.getElideNamespaceConfig().getNamespaceconfigs(), true);
+                   getValidator().getElideTableConfig().getTables(),
+                   getValidator().getElideNamespaceConfig().getNamespaceconfigs(), true);
 
            aggregationDataStoreBuilder.dynamicCompiledClasses(metaDataStore.getDynamicTypes());
         } else {
@@ -72,25 +76,21 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
                 .queryEngine(new SQLQueryEngine(metaDataStore,
-                        (name) -> connectionDetailsMap.getOrDefault(name, defaultConnectionDetails),
+                        (name) -> getConnectionDetailsMap().getOrDefault(name, getDefaultConnectionDetails()),
                         new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
                         new DefaultQueryPlanMerger(metaDataStore),
                         new DefaultQueryValidator(metaDataStore.getMetadataDictionary())))
                 .queryLogger(new Slf4jQueryLogger())
+                .cache(cache)
                 .build();
 
         Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
         DataStore jpaStore = new JpaDataStore(
-                () -> entityManagerFactory.createEntityManager(),
+                () -> getEntityManagerFactory().createEntityManager(),
                 em -> new NonJtaTransaction(em, txCancel)
         );
 
         return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);
-    }
-
-    @Override
-    public void cleanseTestData() {
-
     }
 }
