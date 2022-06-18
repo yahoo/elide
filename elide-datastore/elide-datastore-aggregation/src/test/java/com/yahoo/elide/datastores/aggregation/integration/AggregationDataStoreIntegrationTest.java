@@ -99,6 +99,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     public static DynamicConfigValidator VALIDATOR;
 
+    public static HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
+
     static {
         VALIDATOR = new DynamicConfigValidator(DefaultClassScanner.getInstance(), "src/test/resources/configs");
 
@@ -154,22 +156,23 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
     }
 
-    @Override
-    protected DataStoreTestHarness createHarness() {
-
-        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
+    protected ConnectionDetails createDefaultConnectionDetails() {
         DataSource defaultDataSource = new HikariDataSource(config);
         SQLDialect defaultDialect = SQLDialectFactory.getDefaultDialect();
-        ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
+        return new ConnectionDetails(defaultDataSource, defaultDialect);
+    }
 
-        Properties prop = new Properties();
+    protected EntityManagerFactory createEntityManagerFactory() {
+       Properties prop = new Properties();
         prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
         prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
+        return Persistence.createEntityManagerFactory("aggregationStore", prop);
+    }
 
-        Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+    protected Map<String, ConnectionDetails> createConnectionDetailsMap(ConnectionDetails defaultConnectionDetails) {
+       Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-        // Add an entry for "mycon" connection which is not from hjson
+       // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
         // Add connection details fetched from hjson
         VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig ->
@@ -177,6 +180,18 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                             new ConnectionDetails(getDataSource(dbConfig, getDBPasswordExtractor()),
                                             SQLDialectFactory.getDialect(dbConfig.getDialect())))
         );
+
+        return connectionDetailsMap;
+    }
+
+    @Override
+    protected DataStoreTestHarness createHarness() {
+
+        ConnectionDetails defaultConnectionDetails = createDefaultConnectionDetails();
+
+        EntityManagerFactory emf = createEntityManagerFactory();
+
+        Map<String, ConnectionDetails> connectionDetailsMap = createConnectionDetailsMap(defaultConnectionDetails);
 
         return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
     }

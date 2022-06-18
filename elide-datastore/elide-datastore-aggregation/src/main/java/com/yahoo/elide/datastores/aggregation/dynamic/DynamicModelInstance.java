@@ -9,12 +9,10 @@ import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 
-import java.io.Serializable;
-
 /**
  * Base model instance returned by AggregationStore for dynamic types.
  */
-public class DynamicModelInstance extends ParameterizedModel implements Dynamic, Serializable {
+public class DynamicModelInstance extends ParameterizedModel implements Dynamic {
     private static final long serialVersionUID = -374837200186480683L;
 
     protected TableType tableType;

@@ -13,7 +13,7 @@ import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 
-import java.io.Serializable;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.Map;
@@ -22,7 +22,7 @@ import java.util.Optional;
 /**
  * A dynamic Elide model field that wraps a deserialized HJSON measure or dimension.
  */
-public class FieldType implements Field, Serializable {
+public class FieldType implements Field {
     private static final long serialVersionUID = -1358950447581934754L;
     private transient Map<Class<? extends Annotation>, Annotation> annotations;
     private String name;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Yahoo Inc.
+ * Copyright 2022, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -11,12 +11,7 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.RedisAggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,14 +23,9 @@ import org.mockito.quality.Strictness;
 
 import redis.embedded.RedisServer;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.sql.DataSource;
 
 /**
  * Integration tests for {@link AggregationDataStore}.
@@ -86,26 +76,11 @@ public class RedisAggregationDataStoreIntegrationTest extends AggregationDataSto
     @Override
     protected DataStoreTestHarness createHarness() {
 
-        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
-        DataSource defaultDataSource = new HikariDataSource(config);
-        SQLDialect defaultDialect = SQLDialectFactory.getDefaultDialect();
-        ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
+        ConnectionDetails defaultConnectionDetails = createDefaultConnectionDetails();
 
-        Properties prop = new Properties();
-        prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
-        prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
+        EntityManagerFactory emf = createEntityManagerFactory();
 
-        Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
-
-        // Add an entry for "mycon" connection which is not from hjson
-        connectionDetailsMap.put("mycon", defaultConnectionDetails);
-        // Add connection details fetched from hjson
-        VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig ->
-            connectionDetailsMap.put(dbConfig.getName(),
-                            new ConnectionDetails(getDataSource(dbConfig, getDBPasswordExtractor()),
-                                            SQLDialectFactory.getDialect(dbConfig.getDialect())))
-        );
+        Map<String, ConnectionDetails> connectionDetailsMap = createConnectionDetailsMap(defaultConnectionDetails);
 
         return new RedisAggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
     }

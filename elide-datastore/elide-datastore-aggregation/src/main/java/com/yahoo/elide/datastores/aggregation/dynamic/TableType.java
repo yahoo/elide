@@ -52,7 +52,6 @@ import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
@@ -73,11 +72,12 @@ import javax.persistence.Id;
 /**
  * A dynamic Elide model that wraps a deserialized HJSON table.
  */
-public class TableType implements Type<DynamicModelInstance>, Serializable {
-    private static final long serialVersionUID = 5435883668602643276L;
-    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+public class TableType implements Type<DynamicModelInstance> {
+    private static final long serialVersionUID = 8197172323227250923L;
     private static final String SPACE = " ";
     private static final String PERIOD = ".";
+
+    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     public static final Pattern NEWLINE = Pattern.compile(System.lineSeparator(), Pattern.LITERAL);
 
     protected Table table;

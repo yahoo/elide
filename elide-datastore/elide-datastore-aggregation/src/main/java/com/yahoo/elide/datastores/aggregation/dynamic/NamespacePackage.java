@@ -23,6 +23,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode
 public class NamespacePackage implements Package {
+    private static final long serialVersionUID = -7173317858416763972L;
 
     public static final String EMPTY = "";
     public static final String DEFAULT = "default";
