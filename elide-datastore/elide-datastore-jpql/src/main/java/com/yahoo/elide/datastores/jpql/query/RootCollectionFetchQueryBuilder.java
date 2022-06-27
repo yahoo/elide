@@ -20,8 +20,6 @@ import com.yahoo.elide.datastores.jpql.porting.Query;
 import com.yahoo.elide.datastores.jpql.porting.Session;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Constructs a HQL query to fetch a root collection.
