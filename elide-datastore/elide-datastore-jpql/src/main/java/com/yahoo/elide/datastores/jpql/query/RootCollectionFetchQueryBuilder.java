@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.jpql.query;
 
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -30,13 +29,6 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                                            EntityDictionary dictionary,
                                            Session session) {
         super(entityProjection, dictionary, session);
-    }
-
-    private boolean isRelationship(Path.PathElement element) {
-        return dictionary
-                .getEntityBinding(element.getType())
-                .apiRelationships
-                .contains(element.getFieldName());
     }
 
     /**
@@ -69,7 +61,10 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
             boolean sortOverRelationship = entityProjection.getSorting() != null
                     && entityProjection.getSorting().getSortingPaths().keySet()
-                    .stream().anyMatch(path -> path.getPathElements().stream().anyMatch(this::isRelationship));
+                    .stream().anyMatch(path ->
+                            path.getPathElements()
+                                    .stream()
+                                    .anyMatch(element -> dictionary.isRelation(element.getType(), element.getFieldName())));
 
             if (requiresDistinct && sortOverRelationship) {
                 //SQL does not support distinct and order by on columns which are not selected
