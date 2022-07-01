@@ -50,11 +50,16 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         this(entityManagerFactory, defaultConnectionDetails, Collections.emptyMap(), null);
     }
 
-    @Override
-    public DataStore getDataStore() {
+    protected JpaDataStore createJPADataStore() {
+        Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
-        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
+        return new JpaDataStore(
+                () -> entityManagerFactory.createEntityManager(),
+                em -> new NonJtaTransaction(em, txCancel)
+        );
+    }
 
+    protected MetaDataStore createMetaDataStore() {
         ClassScanner scanner = DefaultClassScanner.getInstance();
 
         MetaDataStore metaDataStore;
@@ -62,29 +67,38 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
            metaDataStore = new MetaDataStore(scanner,
                    validator.getElideTableConfig().getTables(),
                    validator.getElideNamespaceConfig().getNamespaceconfigs(), true);
-
-           aggregationDataStoreBuilder.dynamicCompiledClasses(metaDataStore.getDynamicTypes());
         } else {
             metaDataStore = new MetaDataStore(scanner, true);
         }
 
-        AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
+        return metaDataStore;
+    }
+
+    protected AggregationDataStore.AggregationDataStoreBuilder createAggregationDataStoreBuilder(MetaDataStore metaDataStore) {
+        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
+
+        if (validator != null) {
+            aggregationDataStoreBuilder.dynamicCompiledClasses(metaDataStore.getDynamicTypes());
+        }
+        return aggregationDataStoreBuilder
                 .queryEngine(new SQLQueryEngine(metaDataStore,
                         (name) -> connectionDetailsMap.getOrDefault(name, defaultConnectionDetails),
                         new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
                         new DefaultQueryPlanMerger(metaDataStore),
                         new DefaultQueryValidator(metaDataStore.getMetadataDictionary())))
-                .queryLogger(new Slf4jQueryLogger())
-                .build();
+                .queryLogger(new Slf4jQueryLogger());
+    }
 
-        Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
+    @Override
+    public DataStore getDataStore() {
 
-        DataStore jpaStore = new JpaDataStore(
-                () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, txCancel)
-        );
+        MetaDataStore metaDataStore = createMetaDataStore();
 
-        return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);
+        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = createAggregationDataStoreBuilder(metaDataStore);
+
+        DataStore jpaStore = createJPADataStore();
+
+        return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStoreBuilder.build());
     }
 
     @Override

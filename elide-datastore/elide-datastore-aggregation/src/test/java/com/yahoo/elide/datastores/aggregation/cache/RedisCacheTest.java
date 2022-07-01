@@ -18,7 +18,9 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
+//import java.util.Collections;
 
 /**
  * Test cases for RedisCache.
@@ -53,7 +55,8 @@ public class RedisCacheTest {
     @Test
     public void testPutResults() {
         String key = "example_PlayerStats;{highScore;{}}{}{};;;;";
-        Iterable<Object> data = Collections.singletonList("xyzzy");
+        //Iterable<Object> data = Collections.singletonList("xyzzy");
+        Iterable<Object> data = new ArrayList<>(Arrays.asList("xyzzy"));
         QueryResult queryResult = QueryResult.builder().data(data).build();
 
         cache.put(key, queryResult);
@@ -68,7 +71,7 @@ public class RedisCacheTest {
     public void testPutResultsFail() throws IOException {
         destroy();
         String key = "example_PlayerStats;{highScore;{}}{}{};;;;";
-        Iterable<Object> data = Collections.singletonList("xyzzy");
+        Iterable<Object> data = new ArrayList<>(Arrays.asList("xyzzy"));
         QueryResult queryResult = QueryResult.builder().data(data).build();
         assertThrows(JedisConnectionException.class, () ->
                  cache.put(key, queryResult)
@@ -78,7 +81,7 @@ public class RedisCacheTest {
     @Test
     public void testGetResultsMulti() {
         String key = "example_PlayerStats;{highScore;{}}{}{};;;;";
-        Iterable<Object> data = Collections.singletonList("xyzzy");
+        Iterable<Object> data = new ArrayList<>(Arrays.asList("xyzzy"));
         QueryResult queryResult = QueryResult.builder().data(data).build();
 
         cache.put(key, queryResult);
@@ -90,7 +93,7 @@ public class RedisCacheTest {
         assertEquals(queryResult, cache.get(key));
 
         String key1 = "example_PlayerStats1;{highScore;{}}{}{};;;;";
-        Iterable<Object> data1 = Collections.singletonList("xyzz");
+        Iterable<Object> data1 = new ArrayList<>(Arrays.asList("xyzzy"));
         QueryResult queryResult1 = QueryResult.builder().data(data).build();
 
         cache.put(key1, queryResult1);

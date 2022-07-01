@@ -12,6 +12,7 @@ import lombok.NonNull;
 import lombok.Value;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * A {@link QueryResult} contains the results from {@link QueryEngine#executeQuery(Query, QueryEngine.Transaction)}.
@@ -29,4 +30,14 @@ public class QueryResult<T> implements Serializable {
      * Total record count. Null unless Query had Pagination with {@link Pagination#returnPageTotals()} set.
      */
     private Long pageTotals;
+
+    public QueryResult() {
+        this.data = new ArrayList<>();
+        this.pageTotals = 0L;
+    }
+
+    public QueryResult(Iterable data, Long pageTotals) {
+        this.data = data;
+        this.pageTotals = pageTotals;
+    }
 }

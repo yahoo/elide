@@ -34,7 +34,7 @@ public class MetricRatio implements MetricProjectionMaker {
                 .alias(alias)
                 .arguments(arguments)
                 .name(metric.getName())
-                .expression("{{" + numerator.getValue() + "}} / {{" + denominator.getValue() + "}}")
+                .expression("ROUND(({{" + numerator.getValue() + "}} / {{" + denominator.getValue() + "}}), 1)")
                 .valueType(metric.getValueType())
                 .columnType(metric.getColumnType())
                 .build();

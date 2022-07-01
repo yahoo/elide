@@ -15,6 +15,8 @@ import com.yahoo.elide.core.type.Type;
 public class DynamicModelInstance extends ParameterizedModel implements Dynamic {
     protected TableType tableType;
 
+    public DynamicModelInstance() {}
+
     public DynamicModelInstance(TableType type) {
         this.tableType = type;
     }

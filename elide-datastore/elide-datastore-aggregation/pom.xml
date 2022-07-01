@@ -78,6 +78,18 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        
+        <dependency>
+   <groupId>com.esotericsoftware.kryo</groupId>
+   <artifactId>kryo5</artifactId>
+   <version>5.3.0</version>
+</dependency>
+
+<dependency>
+    <groupId>de.javakaffee</groupId>
+    <artifactId>kryo-serializers</artifactId>
+    <version>0.45</version>
+</dependency>
 
         <!-- JPA -->
         <dependency>
