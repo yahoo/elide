@@ -178,7 +178,7 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
   ```java
   public class Main {
       public static void main(String[] args) throws Exception {
-          ElideStandalone app = new ElideStandalone(new Settings());
+          ElideStandalone app = new ElideStandalone(new new ElideStandaloneSettings() {});
           app.start();
       }
   }
