@@ -64,7 +64,8 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     .stream().anyMatch(path ->
                             path.getPathElements()
                                     .stream()
-                                    .anyMatch(element -> dictionary.isRelation(element.getType(), element.getFieldName())));
+                                    .anyMatch(element ->
+                                            dictionary.isRelation(element.getType(), element.getFieldName())));
 
             if (requiresDistinct && sortOverRelationship) {
                 //SQL does not support distinct and order by on columns which are not selected
