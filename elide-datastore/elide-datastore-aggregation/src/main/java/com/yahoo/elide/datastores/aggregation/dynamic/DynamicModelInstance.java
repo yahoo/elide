@@ -13,6 +13,8 @@ import com.yahoo.elide.core.type.Type;
  * Base model instance returned by AggregationStore for dynamic types.
  */
 public class DynamicModelInstance extends ParameterizedModel implements Dynamic {
+    private static final long serialVersionUID = -374837200186480683L;
+
     protected TableType tableType;
 
     public DynamicModelInstance(TableType type) {

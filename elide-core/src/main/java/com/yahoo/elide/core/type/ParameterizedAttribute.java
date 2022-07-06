@@ -8,13 +8,14 @@ package com.yahoo.elide.core.type;
 
 import com.yahoo.elide.core.request.Argument;
 
+import java.io.Serializable;
 import java.util.Set;
 
 /**
  * An elide attribute that supports parameters.
  */
 @FunctionalInterface
-public interface ParameterizedAttribute {
+public interface ParameterizedAttribute extends Serializable {
 
     /**
      * Fetch the attribute value with the specified parameters.

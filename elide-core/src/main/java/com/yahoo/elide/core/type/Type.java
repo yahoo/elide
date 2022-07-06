@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core.type;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 
@@ -13,7 +14,8 @@ import java.util.Optional;
  * Elide type for models and their attributes.
  * @param <T> The underlying Java class.
  */
-public interface Type<T> extends java.lang.reflect.Type {
+public interface Type<T> extends java.lang.reflect.Type, Serializable {
+    static final long serialVersionUID = -51926356467315522L;
 
     /**
      * Gets the canonical name of the class containing no $ symbols.

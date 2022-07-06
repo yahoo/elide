@@ -6,10 +6,12 @@
 
 package com.yahoo.elide.core.type;
 
+import java.io.Serializable;
+
 /**
  * Base class of fields and methods.
  */
-public interface Member {
+public interface Member extends Serializable {
 
     /**
      * Get the permission modifiers of the field/method.

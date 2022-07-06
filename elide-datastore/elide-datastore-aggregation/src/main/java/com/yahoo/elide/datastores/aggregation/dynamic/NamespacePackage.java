@@ -23,6 +23,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode
 public class NamespacePackage implements Package {
+    private static final long serialVersionUID = -7173317858416763972L;
 
     public static final String EMPTY = "";
     public static final String DEFAULT = "default";
@@ -30,7 +31,7 @@ public class NamespacePackage implements Package {
             new NamespacePackage(EMPTY, "Default Namespace", DEFAULT, NO_VERSION);
 
     protected NamespaceConfig namespace;
-    private Map<Class<? extends Annotation>, Annotation> annotations;
+    private transient Map<Class<? extends Annotation>, Annotation> annotations;
 
     public NamespacePackage(NamespaceConfig namespace) {
         if (namespace.getName().equals(DEFAULT)) {

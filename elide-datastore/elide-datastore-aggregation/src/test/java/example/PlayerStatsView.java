@@ -15,6 +15,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import lombok.Data;
 
+import java.io.Serializable;
+
 import javax.persistence.Id;
 
 /**
@@ -28,7 +30,7 @@ import javax.persistence.Id;
 @TableMeta(arguments = {
                 @ArgumentDefinition(name = "rating", type = ValueType.TEXT),
                 @ArgumentDefinition(name = "minScore", type = ValueType.INTEGER, defaultValue = "0")})
-public class PlayerStatsView {
+public class PlayerStatsView implements Serializable {
 
     /**
      * PK.

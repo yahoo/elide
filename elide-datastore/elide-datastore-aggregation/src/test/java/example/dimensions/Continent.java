@@ -10,6 +10,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import lombok.Data;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -19,7 +21,7 @@ import javax.persistence.Table;
 @Include
 @Table(name = "continents")
 @TableMeta(isFact = false, size = CardinalitySize.SMALL)
-public class Continent {
+public class Continent implements Serializable {
 
     @Id
     private String id;

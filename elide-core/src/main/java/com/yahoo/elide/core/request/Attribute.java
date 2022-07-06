@@ -14,6 +14,7 @@ import lombok.NonNull;
 import lombok.Singular;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -21,7 +22,9 @@ import java.util.Set;
  */
 @Data
 @Builder
-public class Attribute {
+public class Attribute implements Serializable {
+    private static final long serialVersionUID = 3009706331255770579L;
+
     @NonNull
     @ToString.Exclude
     private Type<?> type;

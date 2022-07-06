@@ -73,13 +73,15 @@ import javax.persistence.Id;
  * A dynamic Elide model that wraps a deserialized HJSON table.
  */
 public class TableType implements Type<DynamicModelInstance> {
-    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+    private static final long serialVersionUID = 8197172323227250923L;
     private static final String SPACE = " ";
     private static final String PERIOD = ".";
+
+    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     public static final Pattern NEWLINE = Pattern.compile(System.lineSeparator(), Pattern.LITERAL);
 
     protected Table table;
-    private Map<Class<? extends Annotation>, Annotation> annotations;
+    private transient Map<Class<? extends Annotation>, Annotation> annotations;
     private Map<String, Field> fields;
     private Package namespace;
 

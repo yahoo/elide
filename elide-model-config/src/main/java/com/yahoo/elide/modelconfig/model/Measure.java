@@ -45,6 +45,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Measure implements Named {
+    private static final long serialVersionUID = 4404642046984907827L;
 
     @JsonProperty("name")
     private String name;
