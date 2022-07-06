@@ -31,7 +31,7 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
-import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.framework.NoCacheAggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -124,7 +124,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                                             SQLDialectFactory.getDialect(dbConfig.getDialect())))
         );
 
-        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
+        return new NoCacheAggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
     }
 
     @Test

@@ -57,6 +57,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Table implements Named {
+    private static final long serialVersionUID = -7537337382856372741L;
+
     @JsonProperty("name")
     private String name;
 
