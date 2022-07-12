@@ -11,6 +11,7 @@ import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,7 +21,8 @@ import java.util.Set;
 /**
  * Base class that contains one or more parameterized attributes.
  */
-public abstract class ParameterizedModel {
+public abstract class ParameterizedModel implements Serializable {
+    private static final long serialVersionUID = -519263564697315522L;
 
     @Exclude
     protected Map<Attribute, ParameterizedAttribute> parameterizedAttributes;

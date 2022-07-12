@@ -28,4 +28,9 @@
         <cve>CVE-2022-22978</cve>
     </suppress>
 
+    <!-- log4j-api No New Version released -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-33915</cve>
+    </suppress>
+
 </suppressions>

@@ -49,6 +49,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Dimension implements Named {
+    private static final long serialVersionUID = 7886036651874169795L;
 
     @JsonProperty("name")
     private String name;

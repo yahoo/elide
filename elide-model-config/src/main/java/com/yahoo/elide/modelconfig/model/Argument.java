@@ -36,6 +36,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Argument implements Named {
+    private static final long serialVersionUID = -6628282044575311784L;
 
     @JsonProperty("name")
     private String name;
