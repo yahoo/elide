@@ -35,7 +35,7 @@ import org.apache.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
+import org.eclipse.jetty.websocket.javax.server.config.JavaxWebSocketServletContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -51,7 +51,6 @@ import java.util.List;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
-import javax.websocket.server.ServerContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -113,17 +112,17 @@ public class JMSDataStoreIntegrationTest {
         graphqlServlet.setInitParameter("javax.ws.rs.Application", TestResourceConfig.class.getName());
 
         // GraphQL subscription endpoint
-        ServerContainer container  = WebSocketServerContainerInitializer.configureContext(servletContextHandler);
-
-        ServerEndpointConfig subscriptionEndpoint = ServerEndpointConfig.Builder
-                .create(SubscriptionWebSocket.class, "/subscription")
-                .configurator(SubscriptionWebSocketConfigurator.builder()
-                        .baseUrl("/subscription")
-                        .connectionFactory(new ActiveMQConnectionFactory(EMBEDDED_JMS_URL))
-                        .sendPingOnSubscribe(true)
-                        .build())
-                .build();
-        container.addEndpoint(subscriptionEndpoint);
+        JavaxWebSocketServletContainerInitializer.configure(servletContextHandler, (servletContext, serverContainer) ->
+        {
+            serverContainer.addEndpoint(ServerEndpointConfig.Builder
+                    .create(SubscriptionWebSocket.class, "/subscription")
+                    .configurator(SubscriptionWebSocketConfigurator.builder()
+                            .baseUrl("/subscription")
+                            .connectionFactory(new ActiveMQConnectionFactory(EMBEDDED_JMS_URL))
+                            .sendPingOnSubscribe(true)
+                            .build())
+                    .build());
+        });
 
         log.debug("...Starting Server...");
         server.start();

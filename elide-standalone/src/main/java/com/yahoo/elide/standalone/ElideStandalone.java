@@ -21,7 +21,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
+import org.eclipse.jetty.websocket.javax.server.config.JavaxWebSocketServletContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,8 +29,6 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import javax.servlet.DispatcherType;
-import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * Elide Standalone.
@@ -115,12 +113,10 @@ public class ElideStandalone {
         ElideStandaloneSubscriptionSettings subscriptionSettings = elideStandaloneSettings.getSubscriptionProperties();
         if (elideStandaloneSettings.enableGraphQL() && subscriptionSettings.enabled()) {
             // GraphQL subscription endpoint
-            ServerContainer container  = WebSocketServerContainerInitializer.configureContext(context);
+            JavaxWebSocketServletContainerInitializer.configure(context, (servletContext, serverContainer) -> {
+                        serverContainer.addEndpoint(subscriptionSettings.serverEndpointConfig(elideStandaloneSettings));
+            });
 
-            ServerEndpointConfig subscriptionEndpoint =
-                    subscriptionSettings.serverEndpointConfig(elideStandaloneSettings);
-
-            container.addEndpoint(subscriptionEndpoint);
         }
 
         if (elideStandaloneSettings.getAsyncProperties().enableExport()) {
