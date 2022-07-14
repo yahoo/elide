@@ -23,4 +23,14 @@
         <cve>CVE-2017-12629</cve>
     </suppress>
 
+    <!-- CVE is not matching the correct spring version -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-22978</cve>
+    </suppress>
+
+    <!-- log4j-api No New Version released -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-33915</cve>
+    </suppress>
+
 </suppressions>

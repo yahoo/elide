@@ -13,6 +13,8 @@ import org.hibernate.annotations.Formula;
 import lombok.Data;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -28,7 +30,7 @@ import javax.persistence.Table;
 @Include
 @Table(name = "countries")
 @TableMeta
-public class Country {
+public class Country implements Serializable {
 
     private String id;
 

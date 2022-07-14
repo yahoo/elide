@@ -16,6 +16,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -35,7 +36,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TableSource {
+public class TableSource implements Serializable {
+    private static final long serialVersionUID = 5721654374755116755L;
 
     @JsonProperty("table")
     private String table;

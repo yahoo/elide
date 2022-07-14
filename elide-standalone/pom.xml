@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.1.6-SNAPSHOT</version>
+        <version>6.1.7-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -45,7 +45,7 @@
 
     <properties>
         <!-- Versions -->
-        <metrics.version>4.2.9</metrics.version>
+        <metrics.version>4.2.10</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -56,39 +56,39 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.1.7-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.1.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jms</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.1.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.1.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.1.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.1.7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.1.7-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -115,6 +115,13 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
+                    <groupId>org.eclipse.jetty.toolchain</groupId>
+                    <artifactId>jetty-servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -180,8 +187,15 @@
         <!-- dependencies for native jetty websocket -->
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-server</artifactId>
+            <artifactId>websocket-jetty-server</artifactId>
             <version>${version.jetty}</version>
+            <exclusions>
+                <exclusion>
+                    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
+                    <groupId>org.eclipse.jetty.toolchain</groupId>
+                    <artifactId>jetty-servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -192,8 +206,15 @@
         <!-- dependencies for javax.websocket (JSR-356) websocket -->
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>javax-websocket-server-impl</artifactId>
+            <artifactId>websocket-javax-server</artifactId>
             <version>${version.jetty}</version>
+            <exclusions>
+            	<exclusion>
+            	    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
+            		<groupId>org.eclipse.jetty.toolchain</groupId>
+            		<artifactId>jetty-javax-websocket-api</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 
 
@@ -220,7 +241,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.1.6-SNAPSHOT</version>
+            <version>6.1.7-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -247,13 +268,13 @@
         <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>artemis-jms-client-all</artifactId>
-            <version>2.21.0</version>
+            <version>2.22.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-client</artifactId>
+            <artifactId>websocket-jetty-client</artifactId>
             <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>

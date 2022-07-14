@@ -34,6 +34,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class Join implements Named {
+    private static final long serialVersionUID = -1416294756711914111L;
 
     @JsonProperty("name")
     private String name;
