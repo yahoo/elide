@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.jpql.query;
 
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -51,7 +52,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             String filterClause = WHERE + new FilterTranslator(dictionary).apply(filterExpression, USE_ALIAS);
 
             //Build the JOIN clause
-            String joinClause =  getJoinClauseFromFilters(filterExpression)
+            String joinClause = getJoinClauseFromFilters(filterExpression)
                     + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(entityClass, entityAlias);
 
@@ -60,7 +61,12 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
             boolean sortOverRelationship = entityProjection.getSorting() != null
                     && entityProjection.getSorting().getSortingPaths().keySet()
-                    .stream().anyMatch(path -> path.getPathElements().size() > 1);
+                    .stream().anyMatch(path ->
+                            path.getPathElements()
+                                    .stream()
+                                    .anyMatch(element ->
+                                            dictionary.isRelation(element.getType(), element.getFieldName())));
+
             if (requiresDistinct && sortOverRelationship) {
                 //SQL does not support distinct and order by on columns which are not selected
                 throw new InvalidValueException("Combination of pagination, sorting over relationship and"
