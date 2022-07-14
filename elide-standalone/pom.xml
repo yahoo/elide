@@ -45,7 +45,7 @@
 
     <properties>
         <!-- Versions -->
-        <metrics.version>4.2.9</metrics.version>
+        <metrics.version>4.2.10</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
