@@ -33,4 +33,9 @@
         <cve>CVE-2022-33915</cve>
     </suppress>
 
+    <!-- CVE is unrelated to jms-api -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-31569</cve>
+    </suppress>
+
 </suppressions>
