@@ -59,7 +59,7 @@
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
-            <version>18.1</version>
+            <version>18.2</version>
         </dependency>
         <dependency>
             <groupId>com.graphql-java</groupId>
@@ -144,7 +144,7 @@
         <dependency>
             <groupId>org.skyscreamer</groupId>
             <artifactId>jsonassert</artifactId>
-            <version>1.5.0</version>
+            <version>1.5.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
