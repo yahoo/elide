@@ -1,6 +1,7 @@
 # Change Log
 
 ## 6.1.7
+
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/53fbf01a9e7d0120db65334e99ccae5c7cf78c5e) Use Serializable Classes for RedisCache to work (#2681) 
  * [view commit](https://github.com/yahoo/elide/commit/1c8cafba49a5b752c586ab2271e92edf6021a20e) Upgrade to Jetty 10.0.10 (#2691) 
