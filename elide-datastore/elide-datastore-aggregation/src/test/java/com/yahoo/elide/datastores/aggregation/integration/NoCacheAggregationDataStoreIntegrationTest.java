@@ -231,7 +231,7 @@ public class NoCacheAggregationDataStoreIntegrationTest extends AggregationDataS
                 )
         ).toQuery();
 
-        String errorMessage = "Validation error of type FieldUndefined: Field &#39;zipCodeHidden&#39; in type &#39;SalesNamespace_orderDetails&#39; is undefined @ &#39;SalesNamespace_orderDetails/edges/node/zipCodeHidden&#39;";
+        String errorMessage = "Validation error (FieldUndefined@[SalesNamespace_orderDetails/edges/node/zipCodeHidden]) : Field &#39;zipCodeHidden&#39; in type &#39;SalesNamespace_orderDetails&#39; is undefined";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
