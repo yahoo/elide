@@ -62,7 +62,7 @@ public class ErrorMapperTest {
     }
 
     @AfterEach
-    private void afterEach() {
+    public void afterEach() {
         reset(MOCK_ERROR_MAPPER);
     }
 
