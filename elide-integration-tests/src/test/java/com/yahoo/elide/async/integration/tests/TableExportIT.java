@@ -570,7 +570,7 @@ public class TableExportIT extends AsyncApiIT {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body(containsString("errors"))
-                .body(containsString("Validation error of type WrongType: argument &#39;data.resultType&#39;"));
+                .body(containsString("Validation error (WrongType@[tableExport]) : argument &#39;data.resultType&#39;"));
     }
 
     /**
