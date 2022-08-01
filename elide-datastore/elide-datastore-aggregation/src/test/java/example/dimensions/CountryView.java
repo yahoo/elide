@@ -12,6 +12,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import lombok.Data;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 
 /**
@@ -20,7 +22,7 @@ import javax.persistence.Column;
 @Data
 @Include(rootLevel = false)
 @FromTable(name = "countries")
-public class CountryView {
+public class CountryView implements Serializable {
     @Column(name = "id")
     private String countryId;
 

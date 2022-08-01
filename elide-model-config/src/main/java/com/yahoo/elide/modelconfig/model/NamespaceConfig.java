@@ -32,6 +32,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class NamespaceConfig implements Named {
+    private static final long serialVersionUID = 279959092479649876L;
 
     public static String DEFAULT = "default";
 

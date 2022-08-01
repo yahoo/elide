@@ -520,9 +520,11 @@ public class EntityBinding {
      * @param fieldOrMethod field or method
      * @return field type
      */
-    public static Type<?> getFieldType(Type<?> parentClass,
-                                         AccessibleObject fieldOrMethod) {
-        return getFieldType(parentClass, fieldOrMethod, Optional.empty());
+    public static Type<?> getFieldType(Type<?> parentClass, AccessibleObject fieldOrMethod) {
+        if (fieldOrMethod instanceof Field) {
+            return ((Field) fieldOrMethod).getType();
+        }
+        return ((Method) fieldOrMethod).getReturnType();
     }
 
     /**

@@ -19,6 +19,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class FieldType implements Field {
+    private static final long serialVersionUID = -1949519786163885434L;
 
     private java.lang.reflect.Field field;
 

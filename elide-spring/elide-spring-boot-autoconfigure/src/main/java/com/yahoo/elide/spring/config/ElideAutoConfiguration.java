@@ -195,6 +195,10 @@ public class ElideAutoConfiguration {
             builder.withExportApiPath(settings.getAsync().getExport().getPath());
         }
 
+        if (settings.getGraphql() != null && settings.getGraphql().enableFederation) {
+            builder.withGraphQLFederation(true);
+        }
+
         if (settings.getJsonApi() != null
                 && settings.getJsonApi().isEnabled()
                 && settings.getJsonApi().isEnableLinks()) {
@@ -262,9 +266,31 @@ public class ElideAutoConfiguration {
     }
 
     /**
+     * Creates the injector for dependency injection.
+     * @param beanFactory Injector to inject Elide models.
+     * @return a newly configured Injector.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
+    public Injector buildInjector(AutowireCapableBeanFactory beanFactory) {
+        return new Injector() {
+            @Override
+            public void inject(Object entity) {
+                beanFactory.autowireBean(entity);
+            }
+
+            @Override
+            public <T> T instantiate(Class<T> cls) {
+                return beanFactory.createBean(cls);
+            }
+        };
+    }
+
+    /**
      * Creates the entity dictionary for Elide which contains static metadata about Elide models.
      * Override to load check classes or life cycle hooks.
-     * @param beanFactory Injector to inject Elide models.
+     * @param injector Injector to inject Elide models.
      * @param dynamicConfig An instance of DynamicConfiguration.
      * @param settings Elide configuration settings.
      * @param entitiesToExclude set of Entities to exclude from binding.
@@ -273,7 +299,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
+    public EntityDictionary buildDictionary(Injector injector,
                                             ClassScanner scanner,
                                             @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                             ElideConfigProperties settings,
@@ -291,17 +317,7 @@ public class ElideAutoConfiguration {
         EntityDictionary dictionary = new EntityDictionary(
                 checks, //Checks
                 new HashMap<>(), //Role Checks
-                new Injector() {
-                    @Override
-                    public void inject(Object entity) {
-                        beanFactory.autowireBean(entity);
-                    }
-
-                    @Override
-                    public <T> T instantiate(Class<T> cls) {
-                        return beanFactory.createBean(cls);
-                    }
-                },
+                injector,
                 CoerceUtil::lookup, //Serde Lookup
                 entitiesToExclude,
                 scanner);

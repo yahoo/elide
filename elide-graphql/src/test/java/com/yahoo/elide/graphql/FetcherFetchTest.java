@@ -278,6 +278,15 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testFederationServiceIntrospection() throws Exception {
+        String graphQLRequest = "{ _service { sdl }}";
+
+        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+
+        assertTrue(! response.getBody().contains("errors"));
+    }
+
+    @Test
     public void testSchemaIntrospection() throws Exception {
         String graphQLRequest = "{"
                 + "__schema {"

@@ -23,6 +23,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -34,7 +35,7 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
-public class PlayerStatsWithView {
+public class PlayerStatsWithView implements Serializable {
 
     /**
      * PK.

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.framework;
 
-import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -20,10 +19,10 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.hibernate.Session;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,7 +34,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 @AllArgsConstructor
-public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
+@Getter
+public abstract class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private EntityManagerFactory entityManagerFactory;
     private ConnectionDetails defaultConnectionDetails;
     private Map<String, ConnectionDetails> connectionDetailsMap;
@@ -50,11 +50,16 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         this(entityManagerFactory, defaultConnectionDetails, Collections.emptyMap(), null);
     }
 
-    @Override
-    public DataStore getDataStore() {
+    protected JpaDataStore createJPADataStore() {
+        Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
-        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
+        return new JpaDataStore(
+                () -> entityManagerFactory.createEntityManager(),
+                em -> new NonJtaTransaction(em, txCancel)
+        );
+    }
 
+    protected MetaDataStore createMetaDataStore() {
         ClassScanner scanner = DefaultClassScanner.getInstance();
 
         MetaDataStore metaDataStore;
@@ -62,29 +67,26 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
            metaDataStore = new MetaDataStore(scanner,
                    validator.getElideTableConfig().getTables(),
                    validator.getElideNamespaceConfig().getNamespaceconfigs(), true);
-
-           aggregationDataStoreBuilder.dynamicCompiledClasses(metaDataStore.getDynamicTypes());
         } else {
             metaDataStore = new MetaDataStore(scanner, true);
         }
 
-        AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
+        return metaDataStore;
+    }
+
+    protected AggregationDataStore.AggregationDataStoreBuilder createAggregationDataStoreBuilder(MetaDataStore metaDataStore) {
+        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
+
+        if (validator != null) {
+            aggregationDataStoreBuilder.dynamicCompiledClasses(metaDataStore.getDynamicTypes());
+        }
+        return aggregationDataStoreBuilder
                 .queryEngine(new SQLQueryEngine(metaDataStore,
                         (name) -> connectionDetailsMap.getOrDefault(name, defaultConnectionDetails),
                         new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
                         new DefaultQueryPlanMerger(metaDataStore),
                         new DefaultQueryValidator(metaDataStore.getMetadataDictionary())))
-                .queryLogger(new Slf4jQueryLogger())
-                .build();
-
-        Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
-
-        DataStore jpaStore = new JpaDataStore(
-                () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, txCancel)
-        );
-
-        return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);
+                .queryLogger(new Slf4jQueryLogger());
     }
 
     @Override
