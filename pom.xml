@@ -84,7 +84,7 @@
         <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
-        <version.antlr4>4.9.3</version.antlr4>
+        <version.antlr4>4.10.1</version.antlr4>
         <version.jetty>10.0.10</version.jetty>
         <version.logback>1.2.11</version.logback>
         <version.restassured>5.1.1</version.restassured>
