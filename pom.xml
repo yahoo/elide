@@ -99,7 +99,7 @@
         <slf4j-api.version>1.7.36</slf4j-api.version>
         <jedis.version>4.2.3</jedis.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
-        <maven-site-plugin-version>3.12.0</maven-site-plugin-version>
+        <maven-site-plugin-version>3.12.1</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
