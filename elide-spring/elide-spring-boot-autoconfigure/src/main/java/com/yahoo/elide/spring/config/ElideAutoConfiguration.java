@@ -220,6 +220,7 @@ public class ElideAutoConfiguration {
     @Bean
     @RefreshScope
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
     public QueryRunners getQueryRunners(RefreshableElide refreshableElide) {
         return new QueryRunners(refreshableElide);
     }
