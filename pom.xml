@@ -87,7 +87,7 @@
         <version.antlr4>4.9.3</version.antlr4>
         <version.jetty>10.0.10</version.jetty>
         <version.logback>1.2.11</version.logback>
-        <version.restassured>5.1.1</version.restassured>
+        <version.restassured>5.2.0</version.restassured>
         <version.jackson>2.13.4</version.jackson>
         <version.jackson.databind>2.13.4</version.jackson.databind>
         <version.jersey>2.35</version.jersey>
@@ -435,7 +435,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.2</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-site-plugin</artifactId>
