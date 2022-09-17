@@ -658,27 +658,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>7.2.0</version>
-                <configuration>
-                    <!-- Disabling this.  The matcher is garbage (so many false negatives).  We'll rely on github security notifications. -->
-                    <failBuildOnCVSS>11</failBuildOnCVSS>
-                    <skipSystemScope>true</skipSystemScope>
-                    <skipTestScope>true</skipTestScope>
-                    <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
-                    <suppressionFile>suppressions.xml</suppressionFile>
-                    <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
         <extensions>
             <extension>
