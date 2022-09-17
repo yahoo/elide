@@ -663,7 +663,8 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>7.1.1</version>
                 <configuration>
-                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <!-- Disabling this.  The matcher is garbage (so many false negatives).  We'll rely on github security notifications. -->
+                    <failBuildOnCVSS>11</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
                     <skipTestScope>true</skipTestScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>

@@ -38,4 +38,10 @@
         <cve>CVE-2022-31569</cve>
     </suppress>
 
+    <!-- Upgraded to recommended graphql java.  The matching CVE doesn't appear to be working -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-37734</cve>
+    </suppress>
+
+
 </suppressions>
