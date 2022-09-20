@@ -117,7 +117,11 @@ public class JsonApiController {
         };
     }
 
-    @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
+    @PatchMapping(
+            value = "/**",
+            consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE},
+            produces = JSON_API_CONTENT_TYPE
+    )
     public Callable<ResponseEntity<String>> elidePatch(@RequestHeader HttpHeaders requestHeaders,
                                                        @RequestParam MultiValueMap<String, String> allRequestParams,
                                                        @RequestBody String body,
