@@ -12,27 +12,14 @@ import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.modelconfig.DynamicConfiguration;
-import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.utils.HeaderUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 
 @TestConfiguration

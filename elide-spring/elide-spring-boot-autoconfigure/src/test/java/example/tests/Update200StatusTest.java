@@ -5,25 +5,16 @@
  */
 package example.tests;
 
+import static io.restassured.RestAssured.given;
+
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
-import com.yahoo.elide.test.graphql.GraphQLDSL;
+import com.yahoo.elide.test.jsonapi.JsonApiDSL;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
-
-import javax.ws.rs.core.MediaType;
-
-import static com.yahoo.elide.test.graphql.GraphQLDSL.*;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.*;
-import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.add;
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.*;
 
 /**
  * Verifies 200 Status for patch Requests.
@@ -51,12 +42,12 @@ public class Update200StatusTest extends IntegrationTest {
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
                 .body(
-                        datum(
-                                resource(
-                                        type("group"),
-                                        id("com.example.repository"),
-                                        attributes(
-                                                attr("commonName", "Changed It.")
+                        JsonApiDSL.datum(
+                                JsonApiDSL.resource(
+                                        JsonApiDSL.type("group"),
+                                        JsonApiDSL.id("com.example.repository"),
+                                        JsonApiDSL.attributes(
+                                                JsonApiDSL.attr("commonName", "Changed It.")
                                         )
                                 )
                         )
