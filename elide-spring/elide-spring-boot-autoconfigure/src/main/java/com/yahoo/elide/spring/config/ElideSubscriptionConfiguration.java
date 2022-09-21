@@ -10,9 +10,9 @@ import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +25,7 @@ import javax.websocket.server.ServerEndpointConfig;
  * Configures GraphQL subscription web sockets for Elide.
  */
 @Configuration
+@ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
 @EnableConfigurationProperties(ElideConfigProperties.class)
 public class ElideSubscriptionConfiguration {
     @Bean
@@ -34,8 +35,7 @@ public class ElideSubscriptionConfiguration {
             ElideConfigProperties config,
             SubscriptionWebSocket.UserFactory userFactory,
             ConnectionFactory connectionFactory,
-            ErrorMapper errorMapper,
-            JsonApiMapper mapper
+            ErrorMapper errorMapper
     ) {
         return ServerEndpointConfig.Builder
                 .create(SubscriptionWebSocket.class, config.getSubscription().getPath())
