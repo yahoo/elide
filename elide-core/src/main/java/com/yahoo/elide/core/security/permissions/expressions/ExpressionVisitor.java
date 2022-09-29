@@ -11,7 +11,8 @@ package com.yahoo.elide.core.security.permissions.expressions;
  * @param <T> The return type of the visitor
  */
 public interface ExpressionVisitor<T> {
-    T visitExpression(Expression expression);
+    T visitSpecificFieldExpression(SpecificFieldExpression expression);
+    T visitAnyFieldExpression(AnyFieldExpression expression);
     T visitCheckExpression(CheckExpression checkExpression);
     T visitAndExpression(AndExpression andExpression);
     T visitOrExpression(OrExpression orExpression);

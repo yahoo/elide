@@ -18,12 +18,7 @@ import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
-import com.yahoo.elide.core.security.permissions.expressions.AndExpression;
-import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
-import com.yahoo.elide.core.security.permissions.expressions.Expression;
-import com.yahoo.elide.core.security.permissions.expressions.ExpressionVisitor;
-import com.yahoo.elide.core.security.permissions.expressions.NotExpression;
-import com.yahoo.elide.core.security.permissions.expressions.OrExpression;
+import com.yahoo.elide.core.security.permissions.expressions.*;
 import com.yahoo.elide.core.type.Type;
 
 import java.util.Objects;
@@ -199,7 +194,12 @@ public class PermissionToFilterExpressionVisitor implements ExpressionVisitor<Fi
     }
 
     @Override
-    public FilterExpression visitExpression(Expression expression) {
+    public FilterExpression visitSpecificFieldExpression(SpecificFieldExpression expression) {
+        return NO_EVALUATION_EXPRESSION;
+    }
+
+    @Override
+    public FilterExpression visitAnyFieldExpression(AnyFieldExpression expression) {
         return NO_EVALUATION_EXPRESSION;
     }
 }
