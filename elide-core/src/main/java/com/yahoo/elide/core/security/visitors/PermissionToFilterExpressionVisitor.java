@@ -202,4 +202,9 @@ public class PermissionToFilterExpressionVisitor implements ExpressionVisitor<Fi
     public FilterExpression visitAnyFieldExpression(AnyFieldExpression expression) {
         return NO_EVALUATION_EXPRESSION;
     }
+
+    @Override
+    public FilterExpression visitBooleanExpression(BooleanExpression expression) {
+        return NO_EVALUATION_EXPRESSION;
+    }
 }

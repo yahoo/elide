@@ -158,7 +158,7 @@ public class PermissionExpressionVisitorTest {
 
         @Override
         public <T> T accept(ExpressionVisitor<T> visitor) {
-            return visitor.visitExpression(this);
+            return null;
         }
     }
 }

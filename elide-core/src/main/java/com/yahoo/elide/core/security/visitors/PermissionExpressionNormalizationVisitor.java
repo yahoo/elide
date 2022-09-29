@@ -23,6 +23,11 @@ public class PermissionExpressionNormalizationVisitor implements ExpressionVisit
     }
 
     @Override
+    public Expression visitBooleanExpression(BooleanExpression expression) {
+        return expression;
+    }
+
+    @Override
     public Expression visitCheckExpression(CheckExpression checkExpression) {
         return checkExpression;
     }
