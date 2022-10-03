@@ -86,7 +86,7 @@
         <!-- dependency versions -->
         <version.antlr4>4.9.3</version.antlr4>
         <version.jetty>10.0.10</version.jetty>
-        <version.logback>1.2.11</version.logback>
+        <version.logback>1.4.3</version.logback>
         <version.restassured>5.2.0</version.restassured>
         <version.jackson>2.13.4</version.jackson>
         <version.jackson.databind>2.13.4</version.jackson.databind>
