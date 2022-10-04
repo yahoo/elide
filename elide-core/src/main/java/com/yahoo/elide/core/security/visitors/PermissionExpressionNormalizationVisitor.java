@@ -6,19 +6,24 @@
 
 package com.yahoo.elide.core.security.visitors;
 
-import com.yahoo.elide.core.security.permissions.expressions.AndExpression;
-import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
-import com.yahoo.elide.core.security.permissions.expressions.Expression;
-import com.yahoo.elide.core.security.permissions.expressions.ExpressionVisitor;
-import com.yahoo.elide.core.security.permissions.expressions.NotExpression;
-import com.yahoo.elide.core.security.permissions.expressions.OrExpression;
+import com.yahoo.elide.core.security.permissions.expressions.*;
 
 /**
  * Expression Visitor to normalize Permission expression.
  */
 public class PermissionExpressionNormalizationVisitor implements ExpressionVisitor<Expression> {
     @Override
-    public Expression visitExpression(Expression expression) {
+    public Expression visitSpecificFieldExpression(SpecificFieldExpression expression) {
+        return expression;
+    }
+
+    @Override
+    public Expression visitAnyFieldExpression(AnyFieldExpression expression) {
+        return expression;
+    }
+
+    @Override
+    public Expression visitBooleanExpression(BooleanExpression expression) {
         return expression;
     }
 

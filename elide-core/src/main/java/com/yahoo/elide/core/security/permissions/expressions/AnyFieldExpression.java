@@ -32,7 +32,7 @@ public class AnyFieldExpression implements Expression {
 
     @Override
     public <T> T accept(ExpressionVisitor<T> visitor) {
-        return visitor.visitExpression(this);
+        return visitor.visitAnyFieldExpression(this);
     }
 
     @Override

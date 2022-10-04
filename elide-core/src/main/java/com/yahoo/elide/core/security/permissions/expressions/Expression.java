@@ -5,9 +5,7 @@
  */
 package com.yahoo.elide.core.security.permissions.expressions;
 
-import static org.fusesource.jansi.Ansi.ansi;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
-import org.fusesource.jansi.Ansi;
 
 /**
  * Interface describing an expression.
@@ -37,37 +35,7 @@ public interface Expression {
      * Static Expressions that return PASS or FAIL.
      */
     public static class Results {
-        public static final Expression SUCCESS = new Expression() {
-            @Override
-            public ExpressionResult evaluate(EvaluationMode ignored) {
-                return ExpressionResult.PASS;
-            }
-
-            @Override
-            public <T> T accept(ExpressionVisitor<T> visitor) {
-                return visitor.visitExpression(this);
-            }
-
-            @Override
-            public String toString() {
-                return ansi().fg(Ansi.Color.GREEN).a("SUCCESS").reset().toString();
-            }
-        };
-        public static final Expression FAILURE = new Expression() {
-            @Override
-            public ExpressionResult evaluate(EvaluationMode ignored) {
-                return ExpressionResult.FAIL;
-            }
-
-            @Override
-            public <T> T accept(ExpressionVisitor<T> visitor) {
-                return visitor.visitExpression(this);
-            }
-
-            @Override
-            public String toString() {
-                return ansi().fg(Ansi.Color.RED).a("FAILURE").reset().toString();
-            }
-        };
+        public static final Expression SUCCESS = new BooleanExpression(true);
+        public static final Expression FAILURE = new BooleanExpression(false);
     }
 }
