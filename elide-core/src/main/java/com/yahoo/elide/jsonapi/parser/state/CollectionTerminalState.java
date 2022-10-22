@@ -22,6 +22,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
+import com.yahoo.elide.jsonapi.document.processors.PopulateMetaProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
@@ -109,6 +110,9 @@ public class CollectionTerminalState extends BaseState {
             jsonApiDocument.setMeta(meta);
         }
 
+        PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
+        metaProcessor.execute(jsonApiDocument, collection, queryParams);
+
         return () -> Pair.of(HttpStatus.SC_OK, jsonApiDocument);
     }
 
@@ -122,6 +126,10 @@ public class CollectionTerminalState extends BaseState {
         return () -> {
             JsonApiDocument returnDoc = new JsonApiDocument();
             returnDoc.setData(new Data<>(newObject.toResource()));
+
+            PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
+            metaProcessor.execute(returnDoc, newObject, requestScope.getQueryParams());
+
             return Pair.of(HttpStatus.SC_CREATED, returnDoc);
         };
     }
