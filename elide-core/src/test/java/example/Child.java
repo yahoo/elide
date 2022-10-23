@@ -9,8 +9,9 @@ import com.yahoo.elide.annotation.*;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.HashMap;
 import java.util.Map;
