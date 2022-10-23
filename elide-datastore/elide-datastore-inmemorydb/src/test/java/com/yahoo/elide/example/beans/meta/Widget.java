@@ -9,9 +9,9 @@ package com.yahoo.elide.example.beans.meta;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
 
-import javax.persistence.Id;
 import java.util.Optional;
 import java.util.Set;
+import javax.persistence.Id;
 
 @Include
 public class Widget implements WithMetadata {

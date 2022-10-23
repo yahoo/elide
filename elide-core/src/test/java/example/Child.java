@@ -5,25 +5,18 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.*;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
@@ -37,12 +30,13 @@ import javax.persistence.OneToOne;
        operation = 0,
        logStatement = "CREATE Child {0} Parent {1}",
        logExpressions = {"${child.id}", "${parent.id}"})
-public class Child {
+public class Child implements WithMetadata {
     @JsonIgnore
 
     private long id;
     private Set<Parent> parents;
 
+    private Map<String, Object> metadata = new HashMap<>();
 
     private String name;
 
@@ -107,6 +101,27 @@ public class Child {
 
     public void setReadNoAccess(Child noReadAccess) {
         this.noReadAccess = noReadAccess;
+    }
+
+    @Exclude
+    @Transient
+    @Override
+    public void setMetadataField(String property, Object value) {
+        metadata.put(property, value);
+    }
+
+    @Exclude
+    @Transient
+    @Override
+    public Optional<Object> getMetadataField(String property) {
+        return Optional.ofNullable(metadata.getOrDefault(property, null));
+    }
+
+    @Exclude
+    @Transient
+    @Override
+    public Set<String> getMetadataFields() {
+        return metadata.keySet();
     }
 
     static public class InitCheck extends OperationCheck<Child> {
