@@ -6,15 +6,16 @@
 
 package com.yahoo.elide.datastores.inmemory;
 
-import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.initialization.IntegrationTest;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Test;
-
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.*;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.initialization.IntegrationTest;
+
+import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Test;
 
 public class MetaIT extends IntegrationTest {
     @Override

@@ -46,28 +46,4 @@ public class PopulateMetaProcessorTest {
         assertEquals(1, meta.getMetaMap().size());
         assertEquals("bar", meta.getMetaMap().get("foo"));
     }
-
-    @Test
-    public void testModelWithMeta() {
-        RequestScope scope = mock(RequestScope.class);
-
-        WithMetadata withMetadata = mock(WithMetadata.class);
-        when(withMetadata.getMetadataFields()).thenReturn(Set.of("foo"));
-        when(withMetadata.getMetadataField(eq("foo"))).thenReturn(Optional.of("bar"));
-
-        PersistentResource persistentResource = mock(PersistentResource.class);
-        when(persistentResource.getObject()).thenReturn(withMetadata);
-
-        PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
-        JsonApiDocument doc = new JsonApiDocument();
-        Resource resource = new Resource("test", "1");
-        doc.setData(new Data(resource));
-
-        metaProcessor.execute(doc, scope, persistentResource, null);
-
-        Meta meta = doc.getData().getSingleValue().getMeta();
-        assertNotNull(meta);
-        assertEquals(1, meta.getMetaMap().size());
-        assertEquals("bar", meta.getMetaMap().get("foo"));
-    }
 }

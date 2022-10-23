@@ -10,10 +10,8 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
-import com.yahoo.elide.jsonapi.models.Resource;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
@@ -32,37 +30,6 @@ public class PopulateMetaProcessor implements DocumentProcessor {
     ) {
 
         addDocumentMeta(jsonApiDocument, scope);
-        addResourceMeta(jsonApiDocument.getData().getSingleValue(), persistentResource);
-    }
-
-    private void addResourceMeta(Resource resource, PersistentResource persistentResource) {
-        if (persistentResource == null) {
-            return;
-        }
-
-        Meta meta = resource.getMeta();
-
-        Object obj = persistentResource.getObject();
-        if (! (obj instanceof WithMetadata)) {
-            return;
-        }
-
-        WithMetadata withMetadata = (WithMetadata) obj;
-        Set<String> fields = withMetadata.getMetadataFields();
-
-        if (fields.size() == 0) {
-            return;
-        }
-
-        if (meta == null) {
-            meta = new Meta(new HashMap<>());
-        }
-
-        for (String field : fields) {
-            meta.getMetaMap().put(field, withMetadata.getMetadataField(field).get());
-        }
-
-        resource.setMeta(meta);
     }
 
     private void addDocumentMeta(JsonApiDocument document, RequestScope scope) {
@@ -90,15 +57,5 @@ public class PopulateMetaProcessor implements DocumentProcessor {
             MultivaluedMap<String, String> queryParams
     ) {
         addDocumentMeta(jsonApiDocument, scope);
-
-        Iterator<PersistentResource> persistentResourceIterator = resources.iterator();
-        Iterator<Resource> resourceIterator = jsonApiDocument.getData().get().iterator();
-
-        while (persistentResourceIterator.hasNext() && resourceIterator.hasNext()) {
-            PersistentResource persistentResource = persistentResourceIterator.next();
-            Resource resource = resourceIterator.next();
-
-            addResourceMeta(resource, persistentResource);
-        }
     }
 }
