@@ -30,7 +30,14 @@ public class PopulateMetaProcessor implements DocumentProcessor {
             return;
         }
         Meta meta = jsonApiDocument.getData().getSingleValue().getMeta();
-        Set<String> fields = resource.getMetadataFields();
+
+        Object obj = resource.getObject();
+        if (! (obj instanceof WithMetadata)) {
+            return;
+        }
+
+        WithMetadata withMetadata = (WithMetadata) obj;
+        Set<String> fields = withMetadata.getMetadataFields();
 
         if (fields.size() == 0) {
             return;
@@ -40,7 +47,7 @@ public class PopulateMetaProcessor implements DocumentProcessor {
             meta = new Meta(new HashMap<>());
         }
         for (String field : fields) {
-            meta.getMetaMap().put(field, resource.getMetadataField(field).get());
+            meta.getMetaMap().put(field, withMetadata.getMetadataField(field).get());
         }
 
         jsonApiDocument.getData().getSingleValue().setMeta(meta);

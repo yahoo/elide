@@ -67,7 +67,19 @@ import lombok.NonNull;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -89,7 +101,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     private final ResourceLineage lineage;
     private final Optional<String> uuid;
     private final DataStoreTransaction transaction;
-    private final Map<String, Object> metadata;
     private final RequestScope requestScope;
     /* Sort strings first by length then contents */
     private final Comparator<String> lengthFirstComparator = (string1, string2) -> {
@@ -125,7 +136,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         this.typeName = dictionary.getJsonAliasFor(type);
         this.transaction = scope.getTransaction();
         this.requestScope = scope;
-        this.metadata = new HashMap<>();
         dictionary.initializeEntity(obj);
     }
 
@@ -1419,21 +1429,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     @Override
     public String getTypeName() {
         return typeName;
-    }
-
-    @Override
-    public void setMetadataField(String property, Object value) {
-        metadata.put(property, value);
-    }
-
-    @Override
-    public Optional<Object> getMetadataField(String property) {
-        return Optional.ofNullable(metadata.getOrDefault(property, null));
-    }
-
-    @Override
-    public Set<String> getMetadataFields() {
-        return metadata.keySet();
     }
 
     @Override

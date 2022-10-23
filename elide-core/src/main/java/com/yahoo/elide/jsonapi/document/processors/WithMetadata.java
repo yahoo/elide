@@ -1,28 +1,18 @@
 /*
- * Copyright 2020, Yahoo Inc.
+ * Copyright 2022, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.security;
 
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
+package com.yahoo.elide.jsonapi.document.processors;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * The request scope interface passed to checks.
+ * The class carries metadata fields.
  */
-public interface RequestScope extends WithMetadata {
-    User getUser();
-    String getApiVersion();
-    String getRequestHeaderByName(String headerName);
-    String getBaseUrlEndPoint();
-    Map<String, List<String>> getQueryParams();
-    DataStoreTransaction getTransaction();
+public interface WithMetadata {
 
     /**
      * Sets a metadata property for this request.
