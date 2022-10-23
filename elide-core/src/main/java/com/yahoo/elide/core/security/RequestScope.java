@@ -10,8 +10,6 @@ import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * The request scope interface passed to checks.

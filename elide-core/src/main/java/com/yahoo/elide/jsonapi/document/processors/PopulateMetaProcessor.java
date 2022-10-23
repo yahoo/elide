@@ -87,8 +87,8 @@ public class PopulateMetaProcessor implements DocumentProcessor {
             JsonApiDocument jsonApiDocument,
             RequestScope scope,
             LinkedHashSet<PersistentResource> resources,
-            MultivaluedMap<String, String> queryParams)
-    {
+            MultivaluedMap<String, String> queryParams
+    ) {
         addDocumentMeta(jsonApiDocument, scope);
 
         Iterator<PersistentResource> persistentResourceIterator = resources.iterator();

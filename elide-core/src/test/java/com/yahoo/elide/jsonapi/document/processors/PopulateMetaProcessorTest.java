@@ -6,6 +6,12 @@
 
 package com.yahoo.elide.jsonapi.document.processors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -15,14 +21,9 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class PopulateMetaProcessorTest {
 
@@ -37,6 +38,7 @@ public class PopulateMetaProcessorTest {
 
         PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
         JsonApiDocument doc = new JsonApiDocument();
+        doc.setData(new Data<Resource>(List.of()));
         metaProcessor.execute(doc, scope, new LinkedHashSet<>(Set.of(persistentResource)), null);
 
         Meta meta = doc.getMeta();
