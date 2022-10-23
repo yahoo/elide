@@ -14,6 +14,7 @@ import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Resource;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,7 +37,7 @@ public class PopulateMetaProcessorTest {
 
         PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
         JsonApiDocument doc = new JsonApiDocument();
-        metaProcessor.execute(doc, scope, Set.of(persistentResource), null);
+        metaProcessor.execute(doc, scope, new LinkedHashSet<>(Set.of(persistentResource)), null);
 
         Meta meta = doc.getMeta();
         assertNotNull(meta);

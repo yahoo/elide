@@ -25,11 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -122,7 +118,7 @@ public class IncludedProcessorTest {
     public void testExecuteSingleRelationOnCollection() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        Set<PersistentResource> parents = new HashSet<>();
+        LinkedHashSet<PersistentResource> parents = new LinkedHashSet<>();
         parents.add(parentRecord1);
         parents.add(parentRecord2);
 

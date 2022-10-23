@@ -10,8 +10,11 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
+import com.yahoo.elide.jsonapi.models.Resource;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -24,18 +27,22 @@ public class PopulateMetaProcessor implements DocumentProcessor {
     public void execute(
             JsonApiDocument jsonApiDocument,
             RequestScope scope,
-            PersistentResource resource,
+            PersistentResource persistentResource,
             MultivaluedMap<String, String> queryParams
     ) {
 
         addDocumentMeta(jsonApiDocument, scope);
-        if (resource == null) {
+        addResourceMeta(jsonApiDocument.getData().getSingleValue(), persistentResource);
+    }
+
+    private void addResourceMeta(Resource resource, PersistentResource persistentResource) {
+        if (persistentResource == null) {
             return;
         }
 
-        Meta meta = jsonApiDocument.getData().getSingleValue().getMeta();
+        Meta meta = resource.getMeta();
 
-        Object obj = resource.getObject();
+        Object obj = persistentResource.getObject();
         if (! (obj instanceof WithMetadata)) {
             return;
         }
@@ -55,7 +62,7 @@ public class PopulateMetaProcessor implements DocumentProcessor {
             meta.getMetaMap().put(field, withMetadata.getMetadataField(field).get());
         }
 
-        jsonApiDocument.getData().getSingleValue().setMeta(meta);
+        resource.setMeta(meta);
     }
 
     private void addDocumentMeta(JsonApiDocument document, RequestScope scope) {
@@ -79,8 +86,19 @@ public class PopulateMetaProcessor implements DocumentProcessor {
     public void execute(
             JsonApiDocument jsonApiDocument,
             RequestScope scope,
-            Set<PersistentResource> resources,
-            MultivaluedMap<String, String> queryParams) {
+            LinkedHashSet<PersistentResource> resources,
+            MultivaluedMap<String, String> queryParams)
+    {
         addDocumentMeta(jsonApiDocument, scope);
+
+        Iterator<PersistentResource> persistentResourceIterator = resources.iterator();
+        Iterator<Resource> resourceIterator = jsonApiDocument.getData().get().iterator();
+
+        while (persistentResourceIterator.hasNext() && resourceIterator.hasNext()) {
+            PersistentResource persistentResource = persistentResourceIterator.next();
+            Resource resource = resourceIterator.next();
+
+            addResourceMeta(resource, persistentResource);
+        }
     }
 }

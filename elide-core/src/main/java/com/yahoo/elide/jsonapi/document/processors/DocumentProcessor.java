@@ -9,6 +9,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -42,7 +43,7 @@ public interface DocumentProcessor {
      */
     void execute(JsonApiDocument jsonApiDocument,
                  RequestScope scope,
-                 Set<PersistentResource> resources,
+                 LinkedHashSet<PersistentResource> resources,
                  MultivaluedMap<String, String> queryParams);
 
     //TODO Possibly add a something like a 'afterExecute' method to process after the first round of execution

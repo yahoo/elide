@@ -46,8 +46,12 @@ public class IncludedProcessor implements DocumentProcessor {
      * to the included block of the JsonApiDocument.
      */
     @Override
-    public void execute(JsonApiDocument jsonApiDocument, RequestScope scope, Set<PersistentResource> resources,
-                        MultivaluedMap<String, String> queryParams) {
+    public void execute(
+            JsonApiDocument jsonApiDocument,
+            RequestScope scope,
+            LinkedHashSet<PersistentResource> resources,
+            MultivaluedMap<String, String> queryParams
+    ) {
         if (isPresent(queryParams, INCLUDE)) {
 
             // Process include for each resource

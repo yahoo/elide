@@ -72,7 +72,7 @@ public class CollectionTerminalState extends BaseState {
         RequestScope requestScope = state.getRequestScope();
         MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
 
-        Set<PersistentResource> collection =
+        LinkedHashSet<PersistentResource> collection =
                 getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
 
         // Set data
