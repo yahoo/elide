@@ -36,7 +36,7 @@ public class PopulateMetaProcessorTest {
 
         PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
         JsonApiDocument doc = new JsonApiDocument();
-        metaProcessor.execute(doc, Set.of(persistentResource), null);
+        metaProcessor.execute(doc, scope, Set.of(persistentResource), null);
 
         Meta meta = doc.getMeta();
         assertNotNull(meta);
@@ -46,6 +46,8 @@ public class PopulateMetaProcessorTest {
 
     @Test
     public void testModelWithMeta() {
+        RequestScope scope = mock(RequestScope.class);
+
         WithMetadata withMetadata = mock(WithMetadata.class);
         when(withMetadata.getMetadataFields()).thenReturn(Set.of("foo"));
         when(withMetadata.getMetadataField(eq("foo"))).thenReturn(Optional.of("bar"));
@@ -58,7 +60,7 @@ public class PopulateMetaProcessorTest {
         Resource resource = new Resource("test", "1");
         doc.setData(new Data(resource));
 
-        metaProcessor.execute(doc, persistentResource, null);
+        metaProcessor.execute(doc, scope, persistentResource, null);
 
         Meta meta = doc.getData().getSingleValue().getMeta();
         assertNotNull(meta);

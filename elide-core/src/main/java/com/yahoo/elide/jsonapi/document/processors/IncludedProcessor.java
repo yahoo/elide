@@ -6,6 +6,7 @@
 package com.yahoo.elide.jsonapi.document.processors;
 
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
@@ -33,7 +34,7 @@ public class IncludedProcessor implements DocumentProcessor {
      * to the included block of the JsonApiDocument.
      */
     @Override
-    public void execute(JsonApiDocument jsonApiDocument, PersistentResource resource,
+    public void execute(JsonApiDocument jsonApiDocument, RequestScope scope, PersistentResource resource,
                         MultivaluedMap<String, String> queryParams) {
         if (isPresent(queryParams, INCLUDE)) {
             addIncludedResources(jsonApiDocument, resource, queryParams.get(INCLUDE));
@@ -45,7 +46,7 @@ public class IncludedProcessor implements DocumentProcessor {
      * to the included block of the JsonApiDocument.
      */
     @Override
-    public void execute(JsonApiDocument jsonApiDocument, Set<PersistentResource> resources,
+    public void execute(JsonApiDocument jsonApiDocument, RequestScope scope, Set<PersistentResource> resources,
                         MultivaluedMap<String, String> queryParams) {
         if (isPresent(queryParams, INCLUDE)) {
 

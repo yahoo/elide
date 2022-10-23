@@ -23,12 +23,16 @@ public class PopulateMetaProcessor implements DocumentProcessor {
     @Override
     public void execute(
             JsonApiDocument jsonApiDocument,
+            RequestScope scope,
             PersistentResource resource,
             MultivaluedMap<String, String> queryParams
     ) {
+
+        addDocumentMeta(jsonApiDocument, scope);
         if (resource == null) {
             return;
         }
+
         Meta meta = jsonApiDocument.getData().getSingleValue().getMeta();
 
         Object obj = resource.getObject();
@@ -46,6 +50,7 @@ public class PopulateMetaProcessor implements DocumentProcessor {
         if (meta == null) {
             meta = new Meta(new HashMap<>());
         }
+
         for (String field : fields) {
             meta.getMetaMap().put(field, withMetadata.getMetadataField(field).get());
         }
@@ -53,22 +58,12 @@ public class PopulateMetaProcessor implements DocumentProcessor {
         jsonApiDocument.getData().getSingleValue().setMeta(meta);
     }
 
-    @Override
-    public void execute(
-            JsonApiDocument jsonApiDocument,
-            Set<PersistentResource> resources,
-            MultivaluedMap<String, String> queryParams) {
-        if (resources.size() == 0) {
-            return;
-        }
-        Meta meta = jsonApiDocument.getMeta();
-        RequestScope scope = resources.iterator().next().getRequestScope();
-
+    private void addDocumentMeta(JsonApiDocument document, RequestScope scope) {
         Set<String> fields = scope.getMetadataFields();
         if (fields.size() == 0) {
             return;
         }
-
+        Meta meta = document.getMeta();
         if (meta == null) {
             meta = new Meta(new HashMap<>());
         }
@@ -77,6 +72,15 @@ public class PopulateMetaProcessor implements DocumentProcessor {
             meta.getMetaMap().put(field, scope.getMetadataField(field).get());
         }
 
-        jsonApiDocument.setMeta(meta);
+        document.setMeta(meta);
+    }
+
+    @Override
+    public void execute(
+            JsonApiDocument jsonApiDocument,
+            RequestScope scope,
+            Set<PersistentResource> resources,
+            MultivaluedMap<String, String> queryParams) {
+        addDocumentMeta(jsonApiDocument, scope);
     }
 }

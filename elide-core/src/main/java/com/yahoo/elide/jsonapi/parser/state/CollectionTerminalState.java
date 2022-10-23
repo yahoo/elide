@@ -80,7 +80,7 @@ public class CollectionTerminalState extends BaseState {
 
         // Run include processor
         DocumentProcessor includedProcessor = new IncludedProcessor();
-        includedProcessor.execute(jsonApiDocument, collection, queryParams);
+        includedProcessor.execute(jsonApiDocument, requestScope, collection, queryParams);
 
         Pagination pagination = parentProjection.getPagination();
         if (parent.isPresent()) {
@@ -111,7 +111,7 @@ public class CollectionTerminalState extends BaseState {
         }
 
         PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
-        metaProcessor.execute(jsonApiDocument, collection, queryParams);
+        metaProcessor.execute(jsonApiDocument, requestScope, collection, queryParams);
 
         return () -> Pair.of(HttpStatus.SC_OK, jsonApiDocument);
     }
@@ -128,7 +128,7 @@ public class CollectionTerminalState extends BaseState {
             returnDoc.setData(new Data<>(newObject.toResource()));
 
             PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
-            metaProcessor.execute(returnDoc, newObject, requestScope.getQueryParams());
+            metaProcessor.execute(returnDoc, requestScope, newObject, requestScope.getQueryParams());
 
             return Pair.of(HttpStatus.SC_CREATED, returnDoc);
         };

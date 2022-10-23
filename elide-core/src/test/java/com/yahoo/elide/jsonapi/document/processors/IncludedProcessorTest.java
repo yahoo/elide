@@ -109,7 +109,7 @@ public class IncludedProcessorTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
         testScope.setQueryParams(queryParams);
-        includedProcessor.execute(jsonApiDocument, parentRecord1, queryParams);
+        includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, queryParams);
 
         List<Resource> expectedIncluded = Collections.singletonList(childRecord1.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
@@ -129,7 +129,7 @@ public class IncludedProcessorTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
         testScope.setQueryParams(queryParams);
-        includedProcessor.execute(jsonApiDocument, parents, queryParams);
+        includedProcessor.execute(jsonApiDocument, testScope, parents, queryParams);
 
         List<Resource> expectedIncluded = Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
@@ -146,7 +146,7 @@ public class IncludedProcessorTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
         testScope.setQueryParams(queryParams);
-        includedProcessor.execute(jsonApiDocument, parentRecord1, queryParams);
+        includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, queryParams);
 
         List<Resource> expectedIncluded =
                 Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
@@ -163,7 +163,7 @@ public class IncludedProcessorTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Arrays.asList("children", "spouses"));
         testScope.setQueryParams(queryParams);
-        includedProcessor.execute(jsonApiDocument, parentRecord1, queryParams);
+        includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, queryParams);
 
         List<Resource> expectedIncluded =
                 Arrays.asList(childRecord1.toResource(), parentRecord2.toResource());
@@ -180,7 +180,7 @@ public class IncludedProcessorTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
         testScope.setQueryParams(queryParams);
-        includedProcessor.execute(jsonApiDocument, parentRecord3, queryParams);
+        includedProcessor.execute(jsonApiDocument, testScope, parentRecord3, queryParams);
 
         Set<Resource> expectedIncluded =
                 Sets.newHashSet(
@@ -202,7 +202,7 @@ public class IncludedProcessorTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("relation1"));
         testScope.setQueryParams(queryParams);
-        includedProcessor.execute(jsonApiDocument, funWithPermissionsRecord, queryParams);
+        includedProcessor.execute(jsonApiDocument, testScope, funWithPermissionsRecord, queryParams);
 
         assertNull(jsonApiDocument.getIncluded(),
                 "Included Processor included forbidden relationship");
@@ -211,7 +211,7 @@ public class IncludedProcessorTest {
     @Test
     public void testNoQueryParams() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
-        includedProcessor.execute(jsonApiDocument, parentRecord1, null);
+        includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, null);
 
         assertNull(jsonApiDocument.getIncluded(),
                 "Included Processor adds no resources when not given query params");
@@ -225,7 +225,7 @@ public class IncludedProcessorTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put("unused", Collections.emptyList());
         testScope.setQueryParams(queryParams);
-        includedProcessor.execute(jsonApiDocument, parentRecord1, queryParams);
+        includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, queryParams);
 
         assertNull(jsonApiDocument.getIncluded(),
                 "Included Processor adds no resources when not given query params");

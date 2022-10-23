@@ -187,10 +187,10 @@ public abstract class BaseState {
 
         //TODO Iterate over set of document processors
         DocumentProcessor includedProcessor = new IncludedProcessor();
-        includedProcessor.execute(jsonApiDocument, resource, queryParams);
+        includedProcessor.execute(jsonApiDocument, requestScope, resource, queryParams);
 
         PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
-        metaProcessor.execute(jsonApiDocument, resource, queryParams);
+        metaProcessor.execute(jsonApiDocument, requestScope, resource, queryParams);
 
         return jsonApiDocument;
     }

@@ -68,7 +68,7 @@ public class RelationshipTerminalState extends BaseState {
 
             // Run include processor
             DocumentProcessor includedProcessor = new IncludedProcessor();
-            includedProcessor.execute(doc, record, queryParams);
+            includedProcessor.execute(doc, requestScope, record, queryParams);
 
             return () -> Pair.of(HttpStatus.SC_OK, doc);
         }
@@ -83,7 +83,7 @@ public class RelationshipTerminalState extends BaseState {
         }
 
         PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
-        metaProcessor.execute(doc, record, queryParams);
+        metaProcessor.execute(doc, requestScope, record, queryParams);
 
         return () -> Pair.of(HttpStatus.SC_OK, doc);
     }
