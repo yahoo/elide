@@ -8,7 +8,6 @@ package com.yahoo.elide.core.security;
 import com.yahoo.elide.core.type.Type;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * The persistent resource interface passed to change specs.
