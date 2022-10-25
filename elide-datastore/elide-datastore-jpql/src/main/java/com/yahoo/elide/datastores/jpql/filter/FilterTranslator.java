@@ -23,7 +23,13 @@ import static com.yahoo.elide.core.filter.Operator.NOT;
 import static com.yahoo.elide.core.filter.Operator.NOTBETWEEN;
 import static com.yahoo.elide.core.filter.Operator.NOTEMPTY;
 import static com.yahoo.elide.core.filter.Operator.NOTNULL;
+import static com.yahoo.elide.core.filter.Operator.NOT_INFIX;
+import static com.yahoo.elide.core.filter.Operator.NOT_INFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.NOT_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.NOT_POSTFIX;
+import static com.yahoo.elide.core.filter.Operator.NOT_POSTFIX_CASE_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.NOT_PREFIX;
+import static com.yahoo.elide.core.filter.Operator.NOT_PREFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.POSTFIX;
 import static com.yahoo.elide.core.filter.Operator.POSTFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.PREFIX;
@@ -31,6 +37,7 @@ import static com.yahoo.elide.core.filter.Operator.PREFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.TRUE;
 import static com.yahoo.elide.core.utils.TypeHelper.getFieldAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getPathAlias;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -44,7 +51,9 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.type.Type;
+
 import com.google.common.base.Preconditions;
+
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.EnumMap;
@@ -60,11 +69,8 @@ import java.util.stream.Collectors;
 public class FilterTranslator implements FilterOperation<String> {
     private static final String COMMA = ", ";
 
-    private static Map<Operator, JPQLPredicateGenerator> globalOperatorGenerators;
-    private static Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> globalPredicateOverrides;
-
-    private Map<Operator, JPQLPredicateGenerator> operatorGenerators;
-    private Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+    private static final Map<Operator, JPQLPredicateGenerator> globalOperatorGenerators;
+    private static final Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> globalPredicateOverrides;
 
     static {
         globalPredicateOverrides = new HashMap<>();
@@ -101,8 +107,20 @@ public class FilterTranslator implements FilterOperation<String> {
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
+        globalOperatorGenerators.put(NOT_PREFIX, new CaseAwareJPQLGenerator(
+                "%s NOT LIKE CONCAT(%s, '%%')",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
+
         globalOperatorGenerators.put(PREFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT(%s, '%%')",
+                CaseAwareJPQLGenerator.Case.LOWER,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
+
+        globalOperatorGenerators.put(NOT_PREFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
+                "%s NOT LIKE CONCAT(%s, '%%')",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
@@ -113,8 +131,20 @@ public class FilterTranslator implements FilterOperation<String> {
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
-        globalOperatorGenerators.put(POSTFIX_CASE_INSENSITIVE,  new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(NOT_POSTFIX, new CaseAwareJPQLGenerator(
+                "%s NOT LIKE CONCAT('%%', %s)",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
+
+        globalOperatorGenerators.put(POSTFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT('%%', %s)",
+                CaseAwareJPQLGenerator.Case.LOWER,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
+
+        globalOperatorGenerators.put(NOT_POSTFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
+                "%s NOT LIKE CONCAT('%%', %s)",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
@@ -125,8 +155,20 @@ public class FilterTranslator implements FilterOperation<String> {
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
+        globalOperatorGenerators.put(NOT_INFIX, new CaseAwareJPQLGenerator(
+                "%s NOT LIKE CONCAT('%%', CONCAT(%s, '%%'))",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
+
         globalOperatorGenerators.put(INFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT('%%', CONCAT(%s, '%%'))",
+                CaseAwareJPQLGenerator.Case.LOWER,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
+
+        globalOperatorGenerators.put(NOT_INFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
+                "%s NOT LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
@@ -135,8 +177,8 @@ public class FilterTranslator implements FilterOperation<String> {
             Preconditions.checkState(!predicate.getParameters().isEmpty());
             return String.format("%s < %s", aliasGenerator.apply(predicate.getPath()),
                     predicate.getParameters().size() == 1
-                    ? predicate.getParameters().get(0).getPlaceholder()
-                    : leastClause(predicate.getParameters()));
+                            ? predicate.getParameters().get(0).getPlaceholder()
+                            : leastClause(predicate.getParameters()));
         });
 
         globalOperatorGenerators.put(LE, (predicate, aliasGenerator) -> {
@@ -209,9 +251,13 @@ public class FilterTranslator implements FilterOperation<String> {
         });
     }
 
+    private final Map<Operator, JPQLPredicateGenerator> operatorGenerators;
+    private final Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+
     /**
      * Overrides the default JPQL generator for a given operator.
-     * @param op The filter predicate operator
+     *
+     * @param op        The filter predicate operator
      * @param generator The generator to resgister
      */
     public static void registerJPQLGenerator(Operator op,
@@ -383,7 +429,7 @@ public class FilterTranslator implements FilterOperation<String> {
      * Filter expression visitor which builds an JPQL query.
      */
     public class JPQLQueryVisitor implements FilterExpressionVisitor<String> {
-        private Function<Path, String> aliasGenerator;
+        private final Function<Path, String> aliasGenerator;
 
         public JPQLQueryVisitor(Function<Path, String> aliasGenerator) {
             this.aliasGenerator = aliasGenerator;
