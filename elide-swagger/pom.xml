@@ -85,7 +85,7 @@
        <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-core</artifactId>
-            <version>1.6.7</version>
+            <version>1.6.8</version>
        </dependency>
 
        <!-- Needed by swagger-core but not listed as a dependency -->
