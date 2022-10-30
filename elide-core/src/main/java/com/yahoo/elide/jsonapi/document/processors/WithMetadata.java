@@ -19,7 +19,9 @@ public interface WithMetadata {
      * @param property
      * @param value
      */
-    void setMetadataField(String property, Object value);
+    default void setMetadataField(String property, Object value) {
+        //noop
+    }
 
     /**
      * Retrieves a metadata property from this request.
