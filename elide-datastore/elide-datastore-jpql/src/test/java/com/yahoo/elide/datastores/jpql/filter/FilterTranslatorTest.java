@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.jpql.filter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -20,8 +21,10 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import com.yahoo.elide.core.type.ClassType;
+
 import example.Author;
 import example.Book;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -35,8 +38,8 @@ import java.util.stream.Collectors;
  */
 public class FilterTranslatorTest {
 
-    private EntityDictionary dictionary;
-    private RSQLFilterDialect dialect;
+    private final EntityDictionary dictionary;
+    private final RSQLFilterDialect dialect;
 
     public FilterTranslatorTest() {
         dictionary = EntityDictionary.builder().build();
@@ -74,7 +77,7 @@ public class FilterTranslatorTest {
 
     @Test
     public void testHQLQueryVisitor() throws Exception {
-        List<Path.PathElement> p0Path = Arrays.asList(
+        List<Path.PathElement> p0Path = List.of(
                 new Path.PathElement(Book.class, Author.class, "authors")
         );
         FilterPredicate p0 = new NotEmptyPredicate(new Path(p0Path));
@@ -85,12 +88,12 @@ public class FilterTranslatorTest {
         );
         FilterPredicate p1 = new InPredicate(new Path(p1Path), "foo", "bar");
 
-        List<Path.PathElement> p2Path = Arrays.asList(
+        List<Path.PathElement> p2Path = List.of(
                 new Path.PathElement(Book.class, String.class, "name")
         );
         FilterPredicate p2 = new InPredicate(new Path(p2Path), "blah");
 
-        List<Path.PathElement> p3Path = Arrays.asList(
+        List<Path.PathElement> p3Path = List.of(
                 new Path.PathElement(Book.class, String.class, "genre")
         );
         FilterPredicate p3 = new InPredicate(new Path(p3Path), "scifi");
@@ -121,7 +124,7 @@ public class FilterTranslatorTest {
                 new Path.PathElement(Book.class, Author.class, "authors"),
                 new Path.PathElement(Author.class, Long.class, "id")
         );
-        List<Path.PathElement> publishDate = Arrays.asList(
+        List<Path.PathElement> publishDate = List.of(
                 new Path.PathElement(Book.class, Long.class, "publishDate")
         );
         FilterPredicate authorPred = new FilterPredicate(new Path(authorId), Operator.BETWEEN, Arrays.asList(1, 15));
@@ -150,17 +153,17 @@ public class FilterTranslatorTest {
         // Assert excepetion if parameter length is not 2
         assertThrows(IllegalArgumentException.class,
                 () -> filterOp.apply(
-                        new FilterPredicate(new Path(authorId), Operator.BETWEEN, Arrays.asList(3))
+                        new FilterPredicate(new Path(authorId), Operator.BETWEEN, List.of(3))
                 ));
     }
 
     @Test
     public void testMemberOfOperator() throws Exception {
-        List<Path.PathElement> path = Arrays.asList(
+        List<Path.PathElement> path = List.of(
                 new Path.PathElement(Book.class, String.class, "awards")
         );
-        FilterPredicate p1 = new FilterPredicate(new Path(path), Operator.HASMEMBER, Arrays.asList("awards1"));
-        FilterPredicate p2 = new FilterPredicate(new Path(path), Operator.HASNOMEMBER, Arrays.asList("awards2"));
+        FilterPredicate p1 = new FilterPredicate(new Path(path), Operator.HASMEMBER, List.of("awards1"));
+        FilterPredicate p2 = new FilterPredicate(new Path(path), Operator.HASNOMEMBER, List.of("awards2"));
 
         AndFilterExpression and = new AndFilterExpression(p1, p2);
 
@@ -179,7 +182,15 @@ public class FilterTranslatorTest {
     @Test
     public void testEmptyFieldOnPrefix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
-                Operator.PREFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+                Operator.PREFIX_CASE_INSENSITIVE, List.of("value"));
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
+        assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
+    }
+
+    @Test
+    public void testEmptyFieldOnNotPrefix() throws Exception {
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
+                Operator.NOT_PREFIX_CASE_INSENSITIVE, List.of("value"));
         FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
@@ -187,7 +198,15 @@ public class FilterTranslatorTest {
     @Test
     public void testEmptyFieldOnInfix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
-                Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+                Operator.INFIX_CASE_INSENSITIVE, List.of("value"));
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
+        assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
+    }
+
+    @Test
+    public void testEmptyFieldOnNotInfix() throws Exception {
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
+                Operator.NOT_INFIX_CASE_INSENSITIVE, List.of("value"));
         FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
@@ -195,7 +214,15 @@ public class FilterTranslatorTest {
     @Test
     public void testEmptyFieldOnPostfix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
-                Operator.POSTFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+                Operator.POSTFIX_CASE_INSENSITIVE, List.of("value"));
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
+        assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
+    }
+
+    @Test
+    public void testEmptyFieldOnNotPostfix() throws Exception {
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
+                Operator.NOT_POSTFIX_CASE_INSENSITIVE, List.of("value"));
         FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
@@ -209,7 +236,7 @@ public class FilterTranslatorTest {
             FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, ClassType.of(Author.class), "name", generator);
 
             FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
-                    Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+                    Operator.INFIX_CASE_INSENSITIVE, List.of("value"));
 
             String actual = new FilterTranslator(dictionary).apply(pred);
             assertEquals("FOO", actual);
@@ -228,7 +255,7 @@ public class FilterTranslatorTest {
             FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, generator);
 
             FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
-                    Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+                    Operator.INFIX_CASE_INSENSITIVE, List.of("value"));
 
             String actual = new FilterTranslator(dictionary).apply(pred);
             assertEquals("FOO", actual);
@@ -247,7 +274,7 @@ public class FilterTranslatorTest {
         );
 
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
-                    Operator.INFIX, Arrays.asList("value"));
+                Operator.INFIX, List.of("value"));
 
         Map<Operator, JPQLPredicateGenerator> overrides = new HashMap<>();
         overrides.put(Operator.INFIX, generator);
