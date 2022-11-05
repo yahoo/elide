@@ -336,11 +336,11 @@ public class OperatorTest {
 
         // When notprefix, notinfix, notpostfix are correctly matched if case-insensitive
         fn = Operator.NOT_PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("author"), requestScope);
-        assertFalse(fn.test(author));
+        assertTrue(fn.test(author));
         fn = Operator.NOT_INFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("for"), requestScope);
-        assertFalse(fn.test(author));
+        assertTrue(fn.test(author));
         fn = Operator.NOT_POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("test"), requestScope);
-        assertFalse(fn.test(author));
+        assertTrue(fn.test(author));
 
         // When notprefix, notinfix, notpostfix are not matched
         fn = Operator.NOT_PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("error"), requestScope);
