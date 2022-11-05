@@ -6,6 +6,8 @@
 package com.yahoo.elide.core.filter;
 
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
+import static java.util.Map.entry;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -13,7 +15,9 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -69,10 +73,23 @@ public enum Operator {
         }
     },
 
+    NOT_PREFIX_CASE_INSENSITIVE("notprefixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return notprefix(fieldPath, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
+        }
+    },
     PREFIX("prefix", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
             return prefix(fieldPath, values, requestScope, UnaryOperator.identity());
+        }
+    },
+
+    NOT_PREFIX("notprefix", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return notprefix(fieldPath, values, requestScope, UnaryOperator.identity());
         }
     },
 
@@ -83,10 +100,24 @@ public enum Operator {
         }
     },
 
+    NOT_POSTFIX("notpostfix", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return notpostfix(fieldPath, values, requestScope, UnaryOperator.identity());
+        }
+    },
+
     POSTFIX_CASE_INSENSITIVE("postfixi", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
             return postfix(fieldPath, values, requestScope, FOLD_CASE);
+        }
+    },
+
+    NOT_POSTFIX_CASE_INSENSITIVE("notpostfixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return notpostfix(fieldPath, values, requestScope, FOLD_CASE);
         }
     },
 
@@ -97,10 +128,24 @@ public enum Operator {
         }
     },
 
+    NOT_INFIX("notinfix", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return notinfix(fieldPath, values, requestScope, UnaryOperator.identity());
+        }
+    },
+
     INFIX_CASE_INSENSITIVE("infixi", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
             return infix(fieldPath, values, requestScope, FOLD_CASE);
+        }
+    },
+
+    NOT_INFIX_CASE_INSENSITIVE("notinfixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return notinfix(fieldPath, values, requestScope, FOLD_CASE);
         }
     },
 
@@ -208,24 +253,31 @@ public enum Operator {
 
     // initialize negated values
     static {
-        GE.negated = LT;
-        GT.negated = LE;
-        LE.negated = GT;
-        LT.negated = GE;
-        IN.negated = NOT;
-        IN_INSENSITIVE.negated = NOT_INSENSITIVE;
-        NOT.negated = IN;
-        NOT_INSENSITIVE.negated = IN_INSENSITIVE;
-        TRUE.negated = FALSE;
-        FALSE.negated = TRUE;
-        ISNULL.negated = NOTNULL;
-        NOTNULL.negated = ISNULL;
-        ISEMPTY.negated = NOTEMPTY;
-        NOTEMPTY.negated = ISEMPTY;
-        HASMEMBER.negated = HASNOMEMBER;
-        HASNOMEMBER.negated = HASMEMBER;
-        BETWEEN.negated = NOTBETWEEN;
-        NOTBETWEEN.negated = BETWEEN;
+        var operators = Map.ofEntries(
+                entry(GE, LT),
+                entry(GT, LE),
+                entry(IN, NOT),
+                entry(IN_INSENSITIVE, NOT_INSENSITIVE),
+                entry(TRUE, FALSE),
+                entry(ISNULL, NOTNULL),
+                entry(ISEMPTY, NOTEMPTY),
+                entry(HASMEMBER, HASNOMEMBER),
+                entry(BETWEEN, NOTBETWEEN),
+                entry(PREFIX, NOT_PREFIX),
+                entry(PREFIX_CASE_INSENSITIVE, NOT_PREFIX_CASE_INSENSITIVE),
+                entry(INFIX, NOT_INFIX),
+                entry(INFIX_CASE_INSENSITIVE, NOT_INFIX_CASE_INSENSITIVE),
+                entry(POSTFIX, NOT_POSTFIX),
+                entry(POSTFIX_CASE_INSENSITIVE, NOT_POSTFIX_CASE_INSENSITIVE)
+        );
+
+        for (var entry : operators.entrySet()) {
+            var operator = entry.getKey();
+            var negated = entry.getValue();
+
+            operator.negated = negated;
+            negated.negated = operator;
+        }
     }
 
     /**
@@ -284,7 +336,7 @@ public enum Operator {
     //
     // String-like prefix matching with optional transformation
     private static <T> Predicate<T> prefix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, UnaryOperator<String> transform) {
+                                           RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("PREFIX can only take one argument");
@@ -301,10 +353,29 @@ public enum Operator {
         };
     }
 
+    // String-like prefix matching with optional transformation
+    private static <T> Predicate<T> notprefix(Path fieldPath, List<Object> values,
+                                              RequestScope requestScope, UnaryOperator<String> transform) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new BadRequestException("NOTPREFIX can only take one argument");
+            }
+
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
+
+                return lhs != null && rhs != null && !lhs.startsWith(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
+        };
+    }
+
     //
     // String-like postfix matching with optional transformation
     private static <T> Predicate<T> postfix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, UnaryOperator<String> transform) {
+                                            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("POSTFIX can only take one argument");
@@ -321,10 +392,28 @@ public enum Operator {
         };
     }
 
+    private static <T> Predicate<T> notpostfix(Path fieldPath, List<Object> values,
+                                               RequestScope requestScope, UnaryOperator<String> transform) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new BadRequestException("NOTPOSTFIX can only take one argument");
+            }
+
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
+
+                return lhs != null && rhs != null && !lhs.endsWith(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
+        };
+    }
+
     //
     // String-like infix matching with optional transformation
     private static <T> Predicate<T> infix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, UnaryOperator<String> transform) {
+                                          RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("INFIX can only take one argument");
@@ -335,6 +424,24 @@ public enum Operator {
                 String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
                 return lhs != null && rhs != null && lhs.contains(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
+        };
+    }
+
+    private static <T> Predicate<T> notinfix(Path fieldPath, List<Object> values,
+                                             RequestScope requestScope, UnaryOperator<String> transform) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new BadRequestException("NOTINFIX can only take one argument");
+            }
+
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
+
+                return lhs != null && rhs != null && !lhs.contains(rhs);
             };
 
             return evaluate(entity, fieldPath, values, predicate, requestScope);
