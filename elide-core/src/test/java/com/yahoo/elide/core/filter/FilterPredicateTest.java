@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -18,8 +19,10 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+
 import example.Author;
 import example.Book;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -193,6 +197,48 @@ public class FilterPredicateTest {
         FilterPredicate predicate = predicates.get("book").iterator().next();
         assertEquals("title", predicate.getField());
         assertEquals(Operator.INFIX, predicate.getOperator());
+        assertEquals(Arrays.asList("abc", "def"), predicate.getValues());
+    }
+
+    @Test
+    void testSingleFieldWithNotPrefixOperator() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("filter[book.title][notprefix]", "abc");
+
+        Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
+        assertTrue(predicates.containsKey("book"));
+
+        FilterPredicate predicate = predicates.get("book").iterator().next();
+        assertEquals("title", predicate.getField());
+        assertEquals(Operator.NOT_PREFIX, predicate.getOperator());
+        assertEquals(Collections.singletonList("abc"), predicate.getValues());
+    }
+
+    @Test
+    void testSingleFieldWithNotPostfixOperator() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("filter[book.title][notpostfix]", "abc,def");
+
+        Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
+        assertTrue(predicates.containsKey("book"));
+
+        FilterPredicate predicate = predicates.get("book").iterator().next();
+        assertEquals("title", predicate.getField());
+        assertEquals(Operator.NOT_POSTFIX, predicate.getOperator());
+        assertEquals(Arrays.asList("abc", "def"), predicate.getValues());
+    }
+
+    @Test
+    void testSingleFieldWithNotInfixOperator() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("filter[book.title][notinfix]", "abc,def");
+
+        Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
+        assertTrue(predicates.containsKey("book"));
+
+        FilterPredicate predicate = predicates.get("book").iterator().next();
+        assertEquals("title", predicate.getField());
+        assertEquals(Operator.NOT_INFIX, predicate.getOperator());
         assertEquals(Arrays.asList("abc", "def"), predicate.getValues());
     }
 
