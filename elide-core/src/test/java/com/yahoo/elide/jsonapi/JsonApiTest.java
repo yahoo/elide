@@ -130,6 +130,27 @@ public class JsonApiTest {
     }
 
     @Test
+    public void writeSingleWithMeta() throws JsonProcessingException {
+        Child child = new Child();
+        child.setId(2);
+        child.setMetadataField("foo", "bar");
+
+        RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
+
+        JsonApiDocument jsonApiDocument = new JsonApiDocument();
+        jsonApiDocument.setData(new Data<>(new PersistentResource<>(child, userScope.getUUIDFor(child), userScope).toResource()));
+
+        String expected = "{\"data\":{\"type\":\"child\",\"id\":\"2\",\""
+                + "links\":{\"self\":\"http://localhost:8080/json/child/2\"},\"meta\":{\"foo\":\"bar\"}}}";
+
+        Data<Resource> data = jsonApiDocument.getData();
+        String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
+        assertEquals(expected, doc);
+    }
+
+    @Test
     public void writeSingleIncluded() throws JsonProcessingException {
         Parent parent = new Parent();
         Child child = new Child();

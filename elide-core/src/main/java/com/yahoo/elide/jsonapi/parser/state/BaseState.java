@@ -19,6 +19,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipCon
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
+import com.yahoo.elide.jsonapi.document.processors.PopulateMetaProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -186,7 +187,10 @@ public abstract class BaseState {
 
         //TODO Iterate over set of document processors
         DocumentProcessor includedProcessor = new IncludedProcessor();
-        includedProcessor.execute(jsonApiDocument, resource, queryParams);
+        includedProcessor.execute(jsonApiDocument, requestScope, resource, queryParams);
+
+        PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
+        metaProcessor.execute(jsonApiDocument, requestScope, resource, queryParams);
 
         return jsonApiDocument;
     }
