@@ -15,6 +15,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
+import com.yahoo.elide.jsonapi.document.processors.PopulateMetaProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -67,7 +68,7 @@ public class RelationshipTerminalState extends BaseState {
 
             // Run include processor
             DocumentProcessor includedProcessor = new IncludedProcessor();
-            includedProcessor.execute(doc, record, queryParams);
+            includedProcessor.execute(doc, requestScope, record, queryParams);
 
             return () -> Pair.of(HttpStatus.SC_OK, doc);
         }
@@ -80,6 +81,10 @@ public class RelationshipTerminalState extends BaseState {
         } else {
             throw new IllegalStateException("Failed to GET a relationship; relationship is neither toMany nor toOne");
         }
+
+        PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
+        metaProcessor.execute(doc, requestScope, record, queryParams);
+
         return () -> Pair.of(HttpStatus.SC_OK, doc);
     }
 

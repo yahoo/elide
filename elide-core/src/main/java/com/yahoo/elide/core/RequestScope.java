@@ -74,6 +74,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final UUID requestId;
     private final Map<String, FilterExpression> expressionsByType;
 
+    private final Map<String, Object> metadata;
+
     private LinkedHashSet<CRUDEvent> eventQueue;
 
     /* Used to filter across heterogeneous types during the first load */
@@ -125,6 +127,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
+        this.metadata = new HashMap<>();
         this.queryParams = queryParams == null ? new MultivaluedHashMap<>() : queryParams;
 
         this.requestHeaders = MapUtils.isEmpty(requestHeaders)
@@ -214,6 +217,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.requestId = outerRequestScope.requestId;
         this.sparseFields = outerRequestScope.sparseFields;
+        this.metadata = new HashMap<>(outerRequestScope.metadata);
     }
 
     public Set<com.yahoo.elide.core.security.PersistentResource> getNewResources() {
@@ -463,5 +467,20 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
             return null;
         }
         return this.requestHeaders.get(headerName).get(0);
+    }
+
+    @Override
+    public void setMetadataField(String property, Object value) {
+        metadata.put(property, value);
+    }
+
+    @Override
+    public Optional<Object> getMetadataField(String property) {
+        return Optional.ofNullable(metadata.getOrDefault(property, null));
+    }
+
+    @Override
+    public Set<String> getMetadataFields() {
+        return metadata.keySet();
     }
 }

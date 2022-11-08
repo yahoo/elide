@@ -48,7 +48,9 @@ import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
 import com.yahoo.elide.jsonapi.models.Data;
+import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
@@ -71,6 +73,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -1553,6 +1556,26 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         if (requestScope.getElideSettings().isEnableJsonLinks()) {
             resource.setLinks(requestScope.getElideSettings().getJsonApiLinks().getResourceLevelLinks(this));
         }
+
+        if (! (getObject() instanceof WithMetadata)) {
+            return resource;
+        }
+
+        WithMetadata withMetadata = (WithMetadata) getObject();
+        Set<String> fields = withMetadata.getMetadataFields();
+
+        if (fields.size() == 0) {
+            return resource;
+        }
+
+        Meta meta = new Meta(new HashMap<>());
+
+        for (String field : fields) {
+            meta.getMetaMap().put(field, withMetadata.getMetadataField(field).get());
+        }
+
+        resource.setMeta(meta);
+
         return resource;
     }
 
