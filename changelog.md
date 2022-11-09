@@ -1,5 +1,41 @@
 # Change Log
 
+## 6.1.9
+**Features**
+* [view commit](https://github.com/yahoo/elide/commit/86203f05f61b3beb65a3a6f6ba502727f4d1f4d7) Adding support for populating Meta object in JSON-API (#2824) 
+* [view commit](https://github.com/yahoo/elide/commit/9ca2a8fef6468c66804ee0dd94d4125b90a52ad2) Add negated prefix, postfix and infix operators. (#2788) (#2830) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/18a76165de0eb14a10005ae49e2c6e862bf33a65) Bump graphql-java-extended-scalars from 18.1 to 19.0 (#2783) 
+ * [view commit](https://github.com/yahoo/elide/commit/362842b23009e806e4395d880f1ec481a3458459) Bump groovy.version from 3.0.12 to 3.0.13 (#2782) 
+ * [view commit](https://github.com/yahoo/elide/commit/c61859e11360fb9063c7187959ade2b2246c11e4) Resolves #2784 (#2785) 
+ * [view commit](https://github.com/yahoo/elide/commit/f03aba8c1f854a9c0c286fad97c30d2fed5ffe08) Allow elide-graphql to be excluded when elide.graphql.enabled=false (#2787) 
+ * [view commit](https://github.com/yahoo/elide/commit/b700526b2e66dd8eac64868dc3060a7b762cdc96) Bump federation-graphql-java-support from 2.0.7 to 2.0.8 (#2793) 
+ * [view commit](https://github.com/yahoo/elide/commit/8df8d99fd3f1c6261f163a73c354eb0b162a6e90) Bump version.junit from 5.9.0 to 5.9.1 (#2792) 
+ * [view commit](https://github.com/yahoo/elide/commit/6212ec358649ebf8b24ec872b80d83fae65ed7a1) Bump spring.boot.version from 2.7.3 to 2.7.4 (#2791) 
+ * [view commit](https://github.com/yahoo/elide/commit/0bcfbb184d15cf71a84434172655b861cc7f8f06) Bump junit-platform-launcher from 1.9.0 to 1.9.1 (#2790) 
+ * [view commit](https://github.com/yahoo/elide/commit/c497ff3e67232c2fa0d74bc8d86905b14836de11) Bump hibernate5.version from 5.6.11.Final to 5.6.12.Final (#2798) 
+ * [view commit](https://github.com/yahoo/elide/commit/f8ec54e864aebf2b7b54bce0af8ba0a474038311) Bump snakeyaml from 1.32 to 1.33 (#2796) 
+ * [view commit](https://github.com/yahoo/elide/commit/901b41a9991ed87f3fd3030fb517e5dacee2849e) Bump artemis-jms-client-all from 2.25.0 to 2.26.0 (#2799) 
+ * [view commit](https://github.com/yahoo/elide/commit/bd2dbabcdbf657dc19e4c08e8ed3aee43f8bc653) Bump swagger-core from 1.6.6 to 1.6.7 (#2802) 
+ * [view commit](https://github.com/yahoo/elide/commit/d17cd77eb7ced4ac9bb111d4767c17b5b6b48a20) Bump log4j-over-slf4j from 2.0.1 to 2.0.3 (#2801) 
+ * [view commit](https://github.com/yahoo/elide/commit/fc468dbbee59ec85fb079c8cb1d8a1ee8122b9bf) Bump slf4j-api from 2.0.1 to 2.0.3 (#2800) 
+ * [view commit](https://github.com/yahoo/elide/commit/c44438dbfde604307f74c811b863f7d67f3b9b96) Bump artemis-server from 2.25.0 to 2.26.0 (#2803) 
+ * [view commit](https://github.com/yahoo/elide/commit/d1f4aee7ee70809d7db0254eeec1a91b4c651f42) Bump artemis-jms-server from 2.23.1 to 2.26.0 (#2804) 
+ * [view commit](https://github.com/yahoo/elide/commit/13f293723472eec5992d1905277e6058f8f272bb) Bump checkstyle from 10.3.3 to 10.3.4 (#2805) 
+ * [view commit](https://github.com/yahoo/elide/commit/4ce3ae65955783e70b4362153fd99ea204077ca2) Bump junit-platform-commons from 1.9.0 to 1.9.1 (#2806) 
+ * [view commit](https://github.com/yahoo/elide/commit/3afee025f9a3a4c1790632d49438fc955212b558) Refactor expression visitor (#2808) 
+ * [view commit](https://github.com/yahoo/elide/commit/a92efb877d966ddee36f5e01e90a26f410ac88c8) Bump jedis from 4.2.3 to 4.3.0 (#2816) 
+ * [view commit](https://github.com/yahoo/elide/commit/320dfe4b8e1f3fa267c32a42e8221a592e96e02f) Bump swagger-core from 1.6.7 to 1.6.8 (#2823) 
+ * [view commit](https://github.com/yahoo/elide/commit/a1a408dae161fbdee3d11be1b117a872abe08d2b) Bump jackson-databind from 2.13.4 to 2.13.4.2 (#2822) 
+ * [view commit](https://github.com/yahoo/elide/commit/e2f5374e3da59c0bc86cc3cfede78243263feeee) Bump federation-graphql-java-support from 2.0.8 to 2.1.0 (#2821) 
+ * [view commit](https://github.com/yahoo/elide/commit/611c6e1d6e326ab2c7c5a351a46fad32f652ca63) Bump spring.boot.version from 2.7.4 to 2.7.5 (#2827) 
+ * [view commit](https://github.com/yahoo/elide/commit/9420a745a231194e955fcb102f8a82c055abfe0c) Bump micrometer-core from 1.9.4 to 1.9.5 (#2826) 
+ * [view commit](https://github.com/yahoo/elide/commit/61fab948a97d36a0252f96a7f7baceb210ce4f65) Bump mockito-junit-jupiter from 4.8.0 to 4.8.1 (#2825) 
+ * [view commit](https://github.com/yahoo/elide/commit/9a12d3f1b26701328ae2ad327e2f7d3a6000596e) Bump version.jackson from 2.13.4 to 2.14.0 (#2834) 
+ * [view commit](https://github.com/yahoo/elide/commit/283e21320815c09609c418f2b389e77ce54fcb61) Bump checkstyle from 10.3.4 to 10.4 (#2832) 
+ * [view commit](https://github.com/yahoo/elide/commit/cabeef8b1364b5d67a6772b2b7a331298d69d649) Bump federation-graphql-java-support from 2.1.0 to 2.1.1 (#2833) 
+
 ## 6.1.8
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/5e8f15f12641310ad9eaf13cc75d33ce6a20780c) Bump spring.boot.version from 2.7.1 to 2.7.2 (#2713) 
