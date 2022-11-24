@@ -35,8 +35,8 @@ public class JsonType implements UserType, ParameterizedType {
      * {@inheritDoc}
      */
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.LONGVARCHAR};
+    public int getSqlType() {
+        return Types.LONGVARCHAR;
     }
 
     /**
@@ -71,11 +71,15 @@ public class JsonType implements UserType, ParameterizedType {
      * {@inheritDoc}
      */
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws HibernateException, SQLException {
-        if (resultSet.getString(names[0]) != null) {
+    public Object nullSafeGet(
+            ResultSet resultSet,
+            int i,
+            SharedSessionContractImplementor sharedSessionContractImplementor,
+            Object o) throws SQLException {
+        if (resultSet.getString(i) != null) {
 
             // Get the rawJson
-            String rawJson = resultSet.getString(names[0]);
+            String rawJson = resultSet.getString(i);
 
             try {
                 return MAPPER.readValue(rawJson, this.objectClass);
