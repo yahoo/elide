@@ -6,6 +6,8 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.jpa.usertypes.JsonType;
+
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
@@ -33,7 +35,7 @@ public class Person {
 
     //For testing Type annotation
     @Column(name = "addressAlternate", columnDefinition = "TEXT")
-    @Type(type = "com.yahoo.elide.datastores.jpa.usertypes.JsonType", parameters = {
+    @Type(value = JsonType.class, parameters = {
             @Parameter(name = "class", value = "example.AddressFragment")
     })
     private AddressFragment alternateAddress;
