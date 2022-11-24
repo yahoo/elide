@@ -24,7 +24,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import example.Author;
 import example.Book;
-import org.hibernate.collection.internal.PersistentSet;
+import org.hibernate.collection.spi.PersistentSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
