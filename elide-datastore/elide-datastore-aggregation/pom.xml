@@ -114,13 +114,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Hibernate Entity Manager -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <version>${hibernate5.version}</version>
-        </dependency>
-
         <!-- Caffeine cache -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -225,6 +218,13 @@
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate5.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
