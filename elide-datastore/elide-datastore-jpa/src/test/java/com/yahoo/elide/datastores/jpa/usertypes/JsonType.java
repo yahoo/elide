@@ -26,10 +26,10 @@ import java.util.Properties;
  * JsonType serializes an object to json string and vice versa.
  */
 
-public class JsonType implements UserType, ParameterizedType {
+public class JsonType implements UserType<Object>, ParameterizedType {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private Class<?> objectClass;
+    private Class objectClass;
 
     /**
      * {@inheritDoc}
@@ -43,8 +43,8 @@ public class JsonType implements UserType, ParameterizedType {
      * {@inheritDoc}
      */
     @Override
-    public Class<?> returnedClass() {
-        return String.class;
+    public Class<Object> returnedClass() {
+        return objectClass;
     }
 
     /**
