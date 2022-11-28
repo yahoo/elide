@@ -18,6 +18,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.JSONApiLinks;
 import com.yahoo.elide.utils.HeaderUtils;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

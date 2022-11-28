@@ -7,7 +7,7 @@ package com.yahoo.elide.beans;
 
 import com.yahoo.elide.annotation.Include;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 
 /**
  * Simple bean intended to not be persisted.

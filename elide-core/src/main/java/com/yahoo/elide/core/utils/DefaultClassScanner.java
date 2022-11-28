@@ -8,6 +8,7 @@ package com.yahoo.elide.core.utils;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
+
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -45,8 +46,8 @@ public class DefaultClassScanner implements ClassScanner {
             "org.hibernate.annotations.Subselect",
 
             //JPA
-            "javax.persistence.Entity",
-            "javax.persistence.Table"
+            "jakarta.persistence.Entity",
+            "jakarta.persistence.Table"
     };
 
     private final Map<String, Set<Class<?>>> startupCache;

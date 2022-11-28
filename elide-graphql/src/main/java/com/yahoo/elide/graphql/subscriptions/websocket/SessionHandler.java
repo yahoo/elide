@@ -13,6 +13,7 @@ import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocket
 import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.MAX_SUBSCRIPTIONS;
 import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.MULTIPLE_INIT;
 import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.UNAUTHORIZED;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+
 import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +38,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 

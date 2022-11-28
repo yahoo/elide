@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.model.Argument;

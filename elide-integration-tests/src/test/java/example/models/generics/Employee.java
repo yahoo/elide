@@ -8,7 +8,7 @@ package example.models.generics;
 
 import com.yahoo.elide.annotation.Include;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Helper class to test parameterized subclass/superclass hierarchies.

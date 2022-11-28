@@ -12,9 +12,13 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.security.ChangeSpec;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,8 +26,6 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 /**
  * Tests the invocation &amp; sequencing of DataStoreTransaction method invocations and life cycle events.

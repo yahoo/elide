@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 import org.junit.jupiter.api.Test;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

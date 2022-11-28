@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jpql.query;
 
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.Type;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

@@ -20,11 +20,9 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-
 import example.Address;
 import example.Author;
 import example.Book;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

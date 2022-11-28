@@ -6,6 +6,7 @@
 package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket.DEFAULT_USER_FACTORY;
+
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;

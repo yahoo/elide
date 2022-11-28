@@ -6,8 +6,10 @@
 package com.yahoo.elide.swagger.resources;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import org.apache.commons.lang3.tuple.Pair;
+
 import io.swagger.models.Swagger;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;

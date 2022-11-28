@@ -6,6 +6,7 @@
 package com.yahoo.elide.jsonapi.resources;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
@@ -17,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;

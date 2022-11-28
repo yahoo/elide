@@ -6,10 +6,10 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.Entity;
 
 /**
  * Entity that does not have the Paginate annotation that modifies pagination behavior.

@@ -7,6 +7,7 @@
 package example.hooks;
 
 import static example.Chat.CHAT;
+
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -19,6 +20,7 @@ import example.ChatBot;
 import lombok.Data;
 
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;

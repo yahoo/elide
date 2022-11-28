@@ -6,6 +6,7 @@
 package com.yahoo.elide.swagger;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+
 import io.swagger.models.Operation;
 
 /**

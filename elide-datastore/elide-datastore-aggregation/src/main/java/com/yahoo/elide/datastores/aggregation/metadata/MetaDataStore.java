@@ -11,6 +11,7 @@ import static com.yahoo.elide.datastores.aggregation.AggregationDataStore.IS_FIE
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.EMPTY;
+
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
@@ -40,6 +41,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.annotations.Subselect;
+
+import jakarta.persistence.Entity;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
@@ -52,7 +55,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
 
 /**
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
@@ -62,8 +64,8 @@ public class MetaDataStore implements DataStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
 
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
-            Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class,
-                    javax.persistence.Entity.class);
+            Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, jakarta.persistence.Table.class,
+                    jakarta.persistence.Entity.class);
 
     private static final Function<String, HashMapDataStore> SERVER_ERROR = key -> {
         throw new InternalServerErrorException("API version " + key + " not found");

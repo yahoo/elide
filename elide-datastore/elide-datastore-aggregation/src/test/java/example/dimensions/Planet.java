@@ -8,9 +8,9 @@ package example.dimensions;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import lombok.Data;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
+import lombok.Data;
 
 /**
  * A root level entity for testing AggregationDataStore.

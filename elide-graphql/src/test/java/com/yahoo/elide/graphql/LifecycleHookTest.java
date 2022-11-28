@@ -11,8 +11,10 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
 import example.Job;
 import org.junit.jupiter.api.Test;
+
 import hooks.JobLifeCycleHook;
 
 /**

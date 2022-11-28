@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.security;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
@@ -29,6 +30,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
+import jakarta.persistence.Entity;
 import lombok.Value;
 
 import java.util.Arrays;
@@ -36,7 +39,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
-import javax.persistence.Entity;
 
 /**
  * test Aggregation Store Permission Executor

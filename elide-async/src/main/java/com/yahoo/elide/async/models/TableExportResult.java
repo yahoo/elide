@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.async.models;
 
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Lob;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.net.URL;
-import javax.persistence.Embeddable;
-import javax.persistence.Lob;
 
 /**
  * Model for Table Export Result.

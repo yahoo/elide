@@ -8,6 +8,7 @@ package com.yahoo.elide.standalone;
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ASYNC_EXECUTOR_ATTR;
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ASYNC_UPDATER_ATTR;
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
+
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
@@ -23,11 +24,13 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.websocket.javax.server.config.JavaxWebSocketServletContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
+
 import javax.servlet.DispatcherType;
 
 /**

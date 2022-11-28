@@ -21,6 +21,7 @@ import static com.yahoo.elide.modelconfig.model.Type.INTEGER;
 import static com.yahoo.elide.modelconfig.model.Type.MONEY;
 import static com.yahoo.elide.modelconfig.model.Type.TEXT;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Field;
@@ -52,6 +53,12 @@ import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 import org.apache.commons.lang3.StringUtils;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
@@ -63,11 +70,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
 /**
  * A dynamic Elide model that wraps a deserialized HJSON table.

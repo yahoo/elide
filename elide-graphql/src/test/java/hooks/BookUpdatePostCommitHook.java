@@ -11,6 +11,7 @@ import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.graphql.GraphQLEndpointTest;
+
 import graphqlEndpointTestModels.Book;
 
 import java.util.Optional;

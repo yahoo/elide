@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;

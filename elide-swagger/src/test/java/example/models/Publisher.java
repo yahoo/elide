@@ -6,12 +6,13 @@
 package example.models;
 
 import com.yahoo.elide.annotation.Include;
+
 import io.swagger.annotations.ApiModelProperty;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 
 @Entity
 @Include

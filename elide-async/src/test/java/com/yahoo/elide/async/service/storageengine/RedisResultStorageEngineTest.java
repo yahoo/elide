@@ -9,10 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.async.models.TableExport;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
 import redis.clients.jedis.JedisPooled;

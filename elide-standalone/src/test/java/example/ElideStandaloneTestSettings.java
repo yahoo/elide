@@ -18,11 +18,11 @@ import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import example.models.Post;
-
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
 import java.util.Properties;
 import java.util.TimeZone;
+
 import javax.jms.ConnectionFactory;
 
 /**
@@ -72,10 +72,10 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
         options.put("hibernate.current_session_context_class", "thread");
         options.put("hibernate.jdbc.use_scrollable_resultset", "true");
 
-        options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
-        options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;");
-        options.put("javax.persistence.jdbc.user", "sa");
-        options.put("javax.persistence.jdbc.password", "");
+        options.put("jakarta.persistence.jdbc.driver", "org.h2.Driver");
+        options.put("jakarta.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;");
+        options.put("jakarta.persistence.jdbc.user", "sa");
+        options.put("jakarta.persistence.jdbc.password", "");
         return options;
     }
 

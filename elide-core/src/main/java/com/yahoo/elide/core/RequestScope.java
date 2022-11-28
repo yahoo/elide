@@ -6,6 +6,7 @@
 package com.yahoo.elide.core;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.ALL_OPERATIONS;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -28,6 +29,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.collections.MapUtils;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,6 +43,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 

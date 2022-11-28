@@ -7,9 +7,10 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+
 import java.util.Set;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
 
 /**
  * Embedded test bean.

@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.security.permissions.ExpressionResult.DEFERRE
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.UNEVALUATED;
+
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -18,6 +19,7 @@ import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.permissions.ExpressionResultCache;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

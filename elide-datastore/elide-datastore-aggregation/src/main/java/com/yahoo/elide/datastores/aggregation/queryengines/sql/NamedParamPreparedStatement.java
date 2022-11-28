@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+
 import lombok.Getter;
 
 import java.sql.Connection;

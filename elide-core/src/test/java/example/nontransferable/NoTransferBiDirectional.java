@@ -8,9 +8,9 @@ package example.nontransferable;
 import com.yahoo.elide.annotation.Include;
 import example.BaseId;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
 
 @Entity
 @Include(name = "noShareBid")

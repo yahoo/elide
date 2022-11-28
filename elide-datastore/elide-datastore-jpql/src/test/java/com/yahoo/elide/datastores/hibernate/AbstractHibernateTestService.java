@@ -7,10 +7,12 @@ package com.yahoo.elide.datastores.hibernate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.junit.jupiter.api.BeforeAll;
+
 import lombok.NoArgsConstructor;
 
 import java.io.IOException;

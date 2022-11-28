@@ -11,6 +11,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 
 @Tag("skipInMemory") // Do not test Memory Datastores

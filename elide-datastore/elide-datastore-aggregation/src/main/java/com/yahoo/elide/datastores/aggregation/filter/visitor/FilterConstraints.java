@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+
 import lombok.Getter;
 
 import java.util.Objects;

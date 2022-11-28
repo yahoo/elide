@@ -11,6 +11,7 @@ import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.createSafeAlias;
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -22,6 +23,7 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

@@ -7,7 +7,7 @@ package com.yahoo.elide.example.beans;
 
 import com.yahoo.elide.annotation.Include;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * child test bean for inheritance.

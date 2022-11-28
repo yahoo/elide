@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.noop;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;

@@ -9,6 +9,7 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
+
 import graphql.language.Field;
 import graphql.language.FragmentSpread;
 import graphql.schema.GraphQLNamedType;

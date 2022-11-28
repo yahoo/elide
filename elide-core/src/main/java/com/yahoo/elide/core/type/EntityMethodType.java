@@ -5,14 +5,13 @@
  */
 package com.yahoo.elide.core.type;
 
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.EqualsAndHashCode;
 
 import java.util.Optional;
-
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 /**
  * Elide Method that wraps a Java Method for a JPA entity.  If the method is a relationship with targetEntity set,

@@ -10,9 +10,8 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 
 import hooks.JobLifeCycleHook;
+import jakarta.persistence.Id;
 import lombok.Data;
-
-import javax.persistence.Id;
 
 /**
  * Tests lifecycle hooks in GraphQL that update model state.

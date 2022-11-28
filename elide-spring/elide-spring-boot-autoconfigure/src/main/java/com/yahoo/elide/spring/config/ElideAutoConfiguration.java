@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.RefreshableElide;
@@ -68,9 +69,12 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -85,8 +89,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+
 import javax.sql.DataSource;
 
 /**

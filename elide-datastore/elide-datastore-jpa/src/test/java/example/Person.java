@@ -7,16 +7,15 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.jpa.usertypes.JsonType;
-
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
-import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.Data;
 
 @Entity
 @Include

@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -33,7 +34,6 @@ import com.yahoo.elide.datastores.aggregation.framework.NoCacheAggregationDataSt
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.test.graphql.elements.Arguments;
-
 import example.PlayerStats;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -42,12 +42,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import jakarta.persistence.EntityManagerFactory;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
+
 import javax.ws.rs.core.MediaType;
 
 /**

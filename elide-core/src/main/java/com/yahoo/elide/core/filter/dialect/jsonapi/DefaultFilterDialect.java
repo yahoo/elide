@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter.dialect.jsonapi;
 
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -24,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

@@ -9,7 +9,7 @@ package example.models.packageinfo;
 import com.yahoo.elide.annotation.Exclude;
 import example.models.BaseId;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Helper class to test parameterized subclass/superclass hierarchies.

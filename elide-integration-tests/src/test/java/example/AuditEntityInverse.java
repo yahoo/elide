@@ -12,9 +12,10 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
+
 import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
 
 @Entity
 @Include

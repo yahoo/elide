@@ -14,6 +14,7 @@ import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO_TOTAL_RECORDS;
 import static com.yahoo.elide.graphql.KeyWord.SCHEMA;
 import static com.yahoo.elide.graphql.KeyWord.TYPE;
 import static com.yahoo.elide.graphql.KeyWord.TYPENAME;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -36,6 +37,7 @@ import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.GraphQLNameUtils;
 import com.yahoo.elide.graphql.ModelBuilder;
+
 import graphql.language.Argument;
 import graphql.language.Document;
 import graphql.language.Field;

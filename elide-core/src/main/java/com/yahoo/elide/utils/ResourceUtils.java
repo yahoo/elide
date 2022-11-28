@@ -7,6 +7,7 @@
 package com.yahoo.elide.utils;
 
 import java.net.URI;
+
 import javax.ws.rs.core.UriInfo;
 
 /**

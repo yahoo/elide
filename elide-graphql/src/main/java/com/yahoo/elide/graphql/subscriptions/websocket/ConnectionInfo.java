@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql.subscriptions.websocket;
 
 import com.yahoo.elide.core.security.User;
+
 import lombok.Builder;
 import lombok.Value;
 

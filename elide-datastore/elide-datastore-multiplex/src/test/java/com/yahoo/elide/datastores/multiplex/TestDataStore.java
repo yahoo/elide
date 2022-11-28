@@ -13,9 +13,10 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
 
+import jakarta.persistence.Entity;
+
 import java.io.IOException;
 import java.io.Serializable;
-import javax.persistence.Entity;
 
 class TestDataStore implements DataStore, DataStoreTransaction {
 
