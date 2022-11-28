@@ -13,13 +13,15 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.spi.PersistenceUnitInfo;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.spi.PersistenceUnitInfo;
+
 import javax.sql.DataSource;
 
 /**
@@ -59,10 +61,10 @@ public class Util {
         populateDefaultOptions(options);
 
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(options.getProperty("javax.persistence.jdbc.url"));
-        config.setUsername(options.getProperty("javax.persistence.jdbc.user"));
-        config.setPassword(options.getProperty("javax.persistence.jdbc.password"));
-        config.setDriverClassName(options.getProperty("javax.persistence.jdbc.driver"));
+        config.setJdbcUrl(options.getProperty("jakarta.persistence.jdbc.url"));
+        config.setUsername(options.getProperty("jakarta.persistence.jdbc.user"));
+        config.setPassword(options.getProperty("jakarta.persistence.jdbc.password"));
+        config.setDriverClassName(options.getProperty("jakarta.persistence.jdbc.driver"));
         if (options.getProperty("hibernate.hikari.connectionTimeout") != null) {
             config.setConnectionTimeout(new Long(options.getProperty("hibernate.hikari.connectionTimeout")));
         }
@@ -96,10 +98,10 @@ public class Util {
             options.putIfAbsent("hibernate.hikari.maximumPoolSize", "30");
             options.putIfAbsent("hibernate.hikari.idleTimeout", "30000");
 
-            options.put("javax.persistence.jdbc.driver", "com.mysql.jdbc.Driver");
-            options.put("javax.persistence.jdbc.url", "jdbc:mysql://localhost/elide?serverTimezone=UTC");
-            options.put("javax.persistence.jdbc.user", "elide");
-            options.put("javax.persistence.jdbc.password", "elide123");
+            options.put("jakarta.persistence.jdbc.driver", "com.mysql.jdbc.Driver");
+            options.put("jakarta.persistence.jdbc.url", "jdbc:mysql://localhost/elide?serverTimezone=UTC");
+            options.put("jakarta.persistence.jdbc.user", "elide");
+            options.put("jakarta.persistence.jdbc.password", "elide123");
         }
     }
 

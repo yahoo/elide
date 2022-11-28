@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import static com.yahoo.elide.datastores.aggregation.query.Queryable.extractFilterProjections;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator.addHiddenProjections;
+
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;

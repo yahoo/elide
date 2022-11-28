@@ -15,6 +15,7 @@ import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 

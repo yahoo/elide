@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
@@ -53,7 +54,12 @@ import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.StrictNoTransfer;
 import example.nontransferable.Untransferable;
+
 import io.reactivex.Observable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
@@ -66,10 +72,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 public class PersistenceResourceTestSetup extends PersistentResource {

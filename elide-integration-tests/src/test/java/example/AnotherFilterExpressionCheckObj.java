@@ -15,12 +15,13 @@ import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.type.Type;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
 
 /**
  * Model for anotherFilterExpressionCheckObj.

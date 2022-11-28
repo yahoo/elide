@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect;
 import org.apache.calcite.sql.SqlNode;

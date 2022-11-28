@@ -12,10 +12,11 @@ import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import example.BookCatalog;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+
 import java.util.HashSet;
 import java.util.Optional;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 public class BookCatalogOnCreateHook implements LifeCycleHook<BookCatalog> {
     @Override

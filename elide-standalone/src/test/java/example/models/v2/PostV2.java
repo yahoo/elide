@@ -10,15 +10,16 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 import example.checks.AdminCheck;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.Data;
 
 import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 @Entity
 @Include(name = "post")

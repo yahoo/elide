@@ -7,6 +7,7 @@ package com.yahoo.elide.core.utils.coerce.converters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

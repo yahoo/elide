@@ -20,14 +20,15 @@ import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.type.Type;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Transient;
+
 import java.util.Optional;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 
 /**
  * Child test bean.

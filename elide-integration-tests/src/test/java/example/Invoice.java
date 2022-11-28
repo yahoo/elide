@@ -7,11 +7,12 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 @Entity(name = "invoice")
 @Include

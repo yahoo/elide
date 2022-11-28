@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
+
 import lombok.Builder;
 import lombok.Value;
 

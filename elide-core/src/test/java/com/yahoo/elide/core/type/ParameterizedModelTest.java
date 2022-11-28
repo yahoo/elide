@@ -10,6 +10,7 @@ import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.spy;
+
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Attribute;
 import org.junit.jupiter.api.Test;

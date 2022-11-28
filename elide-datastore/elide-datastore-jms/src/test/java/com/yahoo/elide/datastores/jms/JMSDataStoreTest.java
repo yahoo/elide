@@ -11,6 +11,7 @@ import static com.yahoo.elide.datastores.jms.TestBinder.EMBEDDED_JMS_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -39,6 +40,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSContext;

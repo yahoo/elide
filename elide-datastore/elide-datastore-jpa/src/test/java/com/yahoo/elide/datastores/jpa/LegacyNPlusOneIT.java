@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jpa;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.Mockito.reset;
+
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import example.Author;
 import example.Book;

@@ -6,6 +6,7 @@
 package com.yahoo.elide.parsers.expression;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -28,13 +29,14 @@ import com.yahoo.elide.core.type.Type;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import javax.persistence.Entity;
 
 /**
  * Test the expression language.

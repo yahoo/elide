@@ -11,12 +11,13 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Optional;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  * No Update test bean.

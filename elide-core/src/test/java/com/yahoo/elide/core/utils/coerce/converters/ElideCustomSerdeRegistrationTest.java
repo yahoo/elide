@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.utils.coerce.converters;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;

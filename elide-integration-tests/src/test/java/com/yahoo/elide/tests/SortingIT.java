@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;

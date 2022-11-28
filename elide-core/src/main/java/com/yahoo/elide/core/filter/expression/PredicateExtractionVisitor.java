@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter.expression;
 
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+
 import lombok.Getter;
 
 import java.util.Collection;

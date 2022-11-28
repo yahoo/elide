@@ -10,6 +10,7 @@ import com.yahoo.elide.core.ResourceLineage;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PersistentResource;
 import com.yahoo.elide.core.security.User;
+
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleContext;
 import lombok.EqualsAndHashCode;
@@ -21,6 +22,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import javax.el.ELException;
 import javax.el.ExpressionFactory;
 import javax.el.PropertyNotFoundException;

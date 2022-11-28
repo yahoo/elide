@@ -11,13 +11,14 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import example.checks.AdminCheck;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 @Include(name = "group")
 @Entity

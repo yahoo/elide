@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.PersistentResource.ALL_FIELDS;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -26,11 +27,12 @@ import com.yahoo.elide.core.type.ClassType;
 import example.TestCheckMappings;
 import org.junit.jupiter.api.Test;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.persistence.Entity;
-import javax.persistence.Id;
 
 public class PermissionExecutorTest {
 

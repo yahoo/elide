@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.jpa;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -21,12 +22,13 @@ import com.yahoo.elide.datastores.jpql.filter.JPQLPredicateGenerator;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.Metamodel;
+
 import java.util.function.Function;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.Id;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.Metamodel;
 
 public class JpaDataStoreTest {
     public static class TestGenerator implements JPQLPredicateGenerator {

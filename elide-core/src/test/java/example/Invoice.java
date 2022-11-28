@@ -6,16 +6,17 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 @Entity(name = "invoice")
 @Include

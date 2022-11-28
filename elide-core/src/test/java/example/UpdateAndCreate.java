@@ -9,15 +9,16 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 /**
  * Model for authors.

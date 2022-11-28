@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.jpql.filter;
 import static com.yahoo.elide.core.utils.TypeHelper.getFieldAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getPathAlias;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;

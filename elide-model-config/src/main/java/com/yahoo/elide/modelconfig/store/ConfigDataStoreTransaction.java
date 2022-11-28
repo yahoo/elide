@@ -7,6 +7,7 @@
 package com.yahoo.elide.modelconfig.store;
 
 import static com.yahoo.elide.modelconfig.store.ConfigDataStore.VALIDATE_ONLY_HEADER;
+
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
@@ -16,7 +17,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.modelconfig.io.FileLoader;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import com.yahoo.elide.modelconfig.validator.Validator;
-
 import org.apache.commons.io.FileUtils;
 
 import lombok.extern.slf4j.Slf4j;

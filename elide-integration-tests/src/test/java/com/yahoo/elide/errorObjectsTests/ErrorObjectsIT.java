@@ -12,6 +12,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +20,7 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+
 import javax.ws.rs.core.MediaType;
 
 public class ErrorObjectsIT extends IntegrationTest {

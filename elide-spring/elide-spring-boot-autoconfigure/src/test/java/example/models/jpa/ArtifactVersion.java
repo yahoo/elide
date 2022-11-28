@@ -7,10 +7,11 @@ package example.models.jpa;
 
 import com.yahoo.elide.annotation.Include;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+
 import java.util.Date;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 @Include(name = "version", rootLevel = false)
 @Entity

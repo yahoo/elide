@@ -22,6 +22,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
+
 import io.reactivex.Observable;
 
 import java.util.Collections;

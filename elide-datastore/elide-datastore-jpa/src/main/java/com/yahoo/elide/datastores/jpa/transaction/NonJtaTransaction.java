@@ -6,14 +6,16 @@
 package com.yahoo.elide.datastores.jpa.transaction;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
+
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.function.Consumer;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 
 /**
  * Non-JTA transaction implementation.

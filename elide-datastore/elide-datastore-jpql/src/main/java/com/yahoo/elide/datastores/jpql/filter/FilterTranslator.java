@@ -51,9 +51,7 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.type.Type;
-
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.EnumMap;

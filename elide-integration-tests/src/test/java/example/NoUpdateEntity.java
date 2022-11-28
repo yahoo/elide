@@ -8,10 +8,11 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 /**
  * No Update test bean.

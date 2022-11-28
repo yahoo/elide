@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.dictionary;
 
 import com.yahoo.elide.core.type.Type;
+
 import lombok.Builder;
 import lombok.Value;
 

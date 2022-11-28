@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.visitors.FilterExpressionCheckEvaluationVisit
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.type.Type;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;

@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.model.Resource;
@@ -23,6 +24,7 @@ import example.models.Publisher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
 import io.swagger.models.Info;
 import io.swagger.models.Model;
 import io.swagger.models.Operation;
@@ -38,6 +40,8 @@ import io.swagger.models.properties.ObjectProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,8 +50,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
-import javax.persistence.Id;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SwaggerBuilderTest {

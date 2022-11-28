@@ -9,6 +9,7 @@ import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLObjectType.newObject;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.type.Type;
@@ -20,6 +21,7 @@ import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.google.common.collect.Sets;
+
 import graphql.Scalars;
 import graphql.language.EnumTypeDefinition;
 import graphql.schema.DataFetcher;

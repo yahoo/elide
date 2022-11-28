@@ -7,6 +7,7 @@ package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -14,6 +15,7 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.OffsetDateTimeSerde;
 import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import org.junit.jupiter.api.Test;
+
 import graphql.schema.GraphQLScalarType;
 
 import java.time.OffsetDateTime;

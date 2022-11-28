@@ -16,6 +16,7 @@ import com.github.fge.jsonschema.core.tree.SchemaTree;
 import com.github.fge.jsonschema.keyword.digest.AbstractDigester;
 import com.github.fge.jsonschema.library.Keyword;
 import com.github.fge.msgsimple.bundle.MessageBundle;
+
 import lombok.Getter;
 
 import java.util.Collection;

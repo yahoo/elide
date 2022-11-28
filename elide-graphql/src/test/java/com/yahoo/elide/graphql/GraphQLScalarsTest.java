@@ -6,6 +6,7 @@
 package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.core.utils.coerce.converters.OffsetDateTimeSerde;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
 import graphql.language.IntValue;
 import graphql.language.StringValue;
 

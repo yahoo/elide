@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;

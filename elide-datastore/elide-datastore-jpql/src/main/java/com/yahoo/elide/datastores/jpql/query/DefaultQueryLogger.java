@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jpql.query;
 
 import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

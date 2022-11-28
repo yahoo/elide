@@ -31,6 +31,7 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.compress.utils.Lists;
+
 import lombok.ToString;
 
 import java.io.IOException;

@@ -9,17 +9,19 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.UpdatePermission;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PreUpdate;
-import javax.persistence.Transient;
+
 import javax.validation.constraints.Pattern;
 
 /**

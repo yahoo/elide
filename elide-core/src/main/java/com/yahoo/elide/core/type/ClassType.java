@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.type;
 
 import com.google.common.collect.ImmutableList;
+
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;

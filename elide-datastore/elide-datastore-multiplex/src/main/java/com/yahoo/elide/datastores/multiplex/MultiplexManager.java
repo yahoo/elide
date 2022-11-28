@@ -12,6 +12,7 @@ import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.type.Type;
+
 import lombok.AccessLevel;
 import lombok.Setter;
 

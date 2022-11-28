@@ -10,11 +10,11 @@ import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+
+import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.io.Serializable;
-
-import javax.persistence.Column;
 
 /**
  * A view version of table countries.

@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql.subscriptions.websocket;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
@@ -16,6 +17,7 @@ import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons;
+
 import graphql.GraphQL;
 import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
@@ -29,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
+
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;

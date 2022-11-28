@@ -8,17 +8,19 @@ package com.yahoo.elide.core.dictionary;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
+
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MapsId;
-import javax.persistence.OneToOne;
 
 public class EntityBindingTest {
     private static EntityBinding entityBinding;

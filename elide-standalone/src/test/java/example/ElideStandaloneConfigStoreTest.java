@@ -24,6 +24,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -51,6 +52,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
 import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

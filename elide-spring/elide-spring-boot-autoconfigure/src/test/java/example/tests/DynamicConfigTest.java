@@ -14,6 +14,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.equalTo;
+
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;

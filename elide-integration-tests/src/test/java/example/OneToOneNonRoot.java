@@ -10,10 +10,10 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 
 @Include(rootLevel = false)
 @ReadPermission(expression = "Prefab.Role.All")

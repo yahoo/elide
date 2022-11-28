@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.noop;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.ObjectEntityCache;
 import com.yahoo.elide.core.RequestScope;

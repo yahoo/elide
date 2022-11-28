@@ -7,6 +7,7 @@
 package com.yahoo.elide.parsers.expression;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;

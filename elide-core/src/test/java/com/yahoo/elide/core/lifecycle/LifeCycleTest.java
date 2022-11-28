@@ -30,6 +30,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
@@ -61,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;

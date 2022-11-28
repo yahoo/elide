@@ -19,11 +19,12 @@ import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.type.Type;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import jakarta.persistence.Entity;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.Entity;
 
 /**
  * Filtered permission check.

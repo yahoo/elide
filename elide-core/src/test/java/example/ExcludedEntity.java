@@ -6,10 +6,10 @@
 package example;
 
 import com.yahoo.elide.annotation.Exclude;
-import lombok.AllArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
 
 @Entity
 @Exclude

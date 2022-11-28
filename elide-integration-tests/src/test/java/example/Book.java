@@ -13,20 +13,21 @@ import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
 import org.hibernate.annotations.Formula;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 
 /**
  * Model for books.

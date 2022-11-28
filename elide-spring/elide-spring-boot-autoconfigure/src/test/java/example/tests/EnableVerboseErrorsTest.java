@@ -13,6 +13,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
+
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import org.junit.jupiter.api.Test;

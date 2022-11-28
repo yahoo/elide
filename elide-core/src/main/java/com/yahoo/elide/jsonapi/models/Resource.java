@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import lombok.ToString;
 
 import java.util.Map;

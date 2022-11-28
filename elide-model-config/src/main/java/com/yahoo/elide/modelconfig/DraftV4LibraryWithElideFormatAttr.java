@@ -25,6 +25,7 @@ import com.yahoo.elide.modelconfig.jsonformats.ValidateDimPropertiesKeyword;
 import com.yahoo.elide.modelconfig.jsonformats.ValidateTimeDimPropertiesKeyword;
 import com.github.fge.jsonschema.library.DraftV4Library;
 import com.github.fge.jsonschema.library.Library;
+
 import lombok.Getter;
 
 /**

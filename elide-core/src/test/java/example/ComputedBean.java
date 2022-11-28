@@ -9,7 +9,7 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.RequestScope;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Bean with only computed fields

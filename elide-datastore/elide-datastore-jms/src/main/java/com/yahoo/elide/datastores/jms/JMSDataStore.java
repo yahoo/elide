@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -25,6 +26,7 @@ import com.google.gson.GsonBuilder;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 

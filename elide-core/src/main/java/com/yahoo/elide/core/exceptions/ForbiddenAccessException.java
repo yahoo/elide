@@ -8,6 +8,7 @@ package com.yahoo.elide.core.exceptions;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.type.ClassType;
+
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;

@@ -7,6 +7,7 @@ package com.yahoo.elide.core.security;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;

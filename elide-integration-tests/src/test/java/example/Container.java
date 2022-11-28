@@ -8,10 +8,11 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.NonTransferable;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
 import java.util.Collection;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 /**
  * Container for shareables and unshareables.

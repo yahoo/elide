@@ -9,6 +9,7 @@ package com.yahoo.elide.graphql;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;

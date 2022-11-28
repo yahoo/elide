@@ -9,6 +9,7 @@ package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import lombok.Builder;
 
 /**

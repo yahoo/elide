@@ -8,6 +8,7 @@ package example;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import org.apache.http.HttpStatus;

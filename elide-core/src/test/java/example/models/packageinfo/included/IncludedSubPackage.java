@@ -8,7 +8,7 @@ package example.models.packageinfo.included;
 
 import example.models.BaseId;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Helper class to test Include on parent package level

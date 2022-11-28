@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;

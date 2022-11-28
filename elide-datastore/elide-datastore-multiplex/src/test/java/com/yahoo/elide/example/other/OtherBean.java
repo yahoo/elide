@@ -7,7 +7,7 @@ package com.yahoo.elide.example.other;
 
 import com.yahoo.elide.annotation.Include;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Exclude Test bean.
