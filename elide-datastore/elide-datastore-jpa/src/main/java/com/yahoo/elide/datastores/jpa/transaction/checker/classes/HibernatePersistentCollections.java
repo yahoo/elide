@@ -18,6 +18,14 @@ public class HibernatePersistentCollections {
             "org.hibernate.collection.internal.PersistentMap",
             "org.hibernate.collection.internal.PersistentSet",
             "org.hibernate.collection.internal.PersistentSortedMap",
-            "org.hibernate.collection.internal.PersistentSortedSet"
+            "org.hibernate.collection.internal.PersistentSortedSet",
+            "org.hibernate.collection.spi.PersistentArrayHolder",
+            "org.hibernate.collection.spi.PersistentBag",
+            "org.hibernate.collection.spi.PersistentIdentifierBag",
+            "org.hibernate.collection.spi.PersistentList",
+            "org.hibernate.collection.spi.PersistentMap",
+            "org.hibernate.collection.spi.PersistentSet",
+            "org.hibernate.collection.spi.PersistentSortedMap",
+            "org.hibernate.collection.spi.PersistentSortedSet"
     };
 }
