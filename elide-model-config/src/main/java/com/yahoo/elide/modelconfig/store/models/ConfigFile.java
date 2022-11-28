@@ -8,6 +8,7 @@ package com.yahoo.elide.modelconfig.store.models;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.security.checks.prefab.Role.NONE_ROLE;
+
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -16,6 +17,9 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.exceptions.BadRequestException;
+
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,8 +29,6 @@ import java.net.URLDecoder;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.function.Supplier;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 
 /**
  * Represents an HJSON configuration file for dynamic Elide models.

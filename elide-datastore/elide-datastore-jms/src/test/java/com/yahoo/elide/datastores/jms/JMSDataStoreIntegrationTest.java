@@ -21,6 +21,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
@@ -48,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.List;
+
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;

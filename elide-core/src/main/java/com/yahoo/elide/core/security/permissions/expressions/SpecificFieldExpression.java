@@ -6,8 +6,10 @@
 package com.yahoo.elide.core.security.permissions.expressions;
 
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
+
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.permissions.PermissionCondition;
+
 import lombok.Getter;
 
 import java.util.Optional;

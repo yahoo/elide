@@ -8,7 +8,10 @@ package com.yahoo.elide.core.utils.coerce;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
@@ -17,6 +20,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

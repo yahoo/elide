@@ -6,13 +6,13 @@
 
 package example;
 
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
 
 @Embeddable
 @Data

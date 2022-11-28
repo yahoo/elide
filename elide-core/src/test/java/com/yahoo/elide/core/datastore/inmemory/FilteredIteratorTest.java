@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;

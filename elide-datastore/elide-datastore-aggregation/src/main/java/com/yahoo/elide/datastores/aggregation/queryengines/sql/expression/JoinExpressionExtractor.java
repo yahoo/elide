@@ -13,6 +13,7 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.resolveTableOrSubselect;
 import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;

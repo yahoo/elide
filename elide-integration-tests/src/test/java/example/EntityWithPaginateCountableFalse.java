@@ -7,10 +7,10 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
+
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.Entity;
 
 @Entity
 @Include

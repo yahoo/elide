@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.fail;
+
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +19,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.json.JSONException;
 import org.junit.jupiter.api.TestInstance;
 import org.skyscreamer.jsonassert.JSONAssert;
+
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +30,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.core.MediaType;
 
 /**

@@ -15,14 +15,12 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
-
 import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
 import example.models.targetEntity.SWE;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
-
 import org.hibernate.MappingException;
 import org.hibernate.Session;
 import org.hibernate.boot.MetadataSources;
@@ -33,16 +31,16 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 /**
  * IT Test Harness for the JpaDataStore.
@@ -77,10 +75,10 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
             throw new IllegalStateException(e);
         }
 
-        options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
-        options.put("javax.persistence.jdbc.url", JDBC);
-        options.put("javax.persistence.jdbc.user", ROOT);
-        options.put("javax.persistence.jdbc.password", ROOT);
+        options.put("jakarta.persistence.jdbc.driver", "org.h2.Driver");
+        options.put("jakarta.persistence.jdbc.url", JDBC);
+        options.put("jakarta.persistence.jdbc.user", ROOT);
+        options.put("jakarta.persistence.jdbc.password", ROOT);
         options.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 

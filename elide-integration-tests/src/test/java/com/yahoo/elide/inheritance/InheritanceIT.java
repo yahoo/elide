@@ -18,9 +18,11 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 import org.junit.jupiter.api.Test;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

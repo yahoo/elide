@@ -13,6 +13,10 @@ import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionCh
 import com.yahoo.elide.datastores.jpql.JPQLTransaction;
 import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
 import org.apache.commons.collections4.CollectionUtils;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
+import jakarta.persistence.NoResultException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -21,9 +25,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import javax.persistence.EntityManager;
-import javax.persistence.FlushModeType;
-import javax.persistence.NoResultException;
+
 import javax.validation.ConstraintViolationException;
 
 /**

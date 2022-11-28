@@ -27,6 +27,7 @@ import example.Author;
 import example.Book;
 import example.Publisher;
 import org.junit.jupiter.api.Test;
+
 import graphql.Scalars;
 import graphql.scalars.java.JavaPrimitives;
 import graphql.schema.DataFetcher;

@@ -9,6 +9,7 @@ package example;
 import static example.TimeGrainDefinitions.DATE_FORMAT;
 import static example.TimeGrainDefinitions.MONTH_FORMAT;
 import static example.TimeGrainDefinitions.QUARTER_FORMAT;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
@@ -23,11 +24,12 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import example.dimensions.Country;
+
+import jakarta.persistence.Id;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.math.BigDecimal;
-import javax.persistence.Id;
 
 @Include
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")

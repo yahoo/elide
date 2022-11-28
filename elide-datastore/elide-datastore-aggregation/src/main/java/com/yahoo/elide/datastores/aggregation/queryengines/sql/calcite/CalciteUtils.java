@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect.BACKTICK;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect.DOUBLE_QUOTE;
+
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import org.apache.calcite.avatica.util.Quoting;
 import org.apache.calcite.config.CharLiteralStyle;

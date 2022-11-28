@@ -7,10 +7,11 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 
+import jakarta.persistence.Entity;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.Entity;
 
 @Entity
 @Include(rootLevel = false)

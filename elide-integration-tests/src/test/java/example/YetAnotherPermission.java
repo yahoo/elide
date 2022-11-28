@@ -9,7 +9,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 @CreatePermission(expression = "Prefab.Role.All")
 @ReadPermission(expression = "Prefab.Role.None")

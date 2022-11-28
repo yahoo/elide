@@ -12,6 +12,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

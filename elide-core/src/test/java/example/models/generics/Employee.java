@@ -6,7 +6,7 @@
 
 package example.models.generics;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Helper class to test parameterized subclass/superclass hierarchies.

@@ -6,6 +6,7 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -14,12 +15,14 @@ import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.utils.ResourceUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;

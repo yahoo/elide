@@ -10,6 +10,9 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.modelconfig.model.Named;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
@@ -17,8 +20,6 @@ import lombok.ToString;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
 
 /**
  * Arguments that can be provided into a table/column.

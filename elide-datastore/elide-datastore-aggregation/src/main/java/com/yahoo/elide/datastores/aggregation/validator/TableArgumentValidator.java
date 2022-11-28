@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.validator;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.hasSql;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.resolveTableOrSubselect;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;

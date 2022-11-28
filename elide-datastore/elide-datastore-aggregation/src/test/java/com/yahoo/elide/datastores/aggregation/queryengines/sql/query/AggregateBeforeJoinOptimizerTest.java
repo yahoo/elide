@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;

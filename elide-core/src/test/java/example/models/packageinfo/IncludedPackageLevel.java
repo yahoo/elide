@@ -8,7 +8,7 @@ package example.models.packageinfo;
 
 import example.models.BaseId;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Helper class to test parameterized subclass/superclass hierarchies.

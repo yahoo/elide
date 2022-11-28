@@ -13,12 +13,13 @@ import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 import com.yahoo.elide.datastores.jpql.JPQLDataStore;
 import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpql.query.DefaultQueryLogger;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.EntityType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.EntityType;
 
 /**
  * Implementation for JPA EntityManager data store.

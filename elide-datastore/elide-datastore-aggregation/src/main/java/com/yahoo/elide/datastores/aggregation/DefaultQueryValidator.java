@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static com.yahoo.elide.datastores.aggregation.query.Queryable.extractFilterProjections;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;

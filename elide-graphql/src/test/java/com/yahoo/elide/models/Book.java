@@ -7,9 +7,9 @@ package com.yahoo.elide.models;
 
 import com.yahoo.elide.annotation.Include;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /**
  * Model for books.  Should not break GraphQL schema for example.Book.

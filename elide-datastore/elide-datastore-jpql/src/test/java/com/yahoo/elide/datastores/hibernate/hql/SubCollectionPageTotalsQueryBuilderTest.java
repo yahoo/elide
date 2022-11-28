@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.hibernate.hql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;

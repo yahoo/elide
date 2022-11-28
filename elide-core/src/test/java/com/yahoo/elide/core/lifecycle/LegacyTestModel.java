@@ -15,10 +15,10 @@ import com.yahoo.elide.annotation.OnDeletePreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.Id;
 
 /**
  * Model used to mock different lifecycle test scenarios using legacy annotations.

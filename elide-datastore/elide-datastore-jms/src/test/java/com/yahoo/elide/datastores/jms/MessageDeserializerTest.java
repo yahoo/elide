@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jms;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.type.ClassType;
 import com.google.gson.GsonBuilder;
 import example.Book;

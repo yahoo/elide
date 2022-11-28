@@ -13,7 +13,6 @@ import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.Map;

@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.dynamic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;

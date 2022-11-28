@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.jpql.porting;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
+
 import lombok.NonNull;
 
 import java.util.ConcurrentModificationException;

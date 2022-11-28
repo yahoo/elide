@@ -8,8 +8,8 @@ package example.models.generics;
 
 import example.models.BaseId;
 
-import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.OneToOne;
 
 
 /**

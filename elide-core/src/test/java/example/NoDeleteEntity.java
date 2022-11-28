@@ -8,9 +8,9 @@ package example;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @DeletePermission(expression = "Prefab.Role.None")
 @Include(name = "nodelete") // optional here because class has this name

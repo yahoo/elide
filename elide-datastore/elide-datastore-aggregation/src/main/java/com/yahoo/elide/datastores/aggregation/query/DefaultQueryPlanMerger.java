@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Streams;
 

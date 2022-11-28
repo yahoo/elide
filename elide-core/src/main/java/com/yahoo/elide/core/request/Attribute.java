@@ -8,6 +8,7 @@ package com.yahoo.elide.core.request;
 
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;

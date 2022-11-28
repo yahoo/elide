@@ -7,8 +7,10 @@
 package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.ElideResponse;
 import org.junit.jupiter.api.Test;
+
 import java.util.HashMap;
 
 /**

@@ -12,6 +12,7 @@ import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableMap;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,6 +21,7 @@ import lombok.ToString;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

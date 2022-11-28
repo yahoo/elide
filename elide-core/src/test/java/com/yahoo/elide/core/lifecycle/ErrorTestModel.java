@@ -7,13 +7,15 @@ package com.yahoo.elide.core.lifecycle;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.security.ChangeSpec;
 
+import jakarta.persistence.Id;
+
 import java.util.Optional;
-import javax.persistence.Id;
 
 /**
  * Tests life cycle hooks which raise errors.

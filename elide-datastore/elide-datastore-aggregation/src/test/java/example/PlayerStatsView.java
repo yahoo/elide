@@ -13,11 +13,11 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+
+import jakarta.persistence.Id;
 import lombok.Data;
 
 import java.io.Serializable;
-
-import javax.persistence.Id;
 
 /**
  * A root level entity for testing AggregationDataStore.

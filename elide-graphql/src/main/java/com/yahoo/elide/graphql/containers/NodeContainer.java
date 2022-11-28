@@ -15,6 +15,7 @@ import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

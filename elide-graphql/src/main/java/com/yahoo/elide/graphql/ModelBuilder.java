@@ -18,6 +18,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.apollographql.federation.graphqljava.Federation;
 import org.apache.commons.collections4.CollectionUtils;
+
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;

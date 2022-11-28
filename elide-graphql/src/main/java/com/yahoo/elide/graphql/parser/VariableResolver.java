@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+
 import graphql.language.ArrayValue;
 import graphql.language.BooleanValue;
 import graphql.language.EnumValue;

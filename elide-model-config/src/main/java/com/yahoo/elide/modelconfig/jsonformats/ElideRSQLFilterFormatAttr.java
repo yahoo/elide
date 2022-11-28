@@ -6,12 +6,14 @@
 package com.yahoo.elide.modelconfig.jsonformats;
 
 import static com.yahoo.elide.core.filter.dialect.RSQLFilterDialect.getDefaultOperatorsWithIsnull;
+
 import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
+
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
 

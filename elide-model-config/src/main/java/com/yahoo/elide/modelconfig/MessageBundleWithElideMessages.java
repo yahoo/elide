@@ -27,6 +27,7 @@ import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
 import com.github.fge.msgsimple.source.MapMessageSource;
+
 import lombok.Getter;
 
 /**

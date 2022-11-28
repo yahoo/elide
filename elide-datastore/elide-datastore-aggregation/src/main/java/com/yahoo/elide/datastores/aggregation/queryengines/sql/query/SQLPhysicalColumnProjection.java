@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.applyQuotes;
+
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -16,6 +17,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 
