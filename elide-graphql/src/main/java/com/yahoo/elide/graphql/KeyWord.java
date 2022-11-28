@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql;
 
 import com.google.common.collect.ImmutableMap;
+
 import lombok.Getter;
 
 import java.util.Arrays;

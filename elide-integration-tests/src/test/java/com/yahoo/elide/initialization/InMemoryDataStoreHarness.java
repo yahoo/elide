@@ -12,9 +12,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
-
 import com.google.common.collect.Sets;
-
 import example.Address;
 import example.Company;
 import example.Parent;

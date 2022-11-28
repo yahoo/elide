@@ -6,6 +6,7 @@
 package com.yahoo.elide.initialization;
 
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.audit.AuditLogger;

@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.type.Type;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

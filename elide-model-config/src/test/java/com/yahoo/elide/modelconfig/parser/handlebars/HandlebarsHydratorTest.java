@@ -6,6 +6,7 @@
 package com.yahoo.elide.modelconfig.parser.handlebars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.junit.jupiter.api.BeforeAll;

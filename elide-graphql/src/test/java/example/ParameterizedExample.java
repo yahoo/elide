@@ -8,7 +8,7 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.type.ParameterizedModel;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 
 @Include
 public class ParameterizedExample extends ParameterizedModel {

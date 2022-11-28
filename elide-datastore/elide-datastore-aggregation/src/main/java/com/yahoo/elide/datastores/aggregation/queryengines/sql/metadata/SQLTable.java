@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.PERIOD;
 import static java.util.Collections.emptyMap;
+
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
@@ -38,6 +39,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricPr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Subselect;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -338,7 +340,7 @@ public class SQLTable extends Table implements Queryable {
     }
 
     /**
-     * Maps an entity class to a physical table or subselect query, if neither {@link javax.persistence.Table}
+     * Maps an entity class to a physical table or subselect query, if neither {@link jakarta.persistence.Table}
      * nor {@link Subselect} annotation is present on this class, try {@link FromTable} and {@link FromSubquery}.
      * @param cls The entity class.
      * @param clientQuery the client query.
@@ -356,7 +358,7 @@ public class SQLTable extends Table implements Queryable {
             }
             return dictionary.getAnnotation(cls, Subselect.class).value();
         }
-        javax.persistence.Table table = dictionary.getAnnotation(cls, javax.persistence.Table.class);
+        jakarta.persistence.Table table = dictionary.getAnnotation(cls, jakarta.persistence.Table.class);
 
         if (table != null) {
             return resolveTableAnnotation(table);
@@ -367,11 +369,11 @@ public class SQLTable extends Table implements Queryable {
     }
 
     /**
-     * Get the full table name from JPA {@link javax.persistence.Table} annotation.
+     * Get the full table name from JPA {@link jakarta.persistence.Table} annotation.
      * @param table table annotation.
      * @return <code>catalog.schema.name</code>
      */
-    private static String resolveTableAnnotation(javax.persistence.Table table) {
+    private static String resolveTableAnnotation(jakarta.persistence.Table table) {
         StringBuilder fullTableName = new StringBuilder();
 
         if (StringUtils.isNotBlank(table.catalog())) {

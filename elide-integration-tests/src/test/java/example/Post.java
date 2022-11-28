@@ -11,7 +11,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Post test bean.

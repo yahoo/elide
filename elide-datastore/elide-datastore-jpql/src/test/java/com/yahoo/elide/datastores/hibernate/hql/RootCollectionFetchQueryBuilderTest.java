@@ -26,13 +26,11 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jpql.query.RootCollectionFetchQueryBuilder;
-
 import example.Author;
 import example.Book;
 import example.Chapter;
 import example.Editor;
 import example.Publisher;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

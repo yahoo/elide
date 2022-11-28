@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql.subscriptions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionExclusionStrategy;
@@ -15,11 +16,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.Test;
 
+import jakarta.persistence.Id;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.TimeZone;
-import javax.persistence.Id;
 
 public class SubscriptionSerdeTest {
 

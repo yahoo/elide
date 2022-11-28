@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.junit.jupiter.api.BeforeAll;

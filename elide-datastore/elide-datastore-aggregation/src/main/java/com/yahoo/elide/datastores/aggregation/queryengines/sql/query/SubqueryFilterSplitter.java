@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Expres
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+
 import lombok.Builder;
 import lombok.Data;
 

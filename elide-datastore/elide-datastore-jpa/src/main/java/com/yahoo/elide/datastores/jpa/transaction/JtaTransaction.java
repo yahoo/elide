@@ -8,12 +8,14 @@ package com.yahoo.elide.datastores.jpa.transaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
+
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Consumer;
+
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.persistence.EntityManager;
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 

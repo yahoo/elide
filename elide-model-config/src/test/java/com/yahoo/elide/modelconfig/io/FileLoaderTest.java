@@ -8,6 +8,7 @@ package com.yahoo.elide.modelconfig.io;
 
 import static com.yahoo.elide.modelconfig.io.FileLoader.formatClassPath;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 public class FileLoaderTest {

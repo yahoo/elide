@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.async.models;
 
+import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 
 import java.util.Date;
-import javax.persistence.MappedSuperclass;
 
 /**
  * Base Model for Async Query Result.

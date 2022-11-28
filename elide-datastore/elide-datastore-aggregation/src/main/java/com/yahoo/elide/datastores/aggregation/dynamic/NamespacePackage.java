@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.dynamic;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;

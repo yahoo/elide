@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import org.apache.commons.lang3.tuple.Pair;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

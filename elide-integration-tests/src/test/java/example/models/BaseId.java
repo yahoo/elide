@@ -7,11 +7,12 @@ package example.models;
 
 import com.yahoo.elide.annotation.Exclude;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+
 import java.util.UUID;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
 
 /**
  * Base class for Entities that provides a hashcode and equals that will be the same

@@ -14,11 +14,12 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 
+import jakarta.persistence.EntityManagerFactory;
 import redis.clients.jedis.JedisPooled;
 
 import java.util.Collections;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
+
 import javax.sql.DataSource;
 
 public class RedisAggregationDataStoreTestHarness extends AggregationDataStoreTestHarness {

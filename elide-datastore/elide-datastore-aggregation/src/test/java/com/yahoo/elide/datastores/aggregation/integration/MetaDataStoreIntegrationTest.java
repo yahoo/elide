@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -44,6 +45,9 @@ import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.Test;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -51,9 +55,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import javax.inject.Inject;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 public class MetaDataStoreIntegrationTest extends IntegrationTest {
@@ -109,8 +112,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
 
         Properties prop = new Properties();
-        prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
-        prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
+        prop.put("jakarta.persistence.jdbc.driver", config.getDriverClassName());
+        prop.put("jakarta.persistence.jdbc.url", config.getJdbcUrl());
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
 
         Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();

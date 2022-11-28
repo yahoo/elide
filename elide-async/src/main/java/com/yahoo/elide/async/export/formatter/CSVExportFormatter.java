@@ -12,6 +12,7 @@ import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;

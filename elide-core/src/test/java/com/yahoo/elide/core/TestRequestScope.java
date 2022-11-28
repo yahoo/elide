@@ -7,6 +7,7 @@
 package com.yahoo.elide.core;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -15,6 +16,7 @@ import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import java.util.UUID;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

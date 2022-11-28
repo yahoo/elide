@@ -7,6 +7,7 @@ package com.yahoo.elide.core.security.permissions;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
@@ -23,11 +24,12 @@ import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import javax.persistence.Entity;
-import javax.persistence.Id;
 
 public class PermissionExpressionBuilderTest {
 

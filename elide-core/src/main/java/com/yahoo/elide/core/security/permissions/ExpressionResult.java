@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.security.permissions;
 
 import static org.fusesource.jansi.Ansi.ansi;
+
 import org.fusesource.jansi.Ansi;
 
 /**

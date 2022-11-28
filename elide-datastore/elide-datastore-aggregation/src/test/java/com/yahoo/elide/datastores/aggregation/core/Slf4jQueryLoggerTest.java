@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 
 public class Slf4jQueryLoggerTest {

@@ -7,6 +7,7 @@ package com.yahoo.elide.core.utils.coerce;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.apache.commons.beanutils.Converter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

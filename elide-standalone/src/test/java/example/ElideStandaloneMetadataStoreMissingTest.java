@@ -6,6 +6,7 @@
 package example;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;

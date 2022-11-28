@@ -6,7 +6,15 @@
 
 package com.yahoo.elide.core.security.visitors;
 
-import com.yahoo.elide.core.security.permissions.expressions.*;
+import com.yahoo.elide.core.security.permissions.expressions.AndExpression;
+import com.yahoo.elide.core.security.permissions.expressions.AnyFieldExpression;
+import com.yahoo.elide.core.security.permissions.expressions.BooleanExpression;
+import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
+import com.yahoo.elide.core.security.permissions.expressions.Expression;
+import com.yahoo.elide.core.security.permissions.expressions.ExpressionVisitor;
+import com.yahoo.elide.core.security.permissions.expressions.NotExpression;
+import com.yahoo.elide.core.security.permissions.expressions.OrExpression;
+import com.yahoo.elide.core.security.permissions.expressions.SpecificFieldExpression;
 
 /**
  * Expression Visitor to normalize Permission expression.

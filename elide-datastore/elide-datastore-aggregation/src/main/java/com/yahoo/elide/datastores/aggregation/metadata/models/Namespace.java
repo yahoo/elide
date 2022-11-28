@@ -6,12 +6,16 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
+
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -19,8 +23,6 @@ import lombok.ToString;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 /**
  * Namespace for organizing related tables together.

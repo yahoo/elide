@@ -52,9 +52,7 @@ import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
-
 import com.google.common.collect.Sets;
-
 import example.Address;
 import example.Book;
 import example.Child;
@@ -66,7 +64,6 @@ import example.LineItem;
 import example.Parent;
 import example.TestCheckMappings;
 import example.User;
-
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;

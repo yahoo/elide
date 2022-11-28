@@ -6,6 +6,7 @@
 package example.tests;
 
 import static org.mockito.Mockito.spy;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.RefreshableElide;

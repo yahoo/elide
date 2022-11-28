@@ -5,19 +5,31 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.*;
+import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Transient;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.persistence.*;
 
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")

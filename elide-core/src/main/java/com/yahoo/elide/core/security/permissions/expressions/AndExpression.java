@@ -8,7 +8,9 @@ package com.yahoo.elide.core.security.permissions.expressions;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
+
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
+
 import lombok.Getter;
 
 /**

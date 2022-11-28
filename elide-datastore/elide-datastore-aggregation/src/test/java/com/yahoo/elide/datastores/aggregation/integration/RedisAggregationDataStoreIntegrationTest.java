@@ -30,7 +30,6 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.RedisAggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,12 +39,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import jakarta.persistence.EntityManagerFactory;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * Integration tests for {@link AggregationDataStore} using Redis for cache.

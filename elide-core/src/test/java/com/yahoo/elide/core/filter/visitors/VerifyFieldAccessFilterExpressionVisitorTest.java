@@ -16,6 +16,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;

@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.jpql.filter;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getPathAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;

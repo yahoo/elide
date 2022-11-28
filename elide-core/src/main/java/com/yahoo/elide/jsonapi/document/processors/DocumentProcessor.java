@@ -10,6 +10,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import java.util.LinkedHashSet;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

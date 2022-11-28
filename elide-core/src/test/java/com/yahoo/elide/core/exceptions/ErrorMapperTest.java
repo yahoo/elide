@@ -30,7 +30,6 @@ import com.yahoo.elide.core.lifecycle.FieldTestModel;
 import com.yahoo.elide.core.lifecycle.LegacyTestModel;
 import com.yahoo.elide.core.lifecycle.PropertyTestModel;
 import com.yahoo.elide.core.type.ClassType;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

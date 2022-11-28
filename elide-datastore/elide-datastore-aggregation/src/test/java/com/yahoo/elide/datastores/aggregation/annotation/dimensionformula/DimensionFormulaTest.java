@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.annotation.dimensionformula;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -19,14 +20,15 @@ import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.annotations.Formula;
 import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
 import lombok.Setter;
 
 import java.util.Arrays;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 
 public class DimensionFormulaTest {

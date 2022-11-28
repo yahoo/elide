@@ -11,9 +11,10 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import jakarta.persistence.Entity;
+
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Entity;
 
 @CreatePermission(expression = "Prefab.Role.All")
 @ReadPermission(expression = "Prefab.Role.All")

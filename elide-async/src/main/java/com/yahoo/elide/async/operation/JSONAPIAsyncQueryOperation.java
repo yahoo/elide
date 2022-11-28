@@ -14,10 +14,12 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.security.User;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.util.UUID;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 

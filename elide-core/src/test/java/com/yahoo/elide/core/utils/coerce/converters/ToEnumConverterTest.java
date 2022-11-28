@@ -7,6 +7,7 @@ package com.yahoo.elide.core.utils.coerce.converters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import org.apache.commons.beanutils.Converter;
 import org.junit.jupiter.api.BeforeEach;

@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.cache;
 
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
-
 import org.springframework.util.SerializationUtils;
 
 import lombok.Setter;

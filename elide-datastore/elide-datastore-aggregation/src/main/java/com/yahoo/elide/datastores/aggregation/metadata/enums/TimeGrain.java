@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
 import com.yahoo.elide.datastores.aggregation.timegrains.Second;
 import com.yahoo.elide.datastores.aggregation.timegrains.Week;
 import com.yahoo.elide.datastores.aggregation.timegrains.Year;
+
 import lombok.Getter;
 
 /**
