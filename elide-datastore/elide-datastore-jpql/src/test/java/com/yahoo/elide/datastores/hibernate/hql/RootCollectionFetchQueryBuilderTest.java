@@ -139,7 +139,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         String expected =
-                "SELECT example_Author FROM example.Author AS example_Author  "
+                "SELECT DISTINCT example_Author FROM example.Author AS example_Author  "
                         + "LEFT JOIN example_Author.books example_Author_books  "
                         + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters   "
                         + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher   "
