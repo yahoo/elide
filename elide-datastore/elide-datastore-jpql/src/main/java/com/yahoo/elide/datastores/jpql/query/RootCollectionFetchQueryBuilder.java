@@ -56,8 +56,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(entityClass, entityAlias);
 
-            boolean requiresDistinct = entityProjection.getPagination() != null
-                    && containsOneToMany(filterExpression);
+            boolean requiresDistinct = containsOneToMany(filterExpression);
 
             boolean sortOverRelationship = entityProjection.getSorting() != null
                     && entityProjection.getSorting().getSortingPaths().keySet()
