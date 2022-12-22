@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.jpql.query;
 
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -80,8 +81,24 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(relationship.getChildType(), childAlias);
 
+            boolean requiresDistinct = containsOneToMany(filterExpression);
+
+            boolean sortOverRelationship = entityProjection.getSorting() != null
+                    && entityProjection.getSorting().getSortingPaths().keySet()
+                    .stream().anyMatch(path ->
+                            path.getPathElements()
+                                    .stream()
+                                    .anyMatch(element ->
+                                            dictionary.isRelation(element.getType(), element.getFieldName())));
+
+            if (requiresDistinct && sortOverRelationship) {
+                //SQL does not support distinct and order by on columns which are not selected
+                throw new InvalidValueException("Combination of sorting over relationship and"
+                        + " filtering over toMany relationships unsupported");
+            }
             //SELECT parent_children from Parent parent JOIN parent.children parent_children
             query = session.createQuery(SELECT
+                    + (requiresDistinct ? DISTINCT : "")
                     + childAlias
                     + FROM
                     + parentName + SPACE + parentAlias
