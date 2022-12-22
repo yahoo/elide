@@ -71,6 +71,9 @@ public class ElideBeans {
             builder = builder.withVerboseErrors();
         }
 
+        LOG.debug("Scanning for security checks...");
+        dictionary.scanForSecurityChecks();
+
         return new Elide(builder.build());
     }
 

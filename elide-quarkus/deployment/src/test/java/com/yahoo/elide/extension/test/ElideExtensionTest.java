@@ -23,6 +23,8 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.extension.test.models.Book;
+import com.yahoo.elide.extension.test.models.DenyCheck;
+import com.yahoo.elide.extension.test.models.Supplier;
 import org.apache.http.HttpStatus;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -41,7 +43,9 @@ public class ElideExtensionTest {
     static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
         .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                 .addAsResource("application.properties")
-                .addClass(Book.class));
+                .addClass(Book.class)
+                .addClass(Supplier.class)
+                .addClass(DenyCheck.class));
 
     @Inject
     EntityDictionary dictionary;
@@ -99,6 +103,28 @@ public class ElideExtensionTest {
                 .then()
                 .log().all()
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void shouldDisallowSupplierCreation() {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("supplier"),
+                                        id(1),
+                                        attributes(
+                                                attr("name", "foo")
+                                        )
+                                )
+                        )
+                )
+                .post("/supplier")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     @Test
