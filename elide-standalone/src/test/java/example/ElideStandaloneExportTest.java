@@ -119,7 +119,7 @@ public class ElideStandaloneExportTest {
     }
 
     @Test
-    public void exportNotFound() throws InterruptedException {
+    public void exportNotFound() {
         int queryId = 1;
         when()
                 .get("/export/" + queryId)

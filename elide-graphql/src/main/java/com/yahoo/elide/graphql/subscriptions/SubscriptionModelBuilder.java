@@ -6,6 +6,7 @@
 package com.yahoo.elide.graphql.subscriptions;
 
 import static graphql.schema.GraphQLArgument.newArgument;
+import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLObjectType.newObject;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -13,13 +14,19 @@ import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.GraphQLConversionUtils;
 import com.yahoo.elide.graphql.GraphQLNameUtils;
+import com.yahoo.elide.graphql.GraphQLScalars;
 import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
+import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
+import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.google.common.collect.Sets;
 import graphql.Scalars;
+import graphql.language.EnumTypeDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -49,6 +56,8 @@ public class SubscriptionModelBuilder {
     private GraphQLArgument filterArgument;
     private Set<Type<?>> excludedEntities;  //Client controlled models to skip.
     private Set<Type<?>> relationshipTypes; //Keeps track of which relationship models need to be built.
+
+    public static final String TOPIC_ARGUMENT = "topic";
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
@@ -97,19 +106,33 @@ public class SubscriptionModelBuilder {
         GraphQLObjectType.Builder root = newObject().name("Subscription");
 
         for (Type<?> clazz : subscriptionClasses) {
-            Subscription include = entityDictionary.getAnnotation(clazz, Subscription.class);
-            if (include == null) {
+            Subscription subscription = entityDictionary.getAnnotation(clazz, Subscription.class);
+            if (subscription == null) {
                 continue;
             }
+
             GraphQLObjectType subscriptionType = buildQueryObject(clazz);
-            for (Subscription.Operation op : include.operations()) {
-                String subscriptionName = nameUtils.toSubscriptionName(clazz, op);
-                root.field(newFieldDefinition()
-                            .name(subscriptionName)
-                            .description(EntityDictionary.getEntityDescription(clazz))
-                            .argument(filterArgument)
-                            .type(subscriptionType));
+            String entityName = entityDictionary.getJsonAliasFor(clazz);
+
+            GraphQLFieldDefinition.Builder rootFieldDefinitionBuilder = newFieldDefinition()
+                    .name(entityName)
+                    .description(EntityDictionary.getEntityDescription(clazz))
+                    .argument(filterArgument)
+                    .type(subscriptionType);
+
+            if (subscription.operations() != null && subscription.operations().length > 0) {
+                GraphQLEnumType.Builder topicTypeBuilder = newEnum().name(nameUtils.toTopicName(clazz));
+
+                for (Subscription.Operation operation : subscription.operations()) {
+                    TopicType topicType = TopicType.fromOperation(operation);
+                    topicTypeBuilder.value(topicType.name(), topicType);
                 }
+                topicTypeBuilder.definition(EnumTypeDefinition.newEnumTypeDefinition().build());
+                rootFieldDefinitionBuilder.argument(
+                        GraphQLArgument.newArgument().name(TOPIC_ARGUMENT).type(topicTypeBuilder.build()).build());
+            }
+
+            root.field(rootFieldDefinitionBuilder.build());
         }
 
         GraphQLObjectType queryRoot = root.build();
@@ -165,7 +188,7 @@ public class SubscriptionModelBuilder {
 
         builder.field(newFieldDefinition()
                 .name(id)
-                .type(Scalars.GraphQLID));
+                .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
 
         for (String attribute : entityDictionary.getAttributes(entityClass)) {
             Type<?> attributeClass = entityDictionary.getType(entityClass, attribute);

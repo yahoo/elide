@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -75,6 +75,8 @@ public class DataStoreIT extends IntegrationTest {
                 .withAuditLogger(new TestAuditLogger())
                 .withEntityDictionary(EntityDictionary.builder().checks(checks).build())
                 .build());
+
+        elide.doScans();
     }
 
     @BeforeEach

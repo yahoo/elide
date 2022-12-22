@@ -60,6 +60,7 @@ public class HandlebarsHydratorTest {
             + "                 table: Country\n"
             + "                 column: isoCode\n"
             + "             }\n"
+            + "             default: US\n"
             + "          }\n"
             + "      ]\n"
             + "      joins: [\n"

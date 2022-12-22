@@ -29,6 +29,13 @@ public class SafeJsonPathTest {
     }
 
     @Test
+    public void testEmptyArrayResult() {
+        Integer count = AsyncQueryOperation.safeJsonPathLength("{ \"data\": [] }", "data");
+
+        assertEquals(0, count);
+    }
+
+    @Test
     public void testInvalidREsult() {
         assertThrows(IllegalStateException.class, () ->
                 AsyncQueryOperation.safeJsonPathLength("{ \"data\": \"foo\" }", "data"));

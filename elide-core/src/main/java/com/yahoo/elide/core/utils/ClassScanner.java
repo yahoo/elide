@@ -49,7 +49,7 @@ public interface ClassScanner {
      */
     Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations);
 
-    Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ...annotations);
+    Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ... annotations);
 
     /**
      * Returns all classes within a package.

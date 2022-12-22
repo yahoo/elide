@@ -46,6 +46,7 @@ import java.util.Set;
     "arguments",
     "extend",
     "sql",
+    "maker",
     "table",
     "dbConnectionName",
     "filterTemplate"
@@ -56,6 +57,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Table implements Named {
+    private static final long serialVersionUID = -7537337382856372741L;
+
     @JsonProperty("name")
     private String name;
 
@@ -127,6 +130,9 @@ public class Table implements Named {
 
     @JsonProperty("sql")
     private String sql;
+
+    @JsonProperty("maker")
+    private String maker;
 
     @JsonProperty("table")
     private String table;

@@ -45,6 +45,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Measure implements Named {
+    private static final long serialVersionUID = 4404642046984907827L;
 
     @JsonProperty("name")
     private String name;
@@ -59,16 +60,18 @@ public class Measure implements Named {
     private String category;
 
     @JsonProperty("hidden")
+    @Builder.Default
     private Boolean hidden = false;
 
     @JsonProperty("readAccess")
+    @Builder.Default
     private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("definition")
     private String definition;
 
     @JsonProperty("type")
-    private Type type;
+    private String type;
 
     @JsonProperty("maker")
     private String maker;

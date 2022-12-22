@@ -11,11 +11,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
+import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 public class DynamicConfigValidatorTest {
 
@@ -154,17 +158,6 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testMissingConfigs() throws Exception {
-        String error = tapSystemErr(() -> {
-            int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_configs"}));
-            assertEquals(2, exitStatus);
-        });
-
-        assertTrue(error.startsWith("Neither Table nor DB configs found under:"));
-    }
-
-    @Test
     public void testMissingTableConfig() throws Exception {
         tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
@@ -241,7 +234,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        String expectedError = "Schema validation failed for: security.hjson\n"
+        String expectedError = "Schema validation failed for: models/security.hjson\n"
                         + "[ERROR]\n"
                         + "Instance[/roles/0] failed to validate against schema[/properties/roles/items]. Role [admin,] is not allowed. Role must start with an alphabetic character and can include alaphabets, numbers, spaces and '.' only.\n"
                         + "[ERROR]\n"
@@ -268,7 +261,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        String expected = "Schema validation failed for: test_namespace.hjson\n"
+        String expected = "Schema validation failed for: models/namespaces/test_namespace.hjson\n"
                 + "[ERROR]\n"
                 + "Instance[/namespaces/0/name] failed to validate against schema[/properties/namespaces/items/properties/name]. Name [Default] clashes with the 'default' namespace. Either change the case or pick a different namespace name.\n";
         assertEquals(expected, error);
@@ -303,7 +296,7 @@ public class DynamicConfigValidatorTest {
                     DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type"}));
             assertEquals(2, exitStatus);
         });
-        String expected = "Schema validation failed for: table1.hjson\n"
+        String expected = "Schema validation failed for: models/tables/table1.hjson\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/joins/0/kind] failed to validate against schema[/definitions/join/properties/kind]. Join kind [toAll] is not allowed. Supported value is one of [ToOne, ToMany].\n"
                         + "[ERROR]\n"
@@ -314,7 +307,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadDimName() throws Exception {
-        String expectedMessage = "Schema validation failed for: table1.hjson\n"
+        String expectedMessage = "Schema validation failed for: models/tables/table1.hjson\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/dimensions/0] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
@@ -462,12 +455,28 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testFormatClassPath() {
-        assertEquals("anydir", DynamicConfigValidator.formatClassPath("src/test/resources/anydir"));
-        assertEquals("anydir/configs", DynamicConfigValidator.formatClassPath("src/test/resources/anydir/configs"));
-        assertEquals("src/test/resourc", DynamicConfigValidator.formatClassPath("src/test/resourc"));
-        assertEquals("", DynamicConfigValidator.formatClassPath("src/test/resources/"));
-        assertEquals("", DynamicConfigValidator.formatClassPath("src/test/resources"));
-        assertEquals("anydir/configs", DynamicConfigValidator.formatClassPath("src/test/resourcesanydir/configs"));
+    public void testPathAndConfigFileTypeMismatches() {
+        DynamicConfigValidator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+                "src/test/resources/validator/valid");
+
+        Map<String, ConfigFile> resources = Map.of("blah/foo",
+                ConfigFile.builder().path("blah/foo").type(ConfigFile.ConfigFileType.SECURITY).build());
+
+        assertThrows(BadRequestException.class, () -> validator.validate(resources));
+
+        Map<String, ConfigFile> resources2 = Map.of("models/variables.hjson",
+                ConfigFile.builder().path("models/variables.hjson").type(ConfigFile.ConfigFileType.TABLE).build());
+
+        assertThrows(BadRequestException.class, () -> validator.validate(resources2));
+
+        Map<String, ConfigFile> resources3 = Map.of("models/tables/referred_model.hjson",
+                ConfigFile.builder().path("models/tables/referred_model.hjson").type(ConfigFile.ConfigFileType.NAMESPACE).build());
+
+        assertThrows(BadRequestException.class, () -> validator.validate(resources3));
+
+        Map<String, ConfigFile> resources4 = Map.of("models/tables/referred_model.hjson",
+            ConfigFile.builder().path("models/tables/referred_model.hjson").type(ConfigFile.ConfigFileType.DATABASE).build());
+
+        assertThrows(BadRequestException.class, () -> validator.validate(resources4));
     }
 }

@@ -11,6 +11,7 @@ import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
 import com.yahoo.elide.async.export.validator.Validator;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -19,7 +20,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
 import io.reactivex.Observable;
 import lombok.Getter;
@@ -33,7 +33,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -62,18 +64,32 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
     @Override
     public AsyncAPIResult call() {
-        String apiVersion = scope.getApiVersion();
         log.debug("TableExport Object from request: {}", exportObj);
         Elide elide = service.getElide();
         TableExportResult exportResult = new TableExportResult();
+        UUID requestId = UUID.fromString(exportObj.getRequestId());
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+            // Do Not Cache Export Results
+            Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
+            requestHeaders.put("bypasscache", new ArrayList<String>(Arrays.asList("true")));
 
-            RequestScope requestScope = getRequestScope(exportObj, scope, tx);
+            RequestScope requestScope = getRequestScope(exportObj, scope, tx, requestHeaders);
             Collection<EntityProjection> projections = getProjections(exportObj, requestScope);
             validateProjections(projections);
             EntityProjection projection = projections.iterator().next();
 
-            Observable<PersistentResource> observableResults = export(exportObj, requestScope, projection);
+            Observable<PersistentResource> observableResults = Observable.empty();
+
+            elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
+
+            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+            //TODO - Can we have projectionInfo as null?
+            requestScope.setEntityProjection(projection);
+
+            if (projection != null) {
+                projection.setPagination(null);
+                observableResults = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
+            }
 
             Observable<String> results = Observable.empty();
             String preResult = formatter.preFormat(projection, exportObj);
@@ -87,20 +103,33 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             Observable<String> interimResults = concatStringWithObservable(preResult, results, true);
             Observable<String> finalResults = concatStringWithObservable(postResult, interimResults, false);
 
-            storeResults(exportObj, engine, finalResults);
+            TableExportResult result = storeResults(exportObj, engine, finalResults);
+
+            if (result != null && result.getMessage() != null) {
+                throw new IllegalStateException(result.getMessage());
+            }
 
             exportResult.setUrl(new URL(generateDownloadURL(exportObj, scope)));
             exportResult.setRecordCount(recordNumber);
+
+            tx.flush(requestScope);
+            elide.getAuditLogger().commit();
+            tx.commit(requestScope);
         } catch (BadRequestException e) {
             exportResult.setMessage(e.getMessage());
         } catch (MalformedURLException e) {
             exportResult.setMessage("Download url generation failure.");
-        }  catch (Exception e) {
+        } catch (IOException e) {
+            log.error("IOException during TableExport", e);
+            exportResult.setMessage(e.getMessage());
+        } catch (Exception e) {
             exportResult.setMessage(e.getMessage());
         } finally {
             // Follows same flow as GraphQL. The query may result in failure but request was successfully processed.
             exportResult.setHttpStatus(200);
             exportResult.setCompletedOn(new Date());
+            elide.getTransactionRegistry().removeRunningTransaction(requestId);
+            elide.getAuditLogger().clear();
         }
         return exportResult;
     }
@@ -116,63 +145,15 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     }
 
     /**
-     * Export Table Data.
-     * @param exportObj TableExport type object.
-     * @param prevScope RequestScope object.
-     * @param projection Entity projection.
-     * @return Observable PersistentResource
-     */
-    private Observable<PersistentResource> export(TableExport exportObj, RequestScope scope,
-            EntityProjection projection) {
-        Observable<PersistentResource> results = Observable.empty();
-        Elide elide = service.getElide();
-
-        UUID requestId = UUID.fromString(exportObj.getRequestId());
-
-        try {
-            DataStoreTransaction tx = scope.getTransaction();
-            elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
-
-            //TODO - we need to add the baseUrlEndpoint to the queryObject.
-            //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(exportObj, scope, tx);
-            exportRequestScope.setEntityProjection(projection);
-
-            if (projection != null) {
-                results = PersistentResource.loadRecords(projection, Collections.emptyList(), exportRequestScope);
-            }
-
-            tx.preCommit(exportRequestScope);
-            exportRequestScope.runQueuedPreSecurityTriggers();
-            exportRequestScope.getPermissionExecutor().executeCommitChecks();
-
-            tx.flush(exportRequestScope);
-
-            exportRequestScope.runQueuedPreCommitTriggers();
-
-            elide.getAuditLogger().commit();
-            tx.commit(exportRequestScope);
-
-            exportRequestScope.runQueuedPostCommitTriggers();
-        } catch (IOException e) {
-            log.error("IOException during TableExport", e);
-            throw new TransactionException(e);
-        } finally {
-            elide.getTransactionRegistry().removeRunningTransaction(requestId);
-            elide.getAuditLogger().clear();
-        }
-
-        return results;
-    }
-
-    /**
      * Initializes a new RequestScope for the export operation with the submitted query.
      * @param exportObj TableExport type object.
      * @param scope RequestScope from the original submission.
      * @param tx DataStoreTransaction.
+     * @param additionalRequestHeaders Additional Request Headers.
      * @return RequestScope Type Object
      */
-    public abstract RequestScope getRequestScope(TableExport exportObj, RequestScope scope, DataStoreTransaction tx);
+    public abstract RequestScope getRequestScope(TableExport exportObj, RequestScope scope, DataStoreTransaction tx,
+            Map<String, List<String>> additionalRequestHeaders);
 
     /**
      * Generate Download URL.
@@ -183,7 +164,10 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
         String downloadPath =  scope.getElideSettings().getExportApiPath();
         String baseURL = scope.getBaseUrlEndPoint();
-        return baseURL + downloadPath + "/" + exportObj.getId();
+        String extension = this.engine.isExtensionEnabled()
+                ? exportObj.getResultType().getFileExtensionType().getExtension()
+                : FileExtensionType.NONE.getExtension();
+        return baseURL + downloadPath + "/" + exportObj.getId() + extension;
     }
 
     /**
@@ -191,9 +175,9 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param exportObj TableExport type object.
      * @param resultStorageEngine ResultStorageEngine instance.
      * @param result Observable of String Results to store.
-     * @return TableExport object.
+     * @return TableExportResult object.
      */
-    protected TableExport storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
+    protected TableExportResult storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
             Observable<String> result) {
         return resultStorageEngine.storeResults(exportObj, result);
     }

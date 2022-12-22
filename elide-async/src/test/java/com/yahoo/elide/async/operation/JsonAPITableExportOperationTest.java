@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,10 +73,11 @@ public class JsonAPITableExportOperationTest {
                         .withAuditLogger(new Slf4jLogger())
                         .withExportApiPath("/export")
                         .build());
+        elide.doScans();
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
-        engine = new FileResultStorageEngine(tempDir.toString());
+        engine = new FileResultStorageEngine(tempDir.toString(), true);
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
         when(requestScope.getUser()).thenReturn(user);
@@ -86,7 +86,7 @@ public class JsonAPITableExportOperationTest {
     }
 
     @Test
-    public void testProcessQuery() throws URISyntaxException, IOException  {
+    public void testProcessQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "/tableExport?sort=principalName&fields=principalName";
@@ -101,13 +101,13 @@ public class JsonAPITableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d", queryResultObj.getUrl().toString());
+        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d.csv", queryResultObj.getUrl().toString());
         assertEquals(1, queryResultObj.getRecordCount());
         assertNull(queryResultObj.getMessage());
     }
 
     @Test
-    public void testProcessBadEntityQuery() throws URISyntaxException, IOException  {
+    public void testProcessBadEntityQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "/tableExportInvalid?sort=principalName&fields=principalName";
@@ -126,7 +126,7 @@ public class JsonAPITableExportOperationTest {
     }
 
     @Test
-    public void testProcessBadQuery() throws URISyntaxException, IOException  {
+    public void testProcessBadQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "tableExport/^IllegalCharacter^";

@@ -67,6 +67,8 @@ import javax.persistence.Transient;
  * @see com.yahoo.elide.annotation.Include#name
  */
 public class EntityBinding {
+    public static final List<Class<? extends Annotation>> ID_ANNOTATIONS = List.of(Id.class, EmbeddedId.class);
+
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
@@ -116,7 +118,6 @@ public class EntityBinding {
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<AccessibleObject, Set<ArgumentType>> attributeArguments = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, ArgumentType> entityArguments = new ConcurrentHashMap<>();
-
     public final ConcurrentHashMap<Object, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
@@ -149,7 +150,7 @@ public class EntityBinding {
     public EntityBinding(Injector injector,
                          Type<?> cls,
                          String type) {
-        this(injector, cls, type, NO_VERSION, new HashSet<>());
+        this(injector, cls, type, NO_VERSION, unused -> false);
     }
 
     /**
@@ -159,14 +160,14 @@ public class EntityBinding {
      * @param cls Entity class
      * @param type Declared Elide type name
      * @param apiVersion API version
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
     public EntityBinding(Injector injector,
                          Type<?> cls,
                          String type,
                          String apiVersion,
-                         Set<Class<? extends Annotation>> hiddenAnnotations) {
-        this(injector, cls, type, apiVersion, true, hiddenAnnotations);
+                         Predicate<AccessibleObject> isFieldHidden) {
+        this(injector, cls, type, apiVersion, true, isFieldHidden);
     }
 
     /**
@@ -177,14 +178,14 @@ public class EntityBinding {
      * @param type Declared Elide type name
      * @param apiVersion API version
      * @param isElideModel Whether or not this type is an Elide model or not.
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
     public EntityBinding(Injector injector,
                          Type<?> cls,
                          String type,
                          String apiVersion,
                          boolean isElideModel,
-                         Set<Class<? extends Annotation>> hiddenAnnotations) {
+                         Predicate<AccessibleObject> isFieldHidden) {
         this.isElideModel = isElideModel;
         this.injector = injector;
         entityClass = cls;
@@ -223,7 +224,7 @@ public class EntityBinding {
             fieldOrMethodList.addAll(getInstanceMembers(cls.getMethods()));
         }
 
-        bindEntityFields(cls, type, fieldOrMethodList, hiddenAnnotations);
+        bindEntityFields(cls, type, fieldOrMethodList, isFieldHidden);
         bindTriggerIfPresent();
 
         apiAttributes = dequeToList(attributesDeque);
@@ -289,11 +290,11 @@ public class EntityBinding {
      * @param cls               Class type to bind fields
      * @param type              JSON API type identifier
      * @param fieldOrMethodList List of fields and methods on entity
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
     private void bindEntityFields(Type<?> cls, String type,
                                   Collection<AccessibleObject> fieldOrMethodList,
-                                  Set<Class<? extends Annotation>> hiddenAnnotations) {
+                                  Predicate<AccessibleObject> isFieldHidden) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
             bindTriggerIfPresent(fieldOrMethod);
 
@@ -317,7 +318,7 @@ public class EntityBinding {
                 }
                 bindAttrOrRelation(
                         fieldOrMethod,
-                        hiddenAnnotations.stream().anyMatch(fieldOrMethod::isAnnotationPresent));
+                        isFieldHidden.test(fieldOrMethod));
             }
         }
     }
@@ -519,9 +520,11 @@ public class EntityBinding {
      * @param fieldOrMethod field or method
      * @return field type
      */
-    public static Type<?> getFieldType(Type<?> parentClass,
-                                         AccessibleObject fieldOrMethod) {
-        return getFieldType(parentClass, fieldOrMethod, Optional.empty());
+    public static Type<?> getFieldType(Type<?> parentClass, AccessibleObject fieldOrMethod) {
+        if (fieldOrMethod instanceof Field) {
+            return ((Field) fieldOrMethod).getType();
+        }
+        return ((Method) fieldOrMethod).getReturnType();
     }
 
     /**
@@ -734,6 +737,15 @@ public class EntityBinding {
     }
 
     /**
+     * Returns a list of fields filtered by a given predicate.
+     * @param filter The filter predicate.
+     * @return All fields that satisfy the predicate.
+     */
+    public Set<AccessibleObject> getAllFields(Predicate<AccessibleObject> filter) {
+        return fieldsToValues.values().stream().filter(filter).collect(Collectors.toSet());
+    }
+
+    /**
      * Returns the Collection of all attributes of an Entity.
      * @return A Set of ArgumentType for the given entity.
      */
@@ -741,7 +753,7 @@ public class EntityBinding {
         return new HashSet<>(entityArguments.values());
     }
 
-    private static boolean isIdField(AccessibleObject field) {
+    public static boolean isIdField(AccessibleObject field) {
         return (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class));
     }
 }

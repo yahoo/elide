@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -19,9 +20,11 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+
 import example.Address;
 import example.Author;
 import example.Book;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -35,7 +38,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class OperatorTest {
-    private EntityDictionary dictionary;
+    private final EntityDictionary dictionary;
     private final RequestScope requestScope;
     private Author author;
     private Predicate fn;
@@ -47,7 +50,7 @@ public class OperatorTest {
                     Collections.emptyMap(),  //role checks
                     EntityDictionary.DEFAULT_INJECTOR,
                     CoerceUtil::lookup,
-                    Collections.emptySet(),  //excluded entities
+                    Collections.emptySet(), //excluded entities
                     DefaultClassScanner.getInstance()
             );
         }
@@ -160,7 +163,7 @@ public class OperatorTest {
         fn = Operator.IN.contextualize(constructPath(Author.class, "homeAddress.street1"), Arrays.asList("Foo", "Bar"), requestScope);
         assertTrue(fn.test(author));
 
-        fn = Operator.IN.contextualize(constructPath(Author.class, "homeAddress.street1"), Arrays.asList("Baz"), requestScope);
+        fn = Operator.IN.contextualize(constructPath(Author.class, "homeAddress.street1"), List.of("Baz"), requestScope);
         assertFalse(fn.test(author));
     }
 
@@ -183,7 +186,7 @@ public class OperatorTest {
 
         //name is null and books are null
         author.setBooks(null);
-        author.setAwards(Arrays.asList());
+        author.setAwards(List.of());
         fn = Operator.ISEMPTY.contextualize(constructPath(Author.class, "awards"), null, requestScope);
         assertTrue(fn.test(author));
         fn = Operator.ISEMPTY.contextualize(constructPath(Author.class, "books"), null, requestScope);
@@ -204,7 +207,7 @@ public class OperatorTest {
         author2.setName("Jane");
         book.setAuthors(Arrays.asList(author1, author2));
 
-        fn = Operator.IN.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Jon"), requestScope);
+        fn = Operator.IN.contextualize(constructPath(Book.class, "authors.name"), List.of("Jon"), requestScope);
         assertTrue(fn.test(book));
 
         fn = Operator.IN.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Nobody", "Jon"), requestScope);
@@ -216,7 +219,7 @@ public class OperatorTest {
         fn = Operator.IN.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Nobody1", "Nobody2"), requestScope);
         assertFalse(fn.test(book));
 
-        fn = Operator.NOT.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Jon"), requestScope);
+        fn = Operator.NOT.contextualize(constructPath(Book.class, "authors.name"), List.of("Jon"), requestScope);
         assertFalse(fn.test(book));
 
         fn = Operator.NOT.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Nobody", "Jon"), requestScope);
@@ -278,14 +281,14 @@ public class OperatorTest {
         author.setAwards(Arrays.asList("Booker Prize", "National Book Awards"));
         author.getBooks().add(new Book());
 
-        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList("Booker Prize"), requestScope);
+        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "awards"), List.of("Booker Prize"), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList(""), requestScope);
+        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "awards"), List.of(""), requestScope);
         assertFalse(fn.test(author));
 
-        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList("National Book Awards"), requestScope);
+        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "awards"), List.of("National Book Awards"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList("1"), requestScope);
+        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "awards"), List.of("1"), requestScope);
         assertTrue(fn.test(author));
 
         assertThrows(
@@ -322,6 +325,30 @@ public class OperatorTest {
         assertFalse(fn.test(author));
         fn = Operator.POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("error"), requestScope);
         assertFalse(fn.test(author));
+
+        // When notprefix, notinfix, notpostfix are correctly matched
+        fn = Operator.NOT_PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("Author"), requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.NOT_INFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("For"), requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.NOT_POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("Test"), requestScope);
+        assertFalse(fn.test(author));
+
+        // When notprefix, notinfix, notpostfix are correctly matched if case-insensitive
+        fn = Operator.NOT_PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("author"), requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.NOT_INFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("for"), requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.NOT_POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("test"), requestScope);
+        assertTrue(fn.test(author));
+
+        // When notprefix, notinfix, notpostfix are not matched
+        fn = Operator.NOT_PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("error"), requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.NOT_INFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("error"), requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.NOT_POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("error"), requestScope);
+        assertTrue(fn.test(author));
 
         // When values is null
         author.setName(null);

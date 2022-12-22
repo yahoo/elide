@@ -33,12 +33,15 @@ import java.util.Objects;
  */
 @ToString
 public class Resource {
+
+    //Doesn't work currently - https://github.com/FasterXML/jackson-databind/issues/230
+    @JsonProperty(required = true)
     private String type;
     private String id;
     private Map<String, Object> attributes;
     private Map<String, Relationship> relationships;
     private Map<String, String> links;
-    private Map<String, Meta> meta;
+    private Meta meta;
 
     public Resource(String type, String id) {
         this.type = type;
@@ -53,7 +56,7 @@ public class Resource {
                     @JsonProperty("attributes") Map<String, Object> attributes,
                     @JsonProperty("relationships") Map<String, Relationship> relationships,
                     @JsonProperty("links") Map<String, String> links,
-                    @JsonProperty("meta") Map<String, Meta> meta) {
+                    @JsonProperty("meta") Meta meta) {
         this.type = type;
         this.id = id;
         this.attributes = attributes;
@@ -98,11 +101,11 @@ public class Resource {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public Map<String, Meta> getMeta() {
+    public Meta getMeta() {
         return meta;
     }
 
-    public void setMeta(Map<String, Meta> meta) {
+    public void setMeta(Meta meta) {
         this.meta = meta;
     }
 

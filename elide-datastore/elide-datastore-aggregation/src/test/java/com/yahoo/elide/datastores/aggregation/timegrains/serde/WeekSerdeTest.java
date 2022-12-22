@@ -12,8 +12,9 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Week;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -21,7 +22,7 @@ public class WeekSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Test
-    public void testDateSerialize() throws ParseException {
+    public void testDateSerialize() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 05, 00, 00, 00);
 
         Week expectedDate = new Week(localDate);
@@ -31,7 +32,7 @@ public class WeekSerdeTest {
     }
 
     @Test
-    public void testDateDeserializeString() throws ParseException {
+    public void testDateDeserializeString() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 05, 00, 00, 00);
         Week expectedDate = new Week(localDate);
         Serde serde = new Week.WeekSerde();
@@ -40,7 +41,7 @@ public class WeekSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestampNotSunday() throws ParseException {
+    public void testDeserializeTimestampNotSunday() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
 
         Week expectedDate = new Week(localDate);
@@ -51,7 +52,7 @@ public class WeekSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestamp() throws ParseException {
+    public void testDeserializeTimestamp() {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 05, 00, 00, 00);
 
         Week expectedDate = new Week(localDate);
@@ -62,7 +63,29 @@ public class WeekSerdeTest {
     }
 
     @Test
-    public void testDeserializeDateInvalidFormat() throws ParseException {
+    public void testDeserializeOffsetDateTimeNotSunday() {
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 1, 6, 0, 0, 0, 0, ZoneOffset.UTC);
+
+        Serde serde = new Week.WeekSerde();
+        assertThrows(IllegalArgumentException.class, () ->
+                serde.deserialize(dateTime)
+        );
+    }
+
+    @Test
+    public void testDeserializeOffsetDateTime() {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 05, 00, 00, 00);
+
+        Week expectedDate = new Week(localDate);
+
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 1, 5, 0, 0, 0, 0, ZoneOffset.UTC);
+        Serde serde = new Week.WeekSerde();
+        Object actualDate = serde.deserialize(dateTime);
+        assertEquals(expectedDate, actualDate);
+    }
+
+    @Test
+    public void testDeserializeDateInvalidFormat() {
 
         String dateInString = "January-2020-01";
         Serde serde = new Week.WeekSerde();

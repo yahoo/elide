@@ -23,7 +23,7 @@ import org.apache.commons.beanutils.Converter;
 
 import java.lang.reflect.Array;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -36,7 +36,7 @@ public class CoerceUtil {
     private static final ToEnumConverter TO_ENUM_CONVERTER = new ToEnumConverter();
     private static final ToUUIDConverter TO_UUID_CONVERTER = new ToUUIDConverter();
     private static final FromMapConverter FROM_MAP_CONVERTER = new FromMapConverter();
-    private static final Map<Class<?>, Serde<?, ?>> SERDES = new HashMap<>();
+    private static final Map<Class<?>, Serde<?, ?>> SERDES = new LinkedHashMap<>();
     private static final BeanUtilsBean BEAN_UTILS_BEAN_INSTANCE = setup();
     private static final Set<ClassLoader> INITIALIZED_CLASSLOADERS =
             Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
@@ -116,7 +116,11 @@ public class CoerceUtil {
              */
             public Converter lookup(Class<?> sourceType, Class<?> targetType) {
                 if (targetType.isEnum()) {
-                    return TO_ENUM_CONVERTER;
+
+                    //Only use the default ENUM converter if there is no registered Serde for the given Enum type.
+                    if (! SERDES.containsKey(targetType)) {
+                        return TO_ENUM_CONVERTER;
+                    }
                 }
                 if (Map.class.isAssignableFrom(sourceType)) {
                     return FROM_MAP_CONVERTER;

@@ -11,7 +11,6 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -21,16 +20,20 @@ import com.yahoo.elide.datastores.aggregation.QueryValidator;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -48,7 +51,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.yahoo.elide.datastores.aggregation.validator.ColumnArgumentValidator;
 import com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,14 +61,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.sql.DataSource;
 
 /**
@@ -76,44 +78,43 @@ import javax.sql.DataSource;
 public class SQLQueryEngine extends QueryEngine {
 
     @Getter
-    private final ConnectionDetails defaultConnectionDetails;
-    private final Map<String, ConnectionDetails> connectionDetailsMap;
     private final Set<Optimizer> optimizers;
     private final QueryValidator validator;
     private final FormulaValidator formulaValidator;
+    private final Function<String, ConnectionDetails> connectionDetailsLookup;
+    private final QueryPlanMerger merger;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
-        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(), new HashSet<>(),
+    public SQLQueryEngine(MetaDataStore metaDataStore, Function<String, ConnectionDetails> connectionDetailsLookup) {
+        this(metaDataStore, connectionDetailsLookup, new HashSet<>(), new DefaultQueryPlanMerger(metaDataStore),
                 new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
     }
 
     /**
      * Constructor.
      * @param metaDataStore : MetaDataStore.
-     * @param defaultConnectionDetails : default DataSource Object and SQLDialect Object.
-     * @param connectionDetailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
+     * @param connectionDetailsLookup : maps a connection name to meta info about the connection.
      * @param optimizers The set of enabled optimizers.
+     * @param merger Merges multiple plans into a smaller set (one if possible)
      * @param validator Validates each incoming client query.
      */
     public SQLQueryEngine(
             MetaDataStore metaDataStore,
-            ConnectionDetails defaultConnectionDetails,
-            Map<String, ConnectionDetails> connectionDetailsMap,
+            Function<String, ConnectionDetails> connectionDetailsLookup,
             Set<Optimizer> optimizers,
+            QueryPlanMerger merger,
             QueryValidator validator
     ) {
 
-        Preconditions.checkNotNull(defaultConnectionDetails);
-        Preconditions.checkNotNull(connectionDetailsMap);
+        Preconditions.checkNotNull(connectionDetailsLookup);
 
-        this.defaultConnectionDetails = defaultConnectionDetails;
-        this.connectionDetailsMap = connectionDetailsMap;
+        this.connectionDetailsLookup = connectionDetailsLookup;
         this.metaDataStore = metaDataStore;
         this.validator = validator;
         this.formulaValidator = new FormulaValidator(metaDataStore);
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
         this.optimizers = optimizers;
+        this.merger = merger;
     }
 
     private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = rs -> {
@@ -143,15 +144,7 @@ public class SQLQueryEngine extends QueryEngine {
             dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
         }
 
-        ConnectionDetails connectionDetails;
-        if (StringUtils.isBlank(dbConnectionName)) {
-            connectionDetails = defaultConnectionDetails;
-        } else {
-            connectionDetails = Optional.ofNullable(connectionDetailsMap.get(dbConnectionName))
-                            .orElseThrow(() -> new IllegalStateException("ConnectionDetails undefined for model: "
-                                            + metaDataDictionary.getJsonAliasFor(entityClass)));
-        }
-
+        ConnectionDetails connectionDetails = connectionDetailsLookup.apply(dbConnectionName);
         return new SQLTable(namespace, entityClass, metaDataDictionary, connectionDetails);
     }
 
@@ -186,7 +179,7 @@ public class SQLQueryEngine extends QueryEngine {
             TableArgumentValidator tableArgValidator = new TableArgumentValidator(metaDataStore, sqlTable);
             tableArgValidator.validate();
 
-            sqlTable.getColumns().forEach(column -> {
+            sqlTable.getAllColumns().forEach(column -> {
                 ColumnArgumentValidator colArgValidator = new ColumnArgumentValidator(metaDataStore, sqlTable, column);
                 colArgValidator.validate();
             });
@@ -266,7 +259,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            resultBuilder.pageTotals(getPageTotal(expandedQuery, sql, sqlTransaction));
+            resultBuilder.pageTotals(getPageTotal(expandedQuery, sql, query, sqlTransaction));
         }
 
         log.debug("SQL Query: " + queryString);
@@ -278,15 +271,15 @@ public class SQLQueryEngine extends QueryEngine {
         // Run the primary query and log the time spent.
         ResultSet resultSet = runQuery(stmt, queryString, Function.identity());
 
-        resultBuilder.data(new EntityHydrator(resultSet, query, metadataDictionary).hydrate());
+        resultBuilder.data(new EntityHydrator(resultSet, query, metadataDictionary));
         return resultBuilder.build();
     }
 
-    private long getPageTotal(Query query, NativeQuery sql, SqlTransaction sqlTransaction) {
-        ConnectionDetails details = query.getConnectionDetails();
+    private long getPageTotal(Query expandedQuery, NativeQuery sql, Query clientQuery, SqlTransaction sqlTransaction) {
+        ConnectionDetails details = expandedQuery.getConnectionDetails();
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        NativeQuery paginationSQL = toPageTotalSQL(query, sql, dialect);
+        NativeQuery paginationSQL = toPageTotalSQL(expandedQuery, sql, dialect);
 
         if (paginationSQL == null) {
             // The query returns the aggregated metric without any dimension.
@@ -297,7 +290,7 @@ public class SQLQueryEngine extends QueryEngine {
         NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL.toString(), dataSource);
 
         // Supply the query parameters to the query
-        supplyFilterQueryParameters(query, stmt, dialect);
+        supplyFilterQueryParameters(clientQuery, stmt, dialect);
 
         // Run the Pagination query and log the time spent.
         Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL.toString(), SINGLE_RESULT_MAPPER), Long.class);
@@ -390,22 +383,24 @@ public class SQLQueryEngine extends QueryEngine {
      * @return A query that reflects each metric's individual query plan.
      */
     private Query expandMetricQueryPlans(Query query) {
-        QueryPlan mergedPlan = null;
 
-        //Expand each metric into its own query plan.  Merge them all together.
-        for (MetricProjection metricProjection : query.getMetricProjections()) {
-            QueryPlan queryPlan = metricProjection.resolve(query);
-            if (queryPlan != null) {
-                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(metaDataStore)) {
-                    //TODO - Run multiple queries.
-                    throw new UnsupportedOperationException("Cannot merge a nested query with a metric that "
-                            + "doesn't support nesting");
-                }
-                mergedPlan = queryPlan.merge(mergedPlan, metaDataStore);
-            }
+        //Expand each metric into its own query plan.
+        List<QueryPlan> toMerge = query.getMetricProjections().stream()
+                .map(projection -> projection.resolve(query))
+                .collect(Collectors.toList());
+
+        //Merge all the queries together.
+        List<QueryPlan> mergedPlans = merger.merge(toMerge);
+
+        //TODO - Support joins across plans rather than rejecting plans that don't merge.
+        if (mergedPlans.size() != 1) {
+            throw new UnsupportedOperationException("Incompatible metrics in client query.  Cannot merge "
+                    + "into a single query");
         }
 
-        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, metaDataStore);
+        QueryPlan mergedPlan = mergedPlans.get(0);
+
+        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, metaDataStore, merger);
 
         Query merged = (mergedPlan == null)
                 ? QueryPlanTranslator.addHiddenProjections(metaDataStore, query).build()
@@ -451,15 +446,15 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         for (FilterPredicate filterPredicate : predicates) {
-            boolean isTimeFilter = ClassType.of(Time.class).isAssignableFrom(filterPredicate.getFieldType());
+            Column column = metaDataStore.getColumn(filterPredicate.getEntityType(), filterPredicate.getField());
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {
                     try {
                         Object value = param.getValue();
-                        if (isTimeFilter) {
-                            value = dialect.translateTimeToJDBC((Time) value);
-                        }
+
+                        value = convertForJdbc(filterPredicate.getEntityType(), column, value, dialect);
+
                         stmt.setObject(param.getName(), shouldEscape ? param.escapeMatching() : value);
                     } catch (SQLException e) {
                         throw new IllegalStateException(e);
@@ -467,6 +462,45 @@ public class SQLQueryEngine extends QueryEngine {
                 });
             }
         }
+    }
+
+    private Object convertForJdbc(Type<?> parent, Column column, Object value, SQLDialect dialect) {
+        if (column.getValueType().equals(ValueType.TIME) && (Time.class).isAssignableFrom(value.getClass())) {
+            return dialect.translateTimeToJDBC((Time) value);
+        }
+
+        if (value.getClass().isEnum()) {
+            Enumerated enumerated =
+                    metadataDictionary.getAttributeOrRelationAnnotation(parent, Enumerated.class, column.getName());
+
+            if (enumerated != null && enumerated.value().equals(EnumType.ORDINAL)) {
+                return ((Enum) value).ordinal();
+            } else {
+                return value.toString();
+            }
+        }
+
+        if ((column.getValueType().equals(ValueType.TEXT)
+                && column.getValues() != null
+                && column.getValues().isEmpty() == false)) {
+            Enumerated enumerated =
+                    metadataDictionary.getAttributeOrRelationAnnotation(parent, Enumerated.class, column.getName());
+
+            if (enumerated != null && enumerated.value().equals(EnumType.ORDINAL)) {
+
+                String [] enumValues = column.getValues().toArray(new String[0]);
+                for (int idx = 0; idx < column.getValues().size(); idx++) {
+                    if (enumValues[idx].equals(value)) {
+                        return idx;
+                    }
+                }
+
+                throw new IllegalStateException(String.format("Invalid value %s for column %s",
+                        value, column.getName()));
+            }
+        }
+
+        return value;
     }
 
     /**

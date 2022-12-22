@@ -1,35 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions
     xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
-    <suppress until="2019-12-01Z">
-        <notes><![CDATA[file name: jackson-databind-2.9.9.3.jar]]></notes>
-        <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-databind.*$</gav>
-        <cve>CVE-2019-16335</cve>
-        <cve>CVE-2019-14540</cve>
-    </suppress>
-    <!-- Invalid web socket CVE (flagging wrong package) -->
-    <suppress until="2021-12-01Z">
-        <cve>CVE-2020-11050</cve>
-    </suppress>
 
-    <!-- Invalid Spring Security CVE -->
-    <suppress until="2021-12-01Z">
-        <cve>CVE-2018-1258</cve>
-    </suppress>
 
-    <!-- https://hibernate.atlassian.net/browse/HHH-14225 -->
-    <suppress until="2021-06-01Z">
-        <cve>CVE-2020-25638</cve>
-    </suppress>
-
-    <!-- Hibernate 3 CVE errors (only in the legacy hibernate 3 data store).  Use Hibernate 3 at your own risk. -->
-    <suppress until="2031-06-01Z">
-        <cve>CVE-2020-25638</cve>
-        <cve>CVE-2019-14900</cve>
-    </suppress>
-
-    <!-- Only related to Windows language pack installer -->
-    <suppress until="2031-06-01Z">
+    <!-- Tomcat - Only related to 'Windows Language Pack Installer" -->
+    <suppress until="2022-12-31">
         <cve>CVE-2020-0822</cve>
     </suppress>
+
+    <suppress until="2022-12-31">
+        <notes><![CDATA[Ignored since we are not vulnerable]]></notes>
+        <cve>CVE-2016-1000027</cve>
+    </suppress>
+
+    <!-- Tomcat - Not really used by Elide (only for tests) -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-29885</cve>
+    </suppress>
+
+    <!-- There is no fix for hibernate search -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2017-12629</cve>
+    </suppress>
+
+    <!-- CVE is not matching the correct spring version -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-22978</cve>
+    </suppress>
+
+    <!-- log4j-api No New Version released -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-33915</cve>
+    </suppress>
+
+    <!-- CVE is unrelated to jms-api -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-31569</cve>
+    </suppress>
+
+    <!-- Upgraded to recommended graphql java.  The matching CVE doesn't appear to be working -->
+    <suppress until="2022-12-31">
+        <cve>CVE-2022-37734</cve>
+    </suppress>
+
+
+>>>>>>> master
 </suppressions>

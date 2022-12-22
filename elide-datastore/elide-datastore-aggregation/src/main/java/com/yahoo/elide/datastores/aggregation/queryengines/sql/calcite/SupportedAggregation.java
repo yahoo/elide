@@ -33,7 +33,7 @@ public class SupportedAggregation {
     @NonNull
     private String outerTemplate;
 
-    public List<String> getInnerAggregations(String ...operands) {
+    public List<String> getInnerAggregations(String ... operands) {
         List<String> innerAggregations = new ArrayList<>();
 
         for (String innerTemplate : innerTemplates) {

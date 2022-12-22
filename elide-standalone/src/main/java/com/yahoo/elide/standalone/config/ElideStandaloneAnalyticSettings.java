@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Oath Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -24,6 +24,15 @@ public interface ElideStandaloneAnalyticSettings {
      * @return Default: False
      */
     default boolean enableDynamicModelConfig() {
+        return false;
+    }
+
+    /**
+     * Enable support for reading and manipulating HJSON configuration through Elide models.
+     *
+     * @return Default: False
+     */
+    default boolean enableDynamicModelConfigAPI() {
         return false;
     }
 

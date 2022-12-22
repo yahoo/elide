@@ -12,6 +12,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -35,10 +36,15 @@ public class Week extends Time {
             if (val instanceof Date) {
                 date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.systemDefault());
             } else {
-                LocalDate localDate = LocalDate.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
-                date = localDate.atTime(0, 0);
+                LocalDate localDate;
+                if (val instanceof OffsetDateTime) {
+                    OffsetDateTime offsetDateTime = (OffsetDateTime) val;
+                    date = offsetDateTime.toLocalDate().atTime(0, 0);
+                } else {
+                    localDate = LocalDate.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
+                    date = localDate.atTime(0, 0);
+                }
             }
-
             if (date.getDayOfWeek() != DayOfWeek.SUNDAY) {
                 throw new IllegalArgumentException("Date string not a Sunday");
             }

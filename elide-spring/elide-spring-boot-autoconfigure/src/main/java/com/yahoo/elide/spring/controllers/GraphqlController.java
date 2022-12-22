@@ -11,13 +11,17 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.graphql.QueryRunners;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +34,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -45,23 +48,27 @@ import java.util.concurrent.Callable;
 @RequestMapping(value = "${elide.graphql.path}")
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @ConditionalOnExpression("${elide.graphql.enabled:false}")
+@RefreshScope
 public class GraphqlController {
 
     private final ElideConfigProperties settings;
-    private final Map<String, QueryRunner> runners;
-    private final Elide elide;
+    private final QueryRunners runners;
+    private final ObjectMapper mapper;
+    private final HeaderUtils.HeaderProcessor headerProcessor;
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     @Autowired
-    public GraphqlController(Elide elide, ElideConfigProperties settings) {
+    public GraphqlController(
+            QueryRunners runners,
+            JsonApiMapper jsonApiMapper,
+            HeaderUtils.HeaderProcessor headerProcessor,
+            ElideConfigProperties settings) {
         log.debug("Started ~~");
+        this.runners = runners;
         this.settings = settings;
-        this.elide = elide;
-        this.runners = new HashMap<>();
-        for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
-            runners.put(apiVersion, new QueryRunner(elide, apiVersion));
-        }
+        this.headerProcessor = headerProcessor;
+        this.mapper = jsonApiMapper.getObjectMapper();
     }
 
     /**
@@ -77,18 +84,19 @@ public class GraphqlController {
                                                  @RequestBody String graphQLDocument, Authentication principal) {
         final User user = new AuthenticationUser(principal);
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
-        final QueryRunner runner = runners.get(apiVersion);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
+        final QueryRunner runner = runners.getRunner(apiVersion);
         final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response;
+
                 if (runner == null) {
-                    response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
+                    response = buildErrorResponse(mapper, new InvalidOperationException("Invalid API Version"), false);
                 } else {
+                    Elide elide = runner.getElide();
                     response = runner.run(baseUrl, graphQLDocument, user, UUID.randomUUID(), requestHeadersCleaned);
                 }
 

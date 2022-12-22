@@ -26,7 +26,9 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -59,6 +61,8 @@ public class SQLTable extends Table implements Queryable {
 
     private Map<String, Argument> arguments;
 
+    private Type<?> cls;
+
     public SQLTable(Namespace namespace,
                     Type<?> cls,
                     EntityDictionary dictionary,
@@ -66,6 +70,7 @@ public class SQLTable extends Table implements Queryable {
         super(namespace, cls, dictionary);
         this.connectionDetails = connectionDetails;
         this.joins = new HashMap<>();
+        this.cls = cls;
         this.arguments = prepareArgMap(getArgumentDefinitions());
 
         EntityBinding binding = dictionary.getEntityBinding(cls);
@@ -141,7 +146,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public List<MetricProjection> getMetricProjections() {
-        return super.getMetrics().stream()
+        return super.getAllMetrics().stream()
                 .map(metric -> getMetricProjection(metric, metric.getName(),
                                 prepareArgMap(metric.getArgumentDefinitions())))
                 .collect(Collectors.toList());
@@ -175,7 +180,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public List<DimensionProjection> getDimensionProjections() {
-        return super.getDimensions()
+        return super.getAllDimensions()
                 .stream()
                 .map(dimension -> getDimensionProjection(dimension, dimension.getName(),
                                 prepareArgMap(dimension.getArgumentDefinitions())))
@@ -213,7 +218,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public List<TimeDimensionProjection> getTimeDimensionProjections() {
-        return super.getTimeDimensions()
+        return super.getAllTimeDimensions()
                 .stream()
                 .map(dimension -> getTimeDimensionProjection(dimension, dimension.getName(),
                                 prepareArgMap(dimension.getArgumentDefinitions())))
@@ -222,7 +227,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public List<ColumnProjection> getColumnProjections() {
-        return super.getColumns()
+        return super.getAllColumns()
                 .stream()
                 .map(column -> getColumnProjection(column.getName()))
                 .collect(Collectors.toList());
@@ -336,12 +341,18 @@ public class SQLTable extends Table implements Queryable {
      * Maps an entity class to a physical table or subselect query, if neither {@link javax.persistence.Table}
      * nor {@link Subselect} annotation is present on this class, try {@link FromTable} and {@link FromSubquery}.
      * @param cls The entity class.
+     * @param clientQuery the client query.
      * @return The physical SQL table or subselect query.
      */
-    public static String resolveTableOrSubselect(EntityDictionary dictionary, Type<?> cls) {
+    public static String resolveTableOrSubselect(EntityDictionary dictionary, Type<?> cls, Query clientQuery) {
         if (hasSql(cls)) {
             if (cls.isAnnotationPresent(FromSubquery.class)) {
-                return dictionary.getAnnotation(cls, FromSubquery.class).sql();
+                FromSubquery fromSubquery = dictionary.getAnnotation(cls, FromSubquery.class);
+                if (fromSubquery.maker() != null) {
+                    TableSQLMaker maker = dictionary.getInjector().instantiate(fromSubquery.maker());
+                    return maker.make(clientQuery);
+                }
+                return fromSubquery.sql();
             }
             return dictionary.getAnnotation(cls, Subselect.class).value();
         }

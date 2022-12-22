@@ -1,13 +1,16 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.CaseSensitivityStrategy;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -23,16 +26,19 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jpql.query.RootCollectionFetchQueryBuilder;
+
 import example.Author;
 import example.Book;
 import example.Chapter;
 import example.Editor;
 import example.Publisher;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -45,6 +51,8 @@ public class RootCollectionFetchQueryBuilderTest {
     private static final String PERIOD = ".";
     private static final String NAME = "name";
     private static final String FIRSTNAME = "firstName";
+    private static final String PRICE = "price";
+    private static final String TOTAL = "total";
     private RSQLFilterDialect filterParser;
 
     @BeforeAll
@@ -55,7 +63,10 @@ public class RootCollectionFetchQueryBuilderTest {
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Chapter.class);
         dictionary.bindEntity(Editor.class);
-        filterParser = new RSQLFilterDialect(dictionary, new CaseSensitivityStrategy.UseColumnCollation());
+        filterParser = RSQLFilterDialect.builder()
+                .dictionary(dictionary)
+                .caseSensitivityStrategy(new CaseSensitivityStrategy.UseColumnCollation())
+                .build();
     }
 
     @Test
@@ -128,12 +139,12 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         String expected =
-                "SELECT example_Author FROM example.Author AS example_Author  "
-                + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters   "
-                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher   "
-                + "WHERE (example_Author_books_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
-                + "OR example_Author_books_publisher.name IN (:books_publisher_name_XXX)) ";
+                "SELECT DISTINCT example_Author FROM example.Author AS example_Author  "
+                        + "LEFT JOIN example_Author.books example_Author_books  "
+                        + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters   "
+                        + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher   "
+                        + "WHERE (example_Author_books_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
+                        + "OR example_Author_books_publisher.name IN (:books_publisher_name_XXX)) ";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
@@ -169,11 +180,11 @@ public class RootCollectionFetchQueryBuilderTest {
 
         String expected =
                 "SELECT DISTINCT example_Author FROM example.Author AS example_Author "
-                + "LEFT JOIN example_Author.books example_Author_books "
-                + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters "
-                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher "
-                + "WHERE (example_Author_books_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
-                + "OR example_Author_books_publisher.name IN (:books_publisher_name_XXX))";
+                        + "LEFT JOIN example_Author.books example_Author_books "
+                        + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters "
+                        + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher "
+                        + "WHERE (example_Author_books_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
+                        + "OR example_Author_books_publisher.name IN (:books_publisher_name_XXX))";
 
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
@@ -210,7 +221,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
         String expected =
                 "SELECT example_Book FROM example.Book AS example_Book"
-                + " WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
+                        + " WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
 
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
@@ -308,6 +319,78 @@ public class RootCollectionFetchQueryBuilderTest {
                 "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootFetchWithRelationshipSortingFiltersAndPagination() {
+        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
+        sorting.put(PUBLISHER + PERIOD + EDITOR + PERIOD + FIRSTNAME, Sorting.SortOrder.desc);
+
+        Path.PathElement idBook = new Path.PathElement(Book.class, Chapter.class, "chapters");
+        Path.PathElement idChapter = new Path.PathElement(Chapter.class, long.class, "id");
+        Path idPath = new Path(List.of(new Path.PathElement[]{idBook, idChapter}));
+
+        FilterPredicate chapterIdPredicate = new InPredicate(idPath, 1);
+
+        PaginationImpl pagination = new PaginationImpl(ClassType.of(Book.class), 0, 3, 10, 10, true, false);
+
+        EntityProjection entityProjection = EntityProjection
+                .builder().type(Book.class)
+                .pagination(pagination)
+                .sorting(new SortingImpl(sorting, Book.class, dictionary))
+                .filterExpression(chapterIdPredicate)
+                .build();
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                entityProjection,
+                dictionary,
+                new TestSessionWrapper()
+        );
+
+        assertThrows(InvalidValueException.class, () -> {
+            TestQueryWrapper build = (TestQueryWrapper) builder.build();
+        });
+    }
+
+    @Test
+    public void testRootFetchWithRelationshipSortingFiltersAndPaginationOnEmbedded() {
+        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
+        sorting.put(PRICE + PERIOD + TOTAL, Sorting.SortOrder.desc);
+
+        Path.PathElement idBook = new Path.PathElement(Book.class, Chapter.class, "chapters");
+        Path.PathElement idChapter = new Path.PathElement(Chapter.class, long.class, "id");
+        Path idPath = new Path(List.of(new Path.PathElement[]{idBook, idChapter}));
+
+        FilterPredicate chapterIdPredicate = new InPredicate(idPath, 1);
+
+        PaginationImpl pagination = new PaginationImpl(ClassType.of(Book.class), 0, 3, 10, 10, true, false);
+
+        EntityProjection entityProjection = EntityProjection
+                .builder().type(Book.class)
+                .pagination(pagination)
+                .sorting(new SortingImpl(sorting, Book.class, dictionary))
+                .filterExpression(chapterIdPredicate)
+                .build();
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                entityProjection,
+                dictionary,
+                new TestSessionWrapper()
+        );
+
+        TestQueryWrapper query = (TestQueryWrapper) builder.build();
+
+        String expected =
+                "SELECT DISTINCT example_Book FROM example.Book AS example_Book"
+                        + " LEFT JOIN example_Book.chapters example_Book_chapters"
+                        + " WHERE example_Book_chapters.id IN (:chapters_id_XXX)"
+                        + " order by example_Book.price.total desc";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":chapters_id_\\w+", ":chapters_id_XXX");
 
         assertEquals(expected, actual);
     }

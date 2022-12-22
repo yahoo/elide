@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -12,12 +12,13 @@ import com.yahoo.elide.graphql.PersistentResourceFetcher;
  * Root container for GraphQL requests.
  */
 public class RootContainer implements GraphQLContainer {
+
     @Override
-    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
+    public GraphQLContainer processFetch(Environment context) {
         String entityName = context.field.getName();
         String aliasName = context.field.getAlias();
 
-        return fetcher.fetchObject(
+        return PersistentResourceFetcher.fetchObject(
                 context.requestScope,
                 context.requestScope
                         .getProjectionInfo()

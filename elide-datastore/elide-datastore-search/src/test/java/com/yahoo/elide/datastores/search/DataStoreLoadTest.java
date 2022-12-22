@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.search;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -32,7 +33,6 @@ import com.yahoo.elide.datastores.search.models.Item;
 import com.google.common.collect.Lists;
 import org.h2.store.fs.FileUtils;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -59,7 +59,7 @@ public class DataStoreLoadTest {
         dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Item.class);
 
-        filterParser = new RSQLFilterDialect(dictionary);
+        filterParser = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         DataStore mockStore = mock(DataStore.class);
         wrappedTransaction = mock(DataStoreTransaction.class);
@@ -75,11 +75,6 @@ public class DataStoreLoadTest {
         when(mockScope.getDictionary()).thenReturn(dictionary);
 
         CoerceUtil.register(Date.class, new ISO8601DateSerde());
-    }
-
-    @BeforeAll
-    public void initialize() {
-        FileUtils.createDirectory("/tmp/lucene");
     }
 
     @AfterAll
@@ -105,7 +100,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, Lists.newArrayList());
+        assertNull(loaded);
 
         /* This query should hit the underlying store */
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());
@@ -240,7 +235,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, Lists.newArrayList());
+        assertNull(loaded);
 
         /* This query should hit the underlying store */
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());

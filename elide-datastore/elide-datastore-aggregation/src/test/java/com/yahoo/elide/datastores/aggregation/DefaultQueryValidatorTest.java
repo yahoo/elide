@@ -203,7 +203,27 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .havingFilter(havingFilter)
                 .build();
 
-        validateQuery(query, "Invalid operation: Column 'countryIsoCode' values must match one of these values: [HK, USA]");
+        validateQuery(query, "Invalid operation: Column 'countryIsoCode' values must match one of these values: [HKG, USA]");
+    }
+
+    @Test
+    public void testValidRegexColumnValueInFilter() throws ParseException {
+        FilterExpression originalFilter = filterParser.parseFilterExpression("countryIsoCode=in=('*H'),lowScore<45",
+                playerStatsType, false);
+        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
+        FilterConstraints constraints = originalFilter.accept(visitor);
+        FilterExpression whereFilter = constraints.getWhereExpression();
+        FilterExpression havingFilter = constraints.getHavingExpression();
+
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("countryIsoCode"))
+                .whereFilter(whereFilter)
+                .havingFilter(havingFilter)
+                .build();
+
+        validateQueryDoesNotThrow(query);
     }
 
     @Test
@@ -265,7 +285,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     }
 
     @Test
-    public void testMissingRequiredParameterInProjection() throws ParseException {
+    public void testMissingRequiredParameterInProjection() {
         SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
         Query query = Query.builder()

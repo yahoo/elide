@@ -9,11 +9,12 @@ package com.yahoo.elide.core.datastore.inmemory;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
-import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
@@ -27,11 +28,11 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -64,24 +65,23 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      */
     @FunctionalInterface
     private interface DataFetcher {
-        Object fetch(Optional<FilterExpression> filterExpression,
-                     Optional<Sorting> sorting,
-                     Optional<Pagination> pagination,
-                     RequestScope scope);
+        DataStoreIterable<Object> fetch(Optional<FilterExpression> filterExpression,
+                                        Optional<Sorting> sorting,
+                                        Optional<Pagination> pagination,
+                                        RequestScope scope);
     }
-
 
     public InMemoryStoreTransaction(DataStoreTransaction tx) {
         this.tx = tx;
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx,
-                              Object entity,
-                              Relationship relationship,
-                              RequestScope scope) {
+    public DataStoreIterable<Object> getToManyRelation(DataStoreTransaction relationTx,
+                                    Object entity,
+                                    Relationship relationship,
+                                    RequestScope scope) {
         DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
-                tx.getRelation(relationTx, entity, relationship.copyOf()
+                tx.getToManyRelation(relationTx, entity, relationship.copyOf()
                         .projection(relationship.getProjection().copyOf()
                                 .filterExpression(filterExpression.orElse(null))
                                 .sorting(sorting.orElse(null))
@@ -95,23 +95,22 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
          * It must be done in memory by Elide as some newly created entities have not yet been persisted.
          */
         boolean filterInMemory = scope.getNewPersistentResources().size() > 0;
-        return fetchData(fetcher, Optional.of(entity), relationship.getProjection(), filterInMemory, scope);
+        return fetchData(fetcher, relationship.getProjection(), filterInMemory, scope);
     }
 
     @Override
     public Object loadObject(EntityProjection projection,
                       Serializable id,
                       RequestScope scope) {
-
-        if (projection.getFilterExpression() == null
-                || tx.supportsFiltering(scope, Optional.empty(), projection) == FeatureSupport.FULL) {
+        if (projection.getFilterExpression() == null) {
             return tx.loadObject(projection, id, scope);
         }
+
         return DataStoreTransaction.super.loadObject(projection, id, scope);
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection projection,
+    public DataStoreIterable<Object> loadObjects(EntityProjection projection,
                                         RequestScope scope) {
 
         DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
@@ -121,7 +120,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                         .sorting(sorting.orElse(null))
                         .build(), requestScope);
 
-        return (Iterable<Object>) fetchData(fetcher, Optional.empty(), projection, false, scope);
+        return fetchData(fetcher, projection, false, scope);
     }
 
     @Override
@@ -142,6 +141,15 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     @Override
     public <T> T createNewObject(Type<T> entityClass, RequestScope scope) {
         return tx.createNewObject(entityClass, scope);
+    }
+
+    @Override
+    public <T, R> R getToOneRelation(
+            DataStoreTransaction relationTx,
+            T entity, Relationship relationship,
+            RequestScope scope
+    ) {
+        return tx.getToOneRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
@@ -193,85 +201,104 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         tx.createObject(entity, scope);
     }
 
-    private Iterable<Object> filterLoadedData(Iterable<Object> loadedRecords,
+    private DataStoreIterable<Object> filterLoadedData(DataStoreIterable<Object> loadedRecords,
                                                 Optional<FilterExpression> filterExpression,
                                                 RequestScope scope) {
+
         if (! filterExpression.isPresent()) {
             return loadedRecords;
         }
 
-        Predicate predicate = filterExpression.get().accept(new InMemoryFilterExecutor(scope));
+        return new DataStoreIterable<>() {
+            @Override
+            public Iterable<Object> getWrappedIterable() {
+                return loadedRecords;
+            }
 
-        return StreamSupport.stream(loadedRecords.spliterator(), false)
-                            .filter(predicate::test)
-                            .collect(Collectors.toList());
+            @Override
+            public Iterator<Object> iterator() {
+                return new FilteredIterator<>(filterExpression.get(), scope, loadedRecords.iterator());
+            }
+
+            @Override
+            public boolean needsInMemoryFilter() {
+                return true;
+            }
+
+            @Override
+            public boolean needsInMemorySort() {
+                return true;
+            }
+
+            @Override
+            public boolean needsInMemoryPagination() {
+                return true;
+            }
+        };
     }
 
-    private Object fetchData(DataFetcher fetcher,
-                               Optional<Object> parent,
-                               EntityProjection projection,
-                               boolean filterInMemory,
-                               RequestScope scope) {
-
+    private DataStoreIterable<Object> fetchData(
+            DataFetcher fetcher,
+            EntityProjection projection,
+            boolean filterInMemory,
+            RequestScope scope
+    ) {
         Optional<FilterExpression> filterExpression = Optional.ofNullable(projection.getFilterExpression());
 
         Pair<Optional<FilterExpression>, Optional<FilterExpression>> expressionSplit = splitFilterExpression(
-                scope, parent, projection, filterInMemory);
+                scope, projection, filterInMemory);
 
         Optional<FilterExpression> dataStoreFilter = expressionSplit.getLeft();
         Optional<FilterExpression> inMemoryFilter = expressionSplit.getRight();
 
-        Pair<Optional<Sorting>, Optional<Sorting>> sortSplit = splitSorting(scope, parent,
-                projection, inMemoryFilter.isPresent());
+        Optional<Sorting> dataStoreSorting = getDataStoreSorting(scope, projection, filterInMemory);
 
-        Optional<Sorting> dataStoreSort = sortSplit.getLeft();
-        Optional<Sorting> inMemorySort = sortSplit.getRight();
+        boolean sortingInMemory = dataStoreSorting.isEmpty() && projection.getSorting() != null;
 
-        Pair<Optional<Pagination>, Optional<Pagination>> paginationSplit = splitPagination(scope, parent,
-                 projection, inMemoryFilter.isPresent(), inMemorySort.isPresent());
+        Optional<Pagination> dataStorePagination = inMemoryFilter.isPresent() || sortingInMemory
+                ? Optional.empty() : Optional.ofNullable(projection.getPagination());
 
-        Optional<Pagination> dataStorePagination = paginationSplit.getLeft();
-        Optional<Pagination> inMemoryPagination = paginationSplit.getRight();
+        DataStoreIterable<Object> loadedRecords =
+                fetcher.fetch(dataStoreFilter, dataStoreSorting, dataStorePagination, scope);
 
-        Object result = fetcher.fetch(dataStoreFilter, dataStoreSort, dataStorePagination, scope);
-
-        if (! (result instanceof Iterable)) {
-            return result;
+        if (loadedRecords == null) {
+            return new DataStoreIterableBuilder().build();
         }
 
-        Iterable<Object> loadedRecords = (Iterable<Object>) result;
-
-        if (inMemoryFilter.isPresent()) {
+        if (inMemoryFilter.isPresent() || (loadedRecords.needsInMemoryFilter()
+                && projection.getFilterExpression() != null)) {
             loadedRecords = filterLoadedData(loadedRecords, filterExpression, scope);
         }
 
-
         return sortAndPaginateLoadedData(
                     loadedRecords,
-                    inMemorySort,
-                    inMemoryPagination,
+                    sortingInMemory,
+                    projection.getSorting(),
+                    projection.getPagination(),
                     scope);
     }
 
+    private DataStoreIterable<Object> sortAndPaginateLoadedData(
+            DataStoreIterable<Object> loadedRecords,
+            boolean sortingInMemory,
+            Sorting sorting,
+            Pagination pagination,
+            RequestScope scope
+    ) {
 
-    private Iterable<Object> sortAndPaginateLoadedData(Iterable<Object> loadedRecords,
-                                                         Optional<Sorting> sorting,
-                                                         Optional<Pagination> pagination,
-                                                         RequestScope scope) {
+        Map<Path, Sorting.SortOrder> sortRules = sorting == null ? new HashMap<>() : sorting.getSortingPaths();
+
+        boolean mustSortInMemory = ! sortRules.isEmpty()
+                && (sortingInMemory || loadedRecords.needsInMemorySort());
+
+        boolean mustPaginateInMemory = pagination != null
+                && (mustSortInMemory || loadedRecords.needsInMemoryPagination());
 
         //Try to skip the data copy if possible
-        if (! sorting.isPresent() && ! pagination.isPresent()) {
+        if (! mustSortInMemory && ! mustPaginateInMemory) {
             return loadedRecords;
         }
 
-        Map<Path, Sorting.SortOrder> sortRules = sorting
-                .map(Sorting::getSortingPaths)
-                .orElseGet(HashMap::new);
-
-        // No sorting required for this type & no pagination.
-        if (sortRules.isEmpty() && ! pagination.isPresent()) {
-            return loadedRecords;
-        }
         //We need an in memory copy to sort or paginate.
         List<Object> results = StreamSupport.stream(loadedRecords.spliterator(), false).collect(Collectors.toList());
 
@@ -279,11 +306,11 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             results = sortInMemory(results, sortRules, scope);
         }
 
-        if (pagination.isPresent()) {
-            results = paginateInMemory(results, pagination.get());
+        if (pagination != null) {
+            results = paginateInMemory(results, pagination);
         }
 
-        return results;
+        return new DataStoreIterableBuilder(results).build();
     }
 
     private List<Object> paginateInMemory(List<Object> records, Pagination pagination) {
@@ -345,18 +372,51 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     /**
-     * Splits a filter expression into two components:
+     * Returns the sorting (if any) that should be pushed to the datastore.
+     * @param scope The request context
+     * @param projection The projection being loaded.
+     * @param filterInMemory Whether or not the transaction requires in memory filtering.
+     * @return An optional sorting.
+     */
+    private Optional<Sorting> getDataStoreSorting(
+            RequestScope scope,
+            EntityProjection projection,
+            boolean filterInMemory
+    ) {
+        Sorting sorting = projection.getSorting();
+        if (filterInMemory) {
+            return Optional.empty();
+        }
+        Map<Path, Sorting.SortOrder> sortRules = sorting == null ? new HashMap<>() : sorting.getSortingPaths();
+
+        boolean sortingOnComputedAttribute = false;
+        for (Path path: sortRules.keySet()) {
+            if (path.isComputed(scope.getDictionary())) {
+                Type<?> pathType = path.getPathElements().get(0).getType();
+                if (projection.getType().equals(pathType)) {
+                    sortingOnComputedAttribute = true;
+                    break;
+                }
+            }
+        }
+        if (sortingOnComputedAttribute) {
+            return Optional.empty();
+        } else {
+            return Optional.ofNullable(sorting);
+        }
+    }
+
+    /**
+     * Splits a filter expression into two components.  They are:
      *  - a component that should be pushed down to the data store
      *  - a component that should be executed in memory
      * @param scope The request context
-     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
      * @param projection The projection being loaded.
      * @param filterInMemory Whether or not the transaction requires in memory filtering.
      * @return A pair of filter expressions (data store expression, in memory expression)
      */
     private Pair<Optional<FilterExpression>, Optional<FilterExpression>> splitFilterExpression(
             RequestScope scope,
-            Optional<Object> parent,
             EntityProjection projection,
             boolean filterInMemory
     ) {
@@ -368,11 +428,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         boolean transactionNeedsInMemoryFiltering = filterInMemory;
 
         if (filterExpression.isPresent()) {
-            FeatureSupport filterSupport = tx.supportsFiltering(scope, parent, projection);
-
-            boolean storeNeedsInMemoryFiltering = filterSupport != FeatureSupport.FULL;
-
-            if (transactionNeedsInMemoryFiltering || filterSupport == FeatureSupport.NONE) {
+            if (transactionNeedsInMemoryFiltering) {
                 inStoreFilterExpression = Optional.empty();
             } else {
                 inStoreFilterExpression = Optional.ofNullable(
@@ -383,74 +439,12 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             boolean expressionNeedsInMemoryFiltering = InMemoryExecutionVerifier.shouldExecuteInMemory(
                     scope.getDictionary(), filterExpression.get());
 
-            if (transactionNeedsInMemoryFiltering || storeNeedsInMemoryFiltering || expressionNeedsInMemoryFiltering) {
+            if (transactionNeedsInMemoryFiltering || expressionNeedsInMemoryFiltering) {
                 inMemoryFilterExpression = filterExpression;
             }
         }
 
         return Pair.of(inStoreFilterExpression, inMemoryFilterExpression);
-    }
-
-    /**
-     * Splits a sorting object into two components:
-     *  - a component that should be pushed down to the data store
-     *  - a component that should be executed in memory
-     * @param scope The request context
-     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
-     * @param projection The projection being loaded.
-     * @param filteredInMemory Whether or not filtering was performed in memory
-     * @return A pair of sorting objects (data store sort, in memory sort)
-     */
-    private Pair<Optional<Sorting>, Optional<Sorting>> splitSorting(
-            RequestScope scope,
-            Optional<Object> parent,
-            EntityProjection projection,
-            boolean filteredInMemory
-    ) {
-        Optional<Sorting> sorting = Optional.ofNullable(projection.getSorting());
-
-        if (sorting.isPresent() && (! tx.supportsSorting(scope, parent, projection) || filteredInMemory)) {
-            return Pair.of(Optional.empty(), sorting);
-        }
-        return Pair.of(sorting, Optional.empty());
-    }
-
-    /**
-     * Splits a pagination object into two components:
-     *  - a component that should be pushed down to the data store
-     *  - a component that should be executed in memory
-     * @param scope The request context
-     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
-     * @param projection The projection being loaded.
-     * @param filteredInMemory Whether or not filtering was performed in memory
-     * @param sortedInMemory Whether or not sorting was performed in memory
-     * @return A pair of pagination objects (data store pagination, in memory pagination)
-     */
-    private Pair<Optional<Pagination>, Optional<Pagination>> splitPagination(
-            RequestScope scope,
-            Optional<Object> parent,
-            EntityProjection projection,
-            boolean filteredInMemory,
-            boolean sortedInMemory
-    ) {
-
-        Optional<Pagination> pagination = Optional.ofNullable(projection.getPagination());
-
-        if (!tx.supportsPagination(scope, parent, projection)
-                || filteredInMemory
-                || sortedInMemory) {
-            return Pair.of(Optional.empty(), pagination);
-
-        /*
-         * For default pagination, we let the store do its work, but we also let the store ignore pagination
-         * by also performing in memory.  This allows the ORM the opportunity to manage its own SQL query generation
-         * to avoid N+1.
-         */
-        } else if (pagination.isPresent() && pagination.get().isDefaultInstance()) {
-            return Pair.of(pagination, pagination);
-        } else {
-            return Pair.of(pagination, Optional.empty());
-        }
     }
 
    @Override

@@ -14,6 +14,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
 
@@ -23,7 +25,7 @@ import javax.persistence.Id;
 @Include
 @FromTable(name = "videoGames", dbConnectionName = "mycon")
 @ReadPermission(expression = "admin.user or player name filter")
-public class VideoGame {
+public class VideoGame implements Serializable {
     @Setter
     private Long id;
 

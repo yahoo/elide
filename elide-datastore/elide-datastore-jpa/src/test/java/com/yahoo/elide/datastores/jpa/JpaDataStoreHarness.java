@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
 import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
+import example.models.targetEntity.SWE;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
 
@@ -48,7 +49,7 @@ import javax.persistence.Persistence;
  */
 public class JpaDataStoreHarness implements DataStoreTestHarness {
 
-    private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
+    private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE;MODE=MYSQL;NON_KEYWORDS=VALUE,USER";
     private static final String ROOT = "root";
 
     private DataStore store;
@@ -67,6 +68,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
         try {
             bindClasses.addAll(scanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(SWE.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
@@ -79,7 +81,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
         options.put("javax.persistence.jdbc.url", JDBC);
         options.put("javax.persistence.jdbc.user", ROOT);
         options.put("javax.persistence.jdbc.password", ROOT);
-        options.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+        options.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
@@ -116,7 +118,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
         store = new JpaDataStore(
                 () -> emf.createEntityManager(),
-                entityManager -> new NonJtaTransaction(entityManager, txCancel, logger, delegateToInMemoryStore)
+                entityManager -> new NonJtaTransaction(entityManager, txCancel, logger, delegateToInMemoryStore, true)
         );
     }
 

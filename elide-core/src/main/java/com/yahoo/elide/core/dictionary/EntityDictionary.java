@@ -7,6 +7,8 @@
 package com.yahoo.elide.core.dictionary;
 
 import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
+import static com.yahoo.elide.core.security.checks.prefab.Role.ALL_ROLE;
+import static com.yahoo.elide.core.security.checks.prefab.Role.NONE_ROLE;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.MAP_TYPE;
 import com.yahoo.elide.annotation.ApiVersion;
@@ -23,9 +25,6 @@ import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnDeletePostCommit;
 import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
@@ -88,6 +87,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
@@ -173,9 +173,9 @@ public class EntityDictionary {
         UserCheck none = new Role.NONE();
 
         addRoleCheck("Prefab.Role.All", all);
-        addRoleCheck("ALL", all);
+        addRoleCheck(ALL_ROLE, all);
         addRoleCheck("Prefab.Role.None", none);
-        addRoleCheck("NONE", none);
+        addRoleCheck(NONE_ROLE, none);
 
         addPrefabCheck("Prefab.Collections.AppendOnly", AppendOnly.class);
         addPrefabCheck("Prefab.Collections.RemoveOnly", RemoveOnly.class);
@@ -664,12 +664,12 @@ public class EntityDictionary {
     }
 
     /**
-     * Get a list of all fields including both relationships and attributes.
+     * Get a list of all fields including both relationships and attributes (but excluding hidden fields).
      *
      * @param entityClass entity name
-     * @return List of all fields.
+     * @return List of all exposed fields.
      */
-    public List<String> getAllFields(Type<?> entityClass) {
+    public List<String> getAllExposedFields(Type<?> entityClass) {
         List<String> fields = new ArrayList<>();
 
         List<String> attrs = getAttributes(entityClass);
@@ -692,8 +692,8 @@ public class EntityDictionary {
      * @param entity entity
      * @return List of all fields.
      */
-    public List<String> getAllFields(Object entity) {
-        return getAllFields(getType(entity));
+    public List<String> getAllExposedFields(Object entity) {
+        return getAllExposedFields(getType(entity));
     }
 
     /**
@@ -972,32 +972,32 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Type<?> cls) {
-        bindEntity(cls, new HashSet<>());
+        bindEntity(cls, unused -> false);
     }
 
     /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
-    public void bindEntity(Class<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
-        bindEntity(ClassType.of(cls), hiddenAnnotations);
+    public void bindEntity(Class<?> cls, Predicate<AccessibleObject> isFieldHidden) {
+        bindEntity(ClassType.of(cls), isFieldHidden);
     }
 
     /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
-     * @param hiddenAnnotations Annotations for hiding a field in API
+     * @param isFieldHidden Function which determines if a given field should be in the dictionary but not exposed.
      */
-    public void bindEntity(Type<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
-        if (entitiesToExclude.contains(cls)) {
+    public void bindEntity(Type<?> cls, Predicate<AccessibleObject> isFieldHidden) {
+        Type<?> declaredClass = lookupIncludeClass(cls);
+
+        if (entitiesToExclude.contains(declaredClass)) {
             //Exclude Entity
             return;
         }
-
-        Type<?> declaredClass = lookupIncludeClass(cls);
 
         if (declaredClass == null) {
             log.trace("Missing include or excluded class {}", cls.getName());
@@ -1014,7 +1014,7 @@ public class EntityDictionary {
 
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
-        EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, hiddenAnnotations);
+        EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, isFieldHidden);
         entityBindings.put(declaredClass, binding);
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
@@ -1474,7 +1474,7 @@ public class EntityDictionary {
      */
     public Set<String> getFieldsOfType(Type<?> targetClass, Type<?> targetType) {
         HashSet<String> fields = new HashSet<>();
-        for (String field : getAllFields(targetClass)) {
+        for (String field : getAllExposedFields(targetClass)) {
             if (getParameterizedType(targetClass, field).equals(targetType)) {
                 fields.add(field);
             }
@@ -1537,10 +1537,10 @@ public class EntityDictionary {
 
     /**
      * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
-     * single time per request per field READ, CREATE, or UPDATE.
+     * single time per request per field CREATE, or UPDATE.
      * @param entityClass The entity that triggers the lifecycle hook.
      * @param fieldOrMethodName The name of the field or method.
-     * @param operation CREATE, READ, or UPDATE
+     * @param operation CREATE, or UPDATE
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      */
@@ -1554,10 +1554,10 @@ public class EntityDictionary {
 
     /**
      * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
-     * single time per request per field READ, CREATE, or UPDATE.
+     * single time per request per field CREATE, or UPDATE.
      * @param entityClass The entity that triggers the lifecycle hook.
      * @param fieldOrMethodName The name of the field or method.
-     * @param operation CREATE, READ, or UPDATE
+     * @param operation CREATE, or UPDATE
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      */
@@ -1573,12 +1573,12 @@ public class EntityDictionary {
 
     /**
      * Binds a lifecycle hook to a particular entity class.  The hook will either be called:
-     *  - A single time single time per request per class READ, CREATE, UPDATE, or DELETE.
-     *  - Multiple times per request per field READ, CREATE, or UPDATE.
+     *  - A single time single time per request per class CREATE, UPDATE, or DELETE.
+     *  - Multiple times per request per field CREATE, or UPDATE.
      *
      * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param operation CREATE, READ, or UPDATE
+     * @param operation CREATE, or UPDATE
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
@@ -1594,12 +1594,12 @@ public class EntityDictionary {
 
     /**
      * Binds a lifecycle hook to a particular entity class.  The hook will either be called:
-     *  - A single time single time per request per class READ, CREATE, UPDATE, or DELETE.
-     *  - Multiple times per request per field READ, CREATE, or UPDATE.
+     *  - A single time single time per request per class CREATE, UPDATE, or DELETE.
+     *  - Multiple times per request per field CREATE, or UPDATE.
      *
      * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param operation CREATE, READ, or UPDATE
+     * @param operation CREATE, or UPDATE
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
@@ -1869,7 +1869,7 @@ public class EntityDictionary {
      * @return {@code true} if the field exists in the entity
      */
     public boolean isValidField(Type<?> cls, String fieldName) {
-        return getAllFields(cls).contains(fieldName);
+        return getAllExposedFields(cls).contains(fieldName);
     }
 
     private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
@@ -1995,7 +1995,7 @@ public class EntityDictionary {
                     next.getSimpleName(),
                     binding.getApiVersion(),
                     false,
-                    new HashSet<>());
+                    (unused) -> false);
 
             entityBindings.put(next, nextBinding);
 
@@ -2109,18 +2109,6 @@ public class EntityDictionary {
                         bindHookMethod(binding, method, method.getAnnotation(OnUpdatePreSecurity.class).value(),
                                 TransactionPhase.PRESECURITY, Operation.UPDATE);
                     }
-                    if (method.isAnnotationPresent(OnReadPostCommit.class)) {
-                        bindHookMethod(binding, method, method.getAnnotation(OnReadPostCommit.class).value(),
-                                TransactionPhase.POSTCOMMIT, Operation.READ);
-                    }
-                    if (method.isAnnotationPresent(OnReadPreCommit.class)) {
-                        bindHookMethod(binding, method, method.getAnnotation(OnReadPreCommit.class).value(),
-                                TransactionPhase.PRECOMMIT, Operation.READ);
-                    }
-                    if (method.isAnnotationPresent(OnReadPreSecurity.class)) {
-                        bindHookMethod(binding, method, method.getAnnotation(OnReadPreSecurity.class).value(),
-                                TransactionPhase.PRESECURITY, Operation.READ);
-                    }
                     if (method.isAnnotationPresent(OnDeletePostCommit.class)) {
                         bindHookMethod(binding, method, null, TransactionPhase.POSTCOMMIT, Operation.DELETE);
                     }
@@ -2146,7 +2134,7 @@ public class EntityDictionary {
             return false;
         }
 
-        Type<?> attributeType = getParameterizedType(clazz, fieldName);
+        Type<?> attributeType = getType(clazz, fieldName);
 
         return canBind(attributeType);
     }
@@ -2198,11 +2186,25 @@ public class EntityDictionary {
 
         Class<?> clazz = type.getUnderlyingClass().get();
 
+        boolean hasNoArgConstructor =
+                Arrays.stream(clazz.getConstructors()).anyMatch(constructor -> constructor.getParameterCount() == 0);
+
+        //We don't bind primitives.
         if (ClassUtils.isPrimitiveOrWrapper(clazz)
                 || clazz.equals(String.class)
                 || clazz.isEnum()
+
+                //We don't bind collections.
                 || Collection.class.isAssignableFrom(clazz)
                 || Map.class.isAssignableFrom(clazz)
+
+                //We can't bind an attribute type if Elide can't create it...
+                || ! hasNoArgConstructor
+
+                //We don't bind Elide models as attributes.
+                ||  lookupIncludeClass(type) != null
+
+                //If there is a Serde, we assume the type is opaque to Elide....
                 || serdeLookup.apply(clazz) != null) {
             return false;
         }
@@ -2229,12 +2231,12 @@ public class EntityDictionary {
                 serdeLookup = CoerceUtil::lookup;
             }
 
-            if (entitiesToExclude == null) {
-                entitiesToExclude = Collections.emptySet();
-            }
-
             if (injector == null) {
                 injector = DEFAULT_INJECTOR;
+            }
+
+            if (entitiesToExclude == null) {
+                entitiesToExclude = Collections.emptySet();
             }
 
             return new EntityDictionary(

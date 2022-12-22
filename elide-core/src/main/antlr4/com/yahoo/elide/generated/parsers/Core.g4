@@ -30,24 +30,28 @@ relationship: RELATIONSHIPS '/' term;
 
 query: ; // Visitor performs query and outputs result
 
+id: IDSTR | PATHSTR;
 term: PATHSTR;
-id: PATHSTR;
 
 RELATIONSHIPS: 'relationships';
 
-PATHSTR: UNRESERVED+;
+PATHSTR: ALPHA ( ALPHANUM | UNDERSCORE | HYPHEN )+;
+IDSTR: UNRESERVED+;
 
 UNRESERVED
     : ALPHANUM
     | MARK
+    | UNDERSCORE
+    | HYPHEN
     ;
 
 MARK
-    : '-'
-    | '_'
-    | '.'
+    : '.'
     | '!'
     | '~'
+    | ':'
+    | ' '
+    | '&'
     | '='  //For BASE64 IDs
     | '%'  //For URL encoded IDs
     | '*'
@@ -55,6 +59,9 @@ MARK
     | '('
     | ')'
     ;
+
+UNDERSCORE : '_';
+HYPHEN : '-';
 
 ALPHANUM
       : ALPHA

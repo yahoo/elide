@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.0.0-pr1-SNAPSHOT</version>
+        <version>6.1.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -80,7 +80,19 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${jedis.version}</version>
+        </dependency>
+
         <!-- Test -->
+        <dependency>
+            <groupId>com.github.codemonstur</groupId>
+            <artifactId>embedded-redis</artifactId>
+            <version>${embedded-redis.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- For Export End-Point Test -->
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -90,7 +102,7 @@
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-server</artifactId>
-            <version>2.33</version>
+            <version>${version.jersey}</version>
             <scope>test</scope>
         </dependency>
         <!-- JUnit -->

@@ -7,9 +7,8 @@
 package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.yahoo.elide.ElideResponse;
 import org.junit.jupiter.api.Test;
-import graphql.ExecutionResult;
-
 import java.util.HashMap;
 
 /**
@@ -36,6 +35,22 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}";
 
         assertQueryFailsWith(query, "Exception while fetching data (/book) : Data model writes are only allowed in mutations");
+    }
+
+    @Test
+    public void testSubscriptionThrowsError() throws Exception {
+        String query = "subscription {\n"
+                + "  book(ids: [\"1\"]) {\n"
+                + "    edges {\n"
+                + "      node {\n"
+                + "        id\n"
+                + "        title\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}";
+
+        assertQueryFailsWith(query, "Schema is not configured for subscriptions.");
     }
 
     @Test
@@ -263,7 +278,16 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testSchemaIntrospection() {
+    public void testFederationServiceIntrospection() throws Exception {
+        String graphQLRequest = "{ _service { sdl }}";
+
+        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+
+        assertTrue(! response.getBody().contains("errors"));
+    }
+
+    @Test
+    public void testSchemaIntrospection() throws Exception {
         String graphQLRequest = "{"
                 + "__schema {"
                 + "types {"
@@ -272,13 +296,13 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}"
                 + "}";
 
-        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
-        assertTrue(result.getErrors().isEmpty());
+        assertTrue(! response.getBody().contains("errors"));
     }
 
     @Test
-    public void testTypeIntrospection() {
+    public void testTypeIntrospection() throws Exception {
         String graphQLRequest = "{"
             + "__type(name: \"Author\") {"
             + "   name"
@@ -288,9 +312,10 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
             + "   }"
             + "}"
             + "}";
-        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
-        assertTrue(result.getErrors().isEmpty());
+        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+
+        assertTrue(! response.getBody().contains("errors"));
     }
 
     @Override

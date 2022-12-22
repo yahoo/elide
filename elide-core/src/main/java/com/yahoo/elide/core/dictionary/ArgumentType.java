@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.dictionary;
 
 import com.yahoo.elide.core.type.Type;
+import lombok.Builder;
 import lombok.Value;
 
 /**
@@ -21,6 +22,7 @@ public class ArgumentType {
         this(name, type, null);
     }
 
+    @Builder
     public ArgumentType(String name, Type<?> type, Object defaultValue) {
         this.name = name;
         this.type = type;

@@ -72,7 +72,7 @@ public class SQLDialectFactory {
             return DRUID_DIALECT;
         }
         try {
-            return (SQLDialect) Class.forName(type).getConstructor().newInstance();
+            return Class.forName(type).asSubclass(SQLDialect.class).getConstructor().newInstance();
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException("Unsupported SQL Dialect: " + type, e);
         } catch (Exception e) {

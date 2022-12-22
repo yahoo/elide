@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.graphql;
 
+import static graphql.scalars.ExtendedScalars.GraphQLBigDecimal;
+import static graphql.scalars.ExtendedScalars.GraphQLBigInteger;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
@@ -18,6 +20,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import graphql.Scalars;
+import graphql.scalars.java.JavaPrimitives;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
@@ -94,17 +97,17 @@ public class GraphQLConversionUtils {
         } else if (clazz.equals(ClassType.of(boolean.class)) || clazz.equals(ClassType.of(Boolean.class))) {
             return Scalars.GraphQLBoolean;
         } else if (clazz.equals(ClassType.of(long.class)) || clazz.equals(ClassType.of(Long.class))) {
-            return Scalars.GraphQLInt;
+            return GraphQLBigInteger;
         } else if (clazz.equals(ClassType.of(float.class)) || clazz.equals(ClassType.of(Float.class))) {
             return Scalars.GraphQLFloat;
         } else if (clazz.equals(ClassType.of(double.class)) || clazz.equals(ClassType.of(Double.class))) {
-            return Scalars.GraphQLFloat;
+            return GraphQLBigDecimal;
         } else if (clazz.equals(ClassType.of(short.class)) || clazz.equals(ClassType.of(Short.class))) {
             return Scalars.GraphQLInt;
         } else if (clazz.equals(ClassType.of(String.class)) || clazz.equals(ClassType.of(Object.class))) {
             return Scalars.GraphQLString;
         } else if (clazz.equals(ClassType.of(BigDecimal.class))) {
-            return Scalars.GraphQLFloat;
+            return JavaPrimitives.GraphQLBigDecimal;
         }
         return otherClassToScalarType(clazz);
     }

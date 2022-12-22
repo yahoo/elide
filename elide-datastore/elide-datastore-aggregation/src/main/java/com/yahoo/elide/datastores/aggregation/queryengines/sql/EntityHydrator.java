@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.ParameterizedModel;
@@ -13,6 +14,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -30,40 +32,44 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
 import com.yahoo.elide.datastores.aggregation.timegrains.Second;
 import com.yahoo.elide.datastores.aggregation.timegrains.Week;
 import com.yahoo.elide.datastores.aggregation.timegrains.Year;
-import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
  * {@link EntityHydrator} hydrates the entity loaded by
  * {@link QueryEngine#executeQuery(Query, QueryEngine.Transaction)}.
  */
-public class EntityHydrator {
+@Slf4j
+public class EntityHydrator implements Iterable<Object> {
 
     @Getter(AccessLevel.PROTECTED)
     private final EntityDictionary entityDictionary;
 
-    @Getter(AccessLevel.PROTECTED)
-    private final List<Map<String, Object>> results = new ArrayList<>();
-
     @Getter(AccessLevel.PRIVATE)
     private final Query query;
 
-    public EntityHydrator(ResultSet rs, Query query, EntityDictionary entityDictionary) {
+    private ResultSet resultSet;
+
+    private Map<String, String> projections;
+
+    public EntityHydrator(ResultSet resultSet, Query query, EntityDictionary entityDictionary) {
         this.query = query;
         this.entityDictionary = entityDictionary;
+        this.resultSet = resultSet;
 
         //Get all the projections from the client query.
-        Map<String, String> projections = this.query.getMetricProjections().stream()
+        projections = this.query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
                 .filter(projection -> ! projection.getValueType().equals(ValueType.ID))
@@ -73,33 +79,6 @@ public class EntityHydrator {
                 .map(SQLColumnProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
                 .collect(Collectors.toMap(ColumnProjection::getAlias, ColumnProjection::getSafeAlias)));
-
-        try {
-            Preconditions.checkArgument(projections.size() == rs.getMetaData().getColumnCount());
-            while (rs.next()) {
-                Map<String, Object> row = new HashMap<>();
-
-                for (Map.Entry<String, String> entry : projections.entrySet()) {
-                    Object value = rs.getObject(entry.getValue());
-                    row.put(entry.getKey(), value);
-                }
-
-                this.results.add(row);
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public Iterable<Object> hydrate() {
-        //Coerce the results into entity objects.
-        MutableInt counter = new MutableInt(0);
-
-        List<Object> queryResults = getResults().stream()
-                .map((result) -> coerceObjectToEntity(result, counter))
-                .collect(Collectors.toList());
-
-        return queryResults;
     }
 
     /**
@@ -122,11 +101,24 @@ public class EntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            ColumnProjection dim = query.getColumnProjection(fieldName);
-            Type<?> fieldType = getType(entityClass, dim);
-            Attribute attribute = projectionToAttribute(dim, fieldType);
+            ColumnProjection columnProjection = query.getColumnProjection(fieldName);
+            Column column = table.getColumn(Column.class, columnProjection.getName());
+
+            Type<?> fieldType = getType(entityClass, columnProjection);
+            Attribute attribute = projectionToAttribute(columnProjection, fieldType);
+
+            ValueType valueType = column.getValueType();
 
             if (entityInstance instanceof ParameterizedModel) {
+
+                // This is an ENUM_TEXT or ENUM_ORDINAL type.
+                if (! fieldType.isEnum() //Java enums can be coerced directly via CoerceUtil - so skip them.
+                        && valueType == ValueType.TEXT
+                        && column.getValues() != null
+                        && !column.getValues().isEmpty()) {
+                    value = convertToEnumValue(value, column.getValues());
+                }
+
                 ((ParameterizedModel) entityInstance).addAttributeValue(
                     attribute,
                     CoerceUtil.coerce(value, fieldType));
@@ -190,5 +182,73 @@ public class EntityHydrator {
             default:
                 throw new IllegalStateException("Invalid grain type");
         }
+    }
+
+    private String convertToEnumValue(Object value, LinkedHashSet<String> enumValues) {
+        if (value == null) {
+            return null;
+        }
+
+        if (Integer.class.isAssignableFrom(value.getClass())) {
+            Integer valueIndex = (Integer) value;
+            if (valueIndex < enumValues.size()) {
+                return enumValues.toArray(new String[0])[valueIndex];
+            }
+        }
+        else if (enumValues.contains(value.toString())) {
+            return value.toString();
+        }
+
+        throw new InvalidValueException(value, "Value must map to a value in: " + enumValues);
+    }
+
+    @Override
+    public Iterator<Object> iterator() {
+        return new Iterator<> () {
+
+            Object next = null;
+            MutableInt counter = new MutableInt(0);
+
+            @Override
+            public boolean hasNext() {
+                if (next == null) {
+                    try {
+                        next = next();
+                    } catch (NoSuchElementException e) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            @Override
+            public Object next() {
+
+                if (next != null) {
+                    Object result = next;
+                    next = null;
+                    return result;
+                }
+
+                try {
+                    boolean hasNext = resultSet.next();
+                    if (! hasNext) {
+                        throw new NoSuchElementException();
+                    }
+                    Map<String, Object> row = new LinkedHashMap<>();
+
+                    for (Map.Entry<String, String> entry : projections.entrySet()) {
+                        Object value = resultSet.getObject(entry.getValue());
+                        row.put(entry.getKey(), value);
+                    }
+
+                    return coerceObjectToEntity(row, counter);
+                } catch (SQLException e) {
+                    log.error("Error iterating over results {}", e.getMessage());
+                }
+                throw new NoSuchElementException();
+            }
+        };
     }
 }

@@ -67,7 +67,7 @@ public class QueryEngineTest extends SQLUnitTest {
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
         stats0.setLowScore(241);
-        stats0.setHighScore(2412);
+        stats0.setHighScore(3147483647L);
         stats0.setRecordedDate(new Day(Date.valueOf("2019-07-11")));
 
         PlayerStats stats1 = new PlayerStats();
@@ -102,7 +102,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
-        stats2.setHighScore(2412);
+        stats2.setHighScore(3147483647L);
 
         assertEquals(ImmutableList.of(stats2), results);
     }
@@ -131,7 +131,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
-        stats2.setHighScore(2412);
+        stats2.setHighScore(3147483647L);
         stats2.setCountryName("United States");
 
         assertEquals(ImmutableList.of(stats2), results);
@@ -182,7 +182,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
-        stats2.setHighScore(2412);
+        stats2.setHighScore(3147483647L);
 
         assertEquals(ImmutableList.of(stats2), results);
     }
@@ -285,6 +285,35 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     /**
+     * Nested Queries with filter - Pagination
+     * @throws Exception
+     */
+    @Test
+    public void testPaginationWithFilter() throws Exception {
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .whereFilter(filterParser.parseFilterExpression("overallRating==Great", playerStatsType, false))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
+                .pagination(new ImmutablePagination(0, 1, false, true))
+                .build();
+
+        QueryResult result = engine.executeQuery(query, transaction);
+        List<Object> data = toList(result.getData());
+
+        //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setDailyAverageScorePerPeriod(3.147483647E9);
+        stats1.setOverallRating("Great");
+        stats1.setRecordedDate(new Day(Date.valueOf("2019-07-11")));
+
+        assertEquals(ImmutableList.of(stats1), data, "Returned record does not match");
+        assertEquals(1, result.getPageTotals(), "Page totals does not match");
+    }
+
+    /**
      * Test having clause integrates with group by clause.
      *
      * @throws Exception exception
@@ -327,18 +356,18 @@ public class QueryEngineTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
-        stats0.setId("0");
+        stats0.setId("1");
         stats0.setOverallRating("Great");
         stats0.setCountryIsoCode("USA");
-        stats0.setHighScore(2412);
+        stats0.setHighScore(3147483647L);
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("1");
+        stats1.setId("0");
         stats1.setOverallRating("Good");
         stats1.setCountryIsoCode("USA");
         stats1.setHighScore(1234);
 
-        assertEquals(ImmutableList.of(stats0, stats1), results);
+        assertEquals(ImmutableList.of(stats1, stats0), results);
     }
 
     /**
@@ -399,16 +428,16 @@ public class QueryEngineTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
-        stats1.setHighScore(2412);
+        stats1.setId("1");
+        stats1.setHighScore(3147483647L);
         stats1.setCountryIsoCode("USA");
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("0");
         stats2.setHighScore(1000);
         stats2.setCountryIsoCode("HKG");
 
-        assertEquals(ImmutableList.of(stats1, stats2), results);
+        assertEquals(ImmutableList.of(stats2, stats1), results);
     }
 
     /**
@@ -435,7 +464,7 @@ public class QueryEngineTest extends SQLUnitTest {
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("1");
         stats2.setOverallRating("Great");
-        stats2.setHighScore(2412);
+        stats2.setHighScore(3147483647L);
 
         assertEquals(ImmutableList.of(stats1, stats2), results);
     }
@@ -477,7 +506,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats3.setId("2");
         stats3.setOverallRating("Great");
         stats3.setCountryIsoCode("USA");
-        stats3.setHighScore(2412);
+        stats3.setHighScore(3147483647L);
 
         assertEquals(ImmutableList.of(stats1, stats2, stats3), results);
     }
@@ -500,7 +529,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
-        stats0.setHighScore(2412);
+        stats0.setHighScore(3147483647L);
         stats0.setRecordedDate(new Day(Date.valueOf("2019-07-11")));
 
         PlayerStats stats1 = new PlayerStats();
@@ -540,7 +569,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
-        stats0.setHighScore(2412);
+        stats0.setHighScore(3147483647L);
         stats0.setRecordedDate(new Day(Date.valueOf("2019-07-11")));
 
         assertEquals(ImmutableList.of(stats0), results);
@@ -593,16 +622,16 @@ public class QueryEngineTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
-        stats1.setHighScore(2412);
+        stats1.setId("1");
+        stats1.setHighScore(3147483647L);
         stats1.setCountryNickName("Uncle Sam");
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("0");
         stats2.setHighScore(1000);
         stats2.setCountryNickName(null);
 
-        assertEquals(ImmutableList.of(stats1, stats2), results);
+        assertEquals(ImmutableList.of(stats2, stats1), results);
     }
 
     @Test
@@ -616,16 +645,16 @@ public class QueryEngineTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
-        stats1.setHighScore(2412);
+        stats1.setId("1");
+        stats1.setHighScore(3147483647L);
         stats1.setCountryUnSeats(1);
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("0");
         stats2.setHighScore(1000);
         stats2.setCountryUnSeats(0);
 
-        assertEquals(ImmutableList.of(stats1, stats2), results);
+        assertEquals(ImmutableList.of(stats2, stats1), results);
     }
 
     @Test
@@ -657,7 +686,7 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(1234, results.get(1).getHighScore());
         assertEquals(new Day(Date.valueOf("2019-07-12")), results.get(1).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(1).fetch("byMonth", null));
-        assertEquals(2412, results.get(2).getHighScore());
+        assertEquals(3147483647L, results.get(2).getHighScore());
         assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(2).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(2).fetch("byMonth", null));
     }
@@ -692,7 +721,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());
         assertEquals(1, results.size());
-        assertEquals(2412, results.get(0).getHighScore());
+        assertEquals(3147483647L, results.get(0).getHighScore());
         assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(0).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(0).fetch("byMonth", null));
     }
@@ -735,7 +764,7 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(new Day(Date.valueOf("2019-07-12")), results.get(1).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(1).fetch("byMonth", null));
 
-        assertEquals(2412, results.get(2).getHighScore());
+        assertEquals(3147483647L, results.get(2).getHighScore());
         assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(2).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(2).fetch("byMonth", null));
     }
@@ -770,7 +799,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());
         assertEquals(3, results.size());
-        assertEquals(2412, results.get(0).getHighScore());
+        assertEquals(3147483647L, results.get(0).getHighScore());
         assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(0).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(0).fetch("byMonth", null));
 
@@ -800,7 +829,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
-        stats0.setDailyAverageScorePerPeriod(1549);
+        stats0.setDailyAverageScorePerPeriod(1.0491619603333334E9);
         stats0.setRecordedDate(new Month(Date.valueOf("2019-07-01")));
 
         assertEquals(ImmutableList.of(stats0), results);

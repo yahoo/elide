@@ -6,11 +6,13 @@
 package com.yahoo.elide.datastores.aggregation.dynamic;
 
 import static java.lang.reflect.Modifier.PUBLIC;
+
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
+
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -21,7 +23,8 @@ import java.util.Optional;
  * A dynamic Elide model field that wraps a deserialized HJSON measure or dimension.
  */
 public class FieldType implements Field {
-    private Map<Class<? extends Annotation>, Annotation> annotations;
+    private static final long serialVersionUID = -1358950447581934754L;
+    private transient Map<Class<? extends Annotation>, Annotation> annotations;
     private String name;
     private Type type;
 

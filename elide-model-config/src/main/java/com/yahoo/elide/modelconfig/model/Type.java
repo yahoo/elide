@@ -8,24 +8,14 @@ package com.yahoo.elide.modelconfig.model;
 /**
  * Data Type of the field.
  */
-public enum Type {
-
-    TIME("TIME"),
-    INTEGER("INTEGER"),
-    DECIMAL("DECIMAL"),
-    MONEY("MONEY"),
-    TEXT("TEXT"),
-    COORDINATE("COORDINATE"),
-    BOOLEAN("BOOLEAN");
-
-    private final String value;
-
-    private Type(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return this.value;
-    }
+public class Type {
+    public final static String TIME = "TIME";
+    public final static String INTEGER = "INTEGER";
+    public final static String DECIMAL = "DECIMAL";
+    public final static String MONEY = "MONEY";
+    public final static String TEXT = "TEXT";
+    public final static String ENUM_ORDINAL = "ENUM_ORDINAL";
+    public final static String ENUM_TEXT = "ENUM_TEXT";
+    public final static String COORDINATE = "COORDINATE";
+    public final static String BOOLEAN = "BOOLEAN";
 }

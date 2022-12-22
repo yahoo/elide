@@ -30,6 +30,7 @@ import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -50,6 +51,7 @@ import example.GeoLocation;
 import example.Job;
 import example.Left;
 import example.Parent;
+import example.Price;
 import example.Publisher;
 import example.Right;
 import example.StringId;
@@ -73,7 +75,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -174,30 +175,6 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
-    public void testBindingExcludeSet() {
-        Set<Type<?>> entitiesToExclude = new HashSet<>();
-        entitiesToExclude.add(ClassType.of(Employee.class));
-
-        EntityDictionary testDictionary = EntityDictionary.builder().entitiesToExclude(entitiesToExclude).build();
-        testDictionary.bindEntity(Employee.class);
-        // Does not find the Binding
-        assertNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));
-    }
-
-    @Test
-    public void testEntityBindingExcludeSet() {
-
-        Set<Type<?>> entitiesToExclude = new HashSet<>();
-        entitiesToExclude.add(ClassType.of(Employee.class));
-
-        EntityDictionary testDictionary = EntityDictionary.builder().entitiesToExclude(entitiesToExclude).build();
-        testDictionary.bindEntity(new EntityBinding(testDictionary.getInjector(),
-                ClassType.of(Employee.class), "employee"));
-        // Does not find the Binding
-        assertNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));
-    }
-
-    @Test
     public void testCheckScan() {
 
         EntityDictionary testDictionary = EntityDictionary.builder().build();
@@ -292,7 +269,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         LifeCycleHook<Foo2> trigger = mock(LifeCycleHook.class);
 
         bindTrigger(Foo2.class, "bar", UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger);
-        assertEquals(1, getAllFields(ClassType.of(Foo2.class)).size());
+        assertEquals(1, getAllExposedFields(ClassType.of(Foo2.class)).size());
     }
 
     @Test
@@ -309,7 +286,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         LifeCycleHook<Foo3> trigger = mock(LifeCycleHook.class);
 
         bindTrigger(Foo3.class, UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger, true);
-        assertEquals(1, getAllFields(ClassType.of(Foo3.class)).size());
+        assertEquals(1, getAllExposedFields(ClassType.of(Foo3.class)).size());
     }
 
     @Test
@@ -326,7 +303,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         LifeCycleHook<Foo4> trigger = mock(LifeCycleHook.class);
 
         bindTrigger(Foo4.class, UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger, false);
-        assertEquals(1, getAllFields(ClassType.of(Foo4.class)).size());
+        assertEquals(1, getAllExposedFields(ClassType.of(Foo4.class)).size());
     }
 
     @Test
@@ -360,7 +337,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertEquals(AccessType.FIELD, getAccessType(ClassType.of(FieldLevelTest.class)));
 
-        List<String> fields = getAllFields(ClassType.of(FieldLevelTest.class));
+        List<String> fields = getAllExposedFields(ClassType.of(FieldLevelTest.class));
         assertEquals(3, fields.size());
         assertTrue(fields.contains("bar"));
         assertTrue(fields.contains("computedField"));
@@ -405,7 +382,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertEquals(AccessType.PROPERTY, getAccessType(ClassType.of(PropertyLevelTest.class)));
 
-        List<String> fields = getAllFields(ClassType.of(PropertyLevelTest.class));
+        List<String> fields = getAllExposedFields(ClassType.of(PropertyLevelTest.class));
         assertEquals(2, fields.size());
         assertTrue(fields.contains("bar"));
         assertTrue(fields.contains("computedProperty"));
@@ -438,6 +415,14 @@ public class EntityDictionaryTest extends EntityDictionary {
                 ClassType.of(Employee.class),
                 getParameterizedType(ClassType.of(Manager.class), "minions"),
                 "getParameterizedType returns the correct generic type of a to-many relationship");
+
+        assertEquals(
+                ClassType.of(Book.class),
+                getParameterizedType(ClassType.of(Author.class), "products"),
+                "getParameterizedType returns the correct targetEntity type of a to-many relationship");
+
+        assertEquals(ClassType.of(Manager.class), getParameterizedType(ClassType.of(Employee.class), "boss"),
+                "getParameterizedType returns the correct generic type of a to-one relationship");
     }
 
     @Test
@@ -461,6 +446,29 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertTrue(isIdGenerated(ClassType.of(GeneratedIdModel.class)));
         assertFalse(isIdGenerated(ClassType.of(NonGeneratedIdModel.class)));
+    }
+
+    @Test
+    public void testHiddenFields() {
+        @Include
+        class Model {
+            @Id
+            private long id;
+
+            private String field1;
+            private String field2;
+        }
+
+        bindEntity(Model.class, (field) -> field.getName().equals("field1"));
+
+        Type<?> modelType = ClassType.of(Model.class);
+
+        assertEquals(List.of("field2"), getAllExposedFields(modelType));
+
+        EntityBinding binding = getEntityBinding(modelType);
+        assertEquals(List.of("id", "field1", "field2"), binding.getAllFields().stream()
+                .map(AccessibleObject::getName)
+                .collect(Collectors.toList()));
     }
 
     @Test
@@ -611,7 +619,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals(ClassType.of(String.class), getType(ClassType.of(Friend.class), "name"),
                 "getType returns the type of attribute when defined in a super class");
 
-        assertEquals(ClassType.of(Manager.class), getType(ClassType.of(Employee.class), "boss"),
+        assertEquals(ClassType.of(Object.class), getType(ClassType.of(Employee.class), "boss"),
                 "getType returns the correct generic type of a to-one relationship");
 
         assertEquals(ClassType.of(Set.class), getType(ClassType.of(Manager.class), "minions"),
@@ -630,6 +638,9 @@ public class EntityDictionaryTest extends EntityDictionary {
                 "getType returns the type of surrogate key");
         assertEquals(ClassType.of(String.class), getType(ClassType.of(StringId.class), "id"),
                 "getType returns the type of surrogate key");
+
+        // Test targetEntity on a method.
+        assertEquals(ClassType.of(Collection.class), getType(ClassType.of(Author.class), "products"));
     }
 
     @Test
@@ -1060,6 +1071,24 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
+    public void testBindingHiddenAttribute() {
+        @Include
+        class Book {
+            @Id
+            long id;
+
+            String notHidden;
+
+            String hidden;
+        }
+
+        bindEntity(Book.class, (field) -> field.getName().equals("hidden") ? true : false);
+
+        assertFalse(isAttribute(ClassType.of(Book.class), "hidden"));
+        assertTrue(isAttribute(ClassType.of(Book.class), "notHidden"));
+    }
+
+    @Test
     public void testGetBoundByVersion() {
         Set<Type<?>> models = getBoundClassesByVersion("1.0");
         assertEquals(3, models.size());  //Also includes com.yahoo.elide inner classes from this file.
@@ -1090,6 +1119,12 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(isComplexAttribute(ClassType.of(Author.class), "homeAddress"));
         //Test nested complex attribute
         assertTrue(isComplexAttribute(ClassType.of(Address.class), "geo"));
+        //Test another complex attribute.
+        assertTrue(isComplexAttribute(ClassType.of(Book.class), "price"));
+        //Test Java Type with no default constructor.
+        assertFalse(isComplexAttribute(ClassType.of(Price.class), "currency"));
+        //Test embedded Elide model
+        assertFalse(isComplexAttribute(ClassType.of(Price.class), "book"));
         //Test String
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "title"));
         //Test primitive
@@ -1102,6 +1137,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "authors"));
         //Test enum
         assertFalse(isComplexAttribute(ClassType.of(Author.class), "authorType"));
+        //Test collection of complex type
+        assertFalse(isComplexAttribute(ClassType.of(Author.class), "vacationHomes"));
+        //Test map of objects
+        assertFalse(isComplexAttribute(ClassType.of(Author.class), "stuff"));
     }
 
     @Test

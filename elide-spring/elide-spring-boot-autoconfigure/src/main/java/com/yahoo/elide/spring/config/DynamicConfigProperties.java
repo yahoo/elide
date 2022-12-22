@@ -23,4 +23,8 @@ public class DynamicConfigProperties {
      */
     private String path = "/";
 
+    /**
+     * Enable support for reading and manipulating HJSON configuration through Elide models.
+     */
+    private boolean configApiEnabled = false;
 }

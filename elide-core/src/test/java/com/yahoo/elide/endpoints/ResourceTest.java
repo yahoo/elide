@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Oath Inc.
+ * Copyright 2018, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -35,9 +35,39 @@ public class ResourceTest {
     }
 
     @Test
+    public void verifyUnderscoreInPath() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "foo_bar/")));
+    }
+
+    @Test
+    public void verifyHyphenInPath() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "foo-bar/")));
+    }
+
+    @Test
     public void verifyURLEncodedID() {
         assertNull(new CoreBaseVisitor().visit(parse(
                 "company/abcdef%201234")));
+    }
+
+    @Test
+    public void verifyAmpersandId() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/abcdef&234")));
+    }
+
+    @Test
+    public void verifySpaceId() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/abcdef 234")));
+    }
+
+    @Test
+    public void verifyColonId() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/abcdef:234")));
     }
 
     @Test
@@ -59,6 +89,35 @@ public class ResourceTest {
         assertThrows(
                 ParseCancellationException.class,
                 () -> new CoreBaseVisitor().visit(parse("company/123|apps/2/links/foo")));
+    }
+
+    @Test
+
+    public void invalidNumberStartingPath() {
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("3company/")));
+    }
+
+    @Test
+    public void invalidSpaceInPath() {
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("comp any/relationships")));
+    }
+
+    @Test
+    public void invalidColonInPath() {
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("comp:any/relationships")));
+    }
+
+    @Test
+    public void invalidAmpersandInPath() {
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("comp&any/relationships")));
     }
 
     @Test

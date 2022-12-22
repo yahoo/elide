@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -35,6 +36,10 @@ public class Day extends Time {
         public Day deserialize(Object val) {
             if (val instanceof Date) {
                 return new Day((Date) val);
+            }
+            if (val instanceof OffsetDateTime) {
+                OffsetDateTime offsetDateTime = (OffsetDateTime) val;
+                return new Day(offsetDateTime.toLocalDateTime());
             }
             LocalDate localDate = LocalDate.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
             LocalDateTime localDateTime = localDate.atTime(0, 0);

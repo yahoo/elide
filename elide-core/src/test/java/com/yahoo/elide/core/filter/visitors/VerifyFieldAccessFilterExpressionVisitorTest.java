@@ -21,6 +21,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -184,7 +185,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testShortCircuitReject() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("genre==foo", ClassType.of(Book.class), true);
 
@@ -209,7 +210,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testShortCircuitRejectDeferThenFail() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("authors.homeAddress==main", ClassType.of(Book.class), true);
 
@@ -240,12 +241,12 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, never()).checkSpecificFieldPermissionsDeferred(any(), any(), any(), any());
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), isA(String.class));
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
-        verify(tx, never()).getRelation(any(), any(), any(), any());
+        verify(tx, never()).getToManyRelation(any(), any(), any(), any());
     }
 
     @Test
     public void testShortCircuitDeferred() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("genre==foo", ClassType.of(Book.class), true);
 
@@ -272,7 +273,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
     @Test
     public void testShortCircuitPass() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("authors.name==foo", ClassType.of(Book.class), true);
 
@@ -297,12 +298,12 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), isA(String.class));
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
-        verify(tx, never()).getRelation(any(), any(), any(), any());
+        verify(tx, never()).getToManyRelation(any(), any(), any(), any());
     }
 
     @Test
     public void testUserChecksDeferred() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("authors.homeAddress==main", ClassType.of(Book.class), true);
 
@@ -328,7 +329,8 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         when(permissionExecutor.checkSpecificFieldPermissions(resourceAuthor, null, ReadPermission.class, HOME))
                 .thenThrow(ForbiddenAccessException.class);
 
-        when(tx.getRelation(eq(tx), eq(book), any(), eq(scope))).thenReturn(book.getAuthors());
+        when(tx.getToManyRelation(eq(tx), eq(book), any(), eq(scope)))
+                .thenReturn(new DataStoreIterableBuilder(book.getAuthors()).build());
 
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
         // restricted HOME field
@@ -341,12 +343,12 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resourceAuthor, null, ReadPermission.class, HOME);
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), isA(String.class));
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
-        verify(tx, times(1)).getRelation(eq(tx), eq(book), any(), eq(scope));
+        verify(tx, times(1)).getToManyRelation(eq(tx), eq(book), any(), eq(scope));
     }
 
     @Test
     public void testBypassReadonlyFilterRestriction() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("authors.name==foo", ClassType.of(Book.class), true);
 
@@ -366,12 +368,12 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(any(), any(), any(), any());
         verify(permissionExecutor, never()).checkUserPermissions(any(), any(), isA(String.class));
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
-        verify(tx, never()).getRelation(any(), any(), any(), any());
+        verify(tx, never()).getToManyRelation(any(), any(), any(), any());
     }
 
     @Test
     public void testCustomFilterJoin() throws Exception {
-        RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
+        RSQLFilterDialect dialect = RSQLFilterDialect.builder().dictionary(scope.getDictionary()).build();
         FilterExpression expression =
                 dialect.parseFilterExpression("genre==foo", ClassType.of(Book.class), true);
 
@@ -412,6 +414,6 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
         verify(permissionExecutor, never()).checkUserPermissions(any(), any(), isA(String.class));
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
-        verify(tx, never()).getRelation(any(), any(), any(), any());
+        verify(tx, never()).getToManyRelation(any(), any(), any(), any());
     }
 }

@@ -17,11 +17,13 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 /**
  * Parses a column expression and rewrites the post aggregation expression AST to reference
@@ -58,7 +60,7 @@ public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
         }
         for (int idx = 0; idx < call.getOperandList().size(); idx++) {
             SqlNode operand = call.getOperandList().get(idx);
-            call.setOperand(idx, operand.accept(this));
+            call.setOperand(idx, operand == null ? null : operand.accept(this));
         }
 
         return call;
@@ -66,7 +68,11 @@ public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
 
     @Override
     public SqlNode visit(SqlNodeList nodeList) {
-        return nodeList;
+
+        return SqlNodeList.of(SqlParserPos.ZERO,
+                nodeList.getList().stream()
+                    .map(sqlNode -> sqlNode == null ? null : sqlNode.accept(this))
+                    .collect(Collectors.toList()));
     }
 
     @Override

@@ -56,7 +56,7 @@ public class ExpressionParserTest {
 
         DataSource mockDataSource = mock(DataSource.class);
         //The query engine populates the metadata store with actual tables.
-        new SQLQueryEngine(metaDataStore, new ConnectionDetails(mockDataSource,
+        new SQLQueryEngine(metaDataStore, (unused) -> new ConnectionDetails(mockDataSource,
                 SQLDialectFactory.getDefaultDialect()));
 
         parser = new ExpressionParser(metaDataStore);

@@ -16,6 +16,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import javax.persistence.Column;
 import javax.persistence.Id;
 
 /**
@@ -32,6 +33,8 @@ public class RegionDetails {
 
     private String id;
     private String region;
+    private PlaceType placeType;
+    private PlaceType ordinalPlaceType;
 
     @Id
     public String getId() {
@@ -51,5 +54,23 @@ public class RegionDetails {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    @Column(name = "type")
+    public PlaceType getPlaceType() {
+        return placeType;
+    }
+
+    public void setPlaceType(PlaceType placeType) {
+        this.placeType = placeType;
+    }
+
+    @Column(name = "ordinal_type")
+    public PlaceType getOrdinalPlaceType() {
+        return ordinalPlaceType;
+    }
+
+    public void setOrdinalPlaceType(PlaceType placeType) {
+        this.ordinalPlaceType = ordinalPlaceType;
     }
 }

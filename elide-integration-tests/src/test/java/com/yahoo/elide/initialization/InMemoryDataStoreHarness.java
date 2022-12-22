@@ -19,6 +19,7 @@ import example.Address;
 import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
+import example.models.targetEntity.SWE;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
 
@@ -34,6 +35,7 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
     public InMemoryDataStoreHarness() {
         Set<Package> beanPackages = Sets.newHashSet(
                 Parent.class.getPackage(),
+                SWE.class.getPackage(),
                 Invoice.class.getPackage(),
                 Manager.class.getPackage(),
                 BookV2.class.getPackage(),

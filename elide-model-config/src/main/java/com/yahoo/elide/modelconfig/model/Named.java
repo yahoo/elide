@@ -5,9 +5,10 @@
  */
 package com.yahoo.elide.modelconfig.model;
 
+import java.io.Serializable;
 import java.util.Collection;
 
-public interface Named {
+public interface Named extends Serializable {
     /**
      * Get the name local to its parent.
      * @return the local name

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Oath Inc.
+ * Copyright 2018, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -39,6 +39,7 @@ import com.yahoo.elide.jsonapi.parser.GetVisitor;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -82,35 +83,74 @@ public class Elide {
     @Getter private final ErrorMapper errorMapper;
     @Getter private final TransactionRegistry transactionRegistry;
     @Getter private final ClassScanner scanner;
+    private boolean initialized = false;
 
     /**
      * Instantiates a new Elide instance.
      *
      * @param elideSettings Elide settings object.
      */
-    public Elide(ElideSettings elideSettings) {
-        this(elideSettings, elideSettings.getDictionary().getScanner());
+    public Elide(
+            ElideSettings elideSettings
+    ) {
+        this(elideSettings, new TransactionRegistry(), elideSettings.getDictionary().getScanner(), false);
     }
 
     /**
      * Instantiates a new Elide instance.
      *
      * @param elideSettings Elide settings object.
-     * @param scanner Scans classes for Elide annotations.
+     * @param transactionRegistry Global transaction state.
      */
-    public Elide(ElideSettings elideSettings, ClassScanner scanner) {
+    public Elide(
+            ElideSettings elideSettings,
+            TransactionRegistry transactionRegistry
+    ) {
+        this(elideSettings, transactionRegistry, elideSettings.getDictionary().getScanner(), false);
+    }
+
+    /**
+     * Instantiates a new Elide instance.
+     *
+     * @param elideSettings Elide settings object.
+     * @param transactionRegistry Global transaction state.
+     * @param scanner Scans classes for Elide annotations.
+     * @param doScans Perform scans now.
+     */
+    public Elide(
+            ElideSettings elideSettings,
+            TransactionRegistry transactionRegistry,
+            ClassScanner scanner,
+            boolean doScans
+    ) {
         this.elideSettings = elideSettings;
         this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
-        this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
         this.mapper = elideSettings.getMapper();
         this.errorMapper = elideSettings.getErrorMapper();
-        this.transactionRegistry = new TransactionRegistry();
+        this.transactionRegistry = transactionRegistry;
 
-        elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
+        if (doScans) {
+            doScans();
+        }
+    }
 
-        registerCustomSerde();
+    /**
+     * Scans & binds Elide models, scans for security check definitions, serde definitions, life cycle hooks
+     * and more.  Any dependency injection required by objects found from scans must be performed prior to this call.
+     */
+    public void doScans() {
+        if (! initialized) {
+            elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
+            registerCustomSerde();
+
+            //Scan for security checks prior to populating data stores in case they need them.
+            elideSettings.getDictionary().scanForSecurityChecks();
+
+            this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
+            initialized = true;
+        }
     }
 
     protected void registerCustomSerde() {
@@ -443,7 +483,7 @@ public class Elide {
 
     public HandlerResult visit(String path, RequestScope requestScope, BaseVisitor visitor) {
         try {
-            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(JsonApiParser.parse(path));
+            Supplier<Pair<Integer, JsonApiDocument>> responder = visitor.visit(JsonApiParser.parse(path));
             return new HandlerResult(requestScope, responder);
         } catch (RuntimeException e) {
             return new HandlerResult(requestScope, e);
@@ -458,9 +498,10 @@ public class Elide {
      * @param transaction a transaction supplier
      * @param requestId the Request ID
      * @param handler a function that creates the request scope and request handler
+     * @param <T> The response type (JsonNode or JsonApiDocument)
      * @return the response
      */
-    protected ElideResponse handleRequest(boolean isReadOnly, User user,
+    protected <T> ElideResponse handleRequest(boolean isReadOnly, User user,
                                           Supplier<DataStoreTransaction> transaction, UUID requestId,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
@@ -469,14 +510,14 @@ public class Elide {
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
-            Supplier<Pair<Integer, JsonNode>> responder = result.getResponder();
+            Supplier<Pair<Integer, T>> responder = result.getResponder();
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
+            requestScope.runQueuedPreFlushTriggers();
             if (!isReadOnly) {
                 requestScope.saveOrCreateObjects();
             }
-            requestScope.runQueuedPreFlushTriggers();
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();
@@ -492,10 +533,8 @@ public class Elide {
             }
 
             return response;
-
         } catch (IOException e) {
-            log.error("IO Exception uncaught by Elide", e);
-            return buildErrorResponse(new TransactionException(e), isVerbose);
+            return handleNonRuntimeException(e, isVerbose);
         } catch (RuntimeException e) {
             return handleRuntimeException(e, isVerbose);
         } finally {
@@ -511,6 +550,31 @@ public class Elide {
 
         return buildResponse(isVerbose ? error.getVerboseErrorResponse()
                 : error.getErrorResponse());
+    }
+
+    private ElideResponse handleNonRuntimeException(Exception error, boolean isVerbose) {
+        CustomErrorException mappedException = mapError(error);
+        if (mappedException != null) {
+            return buildErrorResponse(mappedException, isVerbose);
+        }
+
+        if (error instanceof JacksonException) {
+            JacksonException jacksonException = (JacksonException) error;
+            String message = (jacksonException.getLocation() != null
+                    && jacksonException.getLocation().getSourceRef() != null)
+                    ? error.getMessage() //This will leak Java class info if the location isn't known.
+                    : jacksonException.getOriginalMessage();
+
+            return buildErrorResponse(new BadRequestException(message), isVerbose);
+        }
+
+        if (error instanceof IOException) {
+            log.error("IO Exception uncaught by Elide", error);
+            return buildErrorResponse(new TransactionException(error), isVerbose);
+        }
+
+        log.error("Error or exception uncaught by Elide", error);
+        throw new RuntimeException(error);
     }
 
     private ElideResponse handleRuntimeException(RuntimeException error, boolean isVerbose) {
@@ -575,7 +639,7 @@ public class Elide {
         throw new RuntimeException(error);
     }
 
-    public CustomErrorException mapError(RuntimeException error) {
+    public CustomErrorException mapError(Exception error) {
         if (errorMapper != null) {
             log.trace("Attempting to map unknown exception of type {}", error.getClass());
             CustomErrorException customizedError = errorMapper.map(error);
@@ -592,9 +656,9 @@ public class Elide {
         return null;
     }
 
-    protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {
+    protected <T> ElideResponse buildResponse(Pair<Integer, T> response) {
         try {
-            JsonNode responseNode = response.getRight();
+            T responseNode = response.getRight();
             Integer responseCode = response.getLeft();
             String body = responseNode == null ? null : mapper.writeJsonApiDocument(responseNode);
             return new ElideResponse(responseCode, body);
@@ -637,13 +701,14 @@ public class Elide {
 
     /**
      * A wrapper to return multiple values, less verbose than Pair.
+     * @param <T> Response type.
      */
-    protected static class HandlerResult {
+    protected static class HandlerResult<T> {
         protected RequestScope requestScope;
-        protected Supplier<Pair<Integer, JsonNode>> result;
+        protected Supplier<Pair<Integer, T>> result;
         protected RuntimeException cause;
 
-        protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, JsonNode>> result) {
+        protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, T>> result) {
             this.requestScope = requestScope;
             this.result = result;
         }
@@ -653,7 +718,7 @@ public class Elide {
             this.cause = cause;
         }
 
-        public Supplier<Pair<Integer, JsonNode>> getResponder() {
+        public Supplier<Pair<Integer, T>> getResponder() {
             if (cause != null) {
                 throw cause;
             }

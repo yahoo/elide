@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS customer_details
 (
   id VARCHAR(255) NOT NULL,
   name VARCHAR(255),
-  zip_code INT,
+  `zip code` INT,
   PRIMARY KEY (id)
 );
 
@@ -10,16 +10,27 @@ CREATE TABLE IF NOT EXISTS region_details
 (
   zip_code INT NOT NULL,
   region VARCHAR(255) NOT NULL,
+  type VARCHAR(255),
+  ordinal_type INT,
   PRIMARY KEY (zip_code)
+);
+
+CREATE TABLE IF NOT EXISTS sales_performance
+(
+   employee_id VARCHAR(255) NOT NULL,
+   sales INT,
+   PRIMARY KEY (employee_id)
 );
 
 INSERT INTO customer_details SELECT 'cust1', 'foo1', 20166 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust1');
 INSERT INTO customer_details SELECT 'cust2', 'foo2', 10002 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust2');
 INSERT INTO customer_details SELECT 'cust3', 'foo3', 20170 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust3');
+INSERT INTO customer_details SELECT 'cust4', 'foo4', 0 from dual WHERE NOT EXISTS(SELECT * FROM customer_details WHERE id = 'cust4');
 
-INSERT INTO region_details SELECT 20166, 'Virginia' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 20166);
-INSERT INTO region_details SELECT 20170, 'Virginia' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 20170);
-INSERT INTO region_details SELECT 10002, 'NewYork' from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 10002);
+INSERT INTO region_details SELECT 20166, 'Virginia', 'STATE', 1 from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 20166);
+INSERT INTO region_details SELECT 20170, 'Virginia', 'STATE', 1 from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 20170);
+INSERT INTO region_details SELECT 10002, 'NewYork', 'STATE', 1 from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 10002);
+INSERT INTO region_details SELECT 0, 'NewYork', null, null from dual WHERE NOT EXISTS(SELECT * FROM region_details WHERE zip_code = 10002);
 
 CREATE TABLE IF NOT EXISTS order_details
 (
@@ -37,6 +48,7 @@ INSERT INTO order_details SELECT 'order-2a', 'cust2', 17.82, '2020-08-25 16:30:1
 INSERT INTO order_details SELECT 'order-2b', 'cust2', 43.61, '2020-08-26 16:30:11' WHERE NOT EXISTS(SELECT * FROM order_details WHERE order_id = 'order-2b');
 INSERT INTO order_details SELECT 'order-3a', 'cust3', 9.35, '2020-08-26 16:30:11' WHERE NOT EXISTS(SELECT * FROM order_details WHERE order_id = 'order-3a');
 INSERT INTO order_details SELECT 'order-3b', 'cust3', 78.87, '2020-09-09 16:30:11' WHERE NOT EXISTS(SELECT * FROM order_details WHERE order_id = 'order-3b');
+INSERT INTO order_details SELECT 'order-null-enum', 'cust4', 78.87, '2020-09-09 16:30:11' WHERE NOT EXISTS(SELECT * FROM order_details WHERE order_id = 'order-null-enum');
 
 CREATE TABLE IF NOT EXISTS delivery_details
 (
@@ -55,3 +67,4 @@ INSERT INTO delivery_details SELECT 'del-2a', 'order-2a', 1112021844256, 'FEDEX'
 INSERT INTO delivery_details SELECT 'del-2b', 'order-2b', 2602534554, 'UPS', '2020-08-31 16:30:11' WHERE NOT EXISTS(SELECT * FROM delivery_details WHERE delivery_id = 'del-2b');
 INSERT INTO delivery_details SELECT 'del-3a', 'order-3a', 2602452494, 'UPS', '2020-08-31 16:30:11' WHERE NOT EXISTS(SELECT * FROM delivery_details WHERE delivery_id = 'del-3a');
 INSERT INTO delivery_details SELECT 'del-3b', 'order-3b', 2602475626, 'UPS', '2020-09-13 16:30:11' WHERE NOT EXISTS(SELECT * FROM delivery_details WHERE delivery_id = 'del-3b');
+INSERT INTO delivery_details SELECT 'del-4', 'order-null-enum', 2602475626, 'UPS', '2020-09-13 16:30:11' WHERE NOT EXISTS(SELECT * FROM delivery_details WHERE delivery_id = 'del-4');

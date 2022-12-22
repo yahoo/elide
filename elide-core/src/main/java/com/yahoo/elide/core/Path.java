@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -90,6 +90,18 @@ public class Path {
     public Path(Type<?> entityClass, EntityDictionary dictionary, String fieldName,
                 String alias, Set<Argument> arguments) {
         pathElements = Lists.newArrayList(resolvePathAttribute(entityClass, fieldName, alias, arguments, dictionary));
+    }
+
+    public boolean isComputed(EntityDictionary dictionary) {
+        for (Path.PathElement pathElement : getPathElements()) {
+            Type<?> entityClass = pathElement.getType();
+            String fieldName = pathElement.getFieldName();
+
+            if (dictionary.isComputed(entityClass, fieldName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

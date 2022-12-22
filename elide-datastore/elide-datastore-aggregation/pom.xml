@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>6.0.0-pr1-SNAPSHOT</version>
+        <version>6.1.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -40,38 +40,38 @@
 
     <properties>
         <!-- Requires Java 11 -->
-        <hikari.version>5.0.0</hikari.version>
+        <hikari.version>5.0.1</hikari.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -90,7 +90,7 @@
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
-            <version>1.27.0</version>
+            <version>1.32.0</version>
             <exclusions>
                 <!-- Excluded for CVE errors -->
                 <exclusion>
@@ -110,7 +110,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
-            <version>4.4.14</version>
+            <version>4.4.15</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -126,7 +126,7 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
             <!-- Requires Java 11 -->
-            <version>3.0.3</version>
+            <version>3.1.1</version>
         </dependency>
 
         <dependency>
@@ -135,7 +135,20 @@
             <version>${hikari.version}</version>
         </dependency>
 
+        <!--  Redis cache -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${jedis.version}</version>
+        </dependency>
+
         <!-- Test -->
+        <dependency>
+            <groupId>com.github.codemonstur</groupId>
+            <artifactId>embedded-redis</artifactId>
+            <version>${embedded-redis.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- JUnit -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -161,14 +174,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- H2 -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>1.4.197</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Mockito -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -178,7 +183,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>3.12.1</version>
+            <version>4.8.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -186,7 +191,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>

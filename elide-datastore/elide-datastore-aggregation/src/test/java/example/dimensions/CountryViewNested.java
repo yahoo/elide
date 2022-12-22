@@ -10,6 +10,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import lombok.Data;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
 
@@ -19,7 +21,7 @@ import javax.persistence.Id;
 @Data
 @Include(rootLevel = false)
 @FromTable(name = "countries")
-public class CountryViewNested {
+public class CountryViewNested implements Serializable {
     private String id;
 
     private String isoCode;

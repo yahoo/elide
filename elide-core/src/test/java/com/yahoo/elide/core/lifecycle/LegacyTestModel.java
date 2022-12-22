@@ -12,9 +12,6 @@ import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnDeletePostCommit;
 import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
@@ -64,18 +61,6 @@ public class LegacyTestModel {
     public void fieldUpdatePreSecurity() {
     }
 
-    @OnReadPostCommit("field")
-    public void fieldReadPostCommit() {
-    }
-
-    @OnReadPreCommit("field")
-    public void fieldReadPreCommit() {
-    }
-
-    @OnReadPreSecurity("field")
-    public void fieldReadPreSecurity() {
-    }
-
     @OnDeletePostCommit
     public void classDeletePostCommit() {
     }
@@ -112,18 +97,6 @@ public class LegacyTestModel {
     public void classUpdatePreSecurity() {
     }
 
-    @OnReadPostCommit
-    public void classReadPostCommit() {
-    }
-
-    @OnReadPreCommit
-    public void classReadPreCommit() {
-    }
-
-    @OnReadPreSecurity
-    public void classReadPreSecurity() {
-    }
-
     @OnCreatePreSecurity("*")
     public void classCreatePreCommitAllUpdates() {
     }
@@ -131,9 +104,6 @@ public class LegacyTestModel {
     @OnCreatePostCommit("field")
     @OnCreatePreCommit
     @OnCreatePreSecurity("field")
-    @OnReadPostCommit
-    @OnReadPreCommit("field")
-    @OnReadPreSecurity
     @OnUpdatePostCommit("field")
     @OnUpdatePreCommit
     @OnUpdatePreSecurity("field")
@@ -143,9 +113,6 @@ public class LegacyTestModel {
     @OnCreatePostCommit
     @OnCreatePreCommit("field")
     @OnCreatePreSecurity
-    @OnReadPostCommit("field")
-    @OnReadPreCommit
-    @OnReadPreSecurity("field")
     @OnUpdatePostCommit
     @OnUpdatePreCommit("field")
     @OnUpdatePreSecurity

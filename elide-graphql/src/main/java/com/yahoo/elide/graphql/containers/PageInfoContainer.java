@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -10,7 +10,6 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.KeyWord;
-import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import lombok.Getter;
 
 import java.util.List;
@@ -28,7 +27,7 @@ public class PageInfoContainer implements GraphQLContainer {
     }
 
     @Override
-    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
+    public Object processFetch(Environment context) {
         String fieldName = context.field.getName();
         ConnectionContainer connectionContainer = getConnectionContainer();
         Optional<Pagination> pagination = connectionContainer.getPagination();

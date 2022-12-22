@@ -673,10 +673,10 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                         + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
                         + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
                         + "`example_GameRevenue`.`country_id` AS `country_id`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') AS `saleDate` "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `saleDate` "
                         + "FROM `gameRevenue` AS `example_GameRevenue` "
                         + "GROUP BY `example_GameRevenue`.`country_id`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') ) "
                         + "AS `example_GameRevenue_XXX` "
                         + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
                         + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
@@ -761,7 +761,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .build();
 
         compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `sessionDate` "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `sessionDate` "
                         + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
                         + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
                         + "FROM `gameRevenue` AS `example_GameRevenue` "
@@ -769,9 +769,9 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                         + "AS `example_GameRevenue_XXX` "
                         + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
                         + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                        + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') "
+                        + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') "
                         + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
-                        + "OR PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX))\n",
+                        + "OR PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') IN (:XXX))\n",
                 engine.explain(query));
 
         testQueryExecution(query);
@@ -855,11 +855,11 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
                 + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
                 + "`example_GameRevenue`.`country_id` AS `country_id`,"
-                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') AS `saleDate` "
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `saleDate` "
                 + "FROM `gameRevenue` AS `example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') IN (:XXX) "
                 + "GROUP BY `example_GameRevenue`.`country_id`, "
-                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') ) "
                 + "AS `example_GameRevenue_XXX` "
                 + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
                 + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
@@ -957,7 +957,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 + "`example_GameRevenue`.`country_id` AS `country_id`,"
                 + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
                 + "FROM `gameRevenue` AS `example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') IN (:XXX) "
                 + "GROUP BY `example_GameRevenue`.`country_id`, "
                 + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
                 + "AS `example_GameRevenue_XXX` "
@@ -1037,7 +1037,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
                 + "`example_GameRevenue`.`country_id` AS `country_id` "
                 + "FROM `gameRevenue` AS `example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') IN (:XXX) "
                 + "GROUP BY `example_GameRevenue`.`country_id` ) "
                 + "AS `example_GameRevenue_XXX` "
                 + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
@@ -1111,7 +1111,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 + "AS `example_GameRevenue_XXX` "
                 + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
                 + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX)\n";
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') IN (:XXX)\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1183,7 +1183,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 + "GROUP BY `example_GameRevenue`.`player_stats_id` ) AS `example_GameRevenue_XXX` "
                 + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
                 + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') IN (:XXX) "
                 + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
 
         compareQueryLists(expected, engine.explain(query));
@@ -1216,15 +1216,15 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .build();
 
         String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `sessionDate` "
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `sessionDate` "
                 + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
                 + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
                 + "FROM `gameRevenue` AS `example_GameRevenue` "
                 + "GROUP BY `example_GameRevenue`.`player_stats_id` ) AS `example_GameRevenue_XXX` "
                 + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
                 + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM')\n";
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') IN (:XXX) "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd')\n";
 
         compareQueryLists(expected, engine.explain(query));
 

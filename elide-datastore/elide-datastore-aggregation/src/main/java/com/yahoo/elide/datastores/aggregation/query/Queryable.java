@@ -13,7 +13,6 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.google.common.collect.Streams;
 
 import java.util.ArrayList;
@@ -24,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -105,6 +105,18 @@ public interface Queryable {
     }
 
     /**
+     * Retrieves a column by filter predicate
+     * @param filterPredicate A predicate to search for column projections.
+     * @return The column.
+     */
+    default ColumnProjection getColumnProjection(Predicate<ColumnProjection> filterPredicate) {
+        return getColumnProjections().stream()
+                .filter(filterPredicate)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Retrieves a non-time dimension by name.
      * @param name The name of the dimension.
      * @return The dimension.
@@ -181,6 +193,10 @@ public interface Queryable {
                 .collect(Collectors.toList());
     }
 
+    default FilterExpression getWhereFilter() {
+        return null;
+    }
+
     default List<ColumnProjection> getFilterProjections(FilterExpression expression) {
         List<ColumnProjection> results = new ArrayList<>();
         if (expression == null) {
@@ -198,7 +214,7 @@ public interface Queryable {
 
             ColumnProjection projection = getSource().getColumnProjection(predicate.getField(), arguments);
 
-            results.add((SQLColumnProjection) projection);
+            results.add(projection);
         }));
 
         return results;

@@ -49,6 +49,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Dimension implements Named {
+    private static final long serialVersionUID = 7886036651874169795L;
 
     @JsonProperty("name")
     private String name;
@@ -63,9 +64,11 @@ public class Dimension implements Named {
     private String category;
 
     @JsonProperty("hidden")
+    @Builder.Default
     private Boolean hidden = false;
 
     @JsonProperty("readAccess")
+    @Builder.Default
     private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("definition")
@@ -75,7 +78,7 @@ public class Dimension implements Named {
     private String cardinality;
 
     @JsonProperty("type")
-    private Type type;
+    private String type;
 
     @JsonProperty("grains")
     @Singular

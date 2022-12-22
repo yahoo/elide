@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
@@ -89,7 +90,7 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
 
         boolean valueMatches = predicateA.getValues().equals(predicateB.getValues());
         boolean operatorMatches = predicateA.getOperator().equals(predicateB.getOperator());
-        boolean pathMatches = predicateA.getPath().equals(predicateB.getPath());
+        boolean pathMatches = pathMatches(predicateA.getPath(), predicateB.getPath());
 
         boolean usingTemplate = false;
 
@@ -112,6 +113,32 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
         }
 
         return (operatorMatches && pathMatches && (valueMatches || usingTemplate));
+    }
+
+    private boolean pathMatches(Path a, Path b) {
+        if (a.getPathElements().size() != b.getPathElements().size()) {
+            return false;
+        }
+
+        for (int idx = 0; idx < a.getPathElements().size(); idx++) {
+            Path.PathElement aElement = a.getPathElements().get(idx);
+            Path.PathElement bElement = b.getPathElements().get(idx);
+
+            if (! aElement.getType().equals(bElement.getType())) {
+                return false;
+            }
+
+            if (! aElement.getFieldName().equals(bElement.getFieldName())) {
+                return false;
+            }
+
+            //We only compare path arguments if Path a (the template) has them.
+            if (aElement.getArguments().size() > 0 && ! aElement.getArguments().equals(bElement.getArguments())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

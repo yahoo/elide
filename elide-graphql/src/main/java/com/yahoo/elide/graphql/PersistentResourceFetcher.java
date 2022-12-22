@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
+import static com.yahoo.elide.graphql.RelationshipOp.FETCH;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -18,18 +19,13 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections4.CollectionUtils;
-import graphql.language.Field;
-import graphql.language.FragmentSpread;
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLNamedType;
-import graphql.schema.GraphQLType;
 import io.reactivex.Observable;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayDeque;
@@ -49,8 +45,7 @@ import javax.validation.constraints.NotNull;
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
  */
 @Slf4j
-public class PersistentResourceFetcher implements DataFetcher<Object> {
-    @Getter
+public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogger {
     private final NonEntityDictionary nonEntityDictionary;
 
     public PersistentResourceFetcher(NonEntityDictionary nonEntityDictionary) {
@@ -69,17 +64,17 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         Map<String, Object> args = environment.getArguments();
 
         /* fetch current operation */
-        RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, RelationshipOp.FETCH);
+        RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, FETCH);
 
         /* build environment object, extracts required fields */
-        Environment context = new Environment(environment);
+        Environment context = new Environment(environment, nonEntityDictionary);
 
         /* safe enable debugging */
         if (log.isDebugEnabled()) {
-            logContext(operation, context);
+            logContext(log, operation, context);
         }
 
-        if (operation != RelationshipOp.FETCH) {
+        if (operation != FETCH) {
             /* Don't allow write operations in a non-mutation request. */
             if (environment.getOperationDefinition().getOperation() != OperationDefinition.Operation.MUTATION) {
                 throw new BadRequestException("Data model writes are only allowed in mutations");
@@ -88,29 +83,44 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             filterSortPaginateSanityCheck(context);
         }
 
+        GraphQLContainer container;
+
         /* delegate request */
         switch (operation) {
-            case FETCH:
+            case FETCH: {
                 return fetchObjects(context);
-
-            case UPSERT:
-                return upsertObjects(context);
-
-            case UPDATE:
-                return updateObjects(context);
-
-            case DELETE:
-                return deleteObjects(context);
-
-            case REMOVE:
-                return removeObjects(context);
-
-            case REPLACE:
-                return replaceObjects(context);
+            }
+            case UPSERT: {
+                container = upsertObjects(context);
+                break;
+            }
+            case UPDATE: {
+                container = updateObjects(context);
+                break;
+            }
+            case DELETE: {
+                container = deleteObjects(context);
+                break;
+            }
+            case REMOVE: {
+                container = removeObjects(context);
+                break;
+            }
+            case REPLACE: {
+                container = replaceObjects(context);
+                break;
+            }
 
             default:
                 throw new UnsupportedOperationException("Unknown operation: " + operation);
         }
+
+        if (operation != FETCH) {
+            context.requestScope.runQueuedPreSecurityTriggers();
+            context.requestScope.runQueuedPreFlushTriggers();
+        }
+
+        return container;
     }
 
     /**
@@ -121,41 +131,6 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         if (environment.filters.isPresent() || environment.sort.isPresent() || environment.offset.isPresent()
                 || environment.first.isPresent()) {
             throw new BadRequestException("Pagination/Filtering/Sorting is only supported with FETCH operation");
-        }
-    }
-
-    /**
-     * log current context for debugging.
-     * @param operation Current operation
-     * @param environment Environment encapsulating graphQL's request environment
-     */
-    private void logContext(RelationshipOp operation, Environment environment) {
-        List<?> children = (environment.field.getSelectionSet() != null)
-                ? (List) environment.field.getSelectionSet().getChildren()
-                : new ArrayList<>();
-        List<String> fieldName = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(children)) {
-            children.stream().forEach(i -> {
-                if (i.getClass().equals(Field.class)) {
-                    fieldName.add(((Field) i).getName());
-                } else if (i.getClass().equals(FragmentSpread.class)) {
-                    fieldName.add(((FragmentSpread) i).getName());
-                } else {
-                    log.debug("A new type of Selection, other than Field and FragmentSpread was encountered, {}",
-                            i.getClass());
-                }
-            });
-        }
-
-        String requestedFields = environment.field.getName() + fieldName;
-
-        GraphQLType parent = environment.parentType;
-        if (log.isDebugEnabled()) {
-            String typeName = (parent instanceof GraphQLNamedType)
-                    ? ((GraphQLNamedType) parent).getName()
-                    : parent.toString();
-            log.debug("{} {} fields with parent {}<{}>", operation, requestedFields,
-                    EntityDictionary.getSimpleName(EntityDictionary.getType(parent)), typeName);
         }
     }
 
@@ -171,7 +146,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         }
 
         // Process fetch object for this container
-        return context.container.processFetch(context, this);
+        return context.container.processFetch(context);
     }
 
     /**
@@ -181,7 +156,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param ids List of ids (can be NULL)
      * @return {@link PersistentResource} object(s)
      */
-    public ConnectionContainer fetchObject(
+    public static ConnectionContainer fetchObject(
             RequestScope requestScope,
             EntityProjection projection,
             Optional<List<String>> ids
@@ -211,7 +186,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param ids List of ids
      * @return persistence resource object(s)
      */
-    public Object fetchRelationship(
+    public static ConnectionContainer fetchRelationship(
             PersistentResource<?> parentResource,
             @NotNull Relationship relationship,
             Optional<List<String>> ids
@@ -491,7 +466,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param context Environment encapsulating graphQL's request environment
      * @return set of deleted {@link PersistentResource} object(s)
      */
-    private Object deleteObjects(Environment context) {
+    private ConnectionContainer deleteObjects(Environment context) {
         /* sanity check for id and data argument w DELETE */
         if (context.data.isPresent()) {
             throw new BadRequestException("DELETE must not include data argument");
@@ -517,7 +492,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param context Environment encapsulating graphQL's request environment
      * @return set of removed {@link PersistentResource} object(s)
      */
-    private Object removeObjects(Environment context) {
+    private ConnectionContainer removeObjects(Environment context) {
         /* sanity check for id and data argument w REPLACE */
         if (context.data.isPresent()) {
             throw new BadRequestException("REPLACE must not include data argument");
@@ -560,7 +535,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         }
 
         ConnectionContainer existingObjects =
-                (ConnectionContainer) context.container.processFetch(context, this);
+                (ConnectionContainer) context.container.processFetch(context);
         ConnectionContainer upsertedObjects = upsertObjects(context);
         Set<PersistentResource> toDelete =
                 Sets.difference(existingObjects.getPersistentResources(), upsertedObjects.getPersistentResources());
