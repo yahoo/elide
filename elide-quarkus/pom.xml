@@ -134,27 +134,6 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${compiler-plugin.version}</version>
         </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.4.1</version>
-            <executions>
-                <execution>
-                    <id>attach-javadocs</id>
-                    <goals>
-                        <goal>jar</goal>
-                    </goals>
-                </execution>
-            </executions>
-            <configuration>
-                <!-- There's currently "No public or protected classes found to document", by design -->
-                <failOnError>false</failOnError>
-                <doclint>all,-missing</doclint>
-                <source>${source.jdk.version}</source>
-                <sourcepath>${delombok.output}</sourcepath>
-                <sourcepath>${project.basedir}/src/main/java</sourcepath>
-            </configuration>
-        </plugin>
       </plugins>
     </pluginManagement>
   </build>
