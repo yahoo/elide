@@ -6,8 +6,12 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
+import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 /**
  * H2 SQLDialect.
@@ -21,6 +25,12 @@ public class H2Dialect extends AbstractSqlDialect {
     @Override
     public String generateOffsetLimitClause(int offset, int limit) {
         return LIMIT + limit + SPACE + OFFSET + offset;
+    }
+
+    @Override
+    public Object translateTimeToJDBC(Time time) {
+        OffsetDateTime offsetDateTIme = OffsetDateTime.ofInstant(time.toInstant(), ZoneOffset.systemDefault());
+        return offsetDateTIme;
     }
 
     @Override

@@ -7,7 +7,10 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import lombok.Data;
+
+import java.io.Serializable;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -19,8 +22,11 @@ import javax.persistence.Table;
 @Entity
 @Include
 @Table(name = "players")
+@TableMeta(
+        isHidden = true
+)
 @Data
-public class Player {
+public class Player implements Serializable {
 
     @Id
     private long id;

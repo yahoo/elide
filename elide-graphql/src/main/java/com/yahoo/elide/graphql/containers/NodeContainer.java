@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -28,12 +28,12 @@ import java.util.stream.Collectors;
  */
 @AllArgsConstructor
 public class NodeContainer implements PersistentResourceContainer, GraphQLContainer {
-    @Getter private final PersistentResource persistentResource;
+    @Getter protected final PersistentResource persistentResource;
 
     @Override
-    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
+    public Object processFetch(Environment context) {
         EntityDictionary entityDictionary = context.requestScope.getDictionary();
-        NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
+        NonEntityDictionary nonEntityDictionary = context.nonEntityDictionary;
 
         Type parentClass = context.parentResource.getResourceType();
         String fieldName = context.field.getName();
@@ -78,12 +78,16 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
                                 + context.parentResource.getTypeName() + "." + fieldName);
             }
 
-            return fetcher.fetchRelationship(context.parentResource, relationship, context.ids);
+            return fetchRelationship(context, relationship);
         }
         if (Objects.equals(idFieldName, fieldName)) {
             return new DeferredId(context.parentResource);
         }
         throw new BadRequestException("Unrecognized object: " + fieldName + " for: "
                 + parentClass.getName() + " in node");
+    }
+
+    protected Object fetchRelationship(Environment context, Relationship relationship) {
+        return PersistentResourceFetcher.fetchRelationship(context.parentResource, relationship, context.ids);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Oath Inc.
+ * Copyright 2018, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -1478,7 +1478,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
-    void testFilterByAuthorBookByChapter() throws JsonProcessingException {
+    void testFilterByAuthorBookByChapter() {
         /* Test default */
         given()
                 .get(String.format("/author/%s/books?filter[book.chapters.title]=Viva la Roma!", asimovId))

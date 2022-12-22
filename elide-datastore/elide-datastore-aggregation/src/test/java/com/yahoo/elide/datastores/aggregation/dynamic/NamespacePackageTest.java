@@ -25,14 +25,14 @@ public class NamespacePackageTest {
 
         NamespacePackage namespace = new NamespacePackage(testNamespace);
 
-        ReadPermission readPermission = (ReadPermission) namespace.getDeclaredAnnotation(ReadPermission.class);
+        ReadPermission readPermission = namespace.getDeclaredAnnotation(ReadPermission.class);
         assertEquals("Prefab.Role.All", readPermission.expression());
 
-        Include meta = (Include) namespace.getDeclaredAnnotation(Include.class);
+        Include meta = namespace.getDeclaredAnnotation(Include.class);
         assertEquals("A test Namespace", meta.description());
         assertNull(meta.friendlyName());
 
-        ApiVersion apiVersion = (ApiVersion) namespace.getDeclaredAnnotation(ApiVersion.class);
+        ApiVersion apiVersion = namespace.getDeclaredAnnotation(ApiVersion.class);
         assertEquals("", apiVersion.version());
     }
 

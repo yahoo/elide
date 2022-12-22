@@ -6,10 +6,10 @@
 package com.yahoo.elide.async.integration.tests.framework;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -87,7 +87,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(dictionary).to(EntityDictionary.class);
 
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
-                RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+                RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
                 MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
@@ -104,6 +104,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
+                elide.doScans();
+
                 AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
@@ -114,7 +116,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 // Create ResultStorageEngine
                 Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
                 if (storageDestination != null) { // TableExport is enabled
-                    ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString());
+                    ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString(), false);
                     bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
                     Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
@@ -124,7 +126,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                     // Binding TableExport LifeCycleHook
                     TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, 10, supportedFormatters,
                             resultStorageEngine);
-                    dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
+                    dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
 
@@ -146,7 +148,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 
-                dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
+                dictionary.bindTrigger(AsyncQuery.class, CREATE, PREFLUSH, asyncQueryHook, false);
                 dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
                 dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
                 dictionary.bindTrigger(Invoice.class, "complete", CREATE, PRECOMMIT, invoiceCompletionHook);

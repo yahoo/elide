@@ -21,16 +21,20 @@ import java.util.regex.Pattern;
  * </p>
  */
 public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
-    private static final Pattern FIELD_TYPE_PATTERN =
-            Pattern.compile("^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean)$");
+    public static final Pattern FIELD_TYPE_PATTERN =
+            Pattern.compile("^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean|Enum_Text|Enum_Ordinal)$");
 
     public static final String FORMAT_NAME = "elideFieldType";
     public static final String TYPE_KEY = "elideFieldType.error.enum";
     public static final String TYPE_MSG = "Field type [%s] is not allowed. Supported value is one of "
-            + "[Integer, Decimal, Money, Text, Coordinate, Boolean].";
+            + "[Integer, Decimal, Money, Text, Coordinate, Boolean, Enum_Text, Enum_Ordinal].";
 
     public ElideFieldTypeFormatAttr() {
-        super(FORMAT_NAME, NodeType.STRING);
+        this(FORMAT_NAME);
+    }
+
+    public ElideFieldTypeFormatAttr(String formatName) {
+        super(formatName, NodeType.STRING);
     }
 
     @Override

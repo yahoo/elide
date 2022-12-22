@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.extension.runtime;
 
-import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.audit.Slf4jLogger;
@@ -60,8 +59,8 @@ public class ElideBeans {
                 .withEntityDictionary(dictionary)
                 .withDefaultMaxPageSize(config.defaultMaxPageSize)
                 .withDefaultPageSize(config.defaultPageSize)
-                .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .withAuditLogger(new Slf4jLogger())
                 .withBaseUrl(rootPath)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
@@ -113,7 +112,7 @@ public class ElideBeans {
 
         DataStore store = new JpaDataStore(
                 entityManagerFactory::createEntityManager,
-                em -> new NonJtaTransaction(em, txCancel, DEFAULT_LOGGER, true));
+                em -> new NonJtaTransaction(em, txCancel));
 
         store.populateEntityDictionary(dictionary);
         return store;

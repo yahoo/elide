@@ -8,15 +8,16 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import lombok.Getter;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
 * Transaction Registry class.
 */
 @Getter
 public class TransactionRegistry {
-    private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
+    private Map<UUID, DataStoreTransaction> transactionMap = new ConcurrentHashMap<>();
 
     public Map<UUID, DataStoreTransaction> getRunningTransactions() {
         return transactionMap;

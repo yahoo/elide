@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Oath Inc.
+ * Copyright 2018, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -28,7 +28,7 @@ public class NonJtaTransaction extends AbstractJpaTransaction {
      * @param jpaTransactionCancel A function which can cancel a session.
      */
     public NonJtaTransaction(EntityManager entityManager, Consumer<EntityManager> jpaTransactionCancel) {
-        this(entityManager, jpaTransactionCancel, DEFAULT_LOGGER, false);
+        this(entityManager, jpaTransactionCancel, DEFAULT_LOGGER, false, true);
     }
 
     /**
@@ -39,11 +39,13 @@ public class NonJtaTransaction extends AbstractJpaTransaction {
      * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
      *                                whether or not to do sorting, filtering and pagination in memory - or
      *                                do N+1 queries.
+     * @param isScrollEnabled Enables/disables scrollable iterators.
      */
     public NonJtaTransaction(EntityManager entityManager, Consumer<EntityManager> jpaTransactionCancel,
                              QueryLogger logger,
-                             boolean delegateToInMemoryStore) {
-        super(entityManager, jpaTransactionCancel, logger, delegateToInMemoryStore);
+                             boolean delegateToInMemoryStore,
+                             boolean isScrollEnabled) {
+        super(entityManager, jpaTransactionCancel, logger, delegateToInMemoryStore, isScrollEnabled);
         this.transaction = entityManager.getTransaction();
         entityManager.clear();
     }

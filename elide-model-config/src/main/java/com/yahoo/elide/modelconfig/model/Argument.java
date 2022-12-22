@@ -36,6 +36,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Argument implements Named {
+    private static final long serialVersionUID = -6628282044575311784L;
 
     @JsonProperty("name")
     private String name;
@@ -44,7 +45,7 @@ public class Argument implements Named {
     private String description;
 
     @JsonProperty("type")
-    private Type type;
+    private String type;
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)

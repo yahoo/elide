@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Oath Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -114,6 +114,16 @@ public interface ElideStandaloneAsyncSettings {
      * @return Default: False
      */
     default boolean enableExport() {
+        return false;
+    }
+
+    /**
+     * Enable the addition of extensions to Export attachments.
+     * If false, the attachments will be downloaded without extensions.
+     *
+     * @return Default: False
+     */
+    default boolean enableExtension() {
         return false;
     }
 

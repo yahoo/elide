@@ -14,13 +14,13 @@
           "title": "Libro Dos",
           "priceHistory": [
             {
-              "units" : 200.0,
+              "units" : 200,
               "currency" : {
                 "currencyCode" : "USD"
               }
             },
             {
-              "units" : 210.0,
+              "units" : 210,
               "currency": {
                 "currencyCode" : "USD"
               }

@@ -104,7 +104,8 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
         boolean requiresJoin = SQLColumnProjection.requiresJoin(references);
 
-        boolean inProjection = source.getColumnProjection(getName(), getArguments(), true) != null;
+        String columnId = source.isRoot() ? getName() : getAlias();
+        boolean inProjection = source.getColumnProjection(columnId, getArguments(), true) != null;
 
         ColumnProjection outerProjection;
         Set<ColumnProjection> innerProjections;

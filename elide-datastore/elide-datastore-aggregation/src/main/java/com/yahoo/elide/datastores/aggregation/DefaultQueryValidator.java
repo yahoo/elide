@@ -9,6 +9,7 @@ import static com.yahoo.elide.datastores.aggregation.query.Queryable.extractFilt
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -22,18 +23,25 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Class that checks whether a constructed {@link Query} object can be executed.
  * Checks include validate sorting, having clause and make sure there is at least 1 metric queried.
  */
 public class DefaultQueryValidator implements QueryValidator {
+    private static final Set<Operator> REGEX_OPERATORS = Stream.of(Operator.INFIX, Operator.INFIX_CASE_INSENSITIVE,
+            Operator.POSTFIX, Operator.POSTFIX_CASE_INSENSITIVE, Operator.PREFIX, Operator.PREFIX_CASE_INSENSITIVE)
+        .collect(Collectors.toCollection(HashSet::new));
+
     protected EntityDictionary dictionary;
 
     public DefaultQueryValidator(EntityDictionary dictionary) {
@@ -58,10 +66,21 @@ public class DefaultQueryValidator implements QueryValidator {
             validatePredicate(query, predicate);
 
             extractFilterProjections(query, havingClause).stream().forEach(projection -> {
-                if (query.getColumnProjection(projection.getAlias(), projection.getArguments()) == null) {
+
+                Predicate<ColumnProjection> filterByNameAndArgs =
+                        (column) -> (column.getAlias().equals(projection.getAlias())
+                                || column.getName().equals(projection.getName()))
+                                && column.getArguments().equals(projection.getArguments());
+
+                //Query by (alias or name) and arguments.   The filter may or may not be using the alias.
+                if (query.getColumnProjection(filterByNameAndArgs) == null) {
+
+                    Predicate<ColumnProjection> filterByName =
+                            (column) -> (column.getAlias().equals(projection.getAlias())
+                                    || column.getName().equals(projection.getName()));
 
                     //The column wasn't projected at all.
-                    if (query.getColumnProjection(projection.getAlias()) == null) {
+                    if (query.getColumnProjection(filterByName) == null) {
                         throw new InvalidOperationException(String.format(
                                 "Post aggregation filtering on '%s' requires the field to be projected in the response",
                                 projection.getAlias()));
@@ -117,6 +136,10 @@ public class DefaultQueryValidator implements QueryValidator {
         }
 
         if (column.getValues() == null || column.getValues().isEmpty()) {
+            return;
+        }
+
+        if (REGEX_OPERATORS.contains(predicate.getOperator())) {
             return;
         }
 

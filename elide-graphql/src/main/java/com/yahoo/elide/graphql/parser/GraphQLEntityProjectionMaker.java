@@ -63,19 +63,19 @@ import java.util.Set;
  */
 @Slf4j
 public class GraphQLEntityProjectionMaker {
-    private final ElideSettings elideSettings;
-    private final EntityDictionary entityDictionary;
-    private final FilterDialect filterDialect;
+    protected final ElideSettings elideSettings;
+    protected final EntityDictionary entityDictionary;
+    protected final FilterDialect filterDialect;
 
-    private final VariableResolver variableResolver;
-    private final FragmentResolver fragmentResolver;
+    protected final VariableResolver variableResolver;
+    protected final FragmentResolver fragmentResolver;
 
-    private final Map<SourceLocation, Relationship> relationshipMap = new HashMap<>();
-    private final Map<String, EntityProjection> rootProjections = new HashMap<>();
-    private final Map<SourceLocation, Attribute> attributeMap = new HashMap<>();
+    protected final Map<SourceLocation, Relationship> relationshipMap = new HashMap<>();
+    protected final Map<String, EntityProjection> rootProjections = new HashMap<>();
+    protected final Map<SourceLocation, Attribute> attributeMap = new HashMap<>();
 
-    private final GraphQLNameUtils nameUtils;
-    private final String apiVersion;
+    protected final GraphQLNameUtils nameUtils;
+    protected final String apiVersion;
 
     /**
      * Constructor.
@@ -127,8 +127,9 @@ public class GraphQLEntityProjectionMaker {
             if (definition instanceof OperationDefinition) {
                 // Operations would be converted into EntityProjection tree
                 OperationDefinition operationDefinition = (OperationDefinition) definition;
-                if (operationDefinition.getOperation() == OperationDefinition.Operation.SUBSCRIPTION) {
-                    // TODO: support SUBSCRIPTION
+
+                //Only allow supported operations.
+                if (! supportsOperationType(operationDefinition.getOperation())) {
                     return;
                 }
 
@@ -161,16 +162,18 @@ public class GraphQLEntityProjectionMaker {
             Field rootSelectionField = (Field) rootSelection;
             String entityName = rootSelectionField.getName();
             String aliasName = rootSelectionField.getAlias();
-            if (SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
-                // '__schema' and '__type' would not be handled by entity projection
+
+            //_service comes from Apollo federation spec
+            if ("_service".equals(entityName) || SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
+                // '_service' and '__schema' and '__type' would not be handled by entity projection
                 return;
             }
-            Type<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName(), apiVersion);
+
+            Type<?> entityType = getRootEntity(rootSelectionField.getName(), apiVersion);
             if (entityType == null) {
                 throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
                         rootSelectionField.getName()));
             }
-
 
             String keyName = GraphQLProjectionInfo.computeProjectionKey(aliasName, entityName);
             if (rootProjections.containsKey(keyName)) {
@@ -194,7 +197,7 @@ public class GraphQLEntityProjectionMaker {
     private EntityProjection createProjection(Type<?> entityType, Field entityField) {
         final EntityProjectionBuilder projectionBuilder = EntityProjection.builder()
                 .type(entityType)
-                .pagination(PaginationImpl.getDefaultPagination(entityType, elideSettings));
+                .pagination(getDefaultPagination(entityType));
 
         // Add the Entity Arguments to the Projection
         projectionBuilder.arguments(new HashSet<>(
@@ -565,7 +568,9 @@ public class GraphQLEntityProjectionMaker {
                         .name(clientArgument.get().getName())
                         .value(
                                 variableResolver.resolveValue(
-                                        clientArgument.get().getValue()))
+                                        clientArgument.get().getValue(),
+                                        Optional.of(argumentType.getType())
+                                ))
                         .build());
 
             //If not, check if there is a default value for this argument.
@@ -577,5 +582,20 @@ public class GraphQLEntityProjectionMaker {
             }
         }));
         return arguments;
+    }
+
+    protected Type<?> getRootEntity(String entityName, String apiVersion) {
+        return entityDictionary.getEntityClass(entityName, apiVersion);
+    }
+
+    protected boolean supportsOperationType(OperationDefinition.Operation operation) {
+        if (operation != OperationDefinition.Operation.SUBSCRIPTION) {
+            return true;
+        }
+        return false;
+    }
+
+    protected Pagination getDefaultPagination(Type<?> entityType) {
+        return PaginationImpl.getDefaultPagination(entityType, elideSettings);
     }
 }

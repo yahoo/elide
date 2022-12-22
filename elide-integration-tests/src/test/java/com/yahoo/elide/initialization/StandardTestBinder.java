@@ -50,20 +50,23 @@ public class StandardTestBinder extends AbstractBinder {
             @Override
             public Elide provide() {
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
-                RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+                RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
                 MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
+                Elide elide = new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .build());
+
+                elide.doScans();
+                return elide;
             }
 
             @Override

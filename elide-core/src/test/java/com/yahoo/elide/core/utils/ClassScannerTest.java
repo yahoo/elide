@@ -24,7 +24,7 @@ public class ClassScannerTest {
     @Test
     public void testGetAllClasses() {
         Set<Class<?>> classes = scanner.getAllClasses("com.yahoo.elide.core.utils");
-        assertEquals(32, classes.size());
+        assertEquals(33, classes.size());
         assertTrue(classes.contains(ClassScannerTest.class));
     }
 
@@ -38,14 +38,14 @@ public class ClassScannerTest {
     @Test
     public void testGetAllAnnotatedClasses() {
         Set<Class<?>> classes = scanner.getAnnotatedClasses(Include.class);
-        assertEquals(42, classes.size(), "Actual: " + classes);
+        assertEquals(43, classes.size(), "Actual: " + classes);
         classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(Include.class)));
     }
 
     @Test
     public void testGetAnyAnnotatedClasses() {
         Set<Class<?>> classes = scanner.getAnnotatedClasses(Include.class, Entity.class);
-        assertEquals(53, classes.size());
+        assertEquals(54, classes.size());
         for (Class<?> cls : classes) {
             assertTrue(cls.isAnnotationPresent(Include.class)
                     || cls.isAnnotationPresent(Entity.class));

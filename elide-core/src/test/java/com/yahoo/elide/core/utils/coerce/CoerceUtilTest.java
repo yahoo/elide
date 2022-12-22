@@ -8,6 +8,8 @@ package com.yahoo.elide.core.utils.coerce;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
@@ -31,6 +33,7 @@ import java.util.UUID;
 public class CoerceUtilTest {
 
     public enum Seasons { WINTER, SPRING }
+    public enum WeekendDays { SATURDAY, SUNDAY }
 
     private static Map<Class, Serde> oldSerdes = new HashMap<>();
 
@@ -175,6 +178,15 @@ public class CoerceUtilTest {
 
         Time timeLong = CoerceUtil.coerce(0L, Time.class);
         assertEquals(new Time(0), timeLong);
+    }
+
+    @Test
+    public void testCustomEnumSerde() {
+        Serde<String, WeekendDays> mockSerde = (Serde<String, WeekendDays>) mock(Serde.class);
+        CoerceUtil.register(WeekendDays.class, mockSerde);
+
+        CoerceUtil.coerce("Monday", WeekendDays.class);
+        verify(mockSerde, times(1)).deserialize(eq("Monday"));
     }
 
     @Test

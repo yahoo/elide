@@ -7,6 +7,8 @@
 package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.async.models.TableExportResult;
+
 import io.reactivex.Observable;
 
 /**
@@ -20,14 +22,20 @@ public interface ResultStorageEngine {
      * Stores the result of the query.
      * @param tableExport TableExport object
      * @param result is the observable result obtained by running the query
-     * @return String to store as attachment. Can be null.
+     * @return TableExportResult.
      */
-    public TableExport storeResults(TableExport tableExport, Observable<String> result);
+    public TableExportResult storeResults(TableExport tableExport, Observable<String> result);
 
     /**
      * Searches for the async query results by ID and returns the record.
-     * @param asyncQueryID is the query ID of the AsyncQuery
-     * @return returns the result associated with the AsyncQueryID
+     * @param tableExportID is the ID of the TableExport. It may include extension too if enabled.
+     * @return returns the result associated with the tableExportID
      */
-    public Observable<String> getResultsByID(String asyncQueryID);
+    public Observable<String> getResultsByID(String tableExportID);
+
+    /**
+     * Whether the result storage engine has enabled extensions for attachments.
+     * @return returns whether the file extensions are enabled
+     */
+    public boolean isExtensionEnabled();
 }

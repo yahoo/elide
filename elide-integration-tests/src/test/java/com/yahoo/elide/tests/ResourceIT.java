@@ -23,6 +23,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.nullValue;
@@ -78,6 +79,7 @@ import org.owasp.encoder.Encode;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -92,7 +94,7 @@ public class ResourceIT extends IntegrationTest {
             type("company"),
             id("abc"),
             attributes(
-                    attr("address", buildAddress("street1", null)),
+                    attr("address", buildAddress("street1", null, Map.of("foo", "bar"))),
                     attr("description", "ABC")
             )
     );
@@ -220,10 +222,11 @@ public class ResourceIT extends IntegrationTest {
     private final JsonParser jsonParser = new JsonParser();
     private final String baseUrl = "http://localhost:8080/api";
 
-    private static Address buildAddress(String street1, String street2) {
+    private static Address buildAddress(String street1, String street2, Map<Object, Object> properties) {
         final Address address = new Address();
         address.setStreet1(street1);
         address.setStreet2(street2);
+        address.setProperties(properties);
         return address;
     }
 
@@ -253,6 +256,12 @@ public class ResourceIT extends IntegrationTest {
         final Company company = new Company();
         company.setId("abc");
         company.setDescription("ABC");
+
+        Address address = new Address();
+        address.setStreet1("foo");
+        address.setProperties(Map.of("boo", "baz"));
+
+        company.setAddress(address);
 
         tx.createObject(company, null);
 
@@ -649,6 +658,8 @@ public class ResourceIT extends IntegrationTest {
 
         final Address update = new Address();
         update.setStreet1("street1");
+        update.setProperties(Map.of("foo", "bar"));
+
         // update company address
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -946,6 +957,34 @@ public class ResourceIT extends IntegrationTest {
                 .get("/parent/1?include=children.BadRelation")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testMissingTypeInJsonBody() {
+        String detail = "Resource 'type' field is missing or empty.";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{ \"data\": { \"id\": \"1\", \"attributes\": { \"firstName\": \"foo\" }}}")
+                .patch("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
+    public void testInvalidJson() {
+        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: (String)\"{ ]\"; line: 1, column: 1])\n at [Source: (String)\"{ ]\"; line: 1, column: 4]";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{ ]")
+                .patch("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail", equalTo(Encode.forHtml(detail)));
     }
 
     @Test
@@ -1405,11 +1444,43 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void invalidPatchNullOp() {
+        String request = jsonParser.getJson("/ResourceIT/patchExtNullOp.req.json");
+
+        String detail = "Patch extension operation cannot be null.";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail[0]", containsString(Encode.forHtml(detail)));
+    }
+
+    @Test
     public void invalidPatchMissingId() {
         String request = jsonParser.getJson("/ResourceIT/invalidPatchMissingId.req.json");
 
         String detail = "Bad Request Body'Patch extension requires all objects to have an assigned "
                 + "ID (temporary or permanent) when assigning relationships.'";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail[0]", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
+    public void invalidPatchMissingPath() {
+        String request = jsonParser.getJson("/ResourceIT/invalidPatchMissingPath.req.json");
+
+        String detail = "Bad Request Body'Patch extension requires all objects to have an assigned path'";
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
@@ -1671,7 +1742,7 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
-    public void addRelationships() throws IOException {
+    public void addRelationships() {
         String request = jsonParser.getJson("/ResourceIT/addRelationships.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/addRelationships.json");
         String expected2 = jsonParser.getJson("/ResourceIT/addRelationships.2.json");
@@ -2176,6 +2247,20 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void testIssue608() {
+        String req = jsonParser.getJson("/ResourceIT/Issue608.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/Issue608.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
     public void testNestedPatch() {
         String req = jsonParser.getJson("/ResourceIT/nestedPatchCreate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/nestedPatchCreate.resp.json");
@@ -2491,10 +2576,12 @@ public class ResourceIT extends IntegrationTest {
                 .withAuditLogger(new TestAuditLogger())
                 .build());
 
+        elide.doScans();
+
         com.yahoo.elide.core.security.User user = new com.yahoo.elide.core.security.User(() -> "-1");
         ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
-        assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
-        assertEquals(response.getBody(), "{\"data\":[]}");
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        assertEquals("{\"data\":[]}", response.getBody());
     }
 
     @Test
@@ -2559,6 +2646,9 @@ public class ResourceIT extends IntegrationTest {
                 attributes(
                         attr("cannotModify", "unmodified"),
                         attr("textValue", "new value")
+                ),
+                relationships(
+                        relation("toOneRelation", true)
                 )
         );
 
@@ -2604,6 +2694,58 @@ public class ResourceIT extends IntegrationTest {
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(datum(validRequest))
                 .patch("/createButNoUpdate/1")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
+    }
+
+    @Test
+    public void testUpdatingExistingResourceWithoutPermissionsIsForbidden() {
+
+        Resource entity1 = resource(
+                type("createButNoUpdate"),
+                id("1"),
+                attributes(
+                        attr("textValue", "new value")
+                )
+        );
+
+        Resource entity2 = resource(
+                type("createButNoUpdate"),
+                id("2"),
+                attributes(
+                        attr("textValue", "new value")
+                ),
+                relationships(
+                        relation("toOneRelation", linkage(type("createButNoUpdate"), id("1")))
+                )
+        );
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(entity1))
+                .post("/createButNoUpdate")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(entity2))
+                .post("/createButNoUpdate")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+
+        Data relationships = data(
+                linkage(type("createButNoUpdate"), id("1"))
+        );
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(relationships)
+                .post("/createButNoUpdate/2/relationships/toOneRelation")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
     }
@@ -2831,7 +2973,6 @@ public class ResourceIT extends IntegrationTest {
                 .body(req)
                 .patch("/book")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
     }

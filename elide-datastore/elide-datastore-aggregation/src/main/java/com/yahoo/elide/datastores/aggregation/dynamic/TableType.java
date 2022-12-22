@@ -12,8 +12,15 @@ import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
+import static com.yahoo.elide.modelconfig.model.Type.BOOLEAN;
+import static com.yahoo.elide.modelconfig.model.Type.COORDINATE;
+import static com.yahoo.elide.modelconfig.model.Type.DECIMAL;
+import static com.yahoo.elide.modelconfig.model.Type.ENUM_ORDINAL;
+import static com.yahoo.elide.modelconfig.model.Type.ENUM_TEXT;
+import static com.yahoo.elide.modelconfig.model.Type.INTEGER;
+import static com.yahoo.elide.modelconfig.model.Type.MONEY;
+import static com.yahoo.elide.modelconfig.model.Type.TEXT;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
-import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Field;
@@ -34,6 +41,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
+import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Argument;
@@ -51,9 +59,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -62,12 +73,15 @@ import javax.persistence.Id;
  * A dynamic Elide model that wraps a deserialized HJSON table.
  */
 public class TableType implements Type<DynamicModelInstance> {
-    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+    private static final long serialVersionUID = 8197172323227250923L;
     private static final String SPACE = " ";
+    private static final String PERIOD = ".";
+
+    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     public static final Pattern NEWLINE = Pattern.compile(System.lineSeparator(), Pattern.LITERAL);
 
     protected Table table;
-    private Map<Class<? extends Annotation>, Annotation> annotations;
+    private transient Map<Class<? extends Annotation>, Annotation> annotations;
     private Map<String, Field> fields;
     private Package namespace;
 
@@ -84,7 +98,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
     @Override
     public String getCanonicalName() {
-        return getName();
+        return getPackage().getName().concat(PERIOD).concat(getName());
     }
 
     @Override
@@ -258,13 +272,9 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (Boolean.TRUE.equals(table.getHidden())) {
-            annotations.put(Exclude.class, new ExcludeAnnotation());
-        } else {
-            annotations.put(Include.class, getIncludeAnnotation(table));
-        }
+        annotations.put(Include.class, getIncludeAnnotation(table));
 
-        if (table.getSql() != null && !table.getSql().isEmpty()) {
+        if (StringUtils.isNotEmpty(table.getSql()) || StringUtils.isNotEmpty(table.getMaker())) {
             annotations.put(FromSubquery.class, new FromSubquery() {
 
                 @Override
@@ -275,6 +285,19 @@ public class TableType implements Type<DynamicModelInstance> {
                 @Override
                 public String sql() {
                     return table.getSql();
+                }
+
+                @Override
+                public Class<? extends TableSQLMaker> maker() {
+                    if (StringUtils.isEmpty(table.getMaker())) {
+                        return null;
+                    }
+
+                    try {
+                        return Class.forName(table.getMaker()).asSubclass(TableSQLMaker.class);
+                    } catch (ClassNotFoundException e) {
+                        throw new IllegalStateException(e);
+                    }
                 }
 
                 @Override
@@ -293,7 +316,7 @@ public class TableType implements Type<DynamicModelInstance> {
                 @Override
                 public String name() {
                     String tableName = table.getTable();
-                    if (table.getSchema() != null && ! table.getSchema().isEmpty()) {
+                    if (StringUtils.isNotEmpty(table.getSchema())) {
                         return table.getSchema() + "." + tableName;
 
                     }
@@ -350,8 +373,13 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public boolean isHidden() {
+                return table.getHidden() != null && table.getHidden();
+            }
+
+            @Override
             public CardinalitySize size() {
-                if (table.getCardinality() == null || table.getCardinality().isEmpty()) {
+                if (StringUtils.isEmpty(table.getCardinality())) {
                     return CardinalitySize.UNKNOWN;
                 }
                 return CardinalitySize.valueOf(table.getCardinality().toUpperCase(Locale.ENGLISH));
@@ -400,7 +428,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public ValueType type() {
-                    return ValueType.valueOf(argument.getType().toString());
+                    return ValueType.valueOf(argument.getType().toUpperCase(Locale.ROOT));
                 }
 
                 @Override
@@ -415,7 +443,8 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public String defaultValue() {
-                    return argument.getDefaultValue().toString();
+                    Object value = argument.getDefaultValue();
+                    return value == null ? null : value.toString();
                 }
 
                 @Override
@@ -428,10 +457,6 @@ public class TableType implements Type<DynamicModelInstance> {
     }
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Measure measure) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
-
-        if (Boolean.TRUE.equals(measure.getHidden())) {
-            annotations.put(Exclude.class, new ExcludeAnnotation());
-        }
 
         annotations.put(ColumnMeta.class, new ColumnMeta() {
             @Override
@@ -470,6 +495,11 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public boolean isHidden() {
+                return measure.getHidden() != null && measure.getHidden();
+            }
+
+            @Override
             public String filterTemplate() {
                 return measure.getFilterTemplate();
             }
@@ -502,12 +532,12 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public Class<? extends MetricProjectionMaker> maker() {
-                if (measure.getMaker() == null || measure.getMaker().isEmpty()) {
+                if (StringUtils.isEmpty(measure.getMaker())) {
                     return DefaultMetricProjectionMaker.class;
                 }
 
                 try {
-                    return (Class<? extends MetricProjectionMaker>) Class.forName(measure.getMaker());
+                    return Class.forName(measure.getMaker()).asSubclass(MetricProjectionMaker.class);
                 } catch (ClassNotFoundException e) {
                     throw new IllegalStateException(e);
                 }
@@ -570,10 +600,6 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (Boolean.TRUE.equals(dimension.getHidden())) {
-            annotations.put(Exclude.class, new ExcludeAnnotation());
-        }
-
         annotations.put(ColumnMeta.class, new ColumnMeta() {
             @Override
             public Class<? extends Annotation> annotationType() {
@@ -611,13 +637,18 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public boolean isHidden() {
+                return dimension.getHidden() != null && dimension.getHidden();
+            }
+
+            @Override
             public String filterTemplate() {
                 return dimension.getFilterTemplate();
             }
 
             @Override
             public CardinalitySize size() {
-                if (dimension.getCardinality() == null || dimension.getCardinality().isEmpty()) {
+                if (StringUtils.isEmpty(dimension.getCardinality())) {
                     return CardinalitySize.UNKNOWN;
                 }
                 return CardinalitySize.valueOf(dimension.getCardinality().toUpperCase(Locale.ENGLISH));
@@ -657,7 +688,11 @@ public class TableType implements Type<DynamicModelInstance> {
             });
         }
 
-        if (dimension.getType() == TIME) {
+        if (dimension.getType().toUpperCase(Locale.ROOT).equals(ENUM_ORDINAL)) {
+            annotations.put(Enumerated.class, getEnumeratedAnnotation(EnumType.ORDINAL));
+        }
+
+        if (dimension.getType().toUpperCase(Locale.ROOT).equals(TIME)) {
             annotations.put(Temporal.class, new Temporal() {
 
                 @Override
@@ -707,6 +742,20 @@ public class TableType implements Type<DynamicModelInstance> {
         }
 
         return annotations;
+    }
+
+    private static Enumerated getEnumeratedAnnotation(EnumType type) {
+        return new Enumerated() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Enumerated.class;
+            }
+
+            @Override
+            public EnumType value() {
+                return EnumType.ORDINAL;
+            }
+        };
     }
 
     private static Map<String, Field> buildFields(Table table) {
@@ -791,6 +840,11 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public boolean isHidden() {
+                return false;
+            }
+
+            @Override
             public String filterTemplate() {
                 return "";
             }
@@ -804,11 +858,13 @@ public class TableType implements Type<DynamicModelInstance> {
         return new FieldType("id", LONG_TYPE, annotations);
     }
 
-    private static Type getFieldType(com.yahoo.elide.modelconfig.model.Type inputType) {
-        switch (inputType) {
+    private static Type getFieldType(String inputType) {
+        switch (inputType.toUpperCase(Locale.ROOT)) {
             case TIME:
                 return TIME_TYPE;
             case TEXT:
+            case ENUM_ORDINAL:
+            case ENUM_TEXT:
                 return STRING_TYPE;
             case MONEY:
                 return BIGDECIMAL_TYPE;
@@ -845,11 +901,9 @@ public class TableType implements Type<DynamicModelInstance> {
         return (str == null) ? null : NEWLINE.matcher(str).replaceAll(SPACE);
     }
 
-    private static final class ExcludeAnnotation implements Exclude {
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return Exclude.class;
-        }
+    @Override
+    public String toString() {
+        return String.format("TableType{ name=%s }", table.getGlobalName());
     }
 
     private static Include getIncludeAnnotation(Table table) {
@@ -880,5 +934,22 @@ public class TableType implements Type<DynamicModelInstance> {
                 return table.getName();
             }
         };
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TableType tableType = (TableType) o;
+        return table.equals(tableType.table) && namespace.equals(tableType.namespace);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(table, namespace);
     }
 }

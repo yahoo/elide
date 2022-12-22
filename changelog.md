@@ -1,4 +1,525 @@
 # Change Log
+
+## 6.1.9
+**Features**
+* [view commit](https://github.com/yahoo/elide/commit/86203f05f61b3beb65a3a6f6ba502727f4d1f4d7) Adding support for populating Meta object in JSON-API (#2824) 
+* [view commit](https://github.com/yahoo/elide/commit/9ca2a8fef6468c66804ee0dd94d4125b90a52ad2) Add negated prefix, postfix and infix operators. (#2788) (#2830) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/18a76165de0eb14a10005ae49e2c6e862bf33a65) Bump graphql-java-extended-scalars from 18.1 to 19.0 (#2783) 
+ * [view commit](https://github.com/yahoo/elide/commit/362842b23009e806e4395d880f1ec481a3458459) Bump groovy.version from 3.0.12 to 3.0.13 (#2782) 
+ * [view commit](https://github.com/yahoo/elide/commit/c61859e11360fb9063c7187959ade2b2246c11e4) Resolves #2784 (#2785) 
+ * [view commit](https://github.com/yahoo/elide/commit/f03aba8c1f854a9c0c286fad97c30d2fed5ffe08) Allow elide-graphql to be excluded when elide.graphql.enabled=false (#2787) 
+ * [view commit](https://github.com/yahoo/elide/commit/b700526b2e66dd8eac64868dc3060a7b762cdc96) Bump federation-graphql-java-support from 2.0.7 to 2.0.8 (#2793) 
+ * [view commit](https://github.com/yahoo/elide/commit/8df8d99fd3f1c6261f163a73c354eb0b162a6e90) Bump version.junit from 5.9.0 to 5.9.1 (#2792) 
+ * [view commit](https://github.com/yahoo/elide/commit/6212ec358649ebf8b24ec872b80d83fae65ed7a1) Bump spring.boot.version from 2.7.3 to 2.7.4 (#2791) 
+ * [view commit](https://github.com/yahoo/elide/commit/0bcfbb184d15cf71a84434172655b861cc7f8f06) Bump junit-platform-launcher from 1.9.0 to 1.9.1 (#2790) 
+ * [view commit](https://github.com/yahoo/elide/commit/c497ff3e67232c2fa0d74bc8d86905b14836de11) Bump hibernate5.version from 5.6.11.Final to 5.6.12.Final (#2798) 
+ * [view commit](https://github.com/yahoo/elide/commit/f8ec54e864aebf2b7b54bce0af8ba0a474038311) Bump snakeyaml from 1.32 to 1.33 (#2796) 
+ * [view commit](https://github.com/yahoo/elide/commit/901b41a9991ed87f3fd3030fb517e5dacee2849e) Bump artemis-jms-client-all from 2.25.0 to 2.26.0 (#2799) 
+ * [view commit](https://github.com/yahoo/elide/commit/bd2dbabcdbf657dc19e4c08e8ed3aee43f8bc653) Bump swagger-core from 1.6.6 to 1.6.7 (#2802) 
+ * [view commit](https://github.com/yahoo/elide/commit/d17cd77eb7ced4ac9bb111d4767c17b5b6b48a20) Bump log4j-over-slf4j from 2.0.1 to 2.0.3 (#2801) 
+ * [view commit](https://github.com/yahoo/elide/commit/fc468dbbee59ec85fb079c8cb1d8a1ee8122b9bf) Bump slf4j-api from 2.0.1 to 2.0.3 (#2800) 
+ * [view commit](https://github.com/yahoo/elide/commit/c44438dbfde604307f74c811b863f7d67f3b9b96) Bump artemis-server from 2.25.0 to 2.26.0 (#2803) 
+ * [view commit](https://github.com/yahoo/elide/commit/d1f4aee7ee70809d7db0254eeec1a91b4c651f42) Bump artemis-jms-server from 2.23.1 to 2.26.0 (#2804) 
+ * [view commit](https://github.com/yahoo/elide/commit/13f293723472eec5992d1905277e6058f8f272bb) Bump checkstyle from 10.3.3 to 10.3.4 (#2805) 
+ * [view commit](https://github.com/yahoo/elide/commit/4ce3ae65955783e70b4362153fd99ea204077ca2) Bump junit-platform-commons from 1.9.0 to 1.9.1 (#2806) 
+ * [view commit](https://github.com/yahoo/elide/commit/3afee025f9a3a4c1790632d49438fc955212b558) Refactor expression visitor (#2808) 
+ * [view commit](https://github.com/yahoo/elide/commit/a92efb877d966ddee36f5e01e90a26f410ac88c8) Bump jedis from 4.2.3 to 4.3.0 (#2816) 
+ * [view commit](https://github.com/yahoo/elide/commit/320dfe4b8e1f3fa267c32a42e8221a592e96e02f) Bump swagger-core from 1.6.7 to 1.6.8 (#2823) 
+ * [view commit](https://github.com/yahoo/elide/commit/a1a408dae161fbdee3d11be1b117a872abe08d2b) Bump jackson-databind from 2.13.4 to 2.13.4.2 (#2822) 
+ * [view commit](https://github.com/yahoo/elide/commit/e2f5374e3da59c0bc86cc3cfede78243263feeee) Bump federation-graphql-java-support from 2.0.8 to 2.1.0 (#2821) 
+ * [view commit](https://github.com/yahoo/elide/commit/611c6e1d6e326ab2c7c5a351a46fad32f652ca63) Bump spring.boot.version from 2.7.4 to 2.7.5 (#2827) 
+ * [view commit](https://github.com/yahoo/elide/commit/9420a745a231194e955fcb102f8a82c055abfe0c) Bump micrometer-core from 1.9.4 to 1.9.5 (#2826) 
+ * [view commit](https://github.com/yahoo/elide/commit/61fab948a97d36a0252f96a7f7baceb210ce4f65) Bump mockito-junit-jupiter from 4.8.0 to 4.8.1 (#2825) 
+ * [view commit](https://github.com/yahoo/elide/commit/9a12d3f1b26701328ae2ad327e2f7d3a6000596e) Bump version.jackson from 2.13.4 to 2.14.0 (#2834) 
+ * [view commit](https://github.com/yahoo/elide/commit/283e21320815c09609c418f2b389e77ce54fcb61) Bump checkstyle from 10.3.4 to 10.4 (#2832) 
+ * [view commit](https://github.com/yahoo/elide/commit/cabeef8b1364b5d67a6772b2b7a331298d69d649) Bump federation-graphql-java-support from 2.1.0 to 2.1.1 (#2833) 
+
+## 6.1.8
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/5e8f15f12641310ad9eaf13cc75d33ce6a20780c) Bump spring.boot.version from 2.7.1 to 2.7.2 (#2713) 
+ * [view commit](https://github.com/yahoo/elide/commit/43c330b7ccfb4caccfedf9f4993b64afeb3d31bc) Bump groovy.version from 3.0.11 to 3.0.12 (#2712) 
+ * [view commit](https://github.com/yahoo/elide/commit/fc1fc18876424bab883517bb02b640fd87292a77) Bump graphql-java from 18.2 to 19.0 (#2716) 
+ * [view commit](https://github.com/yahoo/elide/commit/6c289c15299daa540c6b06124aa99c6b84a3e083) Bump version.junit from 5.8.2 to 5.9.0 (#2714) 
+ * [view commit](https://github.com/yahoo/elide/commit/319868c47148d6a7b2f4eca19ac1070303bcaaa2) Bump federation-graphql-java-support from 2.0.3 to 2.0.4 (#2718) 
+ * [view commit](https://github.com/yahoo/elide/commit/2df809abf56195ba4e5a51712e17db848ccbf2b6) Bump mockito-core from 4.4.0 to 4.5.1 (#2632) 
+ * [view commit](https://github.com/yahoo/elide/commit/a7550f78df09338a8442f19cd278a17d7ceece03) Bump gson from 2.9.0 to 2.9.1 (#2719) 
+ * [view commit](https://github.com/yahoo/elide/commit/0c767675adc011cbdebdc685e40f0fe2d104d486) Bump maven-deploy-plugin from 2.8.2 to 3.0.0 (#2717) 
+ * [view commit](https://github.com/yahoo/elide/commit/f61181e6ca5013a7f5e0b16f0d577516561f084f) Bump checkstyle from 10.3.1 to 10.3.2 (#2721) 
+ * [view commit](https://github.com/yahoo/elide/commit/e3fde6733e43866aaa7fb7fbf06f488796a26e19) Bump junit-platform-commons from 1.8.2 to 1.9.0 (#2720) 
+ * [view commit](https://github.com/yahoo/elide/commit/0115043c2c5a623a6d5d4c0d956e79aaab751195) Bump junit-platform-launcher from 1.8.2 to 1.9.0 (#2722) 
+ * [view commit](https://github.com/yahoo/elide/commit/52551b397b74b599700e038bf5a940457f4527f7) Bump calcite-core from 1.30.0 to 1.31.0 (#2725) 
+ * [view commit](https://github.com/yahoo/elide/commit/bbafffc7a232dcf48cd6e72045ab3a326b447af2) Bump artemis-server from 2.23.1 to 2.24.0 in /elide-standalone (#2735) 
+ * [view commit](https://github.com/yahoo/elide/commit/0f095aa80f4973fd9b34df842edfaa61956adff6) Bump artemis-server from 2.23.1 to 2.25.0 (#2743) 
+ * [view commit](https://github.com/yahoo/elide/commit/0f49199050a8736d0d9617008410f882a4897939) Bump federation-graphql-java-support from 2.0.4 to 2.0.6 (#2737) 
+ * [view commit](https://github.com/yahoo/elide/commit/fb82a848e57e925edd26f8d3ae36396bb3c4e6c3) Bump metrics.version from 4.2.10 to 4.2.12 (#2746) 
+ * [view commit](https://github.com/yahoo/elide/commit/c1c747e772a539d3a0411a68fb83e69ed1ae5b32) Bump spring.boot.version from 2.7.2 to 2.7.3 (#2749) 
+ * [view commit](https://github.com/yahoo/elide/commit/a22c178716996d53edb71d6073226cea9ef71e66) Bump javassist from 3.29.0-GA to 3.29.1-GA (#2748) 
+ * [view commit](https://github.com/yahoo/elide/commit/177d878156c20fa8700a88754483784f27988d6e) Bump spring-cloud-context from 3.1.3 to 3.1.4 (#2747) 
+ * [view commit](https://github.com/yahoo/elide/commit/86a95a8061af7457343aa89845cdc82c4f85aeeb) Serdes now take precedence over type converters for enums. (#2755) 
+ * [view commit](https://github.com/yahoo/elide/commit/8de4135dab586c3748a296cf8db4cbbb88a7a0bb) Enforcing ErrorObjects.addError is called prior to any other function calls (#2758) 
+ * [view commit](https://github.com/yahoo/elide/commit/0a5249a5459e250f160c1236f656eeefb8a10d0a) Bump hibernate5.version from 5.6.10.Final to 5.6.11.Final (#2753) 
+ * [view commit](https://github.com/yahoo/elide/commit/d81fc6c0c210c47ee69eabb81012a3c87a3446a1) Bump maven-site-plugin from 3.12.0 to 3.12.1 (#2752) 
+ * [view commit](https://github.com/yahoo/elide/commit/891ba6c540abba58fd4b0d88fb4dd8d68a1ee4bd) Bump mockito-core from 4.6.1 to 4.8.0 (#2750) 
+ * [view commit](https://github.com/yahoo/elide/commit/c0a0f0ad9a1a9bbb9938e3225f27b2d191b82e79) Only build query runner if graphQL is enabled (#2766) 
+ * [view commit](https://github.com/yahoo/elide/commit/e9f41ad0b78260530abb186ca08e69eaa6b68eda) Bump mockito-junit-jupiter from 4.6.1 to 4.8.0 (#2765) 
+ * [view commit](https://github.com/yahoo/elide/commit/f5dfa505b0b8bfe617151ea6e88b821258d169a9) Bump log4j-to-slf4j from 2.18.0 to 2.19.0 (#2768) 
+ * [view commit](https://github.com/yahoo/elide/commit/42462aa6dce5a1db69d8dbc4e605a3bd1702087f) Bump log4j-over-slf4j from 1.7.36 to 2.0.1 (#2764) 
+ * [view commit](https://github.com/yahoo/elide/commit/16f463c037d78b8a9881e4b571120510c4634d1f) Bump jackson-databind from 2.13.3 to 2.13.4 (#2762) 
+ * [view commit](https://github.com/yahoo/elide/commit/8a68521dbc4d3278e922d7c6bf26e729b0041057) Bump log4j-api from 2.18.0 to 2.19.0 (#2769) 
+ * [view commit](https://github.com/yahoo/elide/commit/a8630a2d8997e90f33d1dc6bea8f8f58f567a0d0) Bump version.restassured from 5.1.1 to 5.2.0 (#2754) 
+ * [view commit](https://github.com/yahoo/elide/commit/e44bed7bf161799b9afc9c05e2e664a5ecddb3f2) Bump spring-core from 5.3.22 to 5.3.23 (#2771) 
+ * [view commit](https://github.com/yahoo/elide/commit/9718a65c0795456c9be1dfa19d0cee7cf52d6c1e) Bump spring-websocket from 5.3.22 to 5.3.23 (#2770) 
+ * [view commit](https://github.com/yahoo/elide/commit/7ff9de94a72fb6916ed41bf119fcb6c5afca9d46) Bump snakeyaml from 1.31 to 1.32 (#2772) 
+ * [view commit](https://github.com/yahoo/elide/commit/6adc3d48b49523cd9c7d116139e6fdc93632034b) Bump federation-graphql-java-support from 2.0.6 to 2.0.7 (#2773) 
+ * [view commit](https://github.com/yahoo/elide/commit/06e4ac84e83240450e123f983b240c8969431114) Bump maven-jar-plugin from 3.2.2 to 3.3.0 (#2774) 
+ * [view commit](https://github.com/yahoo/elide/commit/cc5146bc328885860e82baf72ea0a0efc59e2c0e) Bump maven-checkstyle-plugin from 3.1.2 to 3.2.0 (#2778) 
+ * [view commit](https://github.com/yahoo/elide/commit/24da916438daa003492c8b0deeb2e52c3a502b35) Bump slf4j-api from 1.7.36 to 2.0.1 (#2777) 
+ * [view commit](https://github.com/yahoo/elide/commit/70ecd9d72eae3e7697220cc1267e5a2ea5b3506a) Bump maven-javadoc-plugin from 3.4.0 to 3.4.1 (#2776) 
+ * [view commit](https://github.com/yahoo/elide/commit/973ac12fb93e7d2f2b295ec0ed41ad5d83b785d1) Bump checkstyle from 10.3.2 to 10.3.3 (#2775) 
+ * [view commit](https://github.com/yahoo/elide/commit/357f654e476c098da845b6fea843dec968d756ce) Bump dependency-check-maven from 7.1.1 to 7.2.0 (#2779) 
+ * [view commit](https://github.com/yahoo/elide/commit/5439c085f9714302f428e39a6aba721c58b6e04e) Bump javassist from 3.29.1-GA to 3.29.2-GA (#2780) 
+ * [view commit](https://github.com/yahoo/elide/commit/729e74d2f69fc44897d661610ac4390fd16950ec) Bump micrometer-core from 1.9.2 to 1.9.4 (#2781) 
+
+## 6.1.7
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/53fbf01a9e7d0120db65334e99ccae5c7cf78c5e) Use Serializable Classes for RedisCache to work (#2681) 
+ * [view commit](https://github.com/yahoo/elide/commit/1c8cafba49a5b752c586ab2271e92edf6021a20e) Upgrade to Jetty 10.0.10 (#2691) 
+ * [view commit](https://github.com/yahoo/elide/commit/8f18657ee0db4354b6e408610508b432bdaeb395) Bump dependency-check-maven from 7.1.0 to 7.1.1 (#2678) 
+ * [view commit](https://github.com/yahoo/elide/commit/7071100dab77f1923743927687908e5f339afeab) Fixed query builder so that it does not treat embedded properties as … (#2686) 
+ * [view commit](https://github.com/yahoo/elide/commit/98e3c00066ed0f07baf0a3e9524cfae2af990db5) Bump maven-enforcer-plugin from 3.0.0 to 3.1.0 (#2677) 
+ * [view commit](https://github.com/yahoo/elide/commit/ece798a49aee31b4c31d67a9835b3ebed8feebc3) Bump version.restassured from 5.1.0 to 5.1.1 (#2676) 
+ * [view commit](https://github.com/yahoo/elide/commit/839fa5c5346d617c3cf830deaad0a0a27591f05d) Bump metrics.version from 4.2.9 to 4.2.10 (#2692) 
+ * [view commit](https://github.com/yahoo/elide/commit/45be05acd42b207a323e551eddf197992f50bc8d) Bump spring.boot.version from 2.7.0 to 2.7.1 (#2693) 
+ * [view commit](https://github.com/yahoo/elide/commit/9f17574d9ce3e7abe2156884bce20828a4d9ebf1) Bump checkstyle from 10.3 to 10.3.1 (#2694) 
+ * [view commit](https://github.com/yahoo/elide/commit/6fd828dbeea64c8b34b7529472e5b20f5571508c) Bump classgraph from 4.8.147 to 4.8.149 (#2696) 
+ * [view commit](https://github.com/yahoo/elide/commit/72fd34bcf1ba9b00900c3374fd98f10270adcd80) Bump hibernate5.version from 5.6.9.Final to 5.6.10.Final (#2697) 
+ * [view commit](https://github.com/yahoo/elide/commit/1be66da9306e4f672727724a1a4fe1f88dd9eea9) Bump log4j-to-slf4j from 2.17.2 to 2.18.0 (#2699) 
+ * [view commit](https://github.com/yahoo/elide/commit/e9eca4e0e9b38be62ecc3a53128ac19daef1df9e) Bump log4j-api from 2.17.2 to 2.18.0 (#2698) 
+ * [view commit](https://github.com/yahoo/elide/commit/46056c7f2ead1278b970c0adaa154d99ac3e63d8) Bump artemis-jms-client-all from 2.22.0 to 2.23.1 (#2700) 
+ * [view commit](https://github.com/yahoo/elide/commit/dd34555e43e9e54a2740edbaa60e488d21515171) Bump micrometer-core from 1.9.0 to 1.9.2 (#2695) 
+ * [view commit](https://github.com/yahoo/elide/commit/dd74e410e0c7a6fa7d93145f9f565342446e542a) Bump federation-graphql-java-support from 2.0.1 to 2.0.3 (#2701) 
+ * [view commit](https://github.com/yahoo/elide/commit/1c436b544dd056856db036f3e1bed201fc700baf) Bump artemis-server from 2.22.0 to 2.23.1 (#2702) 
+ * [view commit](https://github.com/yahoo/elide/commit/7ebfb11f77ebdfa49bf9e92b090a23c0136e559f) Bump spring-websocket from 5.3.20 to 5.3.22 (#2704) 
+ * [view commit](https://github.com/yahoo/elide/commit/7a5700f4614063b205a8c4bd443a606c0eff303d) Bump wagon-ssh-external from 3.5.1 to 3.5.2 (#2705) 
+ * [view commit](https://github.com/yahoo/elide/commit/40324b5a1615ae7ffee23a4bedc1f64272d244e4) Bump h2 from 2.1.212 to 2.1.214 (#2707) 
+ * [view commit](https://github.com/yahoo/elide/commit/879421c3ad94a03d24c5390860a36e3211c32cdb) Bump artemis-jms-server from 2.22.0 to 2.23.1 (#2706) 
+ * [view commit](https://github.com/yahoo/elide/commit/1a056ac5b7d5b1bd88e0142481b16755573a45e1) Bump graphql-java from 18.1 to 18.2 (#2708) 
+ * [view commit](https://github.com/yahoo/elide/commit/bd82030a3ac64882f2a67282b9bf4159b21d817c) Bump spring-core from 5.3.20 to 5.3.22 (#2709) 
+ * [view commit](https://github.com/yahoo/elide/commit/e49202d2c541f35c1d41457a51c3c7a145c75fce) Bump jsonassert from 1.5.0 to 1.5.1 (#2710) 
+
+## 6.1.6
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/af3e1d9d64479e3ca0f5141bec8b906843d11248) Minimum to expose _service.sdl for Apollo federation. (#2640) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/ba7faef135fe9085e9959d2bb286574cf7e2a843) Adding explicit discord link. 
+ * [view commit](https://github.com/yahoo/elide/commit/8adc4439ded747d4dd1191ad5fed6131bde39cb6) Add Injector Bean (#2637) 
+ * [view commit](https://github.com/yahoo/elide/commit/d8cdbb9204a27c6083473f6433bda076384f978c) Bump caffeine from 3.0.6 to 3.1.0 (#2643) 
+ * [view commit](https://github.com/yahoo/elide/commit/cb500d13439d63b267e6219e35e672d7d32b3b82) Bump spring-cloud-context from 3.1.1 to 3.1.2 (#2642) 
+ * [view commit](https://github.com/yahoo/elide/commit/6eb767cd30faa745479bb8910de3937ba5eed971) Bump graphql-java from 18.0 to 18.1 (#2645) 
+ * [view commit](https://github.com/yahoo/elide/commit/4b3f318fdb6486185ecb17bcde47f3b32d461df0) Bump jedis from 4.2.2 to 4.2.3 (#2646) 
+ * [view commit](https://github.com/yahoo/elide/commit/ae34fede3835c107617dbc448ce32573ad5ec8e8) Issue2650 (#2653) 
+ * [view commit](https://github.com/yahoo/elide/commit/26669553093b2d85b385c7298fd53a7225c4cf4d) Bump spring-core from 5.3.19 to 5.3.20 in /elide-model-config (#2654) 
+ * [view commit](https://github.com/yahoo/elide/commit/2b5759ac2fc589f2da9a08c45577f28d37f4e4ad) Bump federation-graphql-java-support from 2.0.0-alpha.5 to 2.0.1 (#2655) 
+ * [view commit](https://github.com/yahoo/elide/commit/c5583f4a79fe501742d57dc9a2b65078f870d8f3) Bump javassist from 3.28.0-GA to 3.29.0-GA (#2651) 
+ * [view commit](https://github.com/yahoo/elide/commit/9dd4ffc25d8318edcf167d10e4dd6e053d0061d0) Bump artemis-jms-server from 2.21.0 to 2.22.0 (#2644) 
+ * [view commit](https://github.com/yahoo/elide/commit/a7d8c2435177faadfe97554dc107fd822025b6c9) Bump artemis-server from 2.21.0 to 2.22.0 (#2647) 
+ * [view commit](https://github.com/yahoo/elide/commit/a2e9e205351b090c1186fd03298e1d5f86591c99) Bump version.restassured from 5.0.1 to 5.1.0 (#2658) 
+ * [view commit](https://github.com/yahoo/elide/commit/403132f7569c2b568b38f653bd1a08c681e9d53f) Bump micrometer-core from 1.8.5 to 1.9.0 (#2657) 
+ * [view commit](https://github.com/yahoo/elide/commit/dfcb6a3cd5a3748259380f58d525eeda6fb1d4f1) Bump hibernate5.version from 5.6.8.Final to 5.6.9.Final (#2659) 
+ * [view commit](https://github.com/yahoo/elide/commit/144909516ffa9e99d7a6f1cb8c86d8737b2603bf) Bump spring.boot.version from 2.6.8 to 2.7.0 (#2663) 
+ * [view commit](https://github.com/yahoo/elide/commit/b24f7aa63971d67def337add1dab69cd6cf80508) Bump mockito-junit-jupiter from 4.5.1 to 4.6.1 (#2661) 
+ * [view commit](https://github.com/yahoo/elide/commit/42ce8325fcd0719b5d2d47c263a668b08b332a87) Bump caffeine from 3.1.0 to 3.1.1 (#2660) 
+ * [view commit](https://github.com/yahoo/elide/commit/c806f4b6373277b9f7c5b1841dc01811cf1b21c8) Bump spring-cloud-context from 3.1.2 to 3.1.3 (#2666) 
+ * [view commit](https://github.com/yahoo/elide/commit/fe1615198a05f18f73e08f64218eabd02da27660) Bump jackson-databind from 2.13.2.2 to 2.13.3 (#2665) 
+ * [view commit](https://github.com/yahoo/elide/commit/f0d5019d7a2dd96643022bb37f45b882cab2f3bd) Bump maven-surefire-plugin from 3.0.0-M6 to 3.0.0-M7 (#2664) 
+ * [view commit](https://github.com/yahoo/elide/commit/c9da5e7e3ede34269de31eef55e2362790e9a050) Bump version.jackson from 2.13.2 to 2.13.3 (#2662) 
+ * [view commit](https://github.com/yahoo/elide/commit/e7cb5a5bf3e3f8f5b0f02331b079270605959324) Bump maven-scm-api from 1.12.2 to 1.13.0 (#2667) 
+ * [view commit](https://github.com/yahoo/elide/commit/9cd66ef30f62bd5bced39d7cedb487deb759324e) Bump maven-scm-provider-gitexe from 1.12.2 to 1.13.0 (#2668) 
+ * [view commit](https://github.com/yahoo/elide/commit/44bcaa3eb7af39ec8d33eba863fdca467e1d1a7c) Bump graphql-java-extended-scalars from 18.0 to 18.1 (#2669) 
+ * [view commit](https://github.com/yahoo/elide/commit/0602ae73e28a0733b8d0fd77990d6754993bc394) Bump groovy.version from 3.0.10 to 3.0.11 (#2670) 
+ * [view commit](https://github.com/yahoo/elide/commit/a01f79633bee592f4cce5c31d8adaba62974553c) Bump checkstyle from 10.2 to 10.3 (#2671) 
+ * [view commit](https://github.com/yahoo/elide/commit/0cac28a628c89f5c2ae60dd3c7f77a7833d8e3fb) Bump artemis-jms-client-all from 2.21.0 to 2.22.0 (#2672) 
+ * [view commit](https://github.com/yahoo/elide/commit/6175753e11e39cadf5075eec72e16dee4c0f23c1) Bump classgraph from 4.8.146 to 4.8.147 (#2673) 
+
+## 6.1.5
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/d7b8635bcba15ce8103e0cebd42ee6825dfa982d) Aggregation store dynamic table sql (#2626) 
+ * [view commit](https://github.com/yahoo/elide/commit/abb32869ab0e97b8ceaa1bd61b53c579b4ca1c65) Header filtering config (#2627) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/c8dd203ff2dd7aa772c25f66b85b694d428ead08) Bump h2 from 2.1.210 to 2.1.212 (#2606) 
+ * [view commit](https://github.com/yahoo/elide/commit/18df59e522559aa6f9329c2127096ab3c8c8bb9e) Fixes #2615 (#2616) 
+ * [view commit](https://github.com/yahoo/elide/commit/2aa70c7433ff601eeb94711175d0c7fe5cb08c43) Removed unnecessary conversion to JsonNode when serializing JSON-API … (#2618) 
+ * [view commit](https://github.com/yahoo/elide/commit/6a5f8bc3d6eba21182f3eafa5c2b996492430091) Bump spring-core from 5.3.18 to 5.3.19 (#2609) 
+ * [view commit](https://github.com/yahoo/elide/commit/e15ec1cbb44ac64a4b2ee13798a60cf398ed81ec) Bump spring-websocket from 5.3.18 to 5.3.19 (#2611) 
+ * [view commit](https://github.com/yahoo/elide/commit/7dca40789acb914af4ba8c9c5ea287b819dd7cd8) Bump classgraph from 4.8.143 to 4.8.146 (#2610) 
+ * [view commit](https://github.com/yahoo/elide/commit/ec67bf5cda12410178ada8064faf28e2a936cfc9) Bump lombok from 1.18.22 to 1.18.24 (#2614) 
+ * [view commit](https://github.com/yahoo/elide/commit/9d5b98b5d41e8676f149ce1669d1826b766acd1b) fix: support big number aggregations (#2628) 
+ * [view commit](https://github.com/yahoo/elide/commit/c0a05167ad9caa5b1a55dfac08f4664805825e4c) Bump maven-javadoc-plugin from 3.3.2 to 3.4.0 (#2623) 
+ * [view commit](https://github.com/yahoo/elide/commit/35edc6b4b61060e64c428cdbaa8089eec3e5bee6) Bump jedis from 4.2.1 to 4.2.2 (#2621) 
+ * [view commit](https://github.com/yahoo/elide/commit/625e0eb638fc099472607532b46caaef59e30c64) Bump hibernate5.version from 5.6.7.Final to 5.6.8.Final (#2613) 
+ * [view commit](https://github.com/yahoo/elide/commit/818f959ecff6d493942a12923eaac436ef9d16cd) Bump maven-site-plugin from 3.11.0 to 3.12.0 (#2629) 
+ * [view commit](https://github.com/yahoo/elide/commit/f6d3b687dc287623cfcf19254a7c166f467866f4) Bump micrometer-core from 1.8.4 to 1.8.5 (#2624) 
+ * [view commit](https://github.com/yahoo/elide/commit/263beb90c0ea2270937fc7429ba44735fa3b84cb) Bump spring.boot.version from 2.6.6 to 2.6.7 (#2631) 
+ * [view commit](https://github.com/yahoo/elide/commit/d8e2a86e0793724714c606ea43ec07a9292db636) Bump graphql-java-extended-scalars from 17.0 to 18.0 (#2630) 
+ * [view commit](https://github.com/yahoo/elide/commit/e4e14fdcf219d557ff71c6bf3cfedeaa2ef84f9e) Bump nexus-staging-maven-plugin from 1.6.12 to 1.6.13 (#2634) 
+ * [view commit](https://github.com/yahoo/elide/commit/886262b597e64bc4e03c057cd0843f717fffd8e1) Bump mockito-junit-jupiter from 4.4.0 to 4.5.1 (#2633) 
+ * [view commit](https://github.com/yahoo/elide/commit/dca470023c7a34a5d0b5d4dfd969493c0fccdb1b) Bump checkstyle from 10.1 to 10.2 (#2635) 
+ * [view commit](https://github.com/yahoo/elide/commit/7762d7f09e02a24b2c1ccb302c6a6f6c734c5512) Bump dependency-check-maven from 7.0.4 to 7.1.0 (#2636) 
+
+## 6.1.4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/e94d36ad948a540f7a45af858b7b44d554f8656a) Bump spring-core from 5.3.16 to 5.3.18 in /elide-model-config (#2572) 
+   * [view commit](https://github.com/yahoo/elide/commit/aec37097a746370ff66b4f61179b6e6934be4d32) Revert "Update: Make `-` a valid TEXT value type character (#2565)" (#2581) 
+   * [view commit](https://github.com/yahoo/elide/commit/95f94a9c32b3ef666134f33954118a846ec6acde) Bumping Spring to work around CVE (#2583) 
+   * [view commit](https://github.com/yahoo/elide/commit/78fe93d45db5300760a1f82be0acd733d442c162) Added explicit tests for SQL comment dependency injection for Aggregation Store. (#2582) 
+   * [view commit](https://github.com/yahoo/elide/commit/95f183de6c3a72b6101f734790b8ef11a73d25f0) Bump version.logback from 1.2.10 to 1.2.11 (#2580) 
+   * [view commit](https://github.com/yahoo/elide/commit/d840018519a560a3cdff463753b29ace42a14c8f) Bump artemis-jms-client-all from 2.20.0 to 2.21.0 (#2578) 
+   * [view commit](https://github.com/yahoo/elide/commit/1c5d17363d7802ff1f2f2297aac1bd5247f26b45) Bump spring-websocket from 5.3.16 to 5.3.18 (#2573) 
+   * [view commit](https://github.com/yahoo/elide/commit/ba0202fceecb20dfb9657344d500581d5ca1d09c) Bump guava from 31.0.1-jre to 31.1-jre (#2577) 
+   * [view commit](https://github.com/yahoo/elide/commit/5b741bdfe6e63eae8f6393d04acd609e0f8891f6) Bump maven-surefire-plugin from 3.0.0-M5 to 3.0.0-M6 (#2579) 
+   * [view commit](https://github.com/yahoo/elide/commit/28f3be8d6bf08d4a71e6309d5a1aaacb1c584314) Bump version.jetty from 9.4.45.v20220203 to 9.4.46.v20220331 (#2576) 
+   * [view commit](https://github.com/yahoo/elide/commit/a78159a6fea97bb9dfdf54d9cc532d4357d4e2c9) Bump swagger-core from 1.6.5 to 1.6.6 (#2587) 
+   * [view commit](https://github.com/yahoo/elide/commit/284597a59355afee97d612a0609be63227a2f737) Bump log4j-api from 2.17.1 to 2.17.2 (#2588) 
+   * [view commit](https://github.com/yahoo/elide/commit/90e6f1aa230efeedb34fe3e2d715ae8884e756b5) Bump calcite-core from 1.29.0 to 1.30.0 (#2586) 
+   * [view commit](https://github.com/yahoo/elide/commit/58dcf77e1fba9df8b36d0b03fc5469090a46a2f3) Bump metrics.version from 4.2.8 to 4.2.9 (#2585) 
+   * [view commit](https://github.com/yahoo/elide/commit/106b3e19ef2888ce3b300f76b65d0a33c3740425) Bump checkstyle from 9.3 to 10.1 (#2589) 
+   * [view commit](https://github.com/yahoo/elide/commit/a9e6d6d7877e4e9f7f13b8b44ced26f2c26241da) Bump graphql-java from 17.3 to 18.0 (#2592) 
+   * [view commit](https://github.com/yahoo/elide/commit/ab3afd37c594c6b3ccd68e095fcd150227892585) Bump jacoco-maven-plugin from 0.8.7 to 0.8.8 (#2593) 
+   * [view commit](https://github.com/yahoo/elide/commit/925b02523bd784c3fc02c11f31684f9927055bec) Bump dependency-check-maven from 6.5.3 to 7.0.4 (#2591) 
+   * [view commit](https://github.com/yahoo/elide/commit/38827720a6824b9a10532610b6aca41a78dd5ff3) Bump artemis-jms-server from 2.20.0 to 2.21.0 (#2590) 
+   * [view commit](https://github.com/yahoo/elide/commit/acee8737a326dd4573ae4154582dc391b02c5eb7) Bump version.restassured from 4.4.0 to 5.0.1 (#2584) 
+   * [view commit](https://github.com/yahoo/elide/commit/b9ad7bf4b3097ba840230bb184733ba4eb06256b) Bump classgraph from 4.8.139 to 4.8.143 (#2598) 
+   * [view commit](https://github.com/yahoo/elide/commit/15660637f034bd357d8216de983933cfb7b658ed) Bump mockito-junit-jupiter from 4.3.1 to 4.4.0 (#2597) 
+   * [view commit](https://github.com/yahoo/elide/commit/52d407fb6b946676f013ab8a19f182e02d05b5cf) Bump mockito-core from 4.3.1 to 4.4.0 (#2594) 
+   * [view commit](https://github.com/yahoo/elide/commit/f585b6a212a7a9364a63b994419c30a7eb637e7a) Bump caffeine from 3.0.5 to 3.0.6 (#2595) 
+   * [view commit](https://github.com/yahoo/elide/commit/880e88a4ca5234ee9b4b94924000542072dbfc99) Bump artemis-server from 2.20.0 to 2.21.0 (#2600) 
+   * [view commit](https://github.com/yahoo/elide/commit/2f4912f96ff518727e68d91d0abcadf4de9b9161) Bump jedis from 4.1.1 to 4.2.1 (#2599) 
+   * [view commit](https://github.com/yahoo/elide/commit/1f1a58e4b19a93bb38a01699e4d8a4cd6ff8ab4f) Bump jackson-databind from 2.13.2.1 to 2.13.2.2 (#2603) 
+   * [view commit](https://github.com/yahoo/elide/commit/bfcabe310e29691b6ce87c88cd75165c72952987) Bump maven-compiler-plugin from 3.10.0 to 3.10.1 (#2602) 
+   * [view commit](https://github.com/yahoo/elide/commit/f872d11a8b12bbcf28f42327813981de7325b4a6) Bump micrometer-core from 1.8.3 to 1.8.4 (#2596) 
+   * [view commit](https://github.com/yahoo/elide/commit/a2578aa8eeb4ba218eaaddb45f57b9b2e15c072d) Fixes #2601 (#2604) 
+
+## 6.1.3
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/1a644f6f5afec9f0de8dbf89a56006d9f5b3058a) Bump log4j-to-slf4j from 2.17.1 to 2.17.2 (#2560) 
+ * [view commit](https://github.com/yahoo/elide/commit/d2c906859486a1837ebca6add7d7ec881380b9ea) Bump version.jackson from 2.12.5 to 2.13.1 (#2527) 
+ * [view commit](https://github.com/yahoo/elide/commit/588b69f120c8e914da4becc3f8b83b4d8b71d92e) Update: Make `-` a valid TEXT value type character (#2565) 
+ * [view commit](https://github.com/yahoo/elide/commit/5b7051da2a0cc9b97b2dd29c5b95a04a794a6901) Bump spring.boot.version from 2.6.3 to 2.6.5 (#2566) 
+ * [view commit](https://github.com/yahoo/elide/commit/5e67e547d60483696508e2e90460eee21c391491) Fix graphiql comment bug and config store issues creating multiple files in a single request. (#2571) 
+ * [view commit](https://github.com/yahoo/elide/commit/14ae1c4f31914f44ac3f347a80235947da3231f7) Bump jackson-databind from 2.13.2 to 2.13.2.1 (#2569) 
+ * [view commit](https://github.com/yahoo/elide/commit/78c636ed19e57a98e84243689dcf6f14c054681d) Bump hibernate5.version from 5.6.5.Final to 5.6.7.Final (#2568) 
+ * [view commit](https://github.com/yahoo/elide/commit/cf3bbfed579710352e4501487f7939a162a13c9c) Bump groovy.version from 3.0.9 to 3.0.10 (#2567) 
+ * [view commit](https://github.com/yahoo/elide/commit/507ba6ced3ef2ef68c484541481f9c5b7499f342) Bump nexus-staging-maven-plugin from 1.6.11 to 1.6.12 (#2559) 
+ * [view commit](https://github.com/yahoo/elide/commit/c7d44ce56eee1f0dced6afc1520fd93309614f6e) Bump spring-cloud-context from 3.1.0 to 3.1.1 (#2557) 
+
+## 6.1.2
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/1355701e30f63ba7332e4b77efdf5166e21a3e61) Bump json-path from 2.6.0 to 2.7.0 (#2531) 
+   * [view commit](https://github.com/yahoo/elide/commit/1d105705f533d40b55469f3b6836935995e982b5) Ignoring Elide models embedded in complex attributes (#2535) 
+   * [view commit](https://github.com/yahoo/elide/commit/76a45fc895901fa212883e88a9be29fdad894b7c) Bump version.jetty from 9.4.44.v20210927 to 9.4.45.v20220203 (#2534) 
+   * [view commit](https://github.com/yahoo/elide/commit/0d1be94716765581ab230b5b1d77906d3882b283) Bump jedis from 4.1.0 to 4.1.1 (#2530) 
+   * [view commit](https://github.com/yahoo/elide/commit/73d2ce87b2af2a0dd2c4ad800030724d76f085e0) Bump mockito-core from 4.2.0 to 4.3.1 (#2518) 
+   * [view commit](https://github.com/yahoo/elide/commit/7367573a0aba833d1e1415b3ce74088e7ad695f0) Bump mockito-junit-jupiter from 4.2.0 to 4.3.1 (#2517) 
+   * [view commit](https://github.com/yahoo/elide/commit/72954a50f4f1e02cb257f9e7224491f1b3bef7a5) Bump spring.boot.version from 2.6.2 to 2.6.3 (#2510) 
+   * [view commit](https://github.com/yahoo/elide/commit/8a0cc1d198eb36d2e5681c44143230a969745534) Bump spring-cloud-context from 3.0.4 to 3.1.0 (#2512) 
+   * [view commit](https://github.com/yahoo/elide/commit/6409cb61e9555c6331f7e1b353456a0a11c51962) Bump classgraph from 4.8.138 to 4.8.139 (#2541) 
+   * [view commit](https://github.com/yahoo/elide/commit/b2c48a1dad67b1dbf28c80c4a9286360ea52ec91) Bump metrics.version from 4.2.7 to 4.2.8 (#2540) 
+   * [view commit](https://github.com/yahoo/elide/commit/cb3d4c05f60828757e239f75be13793d52841cbc) Bump maven-compiler-plugin from 3.9.0 to 3.10.0 (#2542) 
+   * [view commit](https://github.com/yahoo/elide/commit/a91983785f2f7c87857d13e5e64a00dd45a6c7f9) Bump log4j-over-slf4j from 1.7.35 to 1.7.36 (#2547) 
+   * [view commit](https://github.com/yahoo/elide/commit/d3377acdd7dd94f0919f305c3f19a5851ea1f342) Bump checkstyle from 9.2.1 to 9.3 (#2546) 
+   * [view commit](https://github.com/yahoo/elide/commit/a7f654cd10b74d452a08e6a9c12cdf7239eb3acc) Bump swagger-core from 1.6.4 to 1.6.5 (#2549) 
+   * [view commit](https://github.com/yahoo/elide/commit/43db0ba55f34e0052ac264fe95e676d4e3463d0d) Bump maven-javadoc-plugin from 3.3.1 to 3.3.2 (#2544) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc1855fee8f236ffbdd90c21a30c8b15fe5f6d59) Bump nexus-staging-maven-plugin from 1.6.8 to 1.6.11 (#2548) 
+   * [view commit](https://github.com/yahoo/elide/commit/dfa92a6b48532ce43a5518eefb57df19d73385de) Bump micrometer-core from 1.8.2 to 1.8.3 (#2545) 
+   * [view commit](https://github.com/yahoo/elide/commit/ecce96462be68acbf95f3ba73f0c8ba3d46ed9a1) Bump maven-site-plugin from 3.10.0 to 3.11.0 (#2543) 
+   * [view commit](https://github.com/yahoo/elide/commit/8d70b62b4650b9c7c9d6dd7276306301dca5839d) Bump spring-websocket from 5.3.15 to 5.3.16 (#2553) 
+   * [view commit](https://github.com/yahoo/elide/commit/4b31a018ec4abac13cf9238f78e585857c465195) Bump gson from 2.8.9 to 2.9.0 (#2552) 
+   * [view commit](https://github.com/yahoo/elide/commit/3c5932522440ea4e0298e55bbb8eebfdd5a06ba6) Bump slf4j-api from 1.7.35 to 1.7.36 (#2550) 
+   * [view commit](https://github.com/yahoo/elide/commit/69056c88fa6dbb13de0a667f5c50defcdc34093d) Bump spring-core from 5.3.15 to 5.3.16 (#2554) 
+
+## 6.1.1
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/6646ce31a465a6648dcb74fb96aeb5c6d39a22bc) Redis Cache for Aggregation Store (#25
+   * [view commit](https://github.com/yahoo/elide/commit/df5d023f43876264b63fd3becfbff57a4e889789) Redis Result Storage Engine (#2507)   
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/9c9d4ca1fa15047e24fffcf2a7e0e7a9a46e6791) Disabling subscription scanning throug
+h application yaml in Spring. (#2521)                                                                                                    
+   * [view commit](https://github.com/yahoo/elide/commit/c038599b4f4d1d7b9a688365e0157425daf19c5b) Bump h2 from 2.0.206 to 2.1.210 (#2508
+)                                                                                                                                        
+   * [view commit](https://github.com/yahoo/elide/commit/3e69dabdd9479a8c070b811299ab535f5ba7a1db) Bump hibernate5.version from 5.6.1.Fin
+al to 5.6.5.Final (#2516)                                                                                                                
+   * [view commit](https://github.com/yahoo/elide/commit/75db2ed70dc6f00368a626d3e2bde584699c8fc1) Bump log4j-over-slf4j from 1.7.33 to 1
+.7.35 (#2522)                                                                                                                            
+                                                                                                                                 
+   * [view commit](https://github.com/yahoo/elide/commit/b932cbcba8c9ba993a4fe5b3f859d5691fd976b4) Bump guice from 5.0.1 to 5.1.0 (#2523)
+                                                                                                                                         
+   * [view commit](https://github.com/yahoo/elide/commit/fd2ab7709a90f183ee09cbbec6628af49c003ef5) Bump jedis from 4.0.1 to 4.1.0 (#2525)
+                                                                                                                                         
+   * [view commit](https://github.com/yahoo/elide/commit/d53275d1fb55de45a62269f39e97f0cdd76b573e) Bump slf4j-api from 1.7.33 to 1.7.35 (
+#2519)                                                                                                                                   
+   * [view commit](https://github.com/yahoo/elide/commit/d0552c5750608391d52e3e3286469901726a7d06) Support filters on query plans (#2526)
+
+## 6.1.0
+Minor release update for partial support for Elide configuration being 'refreshable' in Spring for a live service.  Advanced users overriding some beans may require compilation changes.  
+
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/c38eb980af7f953202cb53faaed14595d3709ed9) Refresh scope beans (#2409) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/833ea32e4a793bd1c7da1d1ad73417c216b1191a) [maven-release-plugin] prepare for nex
+t development iteration 
+   * [view commit](https://github.com/yahoo/elide/commit/7a3552d76f8887ab62a60a968412ca442bf745a1) make getColumnProjection() method use 
+different name for column Id for different source when alias are involved (#2500) 
+   * [view commit](https://github.com/yahoo/elide/commit/4c9bff306e4d0d0f9644c705a241edc7104cc1fe) Bump h2 from 2.0.202 to 2.0.206 (#2476
+) 
+   * [view commit](https://github.com/yahoo/elide/commit/c68b44abdf0b7465695f3fbc347cf3c044f4f1d5) Bump micrometer-core from 1.8.1 to 1.8
+.2 (#2505) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc8d202e113eaa319c2922e86d86d4a8eab31b41) Bump spring-core from 5.3.14 to 5.3.15
+ (#2504) 
+   * [view commit](https://github.com/yahoo/elide/commit/df1dfca185d72ce383b84d5ee803534d7ca16dd3) Bump spring-websocket from 5.3.14 to 5
+.3.15 (#2503) 
+   * [view commit](https://github.com/yahoo/elide/commit/2059c44511bdc4294dd5667baa7c0eed19bc0075) Bump slf4j-api from 1.7.32 to 1.7.33 (
+#2502) 
+   * [view commit](https://github.com/yahoo/elide/commit/5718774759f42be1b6b4f34c962d2b64457c3193) Bump log4j-over-slf4j from 1.7.32 to 1
+.7.33 (#2501) 
+
+## 6.0.7
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/7a3552d76f8887ab62a60a968412ca442bf745a1) make getColumnProjection() method use different name for column Id for different source when alias are involved (#2500) 
+   * [view commit](https://github.com/yahoo/elide/commit/4c9bff306e4d0d0f9644c705a241edc7104cc1fe) Bump h2 from 2.0.202 to 2.0.206 (#2476) 
+
+## 6.0.6
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/4caaae234214edf6a61bea57531de79520604d54) File Extension Support for Export Attachments (#2475) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/93baacfea6628cc724b7fb880326a702651b939b) Make CacheKey Unique for same model name across namespaces (#2477) 
+   * [view commit](https://github.com/yahoo/elide/commit/c38857cd07318d5f09b9b087056d627ab01bf156) Cleanup code warnings (#2473) 
+   * [view commit](https://github.com/yahoo/elide/commit/ca46fc6726ed161767d46e1060566ca234cdec5e) Bump build-helper-maven-plugin from 3.2.0 to 3.3.0 (#2481) 
+   * [view commit](https://github.com/yahoo/elide/commit/0f0e94b66532890d4f2ed9f7f34bf7499192d73d) Bump HikariCP from 5.0.0 to 5.0.1 (#2484) 
+   * [view commit](https://github.com/yahoo/elide/commit/c8e3aad63bbdef64c32baf9c538f66e298e1e19a) Bump checkstyle from 9.2 to 9.2.1 (#2485) 
+   * [view commit](https://github.com/yahoo/elide/commit/d13c7b78872df5d4ed7c083dd3883502d4133d8c) Bump maven-site-plugin from 3.9.1 to 3.10.0 (#2480) 
+   * [view commit](https://github.com/yahoo/elide/commit/a5f46a0bb816ab57c43c9b9535d9fd2b8aeb088f) Bump maven-scm-api from 1.12.0 to 1.12.2 (#2479) 
+   * [view commit](https://github.com/yahoo/elide/commit/adb52de7d01eac1e53174d6b7fdc872b7bc81b92) Bump wagon-ssh-external from 3.4.3 to 3.5.1 (#2478) 
+   * [view commit](https://github.com/yahoo/elide/commit/fd9ebf4ffa3a625df38840df723ac1c43605eea9) Bump artemis-jms-client-all from 2.19.0 to 2.20.0 (#2482) 
+   * [view commit](https://github.com/yahoo/elide/commit/e090ab5ed5344760d6239c680515f203548c1596) use alias to get column projection in query plan translator and while nesting projection (#2493) 
+   * [view commit](https://github.com/yahoo/elide/commit/7bf5de6d098acb36b60d40619d35a536cfe1a4ee) Aggregation Store: Fix filter by alias with parameterized metric. (#2494) 
+   * [view commit](https://github.com/yahoo/elide/commit/7f7d029924799a40b07e60f6aaead95cade0136d) Bump maven-jar-plugin from 3.2.0 to 3.2.1 (#2492) 
+   * [view commit](https://github.com/yahoo/elide/commit/8ec4c15d5c04670d364925f390ac1eff6f5bbf3f) Bump log4j-to-slf4j from 2.17.0 to 2.17.1 (#2487) 
+   * [view commit](https://github.com/yahoo/elide/commit/5dcf985d17c967c8882eb23e72a1d1764f53e7dd) Bump swagger-core from 1.6.3 to 1.6.4 (#2488) 
+   * [view commit](https://github.com/yahoo/elide/commit/faf7c68aaf907d2601a0151e7723580369280883) Bump mockito-junit-jupiter from 4.1.0 to 4.2.0 (#2496) 
+   * [view commit](https://github.com/yahoo/elide/commit/5e337f4f3e28642e08daa971b567926594a5f10e) Bump artemis-server from 2.19.0 to 2.20.0 (#2495) 
+   * [view commit](https://github.com/yahoo/elide/commit/493d048bc23c3fdd5029d6db2ff92f84f4368902) Bump artemis-jms-server from 2.19.0 to 2.20.0 (#2491) 
+   * [view commit](https://github.com/yahoo/elide/commit/a074e01864cc7834766e3571e60e0a4c5a15a008) Bump system-lambda from 1.2.0 to 1.2.1 (#2490) 
+   * [view commit](https://github.com/yahoo/elide/commit/d3bb5583a78fcbea62279cb2fb7c99b7da1ac9c6) Bump maven-scm-provider-gitexe from 1.12.0 to 1.12.2 (#2489) 
+   * [view commit](https://github.com/yahoo/elide/commit/1fc1935a940bdcdb8d6b8d6bb17de95e8469b8d5) Bump maven-compiler-plugin from 3.8.1 to 3.9.0 (#2497) 
+   * [view commit](https://github.com/yahoo/elide/commit/104dd73fdba0237a30939764f7267744227e573a) Bump dependency-check-maven from 6.5.2 to 6.5.3 (#2499) 
+   * [view commit](https://github.com/yahoo/elide/commit/35cb0d02603445ca9997bcef5e8085486040d4b4) Bump maven-jar-plugin from 3.2.1 to 3.2.2 (#2498) 
+   * [view commit](https://github.com/yahoo/elide/commit/5d9ce37e2f15a2703f530e83bf9a52eb0632ae6d) Bump calcite-core from 1.28.0 to 1.29.0 (#2483) 
+
+## 6.0.5
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/af4fdc3e859f9737b992f231a857793c912d3039) bump log4j2 (#2460) 
+   * [view commit](https://github.com/yahoo/elide/commit/16384c094b1974e293dc1f33d6330a6b0ac5821a) Use GraphqlBigDecimal for BigDecimal conversion (#2464) 
+   * [view commit](https://github.com/yahoo/elide/commit/6b2b60098436a3dd7db03697ffd4717122fa3bf6) use query with filter to populate query parameters in pagination (#2466) 
+   * [view commit](https://github.com/yahoo/elide/commit/ad03655829b88f6375b95d757be8abc0dbed4fd5) Bump spring-core from 5.3.13 to 5.3.14 (#2456) 
+   * [view commit](https://github.com/yahoo/elide/commit/9a4849d738692723c45dda410587b3e8c1be897a) Bump h2 from 1.4.200 to 2.0.202 (#2427) 
+   * [view commit](https://github.com/yahoo/elide/commit/865d5ac4c2006a8ac998082edbbd14844a375f8a) Bump log4j-api from 2.17.0 to 2.17.1 (#2468) 
+   * [view commit](https://github.com/yahoo/elide/commit/e0b40a7bb8255075d411bf6131ecd2c72f06dbb3) Bump log4j-api from 2.17.0 to 2.17.1 in /elide-spring (#2467) 
+   * [view commit](https://github.com/yahoo/elide/commit/a62df30e3a47af7c4657e8791e01c5403536d9d9) Bump metrics.version from 4.2.5 to 4.2.7 (#2455) 
+   * [view commit](https://github.com/yahoo/elide/commit/cea09b700eec6f45d361ebe9d32ed19e2949cba0) Bump dependency-check-maven from 6.5.0 to 6.5.2 (#2463) 
+   * [view commit](https://github.com/yahoo/elide/commit/6aac9bd0b2ceb2e06dfe1ee7b203fb186a4800db) Bump spring-websocket from 5.3.13 to 5.3.14 (#2461) 
+   * [view commit](https://github.com/yahoo/elide/commit/307f29ba0ac68533f45b2c66f96a5fd0cc7edb8b) Bump mockito-core from 4.1.0 to 4.2.0 (#2458) 
+   * [view commit](https://github.com/yahoo/elide/commit/7ca2d6d204550d2a0498d7ddd67b406620aae69b) jersey to 2.35 (#2472) 
+   * [view commit](https://github.com/yahoo/elide/commit/d554658425300df2210df1e67110f0b7588633e0) Enable lifecycle, check, and other entity scans by default for Spring. (#2470) 
+   * [view commit](https://github.com/yahoo/elide/commit/b931b4d5b2fb5a1ce4040762fc22f2df9f8d30eb) Disallow ConfigFile path to be changed in ConfigStore (#2471) 
+
+## 6.0.4
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/5e9c1d7ff097ec3143de5ab7b20d5bafcf4ff0b0) Fixing #137 (#2433) 
+   * [view commit](https://github.com/yahoo/elide/commit/de351f391f51d0d8a7586e9384c9f2657743a66f) Fixes #2263.  JSON-API json processing errors will now return a 400 i… (#2434) 
+   * [view commit](https://github.com/yahoo/elide/commit/ac520d61915aa77253fd69cee3c5713da85ede77) Bump caffeine from 3.0.4 to 3.0.5 (#2435) 
+   * [view commit](https://github.com/yahoo/elide/commit/1cce9a9c4d9d29ab29638e7297000a604954eabb) Bump jetty-webapp from 9.4.43.v20210629 to 9.4.44.v20210927 (#2436) 
+   * [view commit](https://github.com/yahoo/elide/commit/35ba78e82f7e230b5c8d3818ab67df7606e65f29) Fixes #2438 (#2441) 
+   * [view commit](https://github.com/yahoo/elide/commit/a4f89601fb6acc03e6a3a0e0b29d8412e733eb77) Bump metrics.version from 4.2.4 to 4.2.5 (#2442) 
+   * [view commit](https://github.com/yahoo/elide/commit/bd16677ae47419004707f5a7356aa952315c2746) Bump classgraph from 4.8.137 to 4.8.138 (#2445) 
+   * [view commit](https://github.com/yahoo/elide/commit/469fe23e1bc9c8c6639c8df083472f437a69d1ae) Issue608 (#2446) 
+   * [view commit](https://github.com/yahoo/elide/commit/8e1563b2e4abde911563b69a6b5a37ca6361d3a5) Bump micrometer-core from 1.8.0 to 1.8.1 (#2444) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc7b13da0aa6f276c034325be51793f6d6b866c0) Bump httpcore from 4.4.14 to 4.4.15 (#2443) 
+   * [view commit](https://github.com/yahoo/elide/commit/9e2ff4727fbb11947d55536f59409b2e80766290) Resolves #2447 (#2448) 
+   * [view commit](https://github.com/yahoo/elide/commit/2ad81220c9eecb5c009653d72b3204706200d03a) AsyncQueryOperation: fix index out of bounds error for empty list (#2449) 
+   * [view commit](https://github.com/yahoo/elide/commit/0f2187a533022c3847f2bc744d4e1bd6f03e2595) Spaces in physical column name (#2450) 
+
+## 6.0.3
+
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/54cdcb9fe67225cd463e1bf9357f0e1d2a42c152) Experimental HJSON Configuration Models and DataStore (#2418) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/38b030daa701f205215b56199705f3d689726527) Fix issue with Enum types in Aggregation Store filters (#2422) 
+   * [view commit](https://github.com/yahoo/elide/commit/21bf8717330d499fcb5baadadb6012c64f84062f) Bump mockito-core from 4.0.0 to 4.1.0 (#2421) 
+   * [view commit](https://github.com/yahoo/elide/commit/e2fcd71b026d3d3a2c207dd48941e38de945f290) Bump spring-websocket from 5.3.12 to 5.3.13 (#2412) 
+   * [view commit](https://github.com/yahoo/elide/commit/1444c00ca7fb2560d38358e01426dfd2eb20350b) Bump version.logback from 1.2.6 to 1.2.7 (#2415) 
+   * [view commit](https://github.com/yahoo/elide/commit/88648be470fc881b1a7019becb141c7ffb78b143) Bump spring-core from 5.3.12 to 5.3.13 (#2416) 
+   * [view commit](https://github.com/yahoo/elide/commit/aae18e32063a48d8b5fb7941becf3ddc6d814430) Bump version.junit from 5.8.1 to 5.8.2 (#2424) 
+   * [view commit](https://github.com/yahoo/elide/commit/a4a796bc72a7b60f145828bee9a3cabc6b9926c1) Bump classgraph from 4.8.132 to 4.8.137 (#2425) 
+   * [view commit](https://github.com/yahoo/elide/commit/a3da66f290a9e68f3e934eec890d479996f772b2) Bump checkstyle from 9.1 to 9.2 (#2426) 
+   * [view commit](https://github.com/yahoo/elide/commit/63b4863f97f621b5b3ccd726f7129b61342566d3) Bump dependency-check-maven from 6.4.1 to 6.5.0 (#2413) 
+   * [view commit](https://github.com/yahoo/elide/commit/d8050f843f8bb392eac26c454de63ab92264184a) Bump junit-platform-commons from 1.8.1 to 1.8.2 (#2429) 
+   * [view commit](https://github.com/yahoo/elide/commit/d2a0749a4903060d8bc064701758d3cfa693da9e) Bump junit-platform-launcher from 1.8.1 to 1.8.2 (#2430) 
+   * [view commit](https://github.com/yahoo/elide/commit/6a14913ac606860b713f332c91701bd66c553bb0) Bump micrometer-core from 1.7.5 to 1.8.0 (#2414) 
+   * [view commit](https://github.com/yahoo/elide/commit/9f4fd01e2c66e9e5a48cc5d79061ad8afb6c9930) Bump spring.boot.version from 2.5.6 to 2.6.1 (#2423) 
+   * [view commit](https://github.com/yahoo/elide/commit/decae2e5d7fb0ad44304af2b4a05c83ba26a809e) Bump mockito-junit-jupiter from 4.0.0 to 4.1.0 (#2428) 
+   * [view commit](https://github.com/yahoo/elide/commit/c8b79396be2432782911c385ec73d0c623a03c72) Security Fix: #147 (#2431) 
+   * [view commit](https://github.com/yahoo/elide/commit/6919c75bf8dd364267ff6e738166cc5d401d0412) Removing extra System.out from test.
+
+## 6.0.2
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/cc3b1f7edb491d5abfafaa2b2b1e0f3b7caa36bc) Aggregation Store: Arguments should require default values. (#2403) 
+   * [view commit](https://github.com/yahoo/elide/commit/113e7f2e821fb83eeb2915e61c42b81ee659db67) Added IT test for Hibernate Type annotation. (#2404) 
+   * [view commit](https://github.com/yahoo/elide/commit/b7712fc3d8860ab4c564d9cdea65334cfdc7f444) Bump classgraph from 4.8.129 to 4.8.130 (#2406) 
+   * [view commit](https://github.com/yahoo/elide/commit/ab97e119b0c88bf37dac9be38c03cb923173da22) Bump version.antlr4 from 4.9.2 to 4.9.3 (#2405) 
+   * [view commit](https://github.com/yahoo/elide/commit/c8266c116bb3dbd322cfefe86ea23c6320c6b9a8) Fixes async API resultset premature closure (#2410) 
+   * [view commit](https://github.com/yahoo/elide/commit/5f2dc6c29ee678eaf1c89a18e5a4a9abc41bfe37) Bump classgraph from 4.8.130 to 4.8.132 (#2417) 
+   
+## 6.0.1
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/85a20be1bd489054abcc5f4c7ed3314d3b0dd03a) Fixing bug where Hibernate is not detecting updates to complex attrib… (#2402) 
+   * [view commit](https://github.com/yahoo/elide/commit/2e5b5efafc9262dbf815fd492eee5e89cf0151fa) Bump mockito-junit-jupiter from 3.12.4 to 4.0.0 (#2398) 
+   
+## 6.0.0
+**Overview**
+
+Official Elide 6 Release.  Elide 6 is compiled with Java 11 (as opposed to 8).  GraphQL subscription support has been added.  Other changes since Elide 5 are summarized here [here](https://elide.io/pages/guide/v6/17-migration.html).
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/3d6107a429a60bb273675eb55aec35c4387f5636) Lifecycle events should trigger once for relationship updates (#2389) 
+   * [view commit](https://github.com/yahoo/elide/commit/7fcbc3ec80fb40bf267cd3a33074dce8e5d8e10b) Added a few additional tests around updating relationships (#2391) 
+   * [view commit](https://github.com/yahoo/elide/commit/e2c15ca498e105b501d63c7d295deeb80c61ab73) Bump gson from 2.8.8 to 2.8.9 (#2394) 
+   * [view commit](https://github.com/yahoo/elide/commit/3939bc4f1fdae70dd3cb8a92f962be544b81f39c) Bump classgraph from 4.8.128 to 4.8.129 (#2396) 
+   * [view commit](https://github.com/yahoo/elide/commit/27d2e82bbcd79d197265b6e7dd976344f02e43ed) Bump checkstyle from 9.0.1 to 9.1 (#2395) 
+   * [view commit](https://github.com/yahoo/elide/commit/5a63aad4d642d63fb8a398c31700b19eb4e3669f) Bump version.junit from 5.7.2 to 5.8.1 (#2326) 
+   * [view commit](https://github.com/yahoo/elide/commit/868f08abb047012f0bc08e1693a7b7cef8a273f0) Bump mockito-junit-jupiter from 3.12.1 to 3.12.4 (#2282) 
+   * [view commit](https://github.com/yahoo/elide/commit/4ce344f9bc00daddae70d77a6a5a6d1642de832b) Issue2376 (#2393) 
+
+## 6.0.0-pr7
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f652404f0a26657addc821e911a6c61f8159a500) Only check preflush hooks for GraphQL mutations (#2371) 
+   * [view commit](https://github.com/yahoo/elide/commit/1bec9a04edb9917b34a9d168a3bec98f04fa8cad) Changing to Create Preflush (#2379) 
+   * [view commit](https://github.com/yahoo/elide/commit/6a54e45f4e0ebd214003a169b7eaa7244051d366) Sort in memory for computed properties (#2380) 
+   * [view commit](https://github.com/yahoo/elide/commit/5026c6bed03affed67f395a6bb9e4b6206dc62e5) Removing READ life cycle hooks. (#2381)
+   * [view commit](https://github.com/yahoo/elide/commit/844329422ed1edbcc563222b7e58c2ff861dd503) Adding test for #2376 (#2378) 
+   * [view commit](https://github.com/yahoo/elide/commit/fa377c038f5f1bfd11bbd26d6a16a1691afd91e5) Bump spring-core from 5.3.9 to 5.3.12 (#2375) 
+   * [view commit](https://github.com/yahoo/elide/commit/bcff59867ec1d1d36cd696fca34ad1df66088f59) Bump mockito-core from 3.12.4 to 4.0.0 (#2369) 
+   * [view commit](https://github.com/yahoo/elide/commit/4598a96a3c67f3ba1ace62e9daa35aaf7dd0cb32) Bump maven-javadoc-plugin from 3.3.0 to 3.3.1 (#2298) 
+   * [view commit](https://github.com/yahoo/elide/commit/b55cc49652543c18600a616174032d855d3a34a3) Bump hibernate5.version from 5.5.5.Final to 5.6.1.Final (#2384) 
+   * [view commit](https://github.com/yahoo/elide/commit/37ca4cb76545968f32e75bba490452ac1e119e2e) Bump dependency-check-maven from 6.3.2 to 6.4.1 (#2367) 
+   * [view commit](https://github.com/yahoo/elide/commit/63edada62c36bf004aa6920a31036b6b1cea116a) Bump spring-websocket from 5.3.11 to 5.3.12 (#2383) 
+   * [view commit](https://github.com/yahoo/elide/commit/eac97d952e0cb291651c339d84555617edf0f4c0) Bump spring.boot.version from 2.5.5 to 2.5.6 (#2386) 
+   * [view commit](https://github.com/yahoo/elide/commit/f87d43d0f891238dfe7c3b7fe677c3504eac5e3e) Bump jansi from 2.3.4 to 2.4.0 (#2385) 
+   * [view commit](https://github.com/yahoo/elide/commit/1906a6ead98423b52741f7f849f8946b019e1063) set bypasscache true for Async Export (#2387) 
+   * [view commit](https://github.com/yahoo/elide/commit/3815a731a36a49eb452cb787916ab09c07dd1c12) Bump commons-cli from 1.4 to 1.5.0 (#2388) 
+   
+## 6.0.0-pr6
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/b88c19ef352c7bff44d4375d4a5f3e6b55054c3e) Aggregation Store: Make EntityHydrator stream results. (#2333) 
+   * [view commit](https://github.com/yahoo/elide/commit/6f26ba6377010a22403698d48d49ef2a4f897fde) Changing Oath to Yahoo in Copyright messages (#2340) 
+   * [view commit](https://github.com/yahoo/elide/commit/5064f8a5a351b1f77b8025f68b20efc1b76d101e) Elide 6 : Refactor DataStoreTransaction Interface. (#2334) 
+   * [view commit](https://github.com/yahoo/elide/commit/9a63da30302650b557d0b85059494ff8e8220b7b) Fixing toOne relationship bug for GraphQL subscriptions (#2335) 
+   * [view commit](https://github.com/yahoo/elide/commit/0183fe7fe8c5933f82a4ffc3000b7ee638f5f14c) Subscription serialization (#2339) 
+   * [view commit](https://github.com/yahoo/elide/commit/bc9729f22c40de5b864c52186ca2e130daba4637) Issue2337 (#2341) 
+   * [view commit](https://github.com/yahoo/elide/commit/8455b9b8531b2ce031ac5912c96c2c07ce0360bf) Change GraphQL Preflush Hook Invocation (#2332) 
+   * [view commit](https://github.com/yahoo/elide/commit/ca04a4a3c7da52734e31b134c5edbae7efd25a55) Revised JSON-API path grammar to accept colon, space, and ampersand i… (#2342) 
+   * [view commit](https://github.com/yahoo/elide/commit/91d7022c76c673da76df1614617709b7c593d60a) Bump caffeine from 3.0.3 to 3.0.4 (#2327) 
+   * [view commit](https://github.com/yahoo/elide/commit/cd5a7dcac2e525f2c1a2570efe686eb81c135a8d) Bump graphql-java from 17.2 to 17.3 (#2346) 
+   * [view commit](https://github.com/yahoo/elide/commit/47c56d0c2ebbd5410a50fdd39a652b8eeb581138) Bump groovy.version from 3.0.8 to 3.0.9 (#2293) 
+   * [view commit](https://github.com/yahoo/elide/commit/caca78e6bbbba3416cd6892d30c258bfabc0de54) Bump version.logback from 1.2.5 to 1.2.6 (#2324) 
+   * [view commit](https://github.com/yahoo/elide/commit/5dfa639152cb75e689c4b9b52db8bf4953843b1a) Bump artemis-server from 2.18.0 to 2.19.0 (#2349) 
+   * [view commit](https://github.com/yahoo/elide/commit/064d5a86fbbcc5ab927bd3645d5c85ea4139c59e) Bump artemis-jms-server from 2.18.0 to 2.19.0 (#2348) 
+   * [view commit](https://github.com/yahoo/elide/commit/374ffd8ba987171a08d10a0f6655dc4a67918963) Bump spring.boot.version from 2.5.4 to 2.5.5 (#2350) 
+   * [view commit](https://github.com/yahoo/elide/commit/1addd8824d337b690ec5e595a5c94b1fbd87d641) Bump swagger-core from 1.6.2 to 1.6.3 (#2351) 
+   * [view commit](https://github.com/yahoo/elide/commit/6bc5f42fb18b04e926064418268e6c9335150ef1) Bump ant from 1.10.11 to 1.10.12 (#2352) 
+   * [view commit](https://github.com/yahoo/elide/commit/e19227b84e5a372c4831dee7c52e6122c6ceec56) Bump artemis-jms-client-all from 2.18.0 to 2.19.0 (#2354) 
+   * [view commit](https://github.com/yahoo/elide/commit/0e4ee93ab2f55fb91abc34cd55271f60ea613da5) Bump calcite-core from 1.27.0 to 1.28.0 (#2355) 
+   * [view commit](https://github.com/yahoo/elide/commit/b5514565b12f35a6fcaa1216d2cba1b5afdad7a8) Bump metrics.version from 4.2.3 to 4.2.4 (#2356) 
+   * [view commit](https://github.com/yahoo/elide/commit/cbf6efaa0795cf3484ee2dc9789c519a916dd99b) Bump maven-scm-provider-gitexe from 1.11.3 to 1.12.0 (#2353) 
+   * [view commit](https://github.com/yahoo/elide/commit/0d6b0753567d86fca4f06d9bedfacf51816922ae) Bump checkstyle from 9.0 to 9.0.1 (#2358) 
+   * [view commit](https://github.com/yahoo/elide/commit/196db51c342cc129ab37df9b7727217c9e3b8814) Bump handlebars-helpers from 4.2.0 to 4.3.0 (#2359) 
+   * [view commit](https://github.com/yahoo/elide/commit/c4f422a2946de88e961be64b5f67821c5c41b137) Remove export pagination limit (#2362) 
+   * [view commit](https://github.com/yahoo/elide/commit/9660cad7a1479d6ce9d7698e57cbf7b40e6ad92c) Bump classgraph from 4.8.116 to 4.8.128 (#2363) 
+   * [view commit](https://github.com/yahoo/elide/commit/20b4961ecc51a2819a54e42e50746ed612a3dc5d) Bump spring-websocket from 5.3.10 to 5.3.11 (#2360) 
+   * [view commit](https://github.com/yahoo/elide/commit/40481bee942e3a2ba2cfb90b6350f00da76ed190) Bump maven-scm-api from 1.11.3 to 1.12.0 (#2361) 
+   * [view commit](https://github.com/yahoo/elide/commit/830b9f2a997eefcd677090875bede2e21e19f1f4) Support 'hidden' flag for analytic models and fields. (#2357) 
+   * [view commit](https://github.com/yahoo/elide/commit/c3ea3c6a165df84449d717979466b85db5e0a575) Bump micrometer-core from 1.7.3 to 1.7.5 (#2366) 
+   * [view commit](https://github.com/yahoo/elide/commit/db01f98dbec1f78d99d44880dc048a47ab74ba96) Bump lombok from 1.18.20 to 1.18.22 (#2364) 
+   * [view commit](https://github.com/yahoo/elide/commit/cca1dcc92cc1ff37a026d5bd08fd5f747d5b59cb) Bump guava from 30.1.1-jre to 31.0.1-jre (#2365) 
+
+
+## 6.0.0-pr5
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/28c378c0c447923b67ab1674df50793480ed12df) Relaxing filter template matching to ignore aliases (#2322) 
+   * [view commit](https://github.com/yahoo/elide/commit/a4e58460b4a2e9bd04ba4707ad31e62dd1dafe01) Values validation on filters that had operators like contains should not be enforced (#2323) 
+   * [view commit](https://github.com/yahoo/elide/commit/3006b1e3aa672bb97c75d276ed9e3c469518976f) Bump junit-platform-launcher from 1.7.2 to 1.8.1 (#2313) 
+   * [view commit](https://github.com/yahoo/elide/commit/5acec4ea96d5786e9b5118d606de40104a6cb851) Bump dependency-check-maven from 6.2.2 to 6.3.2 (#2318) 
+   * [view commit](https://github.com/yahoo/elide/commit/69eb1e6d362bbd6f91d4ff102131f5a631506bce) No longer using attribute aliases to generate CSV export headers.  In… (#2325) 
+   * [view commit](https://github.com/yahoo/elide/commit/ae5afa1de35760c3603e743e63b8dbaad32b3951) Bump classgraph from 4.8.115 to 4.8.116 (#2296) 
+   * [view commit](https://github.com/yahoo/elide/commit/23d8cde402d17137d40ce92fabb68d10517a3f2c) Fixing bug for complex attributes contain a Map of Object (#2328) 
+   * [view commit](https://github.com/yahoo/elide/commit/64325a03c2d0e965e2543c3c52a9ddc0de570c03) Aggregation Store: Relaxing rules for how filter templates are compared against filter e… (#2329) 
+   * [view commit](https://github.com/yahoo/elide/commit/9ad0d58b66ead60ede9a13e164fbb5a3c736d889) support case statement in Calcite Aggregation Extractor (#2330) 
+
+## 6.0.0-pr4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/0eb1624a401c9099c0e9f1f3fb539144cb3b97a1) Added new flag to enable subscription publishing in a separate service.  Disallow queries in subscription endpoint. (#2320) 
+
+## 6.0.0-pr3
+Prerelease candidate for Elide 6.  
+
+### New Features in Elide 6.X
+
+Elide 6 introduces several new features:
+ - Elide 6 is built using Java 11 (as opposed to Java 8).
+ - GraphQL subscription support (experimental) is added along with a JMS data store that can read Elide models from JMS topics.
+
+### API Changes
+
+Prior to Elide 6, updates to complex, embedded attributes in Elide models required every field to be set in the attribute or they would be overwritten with nulls.  Elide 6 is now aware of individual fields in complex, embedded attributes and only changes what has been sent by the client.  See [#2277](https://github.com/yahoo/elide/issues/2277) for more details.
+
+### Interface Changes
+
+ - EntityDictionary is now entirely constructed with a Builder.  All prior constructors have been removed.
+ - Security checks are now instantiated at boot and reused across requests.  This change requires security checks to be thread safe.
+
+### Module & Package Changes
+
+The following packages havea been removed:
+
+ - Legacy datastore packages elide-hibernate-3 and elide-hibernate-5 have been retired and can be replaced with the JPA data store.
+ - The Elide bridgeable datastore has been removed.
+ - The package elide-datastore-hibernate has been renamed to elide-datastore-jpql.   Internal package structure for the module was also changed.
+
+## 5.1.2
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f54c0343fae51b8827da7bd719c460f39c3d56b1) Security Fix: #147 for elide-5.x (#2432) 
+
+## 5.1.1
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/076a3171fa9c2240c16a2d3f2ced259d46202f7a) Fixes async API resultset premature closure. (#2411) 
+
+## 5.1.0
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/2bd8e22fba35aeabc8f00b9836364b06a5abeea0) UPdating screwdriver build 
+   * [view commit](https://github.com/yahoo/elide/commit/40d1413a725d61689892044e0ba6f21716cd5a84) Disabling OWASP checks for legacy build (Elide 5) 
+   * [view commit](https://github.com/yahoo/elide/commit/cad5a714fd4eb3ce7dc6e95d8b1dba5a7ebbd379) (Similar to https://github.com/yahoo/elide/pull/2342) Revised JSON-API path grammar to accept colon, space, and ampersand in ID fields (#2343) 
+
 ## 5.0.12
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/0b7eb0cb8b9fbb37fa412863a6d6fd1ac5734948) Add ability to retrieve data store properties in life cycle hooks. (#2278) 
@@ -495,6 +1016,12 @@ Because Elide 5 is a major release, we took time to reorganize the module & pack
    * elide-annotations has been absorbed into elide-core.
    * New modules were created for elide-async (async API), elide-model-config (the semantic layer), and elide-datastore/elide-datastore-aggregation (the analytics module).
    * Some classes in elide-core were reorganized into new packages.
+
+## 4.8.0
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/233591723cd04a3b6da54c5234a824712ca613b4) (Similar to https://github.com/yahoo/elide/pull/2342) Revised JSON-API path grammar to accept colon, space, and ampersand in ID fields (#2344) 
+   * [view commit](https://github.com/yahoo/elide/commit/f68bbce9a535e320929440b2408ea74b4c9edffc) Updating screwdriver build 
+   * [view commit](https://github.com/yahoo/elide/commit/69b3edc7f935a39133ced3a97a9a496d58cfafcc) Disabling OWASP checks for legacy build (Elide 4) 
 
 ## 4.7.2
 **Fixes**

@@ -6,6 +6,8 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -28,6 +30,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.compress.utils.Lists;
 import lombok.ToString;
 
 import java.io.IOException;
@@ -82,7 +85,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         QueryResult result = null;
         QueryResponse response = null;
         String cacheKey = null;
@@ -114,14 +117,23 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             if (result == null) {
                 result = queryEngine.executeQuery(query, queryEngineTransaction);
                 if (cacheKey != null) {
-                    cache.put(cacheKey, result);
+
+                    //The query result needs to be streamed into an in memory list before caching.
+                    //TODO - add a cap to how many records can be streamed back.  If this is exceeded, abort caching
+                    //and return the results.
+                    QueryResult cacheableResult = QueryResult.builder()
+                            .data(Lists.newArrayList(result.getData().iterator()))
+                            .pageTotals(result.getPageTotals())
+                            .build();
+                    cache.put(cacheKey, cacheableResult);
+                    result = cacheableResult;
                 }
             }
             if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
                 entityProjection.getPagination().setPageTotals(result.getPageTotals());
             }
             response = new QueryResponse(HttpStatus.SC_OK, result.getData(), null);
-            return result.getData();
+            return new DataStoreIterableBuilder(result.getData()).build();
         } catch (HttpStatusException e) {
             response = new QueryResponse(e.getStatus(), null, e.getMessage());
             throw e;

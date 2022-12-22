@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -70,9 +71,7 @@ class TestDataStore implements DataStore, DataStoreTransaction {
     }
 
     @Override
-    public Iterable<Object> loadObjects(
-            EntityProjection projection,
-            RequestScope scope) {
+    public DataStoreIterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
         throw new TransactionException(null);
     }
 

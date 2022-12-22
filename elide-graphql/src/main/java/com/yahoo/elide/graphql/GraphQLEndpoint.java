@@ -44,11 +44,13 @@ import javax.ws.rs.core.UriInfo;
 public class GraphQLEndpoint {
     private final Map<String, QueryRunner> runners;
     private final Elide elide;
+    private final HeaderUtils.HeaderProcessor headerProcessor;
 
     @Inject
     public GraphQLEndpoint(@Named("elide") Elide elide) {
         log.debug("Started ~~");
         this.elide = elide;
+        this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
         this.runners = new HashMap<>();
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));
@@ -71,14 +73,14 @@ public class GraphQLEndpoint {
             @Context SecurityContext securityContext,
             String graphQLDocument) {
         String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
-        Map<String, List<String>> requestHeaders =
-                HeaderUtils.lowercaseAndRemoveAuthHeaders(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
         QueryRunner runner = runners.getOrDefault(apiVersion, null);
 
         ElideResponse response;
         if (runner == null) {
-            response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
+            response = buildErrorResponse(elide.getMapper().getObjectMapper(),
+                    new InvalidOperationException("Invalid API Version"), false);
         } else {
             response = runner.run(getBaseUrlEndpoint(uriInfo),
                                   graphQLDocument, user, UUID.randomUUID(), requestHeaders);

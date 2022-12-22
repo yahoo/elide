@@ -58,6 +58,8 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
 
     private final CardinalitySize cardinality;
 
+    private final boolean hidden;
+
     @ToOne
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -71,7 +73,7 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
 
     private final ValueSourceType valueSourceType;
 
-    private final Set<String> values;
+    private final LinkedHashSet<String> values;
 
     private String requiredFilter;
 
@@ -100,6 +102,13 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
 
         this.id = constructColumnName(tableClass, fieldName, dictionary);
         this.name = fieldName;
+
+        String idField = dictionary.getIdFieldName(tableClass);
+        if (idField != null && idField.equals(fieldName)) {
+            this.hidden = false;
+        } else {
+            this.hidden = !dictionary.getAllExposedFields(tableClass).contains(fieldName);
+        }
 
         ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, ColumnMeta.class, fieldName);
         if (meta != null) {
@@ -187,6 +196,10 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
 
         if (ClassType.DATE_TYPE.isAssignableFrom(fieldClass)) {
             return ValueType.TIME;
+        }
+
+        if (fieldClass.isEnum()) {
+            return ValueType.TEXT;
         }
 
         return ValueType.getScalarType(fieldClass);

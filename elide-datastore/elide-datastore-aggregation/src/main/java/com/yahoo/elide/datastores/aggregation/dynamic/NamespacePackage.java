@@ -12,6 +12,8 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 
+import lombok.EqualsAndHashCode;
+
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +21,9 @@ import java.util.Map;
 /**
  * A dynamic Elide model that wraps a deserialized HJSON Namespace.
  */
+@EqualsAndHashCode
 public class NamespacePackage implements Package {
+    private static final long serialVersionUID = -7173317858416763972L;
 
     public static final String EMPTY = "";
     public static final String DEFAULT = "default";
@@ -27,7 +31,7 @@ public class NamespacePackage implements Package {
             new NamespacePackage(EMPTY, "Default Namespace", DEFAULT, NO_VERSION);
 
     protected NamespaceConfig namespace;
-    private Map<Class<? extends Annotation>, Annotation> annotations;
+    private transient Map<Class<? extends Annotation>, Annotation> annotations;
 
     public NamespacePackage(NamespaceConfig namespace) {
         if (namespace.getName().equals(DEFAULT)) {

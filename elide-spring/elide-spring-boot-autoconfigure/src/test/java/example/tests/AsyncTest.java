@@ -161,7 +161,7 @@ public class AsyncTest extends IntegrationTest {
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.message", equalTo(null))
                         .body("data.attributes.result.url",
-                                equalTo("https://elide.io" + "/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d"));
+                                equalTo("https://elide.io" + "/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d.csv"));
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
@@ -176,7 +176,7 @@ public class AsyncTest extends IntegrationTest {
 
                 String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9265d\","
                         + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"CSV\","
-                        + "\"result\":{\"url\":\"https://elide.io/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d\",\"httpStatus\":200,\"recordCount\":1}}}]}}}";
+                        + "\"result\":{\"url\":\"https://elide.io/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d.csv\",\"httpStatus\":200,\"recordCount\":1}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
@@ -184,7 +184,7 @@ public class AsyncTest extends IntegrationTest {
             assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
         }
         when()
-                .get("/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d")
+                .get("/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d.csv")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
     }
@@ -235,7 +235,7 @@ public class AsyncTest extends IntegrationTest {
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.message", equalTo(null))
                         .body("data.attributes.result.url",
-                                equalTo("https://elide.io" + "/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d"));
+                                equalTo("https://elide.io" + "/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d.csv"));
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
@@ -250,7 +250,7 @@ public class AsyncTest extends IntegrationTest {
 
                 String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\","
                         + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"CSV\","
-                        + "\"result\":{\"url\":\"https://elide.io/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\",\"httpStatus\":200,\"recordCount\":2}}}]}}}";
+                        + "\"result\":{\"url\":\"https://elide.io/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d.csv\",\"httpStatus\":200,\"recordCount\":2}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
@@ -258,7 +258,7 @@ public class AsyncTest extends IntegrationTest {
             assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
         }
         when()
-                .get("/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d")
+                .get("/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d.csv")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
     }

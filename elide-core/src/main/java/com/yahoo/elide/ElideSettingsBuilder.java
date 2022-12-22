@@ -30,13 +30,14 @@ import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import com.yahoo.elide.core.utils.coerce.converters.URLSerde;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.JSONApiLinks;
+import com.yahoo.elide.utils.HeaderUtils;
 
 import java.net.URL;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -56,11 +57,14 @@ public class ElideSettingsBuilder {
     private List<SubqueryFilterDialect> subqueryFilterDialects;
     private FilterDialect graphqlFilterDialect;
     private JSONApiLinks jsonApiLinks;
+    private HeaderUtils.HeaderProcessor headerProcessor;
     private Map<Class, Serde> serdes;
     private int defaultMaxPageSize = PaginationImpl.MAX_PAGE_LIMIT;
     private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
     private int updateStatusCode;
     private boolean enableJsonLinks;
+
+    private boolean enableGraphQLFederation;
     private boolean strictQueryParams = true;
     private String baseUrl = "";
     private String jsonApiPath;
@@ -79,9 +83,11 @@ public class ElideSettingsBuilder {
         this.jsonApiMapper = new JsonApiMapper();
         this.joinFilterDialects = new ArrayList<>();
         this.subqueryFilterDialects = new ArrayList<>();
+        this.headerProcessor = HeaderUtils::lowercaseAndRemoveAuthHeaders;
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
-        this.serdes = new HashMap<>();
+        this.serdes = new LinkedHashMap<>();
         this.enableJsonLinks = false;
+        this.enableGraphQLFederation = false;
 
         //By default, Elide supports epoch based dates.
         this.withEpochDates();
@@ -91,16 +97,16 @@ public class ElideSettingsBuilder {
     public ElideSettings build() {
         if (joinFilterDialects.isEmpty()) {
             joinFilterDialects.add(new DefaultFilterDialect(entityDictionary));
-            joinFilterDialects.add(new RSQLFilterDialect(entityDictionary));
+            joinFilterDialects.add(RSQLFilterDialect.builder().dictionary(entityDictionary).build());
         }
 
         if (subqueryFilterDialects.isEmpty()) {
             subqueryFilterDialects.add(new DefaultFilterDialect(entityDictionary));
-            subqueryFilterDialects.add(new RSQLFilterDialect(entityDictionary));
+            subqueryFilterDialects.add(RSQLFilterDialect.builder().dictionary(entityDictionary).build());
         }
 
         if (graphqlFilterDialect == null) {
-            graphqlFilterDialect = new RSQLFilterDialect(entityDictionary);
+            graphqlFilterDialect = RSQLFilterDialect.builder().dictionary(entityDictionary).build();
         }
 
         if (entityDictionary == null) {
@@ -118,12 +124,14 @@ public class ElideSettingsBuilder {
                 subqueryFilterDialects,
                 graphqlFilterDialect,
                 jsonApiLinks,
+                headerProcessor,
                 defaultMaxPageSize,
                 defaultPageSize,
                 updateStatusCode,
                 serdes,
                 enableJsonLinks,
                 strictQueryParams,
+                enableGraphQLFederation,
                 baseUrl,
                 jsonApiPath,
                 graphQLApiPath,
@@ -231,6 +239,11 @@ public class ElideSettingsBuilder {
         return this;
     }
 
+    public ElideSettingsBuilder withHeaderProcessor(HeaderUtils.HeaderProcessor headerProcessor) {
+        this.headerProcessor = headerProcessor;
+        return this;
+    }
+
     public ElideSettingsBuilder withJsonApiPath(String jsonApiPath) {
         this.jsonApiPath = jsonApiPath;
         return this;
@@ -248,6 +261,11 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withStrictQueryParams(boolean enabled) {
         this.strictQueryParams = enabled;
+        return this;
+    }
+
+    public ElideSettingsBuilder withGraphQLFederation(boolean enabled) {
+        this.enableGraphQLFederation = enabled;
         return this;
     }
 }

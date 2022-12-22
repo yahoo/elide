@@ -68,6 +68,9 @@ public class ErrorObjects {
         }
 
         public ErrorObjectsBuilder with(String key, Object value) {
+            if (currentError == null) {
+                throw new UnsupportedOperationException("Must add an error before calling with");
+            }
             currentError.put(key, value);
             return this;
         }

@@ -497,6 +497,8 @@ public class AsyncIT extends AsyncApiIT {
                                         .build())
                         .withAuditLogger(new TestAuditLogger()).build());
 
+        elide.doScans();
+
         User ownerUser = new User(() -> "owner-user");
         SecurityContextUser securityContextAdminUser = new SecurityContextUser(new SecurityContext() {
             @Override

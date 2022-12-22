@@ -15,7 +15,7 @@ import com.yahoo.elide.core.type.Type;
 import example.VideoGame;
 
 /**
- * Filter Expression Check for video game
+ * Filter Expression Check for video game.
  */
 @SecurityCheck(VideoGameFilterCheck.NAME_FILTER)
 public class VideoGameFilterCheck extends FilterExpressionCheck<VideoGame> {

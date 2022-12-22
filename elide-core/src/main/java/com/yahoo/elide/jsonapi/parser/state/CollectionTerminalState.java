@@ -22,13 +22,13 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
+import com.yahoo.elide.jsonapi.document.processors.PopulateMetaProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -67,12 +67,12 @@ public class CollectionTerminalState extends BaseState {
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
         MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
 
-        Set<PersistentResource> collection =
+        LinkedHashSet<PersistentResource> collection =
                 getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
 
         // Set data
@@ -80,7 +80,7 @@ public class CollectionTerminalState extends BaseState {
 
         // Run include processor
         DocumentProcessor includedProcessor = new IncludedProcessor();
-        includedProcessor.execute(jsonApiDocument, collection, queryParams);
+        includedProcessor.execute(jsonApiDocument, requestScope, collection, queryParams);
 
         Pagination pagination = parentProjection.getPagination();
         if (parent.isPresent()) {
@@ -110,13 +110,14 @@ public class CollectionTerminalState extends BaseState {
             jsonApiDocument.setMeta(meta);
         }
 
-        JsonNode responseBody = requestScope.getMapper().toJsonObject(jsonApiDocument);
+        PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
+        metaProcessor.execute(jsonApiDocument, requestScope, collection, queryParams);
 
-        return () -> Pair.of(HttpStatus.SC_OK, responseBody);
+        return () -> Pair.of(HttpStatus.SC_OK, jsonApiDocument);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>> handlePost(StateContext state) {
+    public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) {
         RequestScope requestScope = state.getRequestScope();
         JsonApiMapper mapper = requestScope.getMapper();
 
@@ -125,8 +126,11 @@ public class CollectionTerminalState extends BaseState {
         return () -> {
             JsonApiDocument returnDoc = new JsonApiDocument();
             returnDoc.setData(new Data<>(newObject.toResource()));
-            JsonNode responseBody = mapper.getObjectMapper().convertValue(returnDoc, JsonNode.class);
-            return Pair.of(HttpStatus.SC_CREATED, responseBody);
+
+            PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
+            metaProcessor.execute(returnDoc, requestScope, newObject, requestScope.getQueryParams());
+
+            return Pair.of(HttpStatus.SC_CREATED, returnDoc);
         };
     }
 

@@ -20,6 +20,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.checks.Check;
@@ -54,6 +55,7 @@ public class CSVExportFormatterTest {
                         .withEntityDictionary(EntityDictionary.builder().checks(map).build())
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
+        elide.doScans();
         scope = mock(RequestScope.class);
     }
 
@@ -165,6 +167,60 @@ public class CSVExportFormatterTest {
 
         String output = formatter.preFormat(projection, queryObj);
         assertEquals("\"query\",\"queryType\"", output);
+    }
+
+    @Test
+    public void testHeaderWithNonmatchingAlias() {
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+
+        TableExport queryObj = new TableExport();
+        String query = "{ tableExport { edges { node { query queryType } } } }";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        // Prepare EntityProjection
+        Set<Attribute> attributes = new LinkedHashSet<>();
+        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("foo").build());
+        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
+
+        String output = formatter.preFormat(projection, queryObj);
+        assertEquals("\"query\",\"queryType\"", output);
+    }
+
+    @Test
+    public void testHeaderWithArguments() {
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+
+        TableExport queryObj = new TableExport();
+        String query = "{ tableExport { edges { node { query queryType } } } }";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        // Prepare EntityProjection
+        Set<Attribute> attributes = new LinkedHashSet<>();
+        attributes.add(Attribute.builder()
+                .type(TableExport.class)
+                .name("query")
+                .argument(Argument.builder().name("foo").value("bar").build())
+                .alias("query").build());
+
+        attributes.add(Attribute.builder()
+                .type(TableExport.class)
+                .argument(Argument.builder().name("foo").value("bar").build())
+                .argument(Argument.builder().name("baz").value("boo").build())
+                .name("queryType")
+                .build());
+        EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
+
+        String output = formatter.preFormat(projection, queryObj);
+        assertEquals("\"query(foo=bar)\",\"queryType(foo=bar baz=boo)\"", output);
     }
 
     @Test

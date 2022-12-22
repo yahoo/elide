@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -70,7 +71,7 @@ public class Time extends Date {
     }
 
     @FunctionalInterface
-    public interface Serializer {
+    public interface Serializer extends Serializable {
         String format(Time time);
     }
 

@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -27,7 +28,8 @@ import java.util.stream.Collectors;
  */
 @Value
 @Builder
-public class Argument {
+public class Argument implements Serializable {
+    private static final long serialVersionUID = 2913180218704512683L;
 
     // square brackets having non-empty argument name and  encoded agument value separated by ':'
     // eg: [grain:month] , [foo:bar][blah:Encoded+Value]

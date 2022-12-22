@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,10 +72,11 @@ public class GraphQLTableExportOperationTest {
                         .withAuditLogger(new Slf4jLogger())
                         .withExportApiPath("/export")
                         .build());
+        elide.doScans();
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
-        engine = new FileResultStorageEngine(tempDir.toString());
+        engine = new FileResultStorageEngine(tempDir.toString(), false);
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
         when(requestScope.getUser()).thenReturn(user);
@@ -85,7 +85,7 @@ public class GraphQLTableExportOperationTest {
     }
 
     @Test
-    public void testProcessQuery() throws URISyntaxException, IOException  {
+    public void testProcessQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "{\"query\":\"{ tableExport { edges { node { id principalName} } } }\",\"variables\":null}";
@@ -105,7 +105,7 @@ public class GraphQLTableExportOperationTest {
     }
 
     @Test
-    public void testProcessBadEntityQuery() throws URISyntaxException, IOException  {
+    public void testProcessBadEntityQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "{\"query\":\"{ tableExportInvalid { edges { node { id principalName} } } }\",\"variables\":null}";
@@ -124,7 +124,7 @@ public class GraphQLTableExportOperationTest {
     }
 
     @Test
-    public void testProcessBadQuery() throws URISyntaxException, IOException  {
+    public void testProcessBadQuery() throws IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
         String query = "{\"query\":\"{ tableExport { edges { node { id principalName}  } }\",\"variables\":null}";

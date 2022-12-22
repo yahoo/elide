@@ -12,8 +12,9 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Minute;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -21,7 +22,7 @@ public class MinuteSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
     @Test
-    public void testDateSerialize() throws ParseException {
+    public void testDateSerialize() {
 
         String expected = "2020-01-01T01:18";
         Minute expectedDate = new Minute(LocalDateTime.from(formatter.parse(expected)));
@@ -31,7 +32,7 @@ public class MinuteSerdeTest {
     }
 
     @Test
-    public void testDateDeserializeString() throws ParseException {
+    public void testDateDeserializeString() {
 
         String dateInString = "2020-01-01T01:18";
         Minute expectedDate = new Minute(LocalDateTime.from(formatter.parse(dateInString)));
@@ -42,7 +43,7 @@ public class MinuteSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestamp() throws ParseException {
+    public void testDeserializeTimestamp() {
 
         String dateInString = "2020-01-01T01:18";
         Minute expectedDate = new Minute(LocalDateTime.from(formatter.parse(dateInString)));
@@ -53,7 +54,18 @@ public class MinuteSerdeTest {
     }
 
     @Test
-    public void testDeserializeDateInvalidFormat() throws ParseException {
+    public void testDeserializeOffsetDateTime() {
+        String dateInString = "2020-01-01T01:18";
+        Minute expectedDate = new Minute(LocalDateTime.from(formatter.parse(dateInString)));
+
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 01, 01, 18, 0, 0, ZoneOffset.UTC);
+        Serde serde = new Minute.MinuteSerde();
+        Object actualDate = serde.deserialize(dateTime);
+        assertEquals(expectedDate, actualDate);
+    }
+
+    @Test
+    public void testDeserializeDateInvalidFormat() {
 
         String dateInString = "00:18 2020-01-01";
         Serde serde = new Minute.MinuteSerde();

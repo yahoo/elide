@@ -6,12 +6,13 @@
 
 package com.yahoo.elide.core.type;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 
 /**
  * Elide package for one or more types.
  */
-public interface Package {
+public interface Package extends Serializable {
 
     /**
      * Gets the annotations of a specific type.

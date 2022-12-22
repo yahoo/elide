@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>6.0.0-pr1-SNAPSHOT</version>
+        <version>6.1.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -48,55 +48,68 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-jms</artifactId>
+            <version>6.1.10-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
             <optional>true</optional>
         </dependency>
 
@@ -148,15 +161,15 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-            <version>${spring.boot.version}</version>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-context</artifactId>
             <optional>true</optional>
         </dependency>
+
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.7.3</version>
+            <version>1.9.5</version>
             <optional>true</optional>
         </dependency>
 
@@ -173,7 +186,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -187,6 +200,25 @@
                     <artifactId>android-json</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-artemis</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-jms-server</artifactId>
+            <version>2.26.0</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -208,16 +240,21 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Needed because Junit 5.8.x pulls in the wrong version of its own dependency.
+        We should remove this later -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-commons</artifactId>
+            <version>1.9.1</version>
+            <scope>test</scope>
+        </dependency>
+
+
     </dependencies>
 
     <build>

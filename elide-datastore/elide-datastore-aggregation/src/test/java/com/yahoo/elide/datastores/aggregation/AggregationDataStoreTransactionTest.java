@@ -48,6 +48,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.NativeQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
+import com.google.common.collect.Lists;
 import example.PlayerStats;
 import example.PlayerStatsWithRequiredFilter;
 import org.junit.jupiter.api.BeforeAll;
@@ -127,7 +128,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         SQLTable table = new SQLTable(new Namespace(DEFAULT_NAMESPACE), tableType, dictionary);
 
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
         FilterExpression where = filterDialect.parse(tableType, new HashSet<>(),
                 "recordedDate>=2019-07-12T00:00Z;recordedDate<2030-07-12T00:00Z", NO_VERSION);
 
@@ -174,7 +175,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         SQLTable table = new SQLTable(new Namespace(DEFAULT_NAMESPACE), tableType, dictionary);
 
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
         FilterExpression where = filterDialect.parse(tableType, new HashSet<>(),
                 "recordedDate>2019-07-12T00:00Z", NO_VERSION);
 
@@ -207,7 +208,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
 
-        assertEquals(DATA, transaction.loadObjects(entityProjection, scope));
+        assertEquals(DATA, Lists.newArrayList(transaction.loadObjects(entityProjection, scope)));
 
         String cacheKey = "foo;" + queryKey;
         Mockito.verify(cache).get(cacheKey);
@@ -238,7 +239,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
 
-        assertEquals(DATA, transaction.loadObjects(entityProjection, scope));
+        assertEquals(DATA, Lists.newArrayList(transaction.loadObjects(entityProjection, scope)));
 
         Mockito.verify(queryEngine, never()).executeQuery(any(), any());
         Mockito.verify(cache).get(cacheKey);
@@ -270,7 +271,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         EntityProjection entityProjection = EntityProjection.builder()
                 .type(PlayerStats.class).pagination(pagination).build();
 
-        assertEquals(DATA, transaction.loadObjects(entityProjection, scope));
+        assertEquals(DATA, Lists.newArrayList(transaction.loadObjects(entityProjection, scope)));
         assertEquals(314L, entityProjection.getPagination().getPageTotals());
 
         String cacheKey = "foo;" + queryKey;
@@ -333,7 +334,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
 
-        assertEquals(DATA, transaction.loadObjects(entityProjection, scope));
+        assertEquals(DATA, Lists.newArrayList(transaction.loadObjects(entityProjection, scope)));
 
         Mockito.verify(queryEngine, never()).getTableVersion(any(), any());
         Mockito.verifyNoInteractions(cache);

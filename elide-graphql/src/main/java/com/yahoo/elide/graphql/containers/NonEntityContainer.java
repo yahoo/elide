@@ -9,7 +9,6 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
-import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -25,8 +24,8 @@ public class NonEntityContainer implements GraphQLContainer {
     @Getter private final Object nonEntity;
 
     @Override
-    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
-        NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
+    public Object processFetch(Environment context) {
+        NonEntityDictionary nonEntityDictionary = context.nonEntityDictionary;
 
         String fieldName = context.field.getName();
 

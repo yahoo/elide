@@ -39,6 +39,24 @@ public class CalciteOuterAggregationExtractorTest {
     }
 
     @Test
+    public void testCaseStmtParsing() throws Exception {
+        String sql = "        CASE\n"
+                + "                WHEN SUM(blah) = 0 THEN 1\n"
+                + "                ELSE SUM('number_of_lectures') / SUM(blah)\n"
+                + "        END";
+
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
+        SqlNode node = sqlParser.parseExpression();
+
+        List<List<String>> substitutions = Arrays.asList(Arrays.asList("SUB1"), Arrays.asList("SUB2"), Arrays.asList("SUB1"));
+        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect, substitutions);
+        String actual = node.accept(extractor).toSqlString(dialect.getCalciteDialect()).getSql();
+        String expected = "CASE WHEN SUM(`SUB1`) = 0 THEN 1 ELSE SUM(`SUB2`) / SUM(`SUB1`) END";
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testCustomAggregationFunction() throws Exception {
         String sql = "CUSTOM_SUM(blah)";
         SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));

@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>6.0.0-pr1-SNAPSHOT</version>
+        <version>6.1.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -40,8 +40,9 @@
 
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
-        <spring.boot.version>2.5.4</spring.boot.version>
-        <groovy.version>3.0.8</groovy.version>
+        <spring.boot.version>2.7.5</spring.boot.version>
+        <groovy.version>3.0.13</groovy.version>
+        <tomcat.version>9.0.58</tomcat.version>
     </properties>
 
     <modules>
@@ -51,6 +52,35 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <!-- Version added for CVE-2022-23181 -->
+                <version>${tomcat.version}</version>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <!-- Version added for CVE-2022-23181 -->
+                <artifactId>tomcat-embed-websocket</artifactId>
+                <version>${tomcat.version}</version>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-websocket</artifactId>
+                <version>5.3.23</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-context</artifactId>
+                <version>3.1.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-actuator</artifactId>
+                <version>${spring.boot.version}</version>
+            </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>
                 <artifactId>rest-assured</artifactId>
@@ -87,6 +117,16 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>2.19.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>2.19.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

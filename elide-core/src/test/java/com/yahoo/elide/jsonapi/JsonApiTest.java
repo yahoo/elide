@@ -7,6 +7,7 @@ package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -23,6 +24,7 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Child;
@@ -125,6 +127,27 @@ public class JsonApiTest {
 
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
+    }
+
+    @Test
+    public void writeSingleWithMeta() throws JsonProcessingException {
+        Child child = new Child();
+        child.setId(2);
+        child.setMetadataField("foo", "bar");
+
+        RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
+
+        JsonApiDocument jsonApiDocument = new JsonApiDocument();
+        jsonApiDocument.setData(new Data<>(new PersistentResource<>(child, userScope.getUUIDFor(child), userScope).toResource()));
+
+        String expected = "{\"data\":{\"type\":\"child\",\"id\":\"2\",\""
+                + "links\":{\"self\":\"http://localhost:8080/json/child/2\"},\"meta\":{\"foo\":\"bar\"}}}";
+
+        Data<Resource> data = jsonApiDocument.getData();
+        String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
+        assertEquals(expected, doc);
     }
 
     @Test
@@ -326,6 +349,20 @@ public class JsonApiTest {
     }
 
     @Test
+    public void testMissingTypeInResource() {
+        String doc = "{ \"data\": { \"id\": \"22\", \"attributes\": { \"title\": \"works fine\" } } }";
+
+        assertThrows(JsonMappingException.class, () -> mapper.readJsonApiDocument(doc));
+    }
+
+    @Test
+    public void testMissingTypeInResourceList() {
+        String doc = "{ \"data\": [{ \"id\": \"22\", \"attributes\": { \"title\": \"works fine\" } } ]}";
+
+        assertThrows(JsonMappingException.class, () -> mapper.readJsonApiDocument(doc));
+    }
+
+    @Test
     public void readSingle() throws IOException {
         String doc = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":{\"type\":\"child\",\"id\":\"2\"}}}}}";
 
@@ -452,7 +489,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void compareNullAndEmpty() throws JsonProcessingException {
+    public void compareNullAndEmpty() {
         Data<Resource> empty = new Data<>((Resource) null);
 
         JsonApiDocument jsonApiEmpty = new JsonApiDocument();
@@ -466,7 +503,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void compareOrder() throws JsonProcessingException {
+    public void compareOrder() {
         Parent parent1 = new Parent();
         parent1.setId(123L);
         Parent parent2 = new Parent();

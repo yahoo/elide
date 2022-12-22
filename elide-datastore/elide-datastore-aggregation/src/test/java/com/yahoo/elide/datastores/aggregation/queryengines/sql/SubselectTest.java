@@ -54,16 +54,16 @@ public class SubselectTest extends SQLUnitTest {
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
-        stats1.setHighScore(2412);
+        stats1.setId("1");
+        stats1.setHighScore(3147483647L);
         stats1.setSubCountryIsoCode("USA");
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("0");
         stats2.setHighScore(1000);
         stats2.setSubCountryIsoCode("HKG");
 
-        assertEquals(ImmutableList.of(stats1, stats2), results);
+        assertEquals(ImmutableList.of(stats2, stats1), results);
     }
 
     /**
@@ -90,7 +90,7 @@ public class SubselectTest extends SQLUnitTest {
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("1");
         stats2.setOverallRating("Great");
-        stats2.setHighScore(2412);
+        stats2.setHighScore(3147483647L);
 
         assertEquals(2, results.size());
         assertEquals(stats1, results.get(0));
@@ -134,7 +134,7 @@ public class SubselectTest extends SQLUnitTest {
         stats3.setId("2");
         stats3.setOverallRating("Great");
         stats3.setSubCountryIsoCode("USA");
-        stats3.setHighScore(2412);
+        stats3.setHighScore(3147483647L);
 
         assertEquals(3, results.size());
         assertEquals(stats1, results.get(0));

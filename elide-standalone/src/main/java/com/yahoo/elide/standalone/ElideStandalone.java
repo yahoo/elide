@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -12,6 +12,7 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
@@ -20,6 +21,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.websocket.javax.server.config.JavaxWebSocketServletContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -107,6 +109,14 @@ public class ElideStandalone {
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
+        ElideStandaloneSubscriptionSettings subscriptionSettings = elideStandaloneSettings.getSubscriptionProperties();
+        if (elideStandaloneSettings.enableGraphQL() && subscriptionSettings.enabled()) {
+            // GraphQL subscription endpoint
+            JavaxWebSocketServletContainerInitializer.configure(context, (servletContext, serverContainer) -> {
+                        serverContainer.addEndpoint(subscriptionSettings.serverEndpointConfig(elideStandaloneSettings));
+            });
+
         }
 
         if (elideStandaloneSettings.getAsyncProperties().enableExport()) {

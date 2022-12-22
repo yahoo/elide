@@ -12,6 +12,10 @@ elide:
   swagger:
     path: /doc
     enabled: true
+  subscription:
+    enabled: true
+    sendPingOnSubscribe: true
+    path: /subscription
   async:
     enabled: true
     threadPoolSize: 7
@@ -22,9 +26,11 @@ elide:
     export:
       enabled: true
       path: /export
+      extensionEnabled: true
   dynamic-config:
     path: src/test/resources/configs
     enabled: true
+    configApiEnabled: false
   aggregation-store:
     enabled: true
     default-dialect: h2
@@ -46,3 +52,6 @@ spring:
     username: 'sa'
     password: ''
     driver-class-name: 'org.h2.Driver'
+  activemq:
+    broker-url: 'vm://embedded?broker.persistent=false,useShutdownHook=false'
+    in-memory: true

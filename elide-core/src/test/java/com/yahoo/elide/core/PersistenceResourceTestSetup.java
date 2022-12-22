@@ -12,12 +12,14 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
@@ -75,6 +77,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     protected final ElideSettings elideSettings;
 
+    protected static LifeCycleHook bookUpdatePrice = mock(LifeCycleHook.class);
+
     protected static EntityDictionary initDictionary() {
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
 
@@ -107,6 +111,11 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         dictionary.bindEntity(StrictNoTransfer.class);
         dictionary.bindEntity(Untransferable.class);
         dictionary.bindEntity(Company.class);
+
+        dictionary.bindTrigger(Book.class, "price",
+                LifeCycleHookBinding.Operation.UPDATE,
+                LifeCycleHookBinding.TransactionPhase.PRESECURITY, bookUpdatePrice);
+
         return dictionary;
     }
 

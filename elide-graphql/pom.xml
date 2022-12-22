@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.0.0-pr1-SNAPSHOT</version>
+        <version>6.1.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,12 +44,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -59,7 +59,30 @@
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
-            <version>17.2</version>
+            <version>19.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.graphql-java</groupId>
+            <artifactId>graphql-java-extended-scalars</artifactId>
+            <version>19.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+        <!-- Subscription serialization -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.9.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.jms</groupId>
+            <artifactId>javax.jms-api</artifactId>
+            <version>2.0.1</version>
         </dependency>
 
         <!-- Test -->
@@ -75,10 +98,16 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+
          <dependency>
              <groupId>org.apache.ant</groupId>
              <artifactId>ant</artifactId>
-             <version>1.10.11</version>
+             <version>1.10.12</version>
             <scope>test</scope>
          </dependency>
 
@@ -103,6 +132,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.apollographql.federation</groupId>
+            <artifactId>federation-graphql-java-support</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
             <scope>test</scope>
@@ -110,10 +144,9 @@
         <dependency>
             <groupId>org.skyscreamer</groupId>
             <artifactId>jsonassert</artifactId>
-            <version>1.5.0</version>
+            <version>1.5.1</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

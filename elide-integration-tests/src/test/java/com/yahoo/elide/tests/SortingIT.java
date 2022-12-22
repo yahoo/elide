@@ -8,6 +8,7 @@ package com.yahoo.elide.tests;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -209,7 +210,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
-    public void testRootCollectionByNullRelationshipProperty() throws IOException {
+    public void testRootCollectionByNullRelationshipProperty() {
         // Test whether all book records are received
         when()
                 .get("/book?sort=publisher.editor.lastName")
@@ -225,7 +226,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
-    public void testSubcollectionByNullRelationshipProperty() throws IOException {
+    public void testSubcollectionByNullRelationshipProperty() {
         when()
                 .get("/author/1/books?sort=publisher.editor.lastName")
                 .then()
@@ -236,5 +237,29 @@ public class SortingIT extends IntegrationTest {
                 .then()
                 .body("data", hasSize(2))
         ;
+    }
+
+    /**
+     * Tests a computed relationship sort.
+     */
+    @Test
+    void testSortByComputedRelationship() {
+        given()
+                .get("/book?sort=-editor.firstName")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body("data[0].relationships.editor.data.id", equalTo("1"));
+    }
+
+    /**
+     * Tests a computed attribute sort.
+     */
+    @Test
+    void testSortByComputedAttribute() {
+        given()
+                .get("/editor?sort=-fullName")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body("data[0].attributes.fullName", equalTo("John Doe"));
     }
 }

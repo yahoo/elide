@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-quarkus-extension-parent</artifactId>
-    <version>6.0.0-pr1-SNAPSHOT</version>
+    <version>6.1.10-SNAPSHOT</version>
   </parent>
   <artifactId>elide-quarkus-extension-deployment</artifactId>
   <packaging>jar</packaging>
@@ -108,6 +108,27 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.4.1</version>
+          <executions>
+              <execution>
+                  <id>attach-javadocs</id>
+                  <goals>
+                    <goal>jar</goal>
+                  </goals>
+              </execution>
+          </executions>
+          <configuration>
+              <!-- There's currently "No public or protected classes found to document", by design -->
+              <failOnError>false</failOnError>
+              <doclint>all,-missing</doclint>
+              <source>${source.jdk.version}</source>
+              <sourcepath>${delombok.output}</sourcepath>
+              <sourcepath>${project.basedir}/src/main/java</sourcepath>
+          </configuration>
       </plugin>
     </plugins>
   </build>

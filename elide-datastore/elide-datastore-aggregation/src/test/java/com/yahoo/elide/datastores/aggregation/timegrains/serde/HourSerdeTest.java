@@ -12,8 +12,9 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Hour;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -21,7 +22,7 @@ public class HourSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH");
 
     @Test
-    public void testDateSerialize() throws ParseException {
+    public void testDateSerialize() {
 
         String expected = "2020-01-01T01";
         Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(expected)));
@@ -31,7 +32,7 @@ public class HourSerdeTest {
     }
 
     @Test
-    public void testDateDeserializeString() throws ParseException {
+    public void testDateDeserializeString() {
 
         String dateInString = "2020-01-01T01";
         Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(dateInString)));
@@ -41,7 +42,7 @@ public class HourSerdeTest {
     }
 
     @Test
-    public void testDeserializeTimestamp() throws ParseException {
+    public void testDeserializeTimestamp() {
 
         String dateInString = "2020-01-01T01";
         Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(dateInString)));
@@ -52,7 +53,18 @@ public class HourSerdeTest {
     }
 
     @Test
-    public void testDeserializeDateInvalidFormat() throws ParseException {
+    public void testDeserializeOffsetDateTime() {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 01, 00, 00);
+        Hour expectedDate = new Hour(localDate);
+        OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 01, 01, 00, 00, 00, ZoneOffset.UTC);
+
+        Serde serde = new Hour.HourSerde();
+        Object actualDate = serde.deserialize(dateTime);
+        assertEquals(expectedDate, actualDate);
+    }
+
+    @Test
+    public void testDeserializeDateInvalidFormat() {
 
         String dateInString = "00 2020-01-01";
         Serde serde = new Hour.HourSerde();

@@ -13,6 +13,8 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -64,11 +66,21 @@ public class Author {
     @Getter @Setter
     private Collection<Book> books = new ArrayList<>();
 
+    @ManyToMany(targetEntity = Book.class, mappedBy = "authors")
+    @Getter @Setter
+    private Collection<Product> products = new ArrayList<>();
+
     @Getter @Setter
     private AuthorType type;
 
     @Getter @Setter
     private Address homeAddress;
+
+    @Getter @Setter
+    private Set<Address> vacationHomes;
+
+    @Getter @Setter
+    private Map<Object, Object> stuff;
 
     @ElementCollection
     @Getter @Setter

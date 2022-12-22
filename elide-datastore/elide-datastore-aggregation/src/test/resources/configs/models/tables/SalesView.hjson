@@ -43,6 +43,26 @@
       measures:
       [
         {
+          name: orderRatio
+          type: DECIMAL
+          maker: example.metrics.MetricRatio
+          arguments:
+          [
+             {
+               name: numerator
+               type: TEXT
+               values: ['orderTotal', 'orderMax']
+               default: 'orderTotal'
+             }
+             {
+               name: denominator
+               type: TEXT
+               values: ['orderTotal', 'orderMax']
+               default: 'orderTotal'
+             }
+          ]
+        }
+        {
           name: orderTotal
           type: DECIMAL
           // TODO : Use Arguments
@@ -94,6 +114,21 @@
           readAccess: operator
           cardinality: small
         }
+        //Tests a reference to an enum Java dimension stored as VARCHAR coerced to a string.
+        {
+          name: customerRegionType1
+          type: ENUM_TEXT
+          definition: '{{customer.region.placeType}}'
+          readAccess: guest user
+        }
+        //Tests a reference to an enum Java dimension stored as INT coerced to the enum.
+        {
+          name: customerRegionType2
+          type: ENUM_ORDINAL
+          definition: '{{customer.region.ordinalPlaceType}}'
+          readAccess: guest user
+          values: ['COUNTRY', 'STATE', 'COUNTY', 'TOWN', 'PLACE']
+        }
         {
           name: customerRegionRegion
           type: TEXT
@@ -107,6 +142,14 @@
         {
           name: zipCode
           type: INTEGER
+          definition: '{{zipCodeHidden}}'
+          readAccess: operator
+        }
+
+        {
+          name: zipCodeHidden
+          type: INTEGER
+          hidden: true
           definition: '{{customer.zipCode}}'
           readAccess: operator
         }
@@ -120,7 +163,7 @@
           [
             {
               type: MONTH
-              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
+              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
             },
             {
               type: SECOND
@@ -163,7 +206,7 @@
           grains:
           [{
             type: MONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
           }]
         }
         {
@@ -187,7 +230,7 @@
           grains:
           [{
             type: YEAR
-            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy'), 'yyyy')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-01-01'), 'yyyy-MM-dd')
           }]
           filterTemplate: 'deliveryYear=={{deliveryYear}}'
         }
@@ -199,10 +242,10 @@
           readAccess: guest user
         }
       ]
-    }
-    {
+    } {
       name: customerDetails
       table: customer_details
+      hidden: true
       dbConnectionName: SalesDBConnection
       cardinality: small
       readAccess: guest user
@@ -227,7 +270,7 @@
         {
           name: zipCode
           type: INTEGER
-          definition: '{{$zip_code}}'
+          definition: '{{[$zip code]}}'
           readAccess: guest user
         }
         {
@@ -289,7 +332,7 @@
           grains:
           [{
             type: MONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
           }]
         }
       ]

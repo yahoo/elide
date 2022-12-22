@@ -42,7 +42,7 @@ public class LifeCycleIntegrationTestApplicationResourceConfig extends ResourceC
                 bind(dictionary).to(EntityDictionary.class);
 
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
-                RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+                RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
                 MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
@@ -56,6 +56,7 @@ public class LifeCycleIntegrationTestApplicationResourceConfig extends ResourceC
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .build());
+                elide.doScans();
                 bind(elide).to(Elide.class).named("elide");
 
                 BillingService billingService = new BillingService() {

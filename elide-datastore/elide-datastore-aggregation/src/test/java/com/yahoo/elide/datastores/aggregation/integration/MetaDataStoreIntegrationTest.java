@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -30,7 +31,7 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
-import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.framework.NoCacheAggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -74,7 +75,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                     );
 
                     DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
-                    RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+                    RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
                     MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
                             Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
@@ -87,6 +88,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                             .withEntityDictionary(dictionary)
                             .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                             .build());
+
+                    elide.doScans();
                     bind(elide).to(Elide.class).named("elide");
                 }
             });
@@ -121,7 +124,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                                             SQLDialectFactory.getDialect(dbConfig.getDialect())))
         );
 
-        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
+        return new NoCacheAggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
     }
 
     @Test
@@ -166,7 +169,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.friendlyName", equalTo("Sales"))
                 .body("data.relationships.tables.data.id", contains(
                         "SalesNamespace_orderDetails",
-                        "SalesNamespace_customerDetails",
+                        "SalesNamespace_orderDetails2",
                         "SalesNamespace_deliveryDetails"));
         given()
                 .accept("application/vnd.api+json")
@@ -259,7 +262,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats.player2Name",
                                 "playerStats.countryIsoCode",
                                 "playerStats.subCountryIsoCode",
-                                "playerStats.overallRating"))
+                                "playerStats.overallRating",
+                                "playerStats.placeType1",
+                                "playerStats.placeType2"))
                 .body("data.relationships.metrics.data.id", containsInAnyOrder("playerStats.id", "playerStats.lowScore",
                         "playerStats.highScore", "playerStats.dailyAverageScorePerPeriod"))
                 .body("data.relationships.timeDimensions.data.id", containsInAnyOrder("playerStats.recordedDate",
@@ -272,6 +277,50 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.relationships.arguments.data.id",
                         containsInAnyOrder("SalesNamespace_orderDetails.denominator"));
+    }
+
+    @Test
+    public void hiddenDimensionTest() {
+
+        //Non Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.zipCode")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        //Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.zipCodeHidden")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+
+        //Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/columns")
+                .then()
+                .body("data.id", not(contains("SalesNamespace_orderDetails.zipCodeHidden")))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void hiddenTableTest() {
+
+        //Non Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        //Hidden
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_performance")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
@@ -300,7 +349,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.countryIsoCode")
                 .then()
-                .body("data.attributes.values", containsInAnyOrder("USA", "HK"))
+                .body("data.attributes.values", containsInAnyOrder("USA", "HKG"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FORMULA"))
@@ -314,7 +363,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
-                .body("data.attributes.values", containsInAnyOrder("Good", "OK", "Terrible"))
+                .body("data.attributes.values", containsInAnyOrder("Good", "OK", "Great", "Terrible"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FIELD"))
@@ -390,8 +439,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("included.attributes.expression",
                         containsInAnyOrder(
                                 "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
-                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')",
-                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{$$column.expr}}, 'yyyy-'), 3 * QUARTER({{$$column.expr}}) - 2), 'yyyy-MM')"
+                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')",
+                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{$$column.expr}}, 'yyyy-'), LPAD(3 * QUARTER({{$$column.expr}}) - 2, 2, '0'), '-01'), 'yyyy-MM-dd')"
                         ));
     }
 
@@ -515,5 +564,41 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.expression", equalTo("{{customer.region.region}}"))
                 .body("data.attributes.valueSourceType", equalTo("TABLE"))
                 .body("data.relationships.tableSource.data.id", equalTo("regionDetails.region"));
+    }
+
+    @Test
+    public void testEnumDimensionTypes() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionType1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("customerRegionType1"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionType2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("customerRegionType2"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/playerStats/dimensions/playerStats.placeType1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("placeType1"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/playerStats/dimensions/playerStats.placeType2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("placeType2"))
+                .body("data.attributes.valueType", equalTo("TEXT"));
     }
 }

@@ -25,6 +25,9 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -41,7 +44,8 @@ public class JSONAPITableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public RequestScope getRequestScope(TableExport export, RequestScope scope, DataStoreTransaction tx) {
+    public RequestScope getRequestScope(TableExport export, RequestScope scope, DataStoreTransaction tx,
+            Map<String, List<String>> additionalRequestHeaders) {
         UUID requestId = UUID.fromString(export.getRequestId());
         User user = scope.getUser();
         String apiVersion = scope.getApiVersion();
@@ -51,7 +55,22 @@ public class JSONAPITableExportOperation extends TableExportOperation {
         } catch (URISyntaxException e) {
             throw new BadRequestException(e.getMessage());
         }
+
         MultivaluedMap<String, String> queryParams = JSONAPIAsyncQueryOperation.getQueryParams(uri);
+
+        // Call with additionalHeader alone
+        if (scope.getRequestHeaders().isEmpty()) {
+            return new RequestScope("", JSONAPIAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user,
+                    queryParams, additionalRequestHeaders, requestId, getService().getElide().getElideSettings());
+        }
+
+        // Combine additionalRequestHeaders and existing scope's request headers
+        Map<String, List<String>> finalRequestHeaders = new HashMap<String, List<String>>();
+        scope.getRequestHeaders().forEach((entry, value) -> finalRequestHeaders.put(entry, value));
+
+        //additionalRequestHeaders will override any headers in scope.getRequestHeaders()
+        additionalRequestHeaders.forEach((entry, value) -> finalRequestHeaders.put(entry, value));
+
         return new RequestScope("", JSONAPIAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user, queryParams,
                 scope.getRequestHeaders(), requestId, getService().getElide().getElideSettings());
     }

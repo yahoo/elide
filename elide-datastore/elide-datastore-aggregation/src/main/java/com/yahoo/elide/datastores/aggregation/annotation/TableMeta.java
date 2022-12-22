@@ -44,6 +44,12 @@ public @interface TableMeta {
     boolean isFact() default true;
 
     /**
+     * Controls whether this table is exposed through the Metadata store.
+     * @return true or false.
+     */
+    boolean isHidden() default false;
+
+    /**
      * Indicates the size of the table.
      * @return size
      */

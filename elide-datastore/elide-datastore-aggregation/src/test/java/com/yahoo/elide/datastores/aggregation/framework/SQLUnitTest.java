@@ -33,6 +33,7 @@ import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanMerger;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -79,6 +80,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -469,7 +471,9 @@ public abstract class SQLUnitTest {
         Properties properties = new Properties();
         properties.put("driverClassName", "org.h2.Driver");
 
-        String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE" + getCompatabilityMode(sqlDialect.getDialectType());
+        String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1"
+                + ";NON_KEYWORDS=VALUE,USER"
+                + ";DATABASE_TO_UPPER=FALSE" + getCompatabilityMode(sqlDialect.getDialectType());
         properties.put("jdbcUrl", jdbcUrl);
         HikariConfig config = new HikariConfig(properties);
         DataSource dataSource = new HikariDataSource(config);
@@ -494,7 +498,7 @@ public abstract class SQLUnitTest {
         dictionary.bindEntity(CountryViewNested.class);
         dictionary.bindEntity(Continent.class);
         dictionary.bindEntity(GameRevenue.class);
-        filterParser = new RSQLFilterDialect(dictionary);
+        filterParser = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
         //Manually register the serdes because we are not running a complete Elide service.
         CoerceUtil.register(Day.class, new Day.DaySerde());
@@ -514,8 +518,13 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("mycon", new ConnectionDetails(dataSource, sqlDialect));
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
-        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect),
-                connectionDetailsMap, optimizers, new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
+
+        Function<String, ConnectionDetails> connectionLookup = (name) ->
+                connectionDetailsMap.getOrDefault(name, new ConnectionDetails(dataSource, sqlDialect));
+        engine = new SQLQueryEngine(metaDataStore, connectionLookup,
+                optimizers,
+                new DefaultQueryPlanMerger(metaDataStore),
+                new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
         playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
@@ -633,11 +642,11 @@ public abstract class SQLUnitTest {
                 + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `highScore`,"
                 + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
                 + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `recordedDate` "
                 + "FROM `playerStats` AS `example_PlayerStats` GROUP BY "
                 + "`example_PlayerStats`.`overallRating`, "
                 + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') ) "
                 + "AS `example_PlayerStats_XXX` GROUP BY "
                 + "`example_PlayerStats_XXX`.`overallRating`, "
                 + "`example_PlayerStats_XXX`.`recordedDate` ";
@@ -660,11 +669,11 @@ public abstract class SQLUnitTest {
                 + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `highScore`,"
                 + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
                 + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `recordedDate` "
                 + "FROM `playerStats` AS `example_PlayerStats` GROUP BY "
                 + "`example_PlayerStats`.`overallRating`, "
                 + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') ) "
                 + "AS `example_PlayerStats_XXX` GROUP BY "
                 + "`example_PlayerStats_XXX`.`overallRating`, "
                 + "`example_PlayerStats_XXX`.`recordedDate` "
@@ -679,13 +688,13 @@ public abstract class SQLUnitTest {
                 + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `highScore`,"
                 + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
                 + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `recordedDate` "
                 + "FROM `playerStats` AS `example_PlayerStats` "
                 + "LEFT OUTER JOIN `countries` AS `example_PlayerStats_country_XXX` ON `example_PlayerStats`.`country_id` = `example_PlayerStats_country_XXX`.`id` "
                 + "WHERE `example_PlayerStats_country_XXX`.`iso_code` IN (:XXX) "
                 + "GROUP BY `example_PlayerStats`.`overallRating`, "
                 + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') ) "
                 + "AS `example_PlayerStats_XXX` GROUP BY "
                 + "`example_PlayerStats_XXX`.`overallRating`, "
                 + "`example_PlayerStats_XXX`.`recordedDate`\n";
@@ -702,11 +711,11 @@ public abstract class SQLUnitTest {
                         + "MIN(`example_PlayerStats`.`lowScore`) AS `INNER_AGG_XXX`,"
                         + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `recordedDate` "
                         + "FROM `playerStats` AS `example_PlayerStats` GROUP BY "
                         + "`example_PlayerStats`.`overallRating`, "
                         + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') ) "
                         + "AS `example_PlayerStats_XXX` GROUP BY "
                         + "`example_PlayerStats_XXX`.`overallRating`, "
                         + "`example_PlayerStats_XXX`.`recordedDate`\n";
@@ -729,7 +738,7 @@ public abstract class SQLUnitTest {
                         + "            `example_PlayerStats`.`overallRating` AS `overallRating_207658499`,\n"
                         + "            CASE WHEN `example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END AS `playerLevel_96024484`,\n"
                         + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_55557339`,\n"
-                        + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate_155839778` \n"
+                        + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `recordedDate_155839778` \n"
                         + "        FROM \n"
                         + "            `playerStats` AS `example_PlayerStats` \n"
                         + "            LEFT OUTER JOIN \n"
@@ -748,7 +757,7 @@ public abstract class SQLUnitTest {
                         + "            `example_PlayerStats`.`overallRating`, \n"
                         + "            CASE WHEN `example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END, \n"
                         + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), \n"
-                        + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') \n"
+                        + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') \n"
                         + "    ) AS `example_PlayerStats_XXX` \n"
                         + "GROUP BY \n"
                         + "    `example_PlayerStats_XXX`.`overallRating_207658499`, \n"
@@ -773,13 +782,13 @@ public abstract class SQLUnitTest {
         String expectedSQL =
                           "SELECT \n"
                         + "    MAX(`example_PlayerStats`.`highScore`) AS `highScore`,\n"
-                        + "    PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` \n"
+                        + "    PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') AS `recordedDate` \n"
                         + "FROM \n"
                         + "    `playerStats` AS `example_PlayerStats` \n"
                         + "WHERE \n"
                         + "     PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IS NOT NULL \n"
                         + "GROUP BY \n"
-                        + "     PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ";
+                        + "     PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-01'), 'yyyy-MM-dd') ";
 
         return formatInSingleLine(expectedSQL);
     }

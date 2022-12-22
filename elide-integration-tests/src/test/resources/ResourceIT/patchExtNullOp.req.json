@@ -1,0 +1,13 @@
+[
+  {
+    "op": null,
+    "path": "/book",
+    "value": {
+      "type": "book",
+      "id": "123",
+      "attributes": {
+        "title": "My New Book"
+      }
+    }
+  }
+]

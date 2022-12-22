@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>6.0.0-pr1-SNAPSHOT</version>
+        <version>6.1.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,43 +44,49 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-jms</artifactId>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-spring-boot-autoconfigure</artifactId>
-            <version>6.0.0-pr1-SNAPSHOT</version>
+            <version>6.1.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -89,9 +95,14 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-context</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.7.3</version>
+            <version>1.9.5</version>
         </dependency>
 
         <dependency>
@@ -99,10 +110,16 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-websocket</artifactId>
+        </dependency>
+
         <!-- YAML for spring config -->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
+            <version>1.33</version>
         </dependency>
 
         <dependency>

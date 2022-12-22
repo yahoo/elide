@@ -41,7 +41,7 @@ public class SpecificFieldExpression implements Expression {
 
     @Override
     public <T> T accept(ExpressionVisitor<T> visitor) {
-        return visitor.visitExpression(this);
+        return visitor.visitSpecificFieldExpression(this);
     }
 
 

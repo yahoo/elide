@@ -26,13 +26,17 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import example.dimensions.Country;
+import example.dimensions.PlaceType;
 import example.dimensions.SubCountry;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
@@ -69,7 +73,7 @@ public class PlayerStats extends ParameterizedModel {
     /**
      * A metric.
      */
-    private float dailyAverageScorePerPeriod;
+    private double dailyAverageScorePerPeriod;
 
     /**
      * A degenerate dimension.
@@ -134,6 +138,9 @@ public class PlayerStats extends ParameterizedModel {
     @Setter
     private String countryIsInUsa;
 
+    private PlaceType placeType1;
+    private PlaceType placeType2;
+
     @Id
     public String getId() {
         return id;
@@ -153,6 +160,13 @@ public class PlayerStats extends ParameterizedModel {
         this.highScore = highScore;
     }
 
+    @JsonIgnore
+    @MetricFormula("MAX({{$highScore}})")
+    @ColumnMeta(isHidden = true, description = "hidden metric", category = "Score Category")
+    public long getHiddenHighScore() {
+        return fetch("hiddenHighScore", highScore);
+    }
+
     @MetricFormula("MIN({{$lowScore}})")
     @ColumnMeta(description = "very low score", category = "Score Category", tags = {"PRIVATE"})
     public long getLowScore() {
@@ -164,16 +178,16 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @MetricFormula(maker = DailyAverageScorePerPeriodMaker.class)
-    public float getDailyAverageScorePerPeriod() {
+    public double getDailyAverageScorePerPeriod() {
         return fetch("dailyAverageScorePerPeriod", dailyAverageScorePerPeriod);
     }
 
-    public void setDailyAverageScorePerPeriod(final float dailyAverageScorePerPeriod) {
+    public void setDailyAverageScorePerPeriod(final double dailyAverageScorePerPeriod) {
         this.dailyAverageScorePerPeriod = dailyAverageScorePerPeriod;
     }
 
     @FriendlyName
-    @ColumnMeta(values = {"Good", "OK", "Terrible"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
+    @ColumnMeta(values = {"Good", "OK", "Great", "Terrible"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
     public String getOverallRating() {
         return fetch("overallRating", overallRating);
     }
@@ -214,7 +228,7 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @DimensionFormula("{{country.isoCode}}")
-    @ColumnMeta(values = {"HK", "USA"})
+    @ColumnMeta(values = {"HKG", "USA"})
     public String getCountryIsoCode() {
         return fetch("countryIsoCode", countryIsoCode);
     }
@@ -319,6 +333,24 @@ public class PlayerStats extends ParameterizedModel {
     public void setRecordedDate(final Time recordedDate) {
         this.recordedDate = recordedDate;
     }
+
+    /**
+     * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
+     *
+     * @return the date of the player session.
+     */
+    @JsonIgnore
+    @Temporal(grains = {
+            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.QUARTER, expression = QUARTER_FORMAT)
+    }, timeZone = "UTC")
+    @ColumnMeta(isHidden = true)
+    @DimensionFormula("{{$recordedDate}}")
+    public Time getHiddenRecordedDate() {
+        return fetch("hiddenRecordedDate", recordedDate);
+    }
+
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      *
@@ -336,5 +368,25 @@ public class PlayerStats extends ParameterizedModel {
     @DimensionFormula("CASE WHEN {{country.inUsa}} THEN 'true' ELSE 'false' END")
     public String getCountryIsInUsa() {
         return fetch("countryIsInUsa", countryIsInUsa);
+    }
+
+    @DimensionFormula("{{$place_type_ordinal}}")
+    @Enumerated(EnumType.ORDINAL)
+    public PlaceType getPlaceType1() {
+        return placeType1;
+    }
+
+    public void setPlaceType1(PlaceType placeType) {
+        this.placeType1 = placeType;
+    }
+
+    @DimensionFormula("{{$place_type_text}}")
+    @Enumerated(EnumType.STRING)
+    public PlaceType getPlaceType2() {
+        return placeType2;
+    }
+
+    public void setPlaceType2(PlaceType placeType) {
+        this.placeType2 = placeType;
     }
 }

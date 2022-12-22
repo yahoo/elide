@@ -20,9 +20,10 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreIterable;
+import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.pagination.PaginationImpl;
@@ -32,6 +33,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -39,6 +41,7 @@ import example.Address;
 import example.Author;
 import example.Book;
 import example.Editor;
+import example.Price;
 import example.Publisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,10 +51,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class InMemoryStoreTransactionTest {
@@ -60,10 +62,12 @@ public class InMemoryStoreTransactionTest {
     private RequestScope scope = mock(RequestScope.class);
     private InMemoryStoreTransaction inMemoryStoreTransaction = new InMemoryStoreTransaction(wrappedTransaction);
     private EntityDictionary dictionary;
-    private Set books = new HashSet<>();
+    private LinkedHashSet books = new LinkedHashSet();
     private Book book1;
     private Book book2;
     private Book book3;
+    private Publisher publisher1;
+    private Publisher publisher2;
     private Author author1;
     private Author author2;
     private ElideSettings elideSettings;
@@ -97,10 +101,10 @@ public class InMemoryStoreTransactionTest {
         editor2.setFirstName("Jane");
         editor2.setLastName("Doe");
 
-        Publisher publisher1 = new Publisher();
+        publisher1 = new Publisher();
         publisher1.setEditor(editor1);
 
-        Publisher publisher2 = new Publisher();
+        publisher2 = new Publisher();
         publisher2.setEditor(editor2);
 
         book1 = new Book(1,
@@ -110,7 +114,8 @@ public class InMemoryStoreTransactionTest {
                 System.currentTimeMillis(),
                 Sets.newHashSet(author1),
                 publisher1,
-                Arrays.asList("Prize1"));
+                Arrays.asList("Prize1"),
+                new Price());
 
         book2 = new Book(2,
                 "Book 2",
@@ -119,7 +124,8 @@ public class InMemoryStoreTransactionTest {
                 System.currentTimeMillis(),
                 Sets.newHashSet(author1),
                 publisher1,
-                Arrays.asList("Prize1", "Prize2"));
+                Arrays.asList("Prize1", "Prize2"),
+                new Price());
 
         book3 = new Book(3,
                 "Book 3",
@@ -128,7 +134,8 @@ public class InMemoryStoreTransactionTest {
                 System.currentTimeMillis(),
                 Sets.newHashSet(author1),
                 publisher2,
-                Arrays.asList());
+                Arrays.asList(),
+                new Price());
 
         books.add(book1);
         books.add(book2);
@@ -154,21 +161,19 @@ public class InMemoryStoreTransactionTest {
                 .filterExpression(expression)
                 .build();
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.loadObjects(eq(projection), eq(scope))).thenReturn(books);
+        DataStoreIterable expected = new DataStoreIterableBuilder<>(books).build();
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
+        when(wrappedTransaction.loadObjects(eq(projection), eq(scope)))
+                .thenReturn(expected);
+
+        DataStoreIterable actual = inMemoryStoreTransaction.loadObjects(projection, scope);
+        assertEquals(expected, actual);
 
         verify(wrappedTransaction, times(1)).loadObjects(eq(projection), eq(scope));
-
-        assertEquals(3, loaded.size());
-        assertTrue(loaded.contains(book1));
-        assertTrue(loaded.contains(book2));
-        assertTrue(loaded.contains(book3));
     }
 
     @Test
-    public void testFilterPredicateOnComplexAttribute() {
+    public void testFilterPredicateInMemoryOnComplexAttribute() {
         FilterExpression expression =
                 new InPredicate(new Path(Author.class, dictionary, "homeAddress.street1"), "Foo");
 
@@ -177,13 +182,50 @@ public class InMemoryStoreTransactionTest {
                 .filterExpression(expression)
                 .build();
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(Arrays.asList(author1, author2));
+        DataStoreIterable filterInMemory =
+                new DataStoreIterableBuilder(Arrays.asList(author1, author2)).filterInMemory(true).build();
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(filterInMemory);
+
+        Collection<Object> loaded = ImmutableList.copyOf(inMemoryStoreTransaction.loadObjects(projection, scope));
 
         assertEquals(1, loaded.size());
         assertTrue(loaded.contains(author1));
+    }
+
+    @Test
+    public void testSortOnComputedAttribute() {
+        Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
+        sortOrder.put("fullName", Sorting.SortOrder.desc);
+
+        Editor editor1 = new Editor();
+        editor1.setFirstName("A");
+        editor1.setLastName("X");
+        Editor editor2 = new Editor();
+        editor2.setFirstName("B");
+        editor2.setLastName("Y");
+
+        Sorting sorting = new SortingImpl(sortOrder, Editor.class, dictionary);
+
+        EntityProjection projection = EntityProjection.builder()
+                .type(Editor.class)
+                .sorting(sorting)
+                .build();
+
+        DataStoreIterable iterable =
+                new DataStoreIterableBuilder(Arrays.asList(editor1, editor2)).sortInMemory(false).build();
+
+        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        when(wrappedTransaction.loadObjects(projectionArgument.capture(), eq(scope))).thenReturn(iterable);
+
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(projection, scope));
+
+        assertNull(projectionArgument.getValue().getSorting());
+        assertEquals(2, loaded.size());
+
+        Object[] sorted = loaded.toArray();
+        assertEquals(editor2, sorted[0]);
+        assertEquals(editor1, sorted[1]);
     }
 
     @Test
@@ -198,10 +240,12 @@ public class InMemoryStoreTransactionTest {
                 .sorting(sorting)
                 .build();
 
-        when(wrappedTransaction.supportsSorting(eq(scope), any(), eq(projection))).thenReturn(false);
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(Arrays.asList(author1, author2));
+        DataStoreIterable sortInMemory =
+                new DataStoreIterableBuilder(Arrays.asList(author1, author2)).sortInMemory(true).build();
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(sortInMemory);
+
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(projection, scope));
 
         assertEquals(2, loaded.size());
 
@@ -227,13 +271,14 @@ public class InMemoryStoreTransactionTest {
         ArgumentCaptor<Relationship> relationshipArgument = ArgumentCaptor.forClass(Relationship.class);
 
         when(scope.getNewPersistentResources()).thenReturn(Sets.newHashSet(mock(PersistentResource.class)));
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(relationship.getProjection()))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.getRelation(eq(inMemoryStoreTransaction), eq(author1), any(), eq(scope))).thenReturn(books);
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.getRelation(
-                inMemoryStoreTransaction, author1, relationship, scope);
+        when(wrappedTransaction.getToManyRelation(eq(inMemoryStoreTransaction), eq(author1), any(), eq(scope)))
+                .thenReturn(new DataStoreIterableBuilder<>(books).build());
 
-        verify(wrappedTransaction, times(1)).getRelation(
+        Collection<Object> loaded = ImmutableList.copyOf((Iterable) inMemoryStoreTransaction.getToManyRelation(
+                inMemoryStoreTransaction, author1, relationship, scope));
+
+        verify(wrappedTransaction, times(1)).getToManyRelation(
                 eq(inMemoryStoreTransaction),
                 eq(author1),
                 relationshipArgument.capture(),
@@ -249,6 +294,32 @@ public class InMemoryStoreTransactionTest {
     }
 
     @Test
+    public void testGetToOneRelationship() {
+
+        Relationship relationship = Relationship.builder()
+                .projection(EntityProjection.builder()
+                        .type(Book.class)
+                        .build())
+                .name("publisher")
+                .alias("publisher")
+                .build();
+
+        when(wrappedTransaction.getToOneRelation(eq(inMemoryStoreTransaction), eq(book1), any(), eq(scope)))
+                .thenReturn(publisher1);
+
+        Publisher loaded = inMemoryStoreTransaction.getToOneRelation(
+                inMemoryStoreTransaction, book1, relationship, scope);
+
+        verify(wrappedTransaction, times(1)).getToOneRelation(
+                eq(inMemoryStoreTransaction),
+                eq(book1),
+                eq(relationship),
+                eq(scope));
+
+        assertEquals(publisher1, loaded);
+    }
+
+    @Test
     public void testDataStoreRequiresTotalInMemoryFilter() {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
@@ -258,58 +329,21 @@ public class InMemoryStoreTransactionTest {
                 .filterExpression(expression)
                 .build();
 
-        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        DataStoreIterable filterInMemory = new DataStoreIterableBuilder(books).filterInMemory(true).build();
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(filterInMemory);
 
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
-
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
+        Collection<Object> loaded = ImmutableList.copyOf(inMemoryStoreTransaction.loadObjects(projection, scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
-                projectionArgument.capture(),
+                any(EntityProjection.class),
                 eq(scope));
 
-        assertNull(projectionArgument.getValue().getFilterExpression());
-        assertNull(projectionArgument.getValue().getPagination());
-        assertNull(projectionArgument.getValue().getSorting());
         assertEquals(2, loaded.size());
         assertTrue(loaded.contains(book1));
         assertTrue(loaded.contains(book3));
     }
 
-    @Test
-    public void testDataStoreRequiresPartialInMemoryFilter() {
-        FilterExpression expression1 =
-                new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
-        FilterExpression expression2 =
-                new InPredicate(new Path(Book.class, dictionary, "editor.firstName"), "Jane");
-        FilterExpression expression = new AndFilterExpression(expression1, expression2);
-
-        EntityProjection projection = EntityProjection.builder()
-                .type(Book.class)
-                .filterExpression(expression)
-                .build();
-
-        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
-
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.PARTIAL);
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
-
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
-                projection,
-                scope);
-
-        verify(wrappedTransaction, times(1)).loadObjects(
-                projectionArgument.capture(),
-                eq(scope));
-
-        assertEquals(projectionArgument.getValue().getFilterExpression(), expression1);
-        assertNull(projectionArgument.getValue().getPagination());
-        assertNull(projectionArgument.getValue().getSorting());
-        assertEquals(1, loaded.size());
-        assertTrue(loaded.contains(book3));
-    }
 
     @Test
     public void testSortingPushDown() {
@@ -323,30 +357,23 @@ public class InMemoryStoreTransactionTest {
                 .sorting(sorting)
                 .build();
 
-        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        DataStoreIterable expected = new DataStoreIterableBuilder<>(books).build();
+        when(wrappedTransaction.loadObjects(any(), eq(scope)))
+                .thenReturn(expected);
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsSorting(eq(scope), any(), eq(projection))).thenReturn(true);
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
-
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
-                projection,
-                scope);
+        DataStoreIterable actual = inMemoryStoreTransaction.loadObjects(projection, scope);
 
         verify(wrappedTransaction, times(1)).loadObjects(
-                projectionArgument.capture(),
+                eq(projection),
                 eq(scope));
 
-        assertNull(projectionArgument.getValue().getFilterExpression());
-        assertNull(projectionArgument.getValue().getPagination());
-        assertEquals(projectionArgument.getValue().getSorting(), sorting);
-        assertEquals(3, loaded.size());
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testDataStoreRequiresInMemorySorting() {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
-        sortOrder.put("title", Sorting.SortOrder.asc);
+        sortOrder.put("title", Sorting.SortOrder.desc);
 
         Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
@@ -355,27 +382,22 @@ public class InMemoryStoreTransactionTest {
                 .sorting(sorting)
                 .build();
 
-        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        DataStoreIterable sortInMemory = new DataStoreIterableBuilder(books).sortInMemory(true).build();
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsSorting(eq(scope), any(), eq(projection))).thenReturn(false);
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(sortInMemory);
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(
                 projection,
-                scope);
+                scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
-                projectionArgument.capture(),
+                any(EntityProjection.class),
                 eq(scope));
 
-        assertNull(projectionArgument.getValue().getFilterExpression());
-        assertNull(projectionArgument.getValue().getPagination());
-        assertNull(projectionArgument.getValue().getSorting());
         assertEquals(3, loaded.size());
 
         List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
-        assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 2", "Book 3"));
+        assertEquals(bookTitles, Lists.newArrayList("Book 3", "Book 2", "Book 1"));
     }
 
     @Test
@@ -384,7 +406,7 @@ public class InMemoryStoreTransactionTest {
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
-        sortOrder.put("title", Sorting.SortOrder.asc);
+        sortOrder.put("title", Sorting.SortOrder.desc);
 
         Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
@@ -394,32 +416,27 @@ public class InMemoryStoreTransactionTest {
                 .sorting(sorting)
                 .build();
 
-        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        DataStoreIterable filterInMemory = new DataStoreIterableBuilder(books).filterInMemory(true).build();
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
-        when(wrappedTransaction.supportsSorting(eq(scope), any(), eq(projection))).thenReturn(true);
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(filterInMemory);
 
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(
                 projection,
-                scope);
+                scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
-                projectionArgument.capture(),
+                any(EntityProjection.class),
                 eq(scope));
 
-        assertNull(projectionArgument.getValue().getFilterExpression());
-        assertNull(projectionArgument.getValue().getPagination());
-        assertNull(projectionArgument.getValue().getSorting());
         assertEquals(2, loaded.size());
 
         List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
-        assertEquals(Lists.newArrayList("Book 1", "Book 3"), bookTitles);
+        assertEquals(Lists.newArrayList("Book 3", "Book 1"), bookTitles);
     }
 
     @Test
     public void testPaginationPushDown() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(ClassType.of(Book.class), elideSettings);
+        PaginationImpl pagination = new PaginationImpl(ClassType.of(Book.class), 0, 1, 10, 10, false, false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -428,56 +445,45 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsPagination(eq(scope), any(), eq(projection))).thenReturn(true);
+        when(wrappedTransaction.loadObjects(any(), eq(scope)))
+                .thenReturn(new DataStoreIterableBuilder<>(books).build());
 
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
-
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(
                 projection,
-                scope);
+                scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
                 projectionArgument.capture(),
                 eq(scope));
 
-        assertNull(projectionArgument.getValue().getFilterExpression());
-        assertEquals(projectionArgument.getValue().getPagination(), pagination);
-        assertNull(projectionArgument.getValue().getSorting());
+        assertEquals(pagination, projectionArgument.getValue().getPagination());
         assertEquals(3, loaded.size());
     }
 
     @Test
     public void testDataStoreRequiresInMemoryPagination() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(ClassType.of(Book.class), elideSettings);
+        PaginationImpl pagination = new PaginationImpl(ClassType.of(Book.class), 0, 2, 10, 10, false, false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
                 .pagination(pagination)
                 .build();
 
-        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        DataStoreIterable paginateInMemory = new DataStoreIterableBuilder(books).paginateInMemory(true).build();
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsPagination(eq(scope), any(), eq(projection))).thenReturn(false);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(paginateInMemory);
 
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
-
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(
                 projection,
-                scope);
+                scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
-                projectionArgument.capture(),
+                any(EntityProjection.class),
                 eq(scope));
 
-        assertNull(projectionArgument.getValue().getFilterExpression());
-        assertNull(projectionArgument.getValue().getPagination());
-        assertNull(projectionArgument.getValue().getSorting());
-        assertEquals(3, loaded.size());
+        assertEquals(2, loaded.size());
         assertTrue(loaded.contains(book1));
         assertTrue(loaded.contains(book2));
-        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -485,7 +491,7 @@ public class InMemoryStoreTransactionTest {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(ClassType.of(Book.class), elideSettings);
+        PaginationImpl pagination = new PaginationImpl(ClassType.of(Book.class), 0, 2, 10, 10, true, false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -493,35 +499,30 @@ public class InMemoryStoreTransactionTest {
                 .pagination(pagination)
                 .build();
 
-        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        DataStoreIterable filterInMemory = new DataStoreIterableBuilder(books).filterInMemory(true).build();
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
-        when(wrappedTransaction.supportsPagination(eq(scope), any(), eq(projection))).thenReturn(true);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(filterInMemory);
 
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
-
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(
                 projection,
-                scope);
+                scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
-                projectionArgument.capture(),
+                any(EntityProjection.class),
                 eq(scope));
 
-        assertNull(projectionArgument.getValue().getFilterExpression());
-        assertNull(projectionArgument.getValue().getPagination());
-        assertNull(projectionArgument.getValue().getSorting());
         assertEquals(2, loaded.size());
         assertTrue(loaded.contains(book1));
         assertTrue(loaded.contains(book3));
+        assertEquals(2, pagination.getPageTotals());
     }
 
     @Test
     public void testSortingRequiresInMemoryPagination() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(ClassType.of(Book.class), elideSettings);
+        PaginationImpl pagination = new PaginationImpl(ClassType.of(Book.class), 0, 3, 10, 10, true, false);
 
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
-        sortOrder.put("title", Sorting.SortOrder.asc);
+        sortOrder.put("title", Sorting.SortOrder.desc);
 
         Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
@@ -531,29 +532,22 @@ public class InMemoryStoreTransactionTest {
                 .pagination(pagination)
                 .build();
 
-        ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
+        DataStoreIterable sortInMemory = new DataStoreIterableBuilder(books).sortInMemory(true).build();
 
-        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsSorting(eq(scope), any(), eq(projection))).thenReturn(false);
-        when(wrappedTransaction.supportsPagination(eq(scope), any(), eq(projection))).thenReturn(true);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(sortInMemory);
 
-        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
-
-        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = Lists.newArrayList(inMemoryStoreTransaction.loadObjects(
                 projection,
-                scope);
+                scope));
 
         verify(wrappedTransaction, times(1)).loadObjects(
-                projectionArgument.capture(),
+                any(EntityProjection.class),
                 eq(scope));
 
-        assertNull(projectionArgument.getValue().getFilterExpression());
-        assertNull(projectionArgument.getValue().getPagination());
-        assertNull(projectionArgument.getValue().getSorting());
         assertEquals(3, loaded.size());
-        assertTrue(loaded.contains(book1));
-        assertTrue(loaded.contains(book2));
-        assertTrue(loaded.contains(book3));
+        List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
+        assertEquals(Lists.newArrayList("Book 3", "Book 2", "Book 1"), bookTitles);
+        assertEquals(3, pagination.getPageTotals());
     }
 
     @Test
