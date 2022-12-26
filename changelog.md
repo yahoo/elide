@@ -1,5 +1,18 @@
 # Change Log
 
+## 6.1.10
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/06f05b4de4d6f2cd9bbb0e6c564545dcea597554) Bump jackson-databind from 2.13.4.2 to 2.14.1 (#2843) 
+ * [view commit](https://github.com/yahoo/elide/commit/d0dccb50965807569ae5e7ebf39e533216a84424) fix: apply distinct for non-paginated queries with many relationship (#2848) 
+ * [view commit](https://github.com/yahoo/elide/commit/f7c912669d7cf446efa1cf9857b7fb791ddcbc15) Bump hibernate5.version from 5.6.12.Final to 5.6.14.Final (#2838) 
+ * [view commit](https://github.com/yahoo/elide/commit/192e13a77b39f5bbacb71cf71133e6299c6f266e) Bump handlebars-helpers from 4.3.0 to 4.3.1 (#2837) 
+ * [view commit](https://github.com/yahoo/elide/commit/17cb8989993192f8b0291595854a9810c0d72121) fix: apply distinct for to many filter in SubCollectionFetchQueryBuilder (#2859) 
+ * [view commit](https://github.com/yahoo/elide/commit/b57a31f6ef089f5a159ffd264add06e12ec239a6) Bump mockito-junit-jupiter from 4.8.1 to 4.10.0 (#2856) 
+ * [view commit](https://github.com/yahoo/elide/commit/7cfe7e1b68f859bff6d9e28085d1437ab1503939) Bump hibernate-search-orm from 5.11.10.Final to 5.11.11.Final (#2850) 
+ * [view commit](https://github.com/yahoo/elide/commit/b49e043fe2a3ddb83c49782a6bac46443cc0ed71) Bump version.jackson from 2.14.0 to 2.14.1 (#2865) 
+ * [view commit](https://github.com/yahoo/elide/commit/c4742e797a48e21cb132d2f60b19b89a9fbeac60) Bump classgraph from 4.8.149 to 4.8.153 (#2863) 
+ * [view commit](https://github.com/yahoo/elide/commit/a45728f457104cd95f2245fd7f218e7b14ecc2c9) Bump version.restassured from 5.2.0 to 5.3.0 (#2862) 
+
 ## 6.1.9
 **Features**
 * [view commit](https://github.com/yahoo/elide/commit/86203f05f61b3beb65a3a6f6ba502727f4d1f4d7) Adding support for populating Meta object in JSON-API (#2824) 
