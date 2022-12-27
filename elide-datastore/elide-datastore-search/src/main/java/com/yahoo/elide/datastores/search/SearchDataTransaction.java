@@ -33,8 +33,11 @@ import org.hibernate.search.annotations.Fields;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.SortableField;
 import org.hibernate.search.engine.ProjectionConstants;
+import org.hibernate.search.engine.search.sort.SearchSort;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.FullTextQuery;
+import org.hibernate.search.mapper.orm.scope.SearchScope;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.sort.SortFieldContext;
 
@@ -60,17 +63,17 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     private EntityDictionary dictionary;
-    private FullTextEntityManager em;
+    private SearchSession session;
     private int minNgram;
     private int maxNgram;
     public SearchDataTransaction(DataStoreTransaction tx,
                                  EntityDictionary dictionary,
-                                 FullTextEntityManager em,
+                                 SearchSession session,
                                  int minNgramSize,
                                  int maxNgramSize) {
         super(tx);
         this.dictionary = dictionary;
-        this.em = em;
+        this.session = session;
         this.minNgram = minNgramSize;
         this.maxNgram = maxNgramSize;
     }
@@ -146,7 +149,7 @@ public class SearchDataTransaction extends TransactionWrapper {
      * @param entityType The entity being sorted.
      * @return A lucene Sort object
      */
-    private Sort buildSort(Sorting sorting, Type<?> entityType) {
+    private SearchSort buildSort(Sorting sorting, Type<?> entityType) {
         Class<?> entityClass = null;
         if (entityType != null) {
             Preconditions.checkState(entityType instanceof ClassType);
@@ -246,8 +249,11 @@ public class SearchDataTransaction extends TransactionWrapper {
                 Preconditions.checkState(entityType instanceof ClassType);
                 entityClass = ((ClassType) entityType).getCls();
             }
+
+            SearchScope scope = session.scope(entityClass);
+            scope.predicate()
             try {
-                query = filterExpression.accept(new FilterExpressionToLuceneQuery(em, entityClass));
+                query = filterExpression.accept(new FilterExpressionToSearchPredicte(em, entityClass));
             } catch (IllegalArgumentException e) {
                 throw new BadRequestException(e.getMessage());
             }

@@ -13,6 +13,7 @@
         <class>com.yahoo.elide.datastores.search.models.Item</class>
 
         <properties>
+            <property name="hibernate.search.backend.analysis.configurer" value="class:com.yahoo.elide.datastores.search.TestLuceneAnalysisConfigurer"/>
             <property name="hibernate.search.default.directory_provider" value="filesystem"/>
             <property name="hibernate.search.default.indexBase" value="/tmp/lucene/indexes"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
