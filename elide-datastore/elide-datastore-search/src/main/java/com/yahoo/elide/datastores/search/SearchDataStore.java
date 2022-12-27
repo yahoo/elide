@@ -12,11 +12,15 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.base.Preconditions;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.jpa.Search;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.massindexing.MassIndexer;
+import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 import jakarta.persistence.EntityManagerFactory;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Performs full text search when it can.  Otherwise delegates to a wrapped store.
@@ -56,21 +60,23 @@ public class SearchDataStore implements DataStore {
         wrapped.populateEntityDictionary(entityDictionary);
 
         if (indexOnStartup) {
-
-            FullTextEntityManager em = Search.getFullTextEntityManager(entityManagerFactory.createEntityManager());
+            SearchSession session = Search.session(entityManagerFactory.createEntityManager());
             try {
+                Set<Class<?>> classesToIndex = new LinkedHashSet<>();
                 for (Type<?> entityType : entityDictionary.getBoundClasses()) {
                     if (entityDictionary.getAnnotation(entityType, Indexed.class) != null) {
                         Preconditions.checkState(entityType instanceof ClassType);
                         Class<?> entityClass = ((ClassType) entityType).getCls();
-                        em.createIndexer(entityClass).startAndWait();
+                        classesToIndex.add(entityClass);
                     }
                 }
+                MassIndexer indexer = session.massIndexer(classesToIndex);
+                indexer.startAndWait();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IllegalStateException(e);
             } finally {
-                em.close();
+                session.toOrmSession().close();
             }
         }
 
@@ -85,8 +91,7 @@ public class SearchDataStore implements DataStore {
     @Override
     public DataStoreTransaction beginReadTransaction() {
 
-        FullTextEntityManager em = Search.getFullTextEntityManager(entityManagerFactory.createEntityManager());
-
-        return new SearchDataTransaction(wrapped.beginReadTransaction(), dictionary, em, minNgramSize, maxNgramSize);
+        SearchSession session = Search.session(entityManagerFactory.createEntityManager());
+        return new SearchDataTransaction(wrapped.beginReadTransaction(), dictionary, session, minNgramSize, maxNgramSize);
     }
 }
