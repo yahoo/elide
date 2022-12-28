@@ -27,29 +27,26 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.base.Preconditions;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Sort;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Fields;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.SortableField;
-import org.hibernate.search.engine.ProjectionConstants;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.engine.backend.types.Sortable;
+import org.hibernate.search.engine.search.predicate.SearchPredicate;
+import org.hibernate.search.engine.search.query.SearchResult;
+import org.hibernate.search.engine.search.query.dsl.SearchQueryOptionsStep;
 import org.hibernate.search.engine.search.sort.SearchSort;
-import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.jpa.FullTextQuery;
+import org.hibernate.search.engine.search.sort.dsl.FieldSortOptionsStep;
+import org.hibernate.search.engine.search.sort.dsl.SearchSortFactory;
 import org.hibernate.search.mapper.orm.scope.SearchScope;
 import org.hibernate.search.mapper.orm.session.SearchSession;
-import org.hibernate.search.query.dsl.QueryBuilder;
-import org.hibernate.search.query.dsl.sort.SortFieldContext;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Performs full text search when it can.  Otherwise delegates to a wrapped transaction.
@@ -122,7 +119,6 @@ public class SearchDataTransaction extends TransactionWrapper {
      * @return true if Lucene can sort.  False otherwise.
      */
     private boolean canSort(Sorting sorting, Type<?> entityClass) {
-
         for (Map.Entry<Path, Sorting.SortOrder> entry
                 : sorting.getSortingPaths().entrySet()) {
 
@@ -135,7 +131,9 @@ public class SearchDataTransaction extends TransactionWrapper {
             Path.PathElement last = path.lastElement().get();
             String fieldName = last.getFieldName();
 
-            if (dictionary.getAttributeOrRelationAnnotation(entityClass, SortableField.class, fieldName) == null) {
+            boolean sortable = fieldIsSortable(entityClass, fieldName);
+
+            if (! sortable) {
                 return false;
             }
         }
@@ -149,44 +147,50 @@ public class SearchDataTransaction extends TransactionWrapper {
      * @param entityType The entity being sorted.
      * @return A lucene Sort object
      */
-    private SearchSort buildSort(Sorting sorting, Type<?> entityType) {
-        Class<?> entityClass = null;
-        if (entityType != null) {
-            Preconditions.checkState(entityType instanceof ClassType);
-            entityClass = ((ClassType) entityType).getCls();
-        }
-        QueryBuilder builder = em.getSearchFactory().buildQueryBuilder().forEntity(entityClass).get();
-
-        SortFieldContext context = null;
+    private SearchSort buildSort(SearchScope searchScope, Type<?> entityType, Sorting sorting) {
+       SearchSortFactory sortFactory = null;
+        FieldSortOptionsStep step = null;
         for (Map.Entry<Path, Sorting.SortOrder> entry
                 : sorting.getSortingPaths().entrySet()) {
 
             String fieldName = entry.getKey().lastElement().get().getFieldName();
 
-            SortableField sortableField =
-                    dictionary.getAttributeOrRelationAnnotation(entityType, SortableField.class, fieldName);
+            KeywordField[] keywordFields =
+                    dictionary.getAttributeOrRelationAnnotations(entityType, KeywordField.class, fieldName);
 
-            fieldName = sortableField.forField().isEmpty() ? fieldName : sortableField.forField();
+            for (KeywordField keywordField : keywordFields) {
+                if (keywordField.sortable() == Sortable.YES && !keywordField.name().isEmpty()) {
+                    fieldName = keywordField.name();
+                    break;
+                }
+            }
 
-            if (context == null) {
-                context = builder.sort().byField(fieldName);
-            } else {
-                context.andByField(fieldName);
+            GenericField[] genericFields =
+                    dictionary.getAttributeOrRelationAnnotations(entityType, GenericField.class, fieldName);
+
+            for (GenericField genericField : genericFields) {
+                if (genericField.sortable() == Sortable.YES && !genericField.name().isEmpty()) {
+                    fieldName = genericField.name();
+                    break;
+                }
             }
 
             Sorting.SortOrder order = entry.getValue();
 
-            if (order == Sorting.SortOrder.asc) {
-                context = context.asc();
+            if (sortFactory == null) {
+                sortFactory = searchScope.sort();
             } else {
-                context = context.desc();
+                sortFactory = step.then();
+            }
+
+            if (order == Sorting.SortOrder.asc) {
+                step = sortFactory.field(fieldName).asc();
+            } else {
+                step = sortFactory.field(fieldName).desc();
             }
         }
-        if (context == null) {
-            throw new IllegalStateException("Invalid Sort rules");
-        }
 
-        return context.createSort();
+        return step.toSort();
     }
 
     private FilterSupport canSearch(Type<?> entityClass, FilterExpression expression) {
@@ -243,76 +247,106 @@ public class SearchDataTransaction extends TransactionWrapper {
      */
     private <T> List<T> search(Type<?> entityType, FilterExpression filterExpression, Optional<Sorting> sorting,
                                 Optional<Pagination> pagination) {
-            Query query;
-            Class<?> entityClass = null;
-            if (entityType != null) {
-                Preconditions.checkState(entityType instanceof ClassType);
-                entityClass = ((ClassType) entityType).getCls();
+        Query query;
+        Class<?> entityClass = null;
+        if (entityType != null) {
+            Preconditions.checkState(entityType instanceof ClassType);
+            entityClass = ((ClassType) entityType).getCls();
+        }
+
+        SearchScope scope = session.scope(entityClass);
+        SearchPredicate predicate;
+        try {
+            predicate = filterExpression.accept(
+                    new FilterExpressionToSearchPredicate(scope.predicate(), entityClass));
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage());
+        }
+
+        SearchQueryOptionsStep step = session.search(entityClass).where(predicate);
+
+        if (mustSort(sorting)) {
+            SearchSort sort = buildSort(scope, entityType, sorting.get());
+            step = step.sort(sort);
+        }
+
+        SearchResult result;
+        if (pagination.isPresent()) {
+            result = step.fetch(pagination.get().getOffset(), pagination.get().getLimit());
+        } else {
+            result = step.fetchAll();
+        }
+
+        if (pagination.filter(Pagination::returnPageTotals).isPresent()) {
+            pagination.get().setPageTotals(result.total().hitCount());
+        }
+
+        List<T> results = result.hits();
+
+        if (results.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return results;
+    }
+
+    private boolean fieldIsSortable(Type<?> entityClass, String fieldName) {
+        GenericField[] genericFields =
+                dictionary.getAttributeOrRelationAnnotations(entityClass, GenericField.class, fieldName);
+
+        for (GenericField genericField : genericFields) {
+            if (genericField.sortable() == Sortable.YES
+                    && (genericField.name().equals(fieldName) || genericField.name().isEmpty())) {
+                return true;
             }
+        }
 
-            SearchScope scope = session.scope(entityClass);
-            scope.predicate()
-            try {
-                query = filterExpression.accept(new FilterExpressionToSearchPredicte(em, entityClass));
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException(e.getMessage());
+        KeywordField[] keywordFields =
+                dictionary.getAttributeOrRelationAnnotations(entityClass, KeywordField.class, fieldName);
+
+        for (KeywordField keywordField : keywordFields) {
+            if (keywordField.sortable() == Sortable.YES
+                    && (keywordField.name().equals(fieldName) || keywordField.name().isEmpty())) {
+                return true;
             }
+        }
 
-            FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);
-
-            if (mustSort(sorting)) {
-                fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityType));
-            }
-
-            if (pagination.isPresent()) {
-                fullTextQuery = fullTextQuery.setMaxResults(pagination.get().getLimit());
-                fullTextQuery = fullTextQuery.setFirstResult(pagination.get().getOffset());
-            }
-
-            List<T[]> results = fullTextQuery
-                    .setProjection(ProjectionConstants.THIS)
-                    .getResultList();
-
-            if (pagination.filter(Pagination::returnPageTotals).isPresent()) {
-                pagination.get().setPageTotals((long) fullTextQuery.getResultSize());
-            }
-
-            if (results.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            return results.stream()
-                    .map(result -> result[0])
-                    .collect(Collectors.toList());
+        return false;
     }
 
     private boolean fieldIsIndexed(Type<?> entityClass, FilterPredicate predicate) {
         String fieldName = predicate.getField();
+        FullTextField[] fullTextFields =
+                dictionary.getAttributeOrRelationAnnotations(entityClass, FullTextField.class, fieldName);
 
-        List<Field> fields = new ArrayList<>();
-
-        Field fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(entityClass, Field.class, fieldName);
-
-        if (fieldAnnotation != null) {
-            fields.add(fieldAnnotation);
-        } else {
-            Fields fieldsAnnotation =
-                    dictionary.getAttributeOrRelationAnnotation(entityClass, Fields.class, fieldName);
-
-            if (fieldsAnnotation != null) {
-                Arrays.stream(fieldsAnnotation.value()).forEach(fields::add);
+        for (FullTextField fullTextField : fullTextFields) {
+            if (fullTextField.searchable() == Searchable.YES
+                    && (fullTextField.name().equals(fieldName) || fullTextField.name().isEmpty())) {
+                return true;
             }
         }
 
-        boolean indexed = false;
+        GenericField[] genericFields =
+                dictionary.getAttributeOrRelationAnnotations(entityClass, GenericField.class, fieldName);
 
-        for (Field field : fields) {
-            if (field.index() == Index.YES && (field.name().equals(fieldName) || field.name().isEmpty())) {
-                indexed = true;
+        for (GenericField genericField : genericFields) {
+            if (genericField.searchable() == Searchable.YES
+                    && (genericField.name().equals(fieldName) || genericField.name().isEmpty())) {
+                return true;
             }
         }
 
-        return indexed;
+        KeywordField[] keywordFields =
+                dictionary.getAttributeOrRelationAnnotations(entityClass, KeywordField.class, fieldName);
+
+        for (KeywordField keywordField : keywordFields) {
+            if (keywordField.searchable() == Searchable.YES
+                    && (keywordField.name().equals(fieldName) || keywordField.name().isEmpty())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private FilterSupport operatorSupport(Type<?> entityClass, FilterPredicate predicate)
