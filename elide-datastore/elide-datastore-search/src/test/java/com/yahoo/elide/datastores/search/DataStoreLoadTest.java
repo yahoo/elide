@@ -368,7 +368,7 @@ public class DataStoreLoadTest {
         String toReplace = "Foo\tBar Blah\nFoobar";
         String expected = "Foo\\\tBar\\ Blah\\\nFoobar";
 
-        String actual = FilterExpressionToSearchPredicte.escapeWhiteSpace(toReplace);
+        String actual = FilterExpressionToSearchPredicate.escapeWhiteSpace(toReplace);
 
         assertEquals(expected, actual);
     }
