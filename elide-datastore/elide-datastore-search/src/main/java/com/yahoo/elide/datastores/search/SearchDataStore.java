@@ -92,6 +92,7 @@ public class SearchDataStore implements DataStore {
     public DataStoreTransaction beginReadTransaction() {
 
         SearchSession session = Search.session(entityManagerFactory.createEntityManager());
-        return new SearchDataTransaction(wrapped.beginReadTransaction(), dictionary, session, minNgramSize, maxNgramSize);
+        return new SearchDataTransaction(wrapped.beginReadTransaction(), dictionary,
+                session, minNgramSize, maxNgramSize);
     }
 }

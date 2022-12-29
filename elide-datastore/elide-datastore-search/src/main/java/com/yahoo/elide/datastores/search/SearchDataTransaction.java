@@ -26,7 +26,6 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.base.Preconditions;
-import org.apache.lucene.search.Query;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.engine.search.predicate.SearchPredicate;
@@ -42,7 +41,6 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericFie
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -148,30 +146,33 @@ public class SearchDataTransaction extends TransactionWrapper {
      * @return A lucene Sort object
      */
     private SearchSort buildSort(SearchScope searchScope, Type<?> entityType, Sorting sorting) {
-       SearchSortFactory sortFactory = null;
+        SearchSortFactory sortFactory = null;
         FieldSortOptionsStep step = null;
-        for (Map.Entry<Path, Sorting.SortOrder> entry
-                : sorting.getSortingPaths().entrySet()) {
+        for (Map.Entry<Path, Sorting.SortOrder> entry : sorting.getSortingPaths().entrySet()) {
 
             String fieldName = entry.getKey().lastElement().get().getFieldName();
 
             KeywordField[] keywordFields =
                     dictionary.getAttributeOrRelationAnnotations(entityType, KeywordField.class, fieldName);
 
-            for (KeywordField keywordField : keywordFields) {
-                if (keywordField.sortable() == Sortable.YES && !keywordField.name().isEmpty()) {
-                    fieldName = keywordField.name();
-                    break;
+            if (keywordFields != null) {
+                for (KeywordField keywordField : keywordFields) {
+                    if (keywordField.sortable() == Sortable.YES && !keywordField.name().isEmpty()) {
+                        fieldName = keywordField.name();
+                        break;
+                    }
                 }
             }
 
             GenericField[] genericFields =
                     dictionary.getAttributeOrRelationAnnotations(entityType, GenericField.class, fieldName);
 
-            for (GenericField genericField : genericFields) {
-                if (genericField.sortable() == Sortable.YES && !genericField.name().isEmpty()) {
-                    fieldName = genericField.name();
-                    break;
+            if (genericFields != null) {
+                for (GenericField genericField : genericFields) {
+                    if (genericField.sortable() == Sortable.YES && !genericField.name().isEmpty()) {
+                        fieldName = genericField.name();
+                        break;
+                    }
                 }
             }
 
@@ -247,7 +248,6 @@ public class SearchDataTransaction extends TransactionWrapper {
      */
     private <T> List<T> search(Type<?> entityType, FilterExpression filterExpression, Optional<Sorting> sorting,
                                 Optional<Pagination> pagination) {
-        Query query;
         Class<?> entityClass = null;
         if (entityType != null) {
             Preconditions.checkState(entityType instanceof ClassType);
@@ -283,10 +283,6 @@ public class SearchDataTransaction extends TransactionWrapper {
 
         List<T> results = result.hits();
 
-        if (results.isEmpty()) {
-            return Collections.emptyList();
-        }
-
         return results;
     }
 
@@ -294,20 +290,22 @@ public class SearchDataTransaction extends TransactionWrapper {
         GenericField[] genericFields =
                 dictionary.getAttributeOrRelationAnnotations(entityClass, GenericField.class, fieldName);
 
-        for (GenericField genericField : genericFields) {
-            if (genericField.sortable() == Sortable.YES
-                    && (genericField.name().equals(fieldName) || genericField.name().isEmpty())) {
-                return true;
+        if (genericFields != null) {
+            for (GenericField genericField : genericFields) {
+                if (genericField.sortable() == Sortable.YES) {
+                    return true;
+                }
             }
         }
 
         KeywordField[] keywordFields =
                 dictionary.getAttributeOrRelationAnnotations(entityClass, KeywordField.class, fieldName);
 
-        for (KeywordField keywordField : keywordFields) {
-            if (keywordField.sortable() == Sortable.YES
-                    && (keywordField.name().equals(fieldName) || keywordField.name().isEmpty())) {
-                return true;
+        if (keywordFields != null) {
+            for (KeywordField keywordField : keywordFields) {
+                if (keywordField.sortable() == Sortable.YES) {
+                    return true;
+                }
             }
         }
 
@@ -319,30 +317,36 @@ public class SearchDataTransaction extends TransactionWrapper {
         FullTextField[] fullTextFields =
                 dictionary.getAttributeOrRelationAnnotations(entityClass, FullTextField.class, fieldName);
 
-        for (FullTextField fullTextField : fullTextFields) {
-            if (fullTextField.searchable() == Searchable.YES
-                    && (fullTextField.name().equals(fieldName) || fullTextField.name().isEmpty())) {
-                return true;
+        if (fullTextFields != null) {
+            for (FullTextField fullTextField : fullTextFields) {
+                if (fullTextField.searchable() == Searchable.YES
+                        && (fullTextField.name().equals(fieldName) || fullTextField.name().isEmpty())) {
+                    return true;
+                }
             }
         }
 
         GenericField[] genericFields =
                 dictionary.getAttributeOrRelationAnnotations(entityClass, GenericField.class, fieldName);
 
-        for (GenericField genericField : genericFields) {
-            if (genericField.searchable() == Searchable.YES
-                    && (genericField.name().equals(fieldName) || genericField.name().isEmpty())) {
-                return true;
+        if (genericFields != null) {
+            for (GenericField genericField : genericFields) {
+                if (genericField.searchable() == Searchable.YES
+                        && (genericField.name().equals(fieldName) || genericField.name().isEmpty())) {
+                    return true;
+                }
             }
         }
 
         KeywordField[] keywordFields =
                 dictionary.getAttributeOrRelationAnnotations(entityClass, KeywordField.class, fieldName);
 
-        for (KeywordField keywordField : keywordFields) {
-            if (keywordField.searchable() == Searchable.YES
-                    && (keywordField.name().equals(fieldName) || keywordField.name().isEmpty())) {
-                return true;
+        if (keywordFields != null) {
+            for (KeywordField keywordField : keywordFields) {
+                if (keywordField.searchable() == Searchable.YES
+                        && (keywordField.name().equals(fieldName) || keywordField.name().isEmpty())) {
+                    return true;
+                }
             }
         }
 
