@@ -74,8 +74,8 @@
         <releaseRepoUrl>https://oss.sonatype.org/service/local/staging/deploy/maven2/</releaseRepoUrl>
         <snapshotRepoUrl>https://oss.sonatype.org/content/repositories/snapshots/</snapshotRepoUrl>
         <autoVersionSubmodules>true</autoVersionSubmodules>
-        <min.jdk.version>11</min.jdk.version>
-        <max.jdk.version>12</max.jdk.version>
+        <min.jdk.version>17</min.jdk.version>
+        <max.jdk.version>18</max.jdk.version>
         <source.jdk.version>${min.jdk.version}</source.jdk.version>
         <target.jdk.version>${min.jdk.version}</target.jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
