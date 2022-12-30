@@ -30,11 +30,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import graphql.ExecutionResult;
+import jakarta.jms.ConnectionFactory;
 
 import java.net.URI;
 import java.util.List;
 
-import javax.jms.ConnectionFactory;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
