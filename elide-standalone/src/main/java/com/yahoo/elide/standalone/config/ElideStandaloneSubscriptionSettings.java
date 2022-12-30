@@ -12,8 +12,9 @@ import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurato
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Message;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Message;
+
 import javax.websocket.server.ServerEndpointConfig;
 
 /**
