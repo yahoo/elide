@@ -67,7 +67,6 @@ jobs:
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
 
-
   release-java11:
     image: maven:3.8.2-openjdk-11
     secrets:
