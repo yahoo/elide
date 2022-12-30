@@ -20,10 +20,10 @@ import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import example.models.Post;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
+import jakarta.jms.ConnectionFactory;
+
 import java.util.Properties;
 import java.util.TimeZone;
-
-import javax.jms.ConnectionFactory;
 
 /**
  * Settings class extending ElideStandaloneSettings for tests.

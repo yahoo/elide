@@ -1,3 +1,4 @@
+org.springframework.cloud.autoconfigure.RefreshAutoConfiguration
 com.yahoo.elide.spring.config.ElideAutoConfiguration
 com.yahoo.elide.spring.config.ElideAsyncConfiguration
 com.yahoo.elide.spring.config.ElideSubscriptionConfiguration
