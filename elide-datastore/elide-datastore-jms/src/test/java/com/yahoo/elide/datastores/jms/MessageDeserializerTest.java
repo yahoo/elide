@@ -14,7 +14,7 @@ import com.google.gson.GsonBuilder;
 import example.Book;
 import org.junit.jupiter.api.Test;
 
-import javax.jms.TextMessage;
+import jakarta.jms.TextMessage;
 
 public class MessageDeserializerTest {
 

@@ -17,13 +17,13 @@ import com.google.gson.GsonBuilder;
 import example.Chat;
 import example.ChatBot;
 
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSContext;
 import lombok.Data;
 
 import java.util.Optional;
 
 import javax.inject.Inject;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSContext;
 
 @Data
 public class ChatBotCreateHook implements LifeCycleHook<ChatBot> {

@@ -19,7 +19,7 @@ import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
 
-import javax.jms.ConnectionFactory;
+import jakarta.jms.ConnectionFactory;
 
 public class SubscriptionScannerTest {
 

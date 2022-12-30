@@ -16,11 +16,11 @@ import com.yahoo.elide.core.type.ClassType;
 import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.Test;
 
-import java.util.Iterator;
+import jakarta.jms.JMSConsumer;
+import jakarta.jms.JMSRuntimeException;
+import jakarta.jms.TextMessage;
 
-import javax.jms.JMSConsumer;
-import javax.jms.JMSRuntimeException;
-import javax.jms.TextMessage;
+import java.util.Iterator;
 
 public class MessageIterableTest {
 

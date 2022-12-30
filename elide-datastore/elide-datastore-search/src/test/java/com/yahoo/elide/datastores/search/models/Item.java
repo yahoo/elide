@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.search.models;
 
 import com.yahoo.elide.annotation.Include;
-
 import org.hibernate.search.engine.backend.types.Projectable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.engine.backend.types.Sortable;
