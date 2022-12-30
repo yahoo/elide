@@ -36,15 +36,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSProducer;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
-
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSContext;
-import javax.jms.JMSProducer;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JMSDataStoreTest {

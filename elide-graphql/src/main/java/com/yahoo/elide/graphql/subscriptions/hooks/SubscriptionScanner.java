@@ -18,14 +18,13 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSProducer;
+import jakarta.jms.Message;
 import lombok.Builder;
 
 import java.util.function.Function;
-
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSContext;
-import javax.jms.JMSProducer;
-import javax.jms.Message;
 
 /**
  * Scans for subscription annotations and registers lifecycle hooks to update JMS topics.
