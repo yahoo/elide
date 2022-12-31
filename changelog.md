@@ -1,5 +1,16 @@
 # Change Log
 
+## 7.0.0-RC1
+This is a major elide dependency upgrade from Elide 6.  To simplify migration, no Elide interfaces were touched.
+
+**Features**
+ * Elide now builds with Java 17
+ * Upgrade to Spring Boot 3.X
+ * Upgrade Hibernate 6.X
+ * Migrate from javax to jakarta 
+ * Upgrade to Jetty 11.X
+ * Upgrade to Jersey 3.1.X
+
 ## 6.1.10
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/06f05b4de4d6f2cd9bbb0e6c564545dcea597554) Bump jackson-databind from 2.13.4.2 to 2.14.1 (#2843) 
