@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 
 import graphql.GraphQL;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.Session;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -38,9 +40,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.websocket.CloseReason;
-import javax.websocket.Session;
 
 /**
  * Implements the graphql-ws protocol (https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md)

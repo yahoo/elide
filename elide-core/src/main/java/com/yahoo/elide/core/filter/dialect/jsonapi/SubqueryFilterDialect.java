@@ -8,9 +8,9 @@ package com.yahoo.elide.core.filter.dialect.jsonapi;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
-import java.util.Map;
+import jakarta.ws.rs.core.MultivaluedMap;
 
-import javax.ws.rs.core.MultivaluedMap;
+import java.util.Map;
 
 /**
  * Parses filters which are bound to a particular entity type.  Whenever a collection of entities

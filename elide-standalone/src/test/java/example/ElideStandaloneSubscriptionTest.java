@@ -31,13 +31,12 @@ import org.junit.jupiter.api.TestInstance;
 
 import graphql.ExecutionResult;
 import jakarta.jms.ConnectionFactory;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 
 import java.net.URI;
 import java.util.List;
-
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 
 /**
  * Tests ElideStandalone starts and works.

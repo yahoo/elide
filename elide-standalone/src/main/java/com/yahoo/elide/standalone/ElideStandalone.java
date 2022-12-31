@@ -15,23 +15,22 @@ import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import com.codahale.metrics.servlet.InstrumentedFilter;
-import com.codahale.metrics.servlets.AdminServlet;
-import com.codahale.metrics.servlets.HealthCheckServlet;
-import com.codahale.metrics.servlets.MetricsServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.websocket.javax.server.config.JavaxWebSocketServletContainerInitializer;
+import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
 
+import io.dropwizard.metrics.servlets.AdminServlet;
+import io.dropwizard.metrics.servlets.HealthCheckServlet;
+import io.dropwizard.metrics.servlets.MetricsServlet;
+import jakarta.servlet.DispatcherType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
-
-import javax.servlet.DispatcherType;
 
 /**
  * Elide Standalone.
@@ -103,7 +102,7 @@ public class ElideStandalone {
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
                     "com.yahoo.elide.jsonapi.resources");
-            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+            jerseyServlet.setInitParameter("jakarta.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
         if (elideStandaloneSettings.enableGraphQL()) {
@@ -111,12 +110,12 @@ public class ElideStandalone {
                     elideStandaloneSettings.getGraphQLApiPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
-            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+            jerseyServlet.setInitParameter("jakarta.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
         ElideStandaloneSubscriptionSettings subscriptionSettings = elideStandaloneSettings.getSubscriptionProperties();
         if (elideStandaloneSettings.enableGraphQL() && subscriptionSettings.enabled()) {
             // GraphQL subscription endpoint
-            JavaxWebSocketServletContainerInitializer.configure(context, (servletContext, serverContainer) -> {
+            JakartaWebSocketServletContainerInitializer.configure(context, (servletContext, serverContainer) -> {
                         serverContainer.addEndpoint(subscriptionSettings.serverEndpointConfig(elideStandaloneSettings));
             });
 
@@ -128,7 +127,7 @@ public class ElideStandalone {
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
                     "com.yahoo.elide.async.resources");
-            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+            jerseyServlet.setInitParameter("jakarta.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
         if (elideStandaloneSettings.enableServiceMonitoring()) {
@@ -153,7 +152,7 @@ public class ElideStandalone {
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
                     "com.yahoo.elide.swagger.resources");
-            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+            jerseyServlet.setInitParameter("jakarta.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
         elideStandaloneSettings.updateServletContextHandler(context);

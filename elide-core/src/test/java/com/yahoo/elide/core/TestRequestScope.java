@@ -15,9 +15,9 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import java.util.UUID;
+import jakarta.ws.rs.core.MultivaluedMap;
 
-import javax.ws.rs.core.MultivaluedMap;
+import java.util.UUID;
 
 /**
  * Utility subclass that helps construct RequestScope objects for testing.

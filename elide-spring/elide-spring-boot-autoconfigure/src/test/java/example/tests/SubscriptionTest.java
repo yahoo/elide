@@ -21,13 +21,12 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import graphql.ExecutionResult;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 
 import java.net.URI;
 import java.util.List;
-
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 
 public class SubscriptionTest extends IntegrationTest {
 

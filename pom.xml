@@ -85,12 +85,12 @@
 
         <!-- dependency versions -->
         <version.antlr4>4.10.1</version.antlr4>
-        <version.jetty>10.0.10</version.jetty>
+        <version.jetty>11.0.13</version.jetty>
         <version.logback>1.2.11</version.logback>
         <version.restassured>5.3.0</version.restassured>
         <version.jackson>2.14.1</version.jackson>
         <version.jackson.databind>2.14.1</version.jackson.databind>
-        <version.jersey>2.35</version.jersey>
+        <version.jersey>3.1.0</version.jersey>
         <version.junit>5.9.1</version.junit>
         <version.junit.platform>1.9.1</version.junit.platform>
         <version.lombok>1.18.24</version.lombok>
@@ -137,9 +137,9 @@
                 <version>31.1-jre</version>
             </dependency>
             <dependency>
-                <groupId>javax.inject</groupId>
-                <artifactId>javax.inject</artifactId>
-                <version>1</version>
+                <groupId>jakarta.inject</groupId>
+                <artifactId>jakarta.inject-api</artifactId>
+                <version>2.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>

@@ -14,8 +14,7 @@ import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Message;
-
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 /**
  * interface for configuring the GraphQL Subscriptions in the standalone application.
