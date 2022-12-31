@@ -37,13 +37,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
 import io.restassured.RestAssured;
+import jakarta.ws.rs.core.MediaType;
 import lombok.Builder;
 import lombok.Data;
 
 import java.nio.file.Path;
 import java.util.TimeZone;
-
-import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

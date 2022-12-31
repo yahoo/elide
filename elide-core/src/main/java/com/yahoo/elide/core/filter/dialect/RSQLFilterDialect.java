@@ -49,6 +49,7 @@ import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Builder;
 import lombok.NonNull;
 
@@ -63,8 +64,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * FilterDialect which implements support for RSQL filter dialect.

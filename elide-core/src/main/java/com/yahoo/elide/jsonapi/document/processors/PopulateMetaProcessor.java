@@ -11,11 +11,11 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Document processor that populates 'meta' fields for collections (from request scope metadata) and

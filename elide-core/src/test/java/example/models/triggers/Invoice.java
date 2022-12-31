@@ -11,11 +11,10 @@ import com.yahoo.elide.annotation.Include;
 import example.models.BaseId;
 import example.models.triggers.services.BillingService;
 
+import jakarta.inject.Inject;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 import lombok.Data;
-
-import javax.inject.Inject;
 
 /**
  * Invoice for a group of purchased items.

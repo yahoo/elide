@@ -28,6 +28,7 @@ import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.reactivex.Observable;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayDeque;
@@ -41,8 +42,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.

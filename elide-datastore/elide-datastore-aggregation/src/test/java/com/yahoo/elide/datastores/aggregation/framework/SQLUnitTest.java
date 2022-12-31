@@ -69,6 +69,8 @@ import example.dimensions.SubCountry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import jakarta.inject.Provider;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -86,7 +88,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.inject.Provider;
 import javax.sql.DataSource;
 
 public abstract class SQLUnitTest {

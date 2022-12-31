@@ -34,14 +34,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import jakarta.ws.rs.core.MultivaluedHashMap;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import javax.ws.rs.core.MultivaluedHashMap;
 
 @Tag("skipInMemory") // Do not test Memory Datastores
 public class DataStoreIT extends IntegrationTest {

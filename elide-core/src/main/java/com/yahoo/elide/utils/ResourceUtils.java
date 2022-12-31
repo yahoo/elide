@@ -6,9 +6,9 @@
 
 package com.yahoo.elide.utils;
 
-import java.net.URI;
+import jakarta.ws.rs.core.UriInfo;
 
-import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 
 /**
  * Utility class which is shared by Resources/Controllers.

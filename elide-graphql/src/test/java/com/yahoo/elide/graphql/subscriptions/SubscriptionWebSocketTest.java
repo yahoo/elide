@@ -52,6 +52,9 @@ import org.mockito.ArgumentCaptor;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.Session;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -59,10 +62,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
-
-import javax.websocket.CloseReason;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
 
 /**
  * Base functionality required to test the PersistentResourceFetcher.
