@@ -23,7 +23,7 @@ jobs:
       - build: mvn -B clean verify coveralls:report
 
   elide-7-build:
-    image: maven:3.8.6-eclipse-temurin-17
+    image: maven:3.8.6-openjdk-17
     requires: [~pr:elide-7.x, ~commit:elide-7.x]
     secrets:
         - COVERALLS_REPO_TOKEN
@@ -55,7 +55,7 @@ jobs:
       - build: mvn -B clean verify coveralls:report
 
   release-java17:
-    image: maven:3.8.6-eclipse-temurin-17
+    image: maven:3.8.6-openjdk-17
     secrets:
         - GPG_KEYNAME
         - GPG_PASSPHRASE
