@@ -166,15 +166,22 @@
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-jakarta-servlet</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-jakarta-servlets</artifactId>
             <version>${metrics.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-servlet</artifactId>
+            <artifactId>metrics-jetty11</artifactId>
             <version>${metrics.version}</version>
         </dependency>
+
 
         <!-- Various Utility Libraries -->
         <dependency>
