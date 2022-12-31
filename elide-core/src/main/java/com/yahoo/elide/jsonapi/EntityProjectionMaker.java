@@ -28,6 +28,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Builder;
 import lombok.Data;
 
@@ -38,8 +39,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Converts a JSON-API request (URL and query parameters) into an EntityProjection.

@@ -21,12 +21,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
+import jakarta.validation.constraints.NotNull;
 import lombok.ToString;
 
 import java.util.Optional;
 import java.util.Set;
-
-import javax.validation.constraints.NotNull;
 
 @CreatePermission(expression = "parentInitCheck OR Prefab.Role.All")
 @ReadPermission(expression = "parentInitCheck OR Prefab.Role.All")

@@ -10,14 +10,13 @@ import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.thread.AsyncAPICancelRunnable;
 import com.yahoo.elide.async.service.thread.AsyncAPICleanerRunnable;
 
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
 /**
  * Service to execute Async queries.
  * It will schedule task to track long running queries and kills them.

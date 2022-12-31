@@ -17,12 +17,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.UUID;
-
-import javax.validation.constraints.Pattern;
 
 /**
  * Base Model Class for Async Query.

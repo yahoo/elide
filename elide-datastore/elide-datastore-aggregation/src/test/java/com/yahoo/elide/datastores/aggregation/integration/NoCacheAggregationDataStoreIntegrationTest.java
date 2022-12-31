@@ -43,14 +43,13 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.ws.rs.core.MediaType;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
 
 /**
  * Integration tests for {@link AggregationDataStore}.

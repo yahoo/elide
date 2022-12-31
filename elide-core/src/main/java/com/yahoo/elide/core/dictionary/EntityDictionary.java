@@ -71,6 +71,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Transient;
+import jakarta.ws.rs.WebApplicationException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -97,8 +98,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.WebApplicationException;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.

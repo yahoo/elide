@@ -69,6 +69,7 @@ import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.StrictNoTransfer;
 import org.junit.jupiter.api.Test;
 
+import jakarta.inject.Inject;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -87,8 +88,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.inject.Inject;
 
 public class EntityDictionaryTest extends EntityDictionary {
 

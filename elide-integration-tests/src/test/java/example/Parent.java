@@ -20,12 +20,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.validation.constraints.NotNull;
 import lombok.ToString;
 
 import java.util.Optional;
 import java.util.Set;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * Parent test bean.

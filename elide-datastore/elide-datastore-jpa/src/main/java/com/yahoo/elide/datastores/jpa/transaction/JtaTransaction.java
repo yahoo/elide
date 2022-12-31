@@ -10,14 +10,14 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
 
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Status;
+import jakarta.transaction.UserTransaction;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Consumer;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.transaction.Status;
-import javax.transaction.UserTransaction;
 
 /**
  * JTA transaction implementation.

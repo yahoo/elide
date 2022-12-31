@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
+import jakarta.ws.rs.core.MediaType;
 
-import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 
 public class ErrorObjectsIT extends IntegrationTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
