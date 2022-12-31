@@ -60,6 +60,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
@@ -72,8 +73,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 public class PersistenceResourceTestSetup extends PersistentResource {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);

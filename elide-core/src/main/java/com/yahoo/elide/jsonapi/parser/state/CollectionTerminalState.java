@@ -34,6 +34,7 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import io.reactivex.Observable;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -46,8 +47,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Collection State.

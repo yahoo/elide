@@ -6,9 +6,8 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+import jakarta.websocket.CloseReason;
 import lombok.Getter;
-
-import javax.websocket.CloseReason;
 
 /**
  * Reasons the server will disconnect the web socket.

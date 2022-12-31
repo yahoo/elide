@@ -29,7 +29,7 @@ public class PropertyTestModel {
 
     private Set<PropertyTestModel> models = new HashSet<>();
 
-    static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
+    public static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,

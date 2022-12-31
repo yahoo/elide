@@ -89,6 +89,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 
 import io.reactivex.Observable;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import nocreate.NoCreateEntity;
 
 import java.math.BigDecimal;
@@ -108,9 +110,6 @@ import java.util.UUID;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Test PersistentResource.

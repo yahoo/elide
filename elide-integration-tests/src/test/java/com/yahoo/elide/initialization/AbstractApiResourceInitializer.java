@@ -68,7 +68,7 @@ public abstract class AbstractApiResourceInitializer {
         final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
         servletHolder.setInitOrder(1);
         servletHolder.setInitParameter("jersey.config.server.provider.packages", packageName);
-        servletHolder.setInitParameter("javax.ws.rs.Application", resourceConfig);
+        servletHolder.setInitParameter("jakarta.ws.rs.Application", resourceConfig);
 
         log.debug("...Starting Server...");
         server.start();

@@ -11,14 +11,13 @@ import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 
 import io.reactivex.Observable;
+import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.UnifiedJedis;
 
 import java.util.Iterator;
-
-import javax.inject.Singleton;
 
 /**
  * Implementation of ResultStorageEngine that stores results on Redis Cluster.

@@ -45,6 +45,10 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import jakarta.inject.Inject;
+import jakarta.servlet.ServletContext;
+import jakarta.ws.rs.core.Context;
+
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -52,10 +56,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-
-import javax.inject.Inject;
-import javax.servlet.ServletContext;
-import javax.ws.rs.core.Context;
 
 public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfig {
     public static final InMemoryLogger LOGGER = new InMemoryLogger();

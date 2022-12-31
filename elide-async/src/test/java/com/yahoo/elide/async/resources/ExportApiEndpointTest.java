@@ -20,13 +20,13 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 
 import io.reactivex.Observable;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.core.Response;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
 
 /**
  * ExportAPiEndpoint Test.

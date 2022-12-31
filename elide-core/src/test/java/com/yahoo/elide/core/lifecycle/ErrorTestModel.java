@@ -29,7 +29,7 @@ public class ErrorTestModel {
 
     private String field;
 
-    static class ErrorHook implements LifeCycleHook<ErrorTestModel> {
+    public static class ErrorHook implements LifeCycleHook<ErrorTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,

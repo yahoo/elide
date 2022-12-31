@@ -13,12 +13,12 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import org.junit.jupiter.api.Test;
 
+import jakarta.ws.rs.core.MultivaluedHashMap;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import javax.ws.rs.core.MultivaluedHashMap;
 
 public class Slf4jQueryLoggerTest {
 

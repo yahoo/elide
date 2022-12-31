@@ -20,6 +20,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import org.apache.http.client.utils.URIBuilder;
 
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
@@ -30,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * JSONAPI TableExport Execute Operation.

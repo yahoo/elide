@@ -15,6 +15,7 @@ import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.type.Type;
 import com.google.gson.Gson;
 
+import jakarta.inject.Inject;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSContext;
@@ -24,8 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.function.Function;
-
-import javax.inject.Inject;
 
 /**
  * Life cycle hook that sends serialized model events to a JMS topic.

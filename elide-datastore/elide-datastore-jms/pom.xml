@@ -128,17 +128,23 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-api</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+
         <!-- dependencies for native jetty websocket -->
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jetty-server</artifactId>
+            <artifactId>websocket-jakarta-server</artifactId>
             <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jetty-client</artifactId>
+            <artifactId>websocket-jakarta-client</artifactId>
             <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
@@ -150,12 +156,7 @@
             <scope>test</scope>
         </dependency>
         <!-- dependencies for javax.websocket (JSR-356) websocket -->
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-javax-server</artifactId>
-            <version>${version.jetty}</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>

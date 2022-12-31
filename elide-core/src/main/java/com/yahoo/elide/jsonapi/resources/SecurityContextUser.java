@@ -8,7 +8,7 @@ package com.yahoo.elide.jsonapi.resources;
 
 import com.yahoo.elide.core.security.User;
 
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.SecurityContext;
 
 /**
  * Elide User for JAXRS.

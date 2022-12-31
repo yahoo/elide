@@ -24,10 +24,10 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import jakarta.inject.Inject;
+
 import java.util.Arrays;
 import java.util.Calendar;
-
-import javax.inject.Inject;
 
 public class LifeCycleIntegrationTestApplicationResourceConfig extends ResourceConfig {
     public static final InMemoryLogger LOGGER = new InMemoryLogger();
