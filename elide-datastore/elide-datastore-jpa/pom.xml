@@ -148,7 +148,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-ant</artifactId>
-            <version>${hibernate5.version}</version>
+            <version>${hibernate6.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -159,7 +159,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>${hibernate5.version}</version>
+            <version>${hibernate6.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-api</artifactId>
@@ -189,7 +189,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-envers</artifactId>
-            <version>${hibernate5.version}</version>
+            <version>${hibernate6.version}</version>
             <scope>test</scope>
         </dependency>
 
