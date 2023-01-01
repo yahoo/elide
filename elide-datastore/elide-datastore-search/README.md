@@ -124,15 +124,12 @@ new SearchDataStore(jpaStore, emf, true, 3, 50);
 
 #### Search Term Analysis
 
-Elide uses a Lucene `KeywordAnalyzer` to analyze the query predicates in filter expressions.  This allows correct handling of white space and punctuation (to match Elide's default behavior
-when not using the `SearchDataStore`.
-
-The resulting single token is then used to construct a Lucene prefix query.
+Elide creates a Hibernate Search `SimpleQueryString` for each predicate.  It first escapes white space and punctuation in any user provided input (to match Elide's default behavior when not using the `SearchDataStore`).  The resulting single token is used to construct a prefix query.
 
 #### Sorting and Pagination
 
 When using the INFIX operator, sorting and pagination are pushed to down Lucene/ElasticSearch. When using the PREFIX operator, they are performed in-memory in the Elide service.
 
-Elide constructs a Lucene Prefix query, which together with an ngram index fully implements the INFIX operator.  However, the ngram analyzer adds ngrams to the index that do not start on word 
+Elide constructs a Prefix query, which together with an ngram index fully implements the INFIX operator.  However, the ngram analyzer adds ngrams to the index that do not start on word 
 boundaries.  For the prefix operator, the search store first performs the lucene filter and then filters again in-memory to return the correct set of matching terms.  
 In this instance, because filtering is performed partially in memory, Elide also sorts and paginates in memory as well.
