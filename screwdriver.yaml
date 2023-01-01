@@ -64,7 +64,6 @@ jobs:
         - OSSRH_TOKEN
     requires: [~tag:/^7/, ~release:/^7/]
     steps:
-      - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
 
   release-java11:
@@ -77,5 +76,4 @@ jobs:
         - OSSRH_TOKEN
     requires: [~tag:/^6/, ~release:/^6/]
     steps:
-      - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
