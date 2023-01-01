@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>7.0.0-RC4-SNAPSHOT</version>
+        <version>7.0.0-RC5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -55,39 +55,39 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>7.0.0-RC4-SNAPSHOT</version>
+            <version>7.0.0-RC5-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>7.0.0-RC4-SNAPSHOT</version>
+            <version>7.0.0-RC5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jms</artifactId>
-            <version>7.0.0-RC4-SNAPSHOT</version>
+            <version>7.0.0-RC5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>7.0.0-RC4-SNAPSHOT</version>
+            <version>7.0.0-RC5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>7.0.0-RC4-SNAPSHOT</version>
+            <version>7.0.0-RC5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>7.0.0-RC4-SNAPSHOT</version>
+            <version>7.0.0-RC5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>7.0.0-RC4-SNAPSHOT</version>
+            <version>7.0.0-RC5-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -226,7 +226,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>7.0.0-RC4-SNAPSHOT</version>
+            <version>7.0.0-RC5-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
