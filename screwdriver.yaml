@@ -55,7 +55,7 @@ jobs:
       - build: mvn -B clean verify coveralls:report
 
   release-java17:
-    image: maven:3.8.5-openjdk-17
+    image: aklish/elide-build:1.0
     secrets:
         - GPG_KEYNAME
         - GPG_PASSPHRASE
