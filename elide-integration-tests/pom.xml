@@ -93,7 +93,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>${hibernate5.version}</version>
+            <version>${hibernate6.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
