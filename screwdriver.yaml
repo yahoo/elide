@@ -78,6 +78,5 @@ jobs:
         - OSSRH_TOKEN
     requires: [~tag:/^6/, ~release:/^6/]
     steps:
-      - prebuild: microdnf install --nodocs openssl gnupg
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
