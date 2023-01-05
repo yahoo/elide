@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.0.0-RC1
+## 7.0.0-pr1
 This is a major elide dependency upgrade from Elide 6.  To simplify migration, no Elide interfaces were touched.
 
 **Features**
