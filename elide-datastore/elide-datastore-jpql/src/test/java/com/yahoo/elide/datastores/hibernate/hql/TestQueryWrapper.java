@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate.hql;
 
 import com.yahoo.elide.datastores.jpql.porting.Query;
+
 import lombok.Getter;
 
 import java.util.Collection;

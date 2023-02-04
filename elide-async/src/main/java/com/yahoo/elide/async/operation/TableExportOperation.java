@@ -21,6 +21,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
+
 import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

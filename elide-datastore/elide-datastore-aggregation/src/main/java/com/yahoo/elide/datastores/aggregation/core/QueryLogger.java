@@ -8,10 +8,11 @@ package com.yahoo.elide.datastores.aggregation.core;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Query Logger Interface for Elide.

@@ -26,13 +26,13 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+import jakarta.jms.ConnectionFactory;
+import jakarta.websocket.server.ServerEndpointConfig;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import java.util.Calendar;
-import javax.jms.ConnectionFactory;
-import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * Initializes and configures the subscription web socket.

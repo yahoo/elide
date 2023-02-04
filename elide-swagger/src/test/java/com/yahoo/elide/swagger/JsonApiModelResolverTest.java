@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.model.Resource;
 import com.google.common.collect.ImmutableMap;
@@ -18,6 +19,7 @@ import example.models.Publisher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
 import io.swagger.converter.ModelConverters;
 import io.swagger.models.Model;
 import io.swagger.models.properties.ObjectProperty;

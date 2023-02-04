@@ -9,7 +9,7 @@ import com.yahoo.elide.core.audit.TestAuditLogger;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * Resource configuration for integration tests.

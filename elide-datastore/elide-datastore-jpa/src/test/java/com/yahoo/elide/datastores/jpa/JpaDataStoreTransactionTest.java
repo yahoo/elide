@@ -13,6 +13,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -24,7 +25,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import example.Author;
 import example.Book;
-import org.hibernate.collection.internal.PersistentSet;
+import org.hibernate.collection.spi.PersistentSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,14 +33,15 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JpaDataStoreTransactionTest {

@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.1.11-SNAPSHOT</version>
+        <version>7.0.0-RC7-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,12 +44,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -67,9 +67,9 @@
             <version>19.0</version>
         </dependency>
         <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>1.1</version>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-api</artifactId>
+            <version>2.0.0</version>
         </dependency>
 
         <!-- Subscription serialization -->
@@ -80,9 +80,9 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.jms</groupId>
-            <artifactId>javax.jms-api</artifactId>
-            <version>2.0.1</version>
+            <groupId>jakarta.jms</groupId>
+            <artifactId>jakarta.jms-api</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
         <!-- Test -->
@@ -127,8 +127,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -7,6 +7,7 @@ package com.yahoo.elide.modelconfig.validator;
 
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
+
 import lombok.AllArgsConstructor;
 
 import java.util.Arrays;

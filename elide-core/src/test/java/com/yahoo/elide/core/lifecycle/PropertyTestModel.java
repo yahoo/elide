@@ -8,15 +8,17 @@ package com.yahoo.elide.core.lifecycle;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.security.ChangeSpec;
 
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 
 /**
  * Model used to mock different lifecycle test scenarios.  This model uses properties instead of fields.
@@ -27,7 +29,7 @@ public class PropertyTestModel {
 
     private Set<PropertyTestModel> models = new HashSet<>();
 
-    static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
+    public static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,

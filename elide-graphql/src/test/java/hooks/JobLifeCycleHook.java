@@ -11,10 +11,11 @@ import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import example.Job;
+
+import jakarta.inject.Inject;
 import lombok.Setter;
 
 import java.util.Optional;
-import javax.inject.Inject;
 
 /**
  * Tests a hooks in GraphQL.

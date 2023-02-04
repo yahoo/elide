@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2022, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -14,13 +14,9 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.type.ClassType;
 import com.google.common.base.Preconditions;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.Query;
-import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.query.dsl.QueryBuilder;
+import org.hibernate.search.engine.search.predicate.SearchPredicate;
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,23 +24,21 @@ import java.util.stream.Collectors;
 /**
  * Converts an Elide filter expression into a Lucene Search query.
  */
-public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Query> {
+public class FilterExpressionToSearchPredicate implements FilterExpressionVisitor<SearchPredicate> {
 
-    private QueryBuilder builder;
+    SearchPredicateFactory predicateFactory;
+
     private Class<?> entityClass;
 
-    public FilterExpressionToLuceneQuery(FullTextEntityManager entityManager, Class<?> entityClass) {
+    public FilterExpressionToSearchPredicate(SearchPredicateFactory predicateFactory, Class<?> entityClass) {
         this.entityClass = entityClass;
-        builder = entityManager.getSearchFactory().buildQueryBuilder().forEntity(entityClass).get();
+        this.predicateFactory = predicateFactory;
     }
 
     @Override
-    public Query visitPredicate(FilterPredicate filterPredicate) {
+    public SearchPredicate visitPredicate(FilterPredicate filterPredicate) {
         Preconditions.checkArgument(filterPredicate.getPath().getPathElements().size() == 1);
         Preconditions.checkArgument(filterPredicate.getEntityType().equals(ClassType.of(entityClass)));
-
-        Analyzer analyzer = new KeywordAnalyzer();
-        QueryParser queryParser = new QueryParser(filterPredicate.getField(), analyzer);
 
         String queryString = "";
 
@@ -52,57 +46,40 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                 .stream()
                 .map(Object::toString)
                 .map(QueryParser::escape)
-                .map(FilterExpressionToLuceneQuery::escapeWhiteSpace)
+                .map(FilterExpressionToSearchPredicate::escapeWhiteSpace)
                 .collect(Collectors.toList());
 
         Operator op = filterPredicate.getOperator();
 
-        boolean lowerCaseTerms = lowerCaseTerms(op);
-
         queryString = buildQueryString(op, predicateValues);
 
-        queryParser.setLowercaseExpandedTerms(lowerCaseTerms);
-
-        try {
-            return queryParser.parse(queryString);
-        } catch (ParseException e) {
-            throw new IllegalStateException(e);
-        }
+        return predicateFactory
+                .simpleQueryString()
+                .field(filterPredicate.getField())
+                .matching(queryString)
+                .toPredicate();
     }
 
     @Override
-    public Query visitAndExpression(AndFilterExpression expression) {
-        return builder.bool()
+    public SearchPredicate visitAndExpression(AndFilterExpression expression) {
+        return predicateFactory.bool()
                 .must(expression.getLeft().accept(this))
-                .must(expression.getRight().accept(this))
-                .createQuery();
+                .must(expression.getRight().accept(this)).toPredicate();
     }
 
     @Override
-    public Query visitOrExpression(OrFilterExpression expression) {
-        return builder.bool()
+    public SearchPredicate visitOrExpression(OrFilterExpression expression) {
+        return predicateFactory.bool()
                 .should(expression.getLeft().accept(this))
                 .should(expression.getRight().accept(this))
-                .createQuery();
+                .toPredicate();
     }
 
     @Override
-    public Query visitNotExpression(NotFilterExpression expression) {
-        return builder.bool()
-                .must(expression.getNegated().accept(this))
-                .not()
-                .createQuery();
-    }
-
-    private boolean lowerCaseTerms(Operator op) {
-        switch (op) {
-            case INFIX_CASE_INSENSITIVE:
-            case PREFIX_CASE_INSENSITIVE:
-                return true;
-
-            default:
-                return false;
-        }
+    public SearchPredicate visitNotExpression(NotFilterExpression expression) {
+        return predicateFactory.bool()
+                .mustNot(expression.getNegated().accept(this))
+                .toPredicate();
     }
 
     private String buildQueryString(Operator op, List<String> predicateValues) {

@@ -6,6 +6,7 @@
 package com.yahoo.elide.initialization;
 
 import static com.yahoo.elide.initialization.IntegrationTest.getDataStore;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -19,6 +20,7 @@ import example.models.triggers.services.BillingService;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;

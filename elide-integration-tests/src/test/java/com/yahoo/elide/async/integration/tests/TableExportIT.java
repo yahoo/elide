@@ -29,6 +29,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -49,15 +50,16 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
 import io.restassured.response.Response;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.SecurityContext;
 import lombok.Data;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.Principal;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.SecurityContext;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TableExportIT extends AsyncApiIT {
@@ -87,7 +89,7 @@ public class TableExportIT extends AsyncApiIT {
         exportServlet.setInitOrder(3);
         exportServlet.setInitParameter("jersey.config.server.provider.packages",
                 com.yahoo.elide.async.resources.ExportApiEndpoint.class.getPackage().getName());
-        exportServlet.setInitParameter("javax.ws.rs.Application", AsyncIntegrationTestApplicationResourceConfig.class.getName());
+        exportServlet.setInitParameter("jakarta.ws.rs.Application", AsyncIntegrationTestApplicationResourceConfig.class.getName());
 
         // Set Attributes to be fetched in AsyncIntegrationTestApplicationResourceConfig
         try {

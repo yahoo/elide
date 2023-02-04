@@ -21,6 +21,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
@@ -35,7 +36,7 @@ import org.apache.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.websocket.javax.server.config.JavaxWebSocketServletContainerInitializer;
+import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,14 +45,14 @@ import org.junit.jupiter.api.TestInstance;
 
 import graphql.ExecutionResult;
 import io.restassured.RestAssured;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
+import jakarta.websocket.server.ServerEndpointConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.List;
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
-import javax.websocket.server.ServerEndpointConfig;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Slf4j
@@ -102,17 +103,18 @@ public class JMSDataStoreIntegrationTest {
         servletHolder.setInitOrder(1);
         servletHolder.setInitParameter("jersey.config.server.provider.packages",
                 JsonApiEndpoint.class.getPackage().getName());
-        servletHolder.setInitParameter("javax.ws.rs.Application", TestResourceConfig.class.getName());
+        servletHolder.setInitParameter("jakarta.ws.rs.Application", TestResourceConfig.class.getName());
 
         //GraphQL API
         ServletHolder graphqlServlet = servletContextHandler.addServlet(ServletContainer.class, "/graphQL/*");
         graphqlServlet.setInitOrder(2);
         graphqlServlet.setInitParameter("jersey.config.server.provider.packages",
                 com.yahoo.elide.graphql.GraphQLEndpoint.class.getPackage().getName());
-        graphqlServlet.setInitParameter("javax.ws.rs.Application", TestResourceConfig.class.getName());
+        graphqlServlet.setInitParameter("jakarta.ws.rs.Application", TestResourceConfig.class.getName());
+
 
         // GraphQL subscription endpoint
-        JavaxWebSocketServletContainerInitializer.configure(servletContextHandler, (servletContext, serverContainer) ->
+        JakartaWebSocketServletContainerInitializer.configure(servletContextHandler, (servletContext, serverContainer) ->
         {
             serverContainer.addEndpoint(ServerEndpointConfig.Builder
                     .create(SubscriptionWebSocket.class, "/subscription")

@@ -14,16 +14,17 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.type.Type;
 import com.google.gson.Gson;
+
+import jakarta.inject.Inject;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSProducer;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.function.Function;
-import javax.inject.Inject;
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSContext;
-import javax.jms.JMSProducer;
 
 /**
  * Life cycle hook that sends serialized model events to a JMS topic.

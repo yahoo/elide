@@ -9,6 +9,7 @@ package com.yahoo.elide.graphql.subscriptions.hooks;
 import static com.yahoo.elide.core.PersistentResource.CLASS_NO_FIELD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
@@ -18,7 +19,7 @@ import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
 
-import javax.jms.ConnectionFactory;
+import jakarta.jms.ConnectionFactory;
 
 public class SubscriptionScannerTest {
 

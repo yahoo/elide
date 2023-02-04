@@ -12,10 +12,11 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Special request scope for Patch Extension.

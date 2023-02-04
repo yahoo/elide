@@ -8,6 +8,7 @@ package com.yahoo.elide.modelconfig.validator;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -46,6 +47,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.collections.CollectionUtils;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

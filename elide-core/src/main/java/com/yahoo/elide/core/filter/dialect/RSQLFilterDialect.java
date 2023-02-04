@@ -12,6 +12,7 @@ import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.NUMBER_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.core.utils.TypeHelper.isPrimitiveNumberType;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -38,6 +39,7 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
+
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
 import cz.jirutka.rsql.parser.ast.AndNode;
@@ -47,6 +49,7 @@ import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Builder;
 import lombok.NonNull;
 
@@ -61,7 +64,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * FilterDialect which implements support for RSQL filter dialect.

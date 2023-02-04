@@ -10,6 +10,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
 import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.add;
 import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 public class JsonApiDSLTest {

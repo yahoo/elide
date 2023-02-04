@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;

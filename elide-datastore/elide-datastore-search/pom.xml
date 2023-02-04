@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>6.1.11-SNAPSHOT</version>
+        <version>7.0.0-RC7-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -42,17 +42,25 @@
             <artifactId>elide-core</artifactId>
         </dependency>
 
+        <!-- JPA -->
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search-orm</artifactId>
-            <version>5.11.11.Final</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>dom4j</groupId>
-                    <artifactId>dom4j</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-mapper-orm-orm6</artifactId>
+            <version>6.1.7.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-backend-lucene</artifactId>
+            <version>6.1.7.Final</version>
+        </dependency>
+
         <dependency>
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
@@ -67,7 +75,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -75,7 +83,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

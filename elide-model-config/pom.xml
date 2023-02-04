@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>6.1.11-SNAPSHOT</version>
+        <version>7.0.0-RC7-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -45,14 +45,14 @@
         <commons-io.version>2.11.0</commons-io.version>
         <commons-cli.version>1.5.0</commons-cli.version>
         <commons-compress.version>1.21</commons-compress.version>
-        <spring-core.verions>5.3.23</spring-core.verions>
+        <spring-core.verions>6.0.3</spring-core.verions>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -102,8 +102,8 @@
 
         <!-- For JPA @Id annotation -->
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
             <scope>provided</scope>
         </dependency>
 

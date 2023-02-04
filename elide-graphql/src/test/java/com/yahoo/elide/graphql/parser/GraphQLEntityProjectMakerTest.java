@@ -14,6 +14,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;

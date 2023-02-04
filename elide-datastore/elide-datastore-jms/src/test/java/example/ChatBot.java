@@ -9,9 +9,9 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import example.hooks.ChatBotCreateHook;
-import lombok.Data;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
+import lombok.Data;
 
 @Include
 @Data

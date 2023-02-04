@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
+
 import graphql.language.Document;
 import graphql.language.Field;
 import graphql.language.FragmentDefinition;

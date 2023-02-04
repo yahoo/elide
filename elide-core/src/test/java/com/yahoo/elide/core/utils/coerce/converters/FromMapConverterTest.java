@@ -6,9 +6,11 @@
 package com.yahoo.elide.core.utils.coerce.converters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.apache.commons.beanutils.Converter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

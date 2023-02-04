@@ -8,11 +8,11 @@ package example.models.versioned;
 
 import com.yahoo.elide.annotation.Include;
 import example.models.BaseId;
-import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Data;
 
 @Include(name = "book")
 @Entity

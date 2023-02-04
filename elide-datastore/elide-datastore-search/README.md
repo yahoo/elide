@@ -4,7 +4,7 @@ Provides full text search for Elide.
 
 ## Requirements
 
-This store leverages [Hibernate Search](https://hibernate.org/search/) which requires Hibernate 5.4+.
+This store leverages [Hibernate Search](https://hibernate.org/search/) which requires Hibernate 6+.
 
 ## Usage
 
@@ -18,50 +18,68 @@ Some of the annotations (like `AnalyzerDef`) can be defined once at the package 
 
 ```java
 @Entity
-@Include(rootLevel = true)
+@Include
 @Indexed
-@AnalyzerDef(name = "case_insensitive",
-        tokenizer = @TokenizerDef(factory = NGramTokenizerFactory.class, params = {
-            @Parameter(name = "minGramSize", value = "3"),
-            @Parameter(name = "maxGramSize", value = "10")
-        }),
-        filters = {
-                @TokenFilterDef(factory = LowerCaseFilterFactory.class)
-        }
-)
+@Data
 public class Item {
     @Id
     private long id;
 
-    @Fields({
-            @Field(name = "name", index = Index.YES,
-                    analyze = Analyze.YES, store = Store.NO, analyzer = @Analyzer(definition = "case_insensitive")),
-            @Field(name = "sortName", analyze = Analyze.NO, store = Store.NO, index = Index.YES)
-    })
-    @SortableField(forField = "sortName")
+    @FullTextField(name = "name", searchable = Searchable.YES,
+                    projectable = Projectable.NO, analyzer = "case_insensitive")
+    @KeywordField(name = "sortName", sortable = Sortable.YES, projectable = Projectable.NO, searchable = Searchable.YES)
     private String name;
 
-    @Field(index = Index.YES, analyze = Analyze.YES,
-            store = Store.NO, analyzer = @Analyzer(definition = "case_insensitive"))
+    @FullTextField(searchable = Searchable.YES, projectable = Projectable.NO, analyzer = "case_insensitive")
     private String description;
 
-    @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
-    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-    @SortableField
+    @GenericField(searchable = Searchable.YES, projectable = Projectable.NO, sortable = Sortable.YES)
     private Date modifiedDate;
 
     private BigDecimal price;
 }
 ```
 
-### Wrap Your DataStore
+### (Optional) Define a Custom Analyzer
+The `Item` entity above references a non-standard analyzer - `case_insensitive`.  This analyzer needs to be programmatically created:
 
 ```java
-/* Create your ORM based data store */
+public class MyLuceneAnalysisConfigurer implements LuceneAnalysisConfigurer {
+    @Override
+    public void configure(LuceneAnalysisConfigurationContext ctx) {
+        ctx.analyzer("case_insensitive").custom().tokenizer(NGramTokenizerFactory.class)
+                .param("minGramSize", "3")
+                .param("maxGramSize", "50").tokenFilter(LowerCaseFilterFactory.class);
+    }
+}
+```
+
+and then configured by setting the property `hibernate.search.backend.analysis.configurer` to the new analyzer.
+
+```xml
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+             version="2.0">
+    <persistence-unit name="searchDataStoreTest">
+        <class>com.yahoo.elide.datastores.search.models.Item</class>
+
+        <properties>
+            <property name="hibernate.search.backend.analysis.configurer" value="class:com.yahoo.elide.datastores.search.TestLuceneAnalysisConfigurer"/>
+            <property name="hibernate.search.backend.directory.type" value="local-heap"/>
+            ...
+        </properties>
+    </persistence-unit>
+</persistence>
+```
+
+### Wrap Your DataStore
+```java
+/* Create your JPA data store */
 DataStore store = ...
 
 /* Wrap it with a SearchDataStore */
-EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyPersistenceUnitName");
+EntityManagerFactory emf = ...
 
 boolean indexOnStartup = true; //Create a fresh index when the server starts
 searchStore = new SearchDataStore(store, emf, indexOnStartup);
@@ -83,9 +101,11 @@ You can index data either by:
 
 Only text fields (String) are supported/tested. Other data types (dates, numbers, etc) have not been tested.  Embedded index support has not been implemented.
 
-### Operators
+### Filter Operators
 
-Only INFIX, and PREFIX operators (and their case insensitive equivalents) are supported.
+Only INFIX, and PREFIX filter operators (and their case insensitive equivalents) are supported.  Note that hibernate search only indexes and analyzes fields as either case sensitive or not case-sensitive - so a given field will only support the INFIX/PREFIX filter operator that matches how the field was indexed.  
+
+All other filter operators are passed to the underlying wrapped JPA store.
 
 ### Analyzer Assumptions
 
@@ -99,20 +119,17 @@ The search store can be configured to return a 400 error to the client in those 
 the constructor of the `SearchDataStore`.  The sizes are global and apply to all Elide entities managed by the store instance:
 
 ```java
-new SearchDataStore(mockStore, emf, true, 3, 50);
+new SearchDataStore(jpaStore, emf, true, 3, 50);
 ```
 
 #### Search Term Analysis
 
-Elide uses a Lucene `KeywordAnalyzer` to analyze the query predicates in filter expressions.  This allows correct handling of white space and punctuation (to match Elide's default behavior
-when not using the `SearchDataStore`.
-
-The resulting single token is then used to construct a Lucene prefix query.
+Elide creates a Hibernate Search `SimpleQueryString` for each predicate.  It first escapes white space and punctuation in any user provided input (to match Elide's default behavior when not using the `SearchDataStore`).  The resulting single token is used to construct a prefix query.
 
 #### Sorting and Pagination
 
 When using the INFIX operator, sorting and pagination are pushed to down Lucene/ElasticSearch. When using the PREFIX operator, they are performed in-memory in the Elide service.
 
-Elide constructs a Lucene Prefix query, which together with an ngram index fully implements the INFIX operator.  However, the ngram analyzer adds ngrams to the index that do not start on word 
+Elide constructs a Prefix query, which together with an ngram index fully implements the INFIX operator.  However, the ngram analyzer adds ngrams to the index that do not start on word 
 boundaries.  For the prefix operator, the search store first performs the lucene filter and then filters again in-memory to return the correct set of matching terms.  
 In this instance, because filtering is performed partially in memory, Elide also sorts and paginates in memory as well.

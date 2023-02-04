@@ -16,13 +16,14 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
+import jakarta.persistence.GeneratedValue;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.persistence.GeneratedValue;
 
 /**
  * HashMapDataStore transaction handler.

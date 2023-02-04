@@ -10,6 +10,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;

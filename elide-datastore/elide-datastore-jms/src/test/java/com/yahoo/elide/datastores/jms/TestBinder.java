@@ -23,9 +23,10 @@ import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
+import jakarta.jms.ConnectionFactory;
+
 import java.util.Calendar;
 import java.util.Set;
-import javax.jms.ConnectionFactory;
 
 /**
  * HK2 Binder for the Integration test.

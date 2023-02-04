@@ -10,18 +10,14 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Module;
-import com.google.inject.TypeLiteral;
-import com.google.inject.name.Names;
 import example.TestCheckMappings;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import java.util.Collections;
 import java.util.Map;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 /**
  * Test Entity Dictionary.
@@ -65,15 +61,6 @@ public class TestDictionary extends EntityDictionary {
      * @return a test dictionary.
      */
     public static EntityDictionary getTestDictionary(Map<String, Class<? extends Check>> checks) {
-        return Guice.createInjector(new Module() {
-            @Override
-            public void configure(Binder binder) {
-                binder.bind(Injector.class).to(TestInjector.class);
-                binder.bind(EntityDictionary.class).to(TestDictionary.class);
-                binder.bind(new TypeLiteral<Map<String, Class<? extends Check>>>() { })
-                      .annotatedWith(Names.named("checkMappings"))
-                      .toInstance(checks);
-            }
-        }).getInstance(EntityDictionary.class);
+        return new TestDictionary(new TestInjector(), checks);
     }
 }

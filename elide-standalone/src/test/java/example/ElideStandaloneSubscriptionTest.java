@@ -14,6 +14,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
@@ -27,14 +28,15 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
 import graphql.ExecutionResult;
+import jakarta.jms.ConnectionFactory;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 
 import java.net.URI;
 import java.util.List;
-import javax.jms.ConnectionFactory;
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 
 /**
  * Tests ElideStandalone starts and works.

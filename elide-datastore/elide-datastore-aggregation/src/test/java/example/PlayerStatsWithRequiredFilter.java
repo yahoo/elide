@@ -6,6 +6,7 @@
 package example;
 
 import static example.TimeGrainDefinitions.DATE_FORMAT;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
@@ -21,13 +22,14 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import example.dimensions.Country;
 import example.dimensions.SubCountry;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.Id;
 
 /**
  * A root level entity for testing AggregationDataStore.

@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.cache;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.request.Sorting;
@@ -25,7 +26,6 @@ import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
-
 import example.PlayerStats;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

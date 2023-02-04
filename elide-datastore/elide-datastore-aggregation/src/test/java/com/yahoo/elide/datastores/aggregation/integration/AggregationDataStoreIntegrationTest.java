@@ -26,7 +26,6 @@ import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import example.TestCheckMappings;
@@ -36,6 +35,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.SecurityContext;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -44,12 +49,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import javax.inject.Inject;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+
 import javax.sql.DataSource;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.SecurityContext;
 
 /**
  * Integration tests for {@link AggregationDataStore}.
@@ -111,8 +112,8 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
 
     protected EntityManagerFactory createEntityManagerFactory() {
        Properties prop = new Properties();
-        prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
-        prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
+        prop.put("jakarta.persistence.jdbc.driver", config.getDriverClassName());
+        prop.put("jakarta.persistence.jdbc.url", config.getJdbcUrl());
         return Persistence.createEntityManagerFactory("aggregationStore", prop);
     }
 

@@ -16,8 +16,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Message;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Message;
 
 /**
  * Scans for GraphQL subscriptions and registers lifecycle hooks.

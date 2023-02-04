@@ -7,12 +7,13 @@ package example.models.jpa;
 
 import com.yahoo.elide.annotation.Include;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 
 @Include(name = "product", rootLevel = false)
 @Entity

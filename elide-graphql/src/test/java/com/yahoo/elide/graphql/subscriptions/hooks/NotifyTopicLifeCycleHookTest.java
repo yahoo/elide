@@ -14,6 +14,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -25,12 +26,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSProducer;
+import jakarta.jms.Topic;
+
 import java.util.Optional;
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSContext;
-import javax.jms.JMSProducer;
-import javax.jms.Topic;
 
 public class NotifyTopicLifeCycleHookTest {
 

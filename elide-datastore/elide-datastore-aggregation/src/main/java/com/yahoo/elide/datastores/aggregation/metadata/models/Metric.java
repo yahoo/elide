@@ -11,6 +11,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;

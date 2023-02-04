@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.filter.Operator;

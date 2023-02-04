@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>6.1.11-SNAPSHOT</version>
+        <version>7.0.0-RC7-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -47,31 +47,31 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -81,8 +81,8 @@
 
         <!-- JPA -->
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -112,13 +112,6 @@
             <artifactId>httpcore</artifactId>
             <version>4.4.15</version>
             <scope>runtime</scope>
-        </dependency>
-
-        <!-- Hibernate Entity Manager -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <version>${hibernate5.version}</version>
         </dependency>
 
         <!-- Caffeine cache -->
@@ -191,7 +184,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
@@ -225,6 +218,13 @@
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate6.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

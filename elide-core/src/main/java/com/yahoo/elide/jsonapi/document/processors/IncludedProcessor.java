@@ -14,12 +14,13 @@ import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Lists;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * A Document Processor that add requested relations to the include block of the JsonApiDocument.

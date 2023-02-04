@@ -12,12 +12,12 @@ import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
-import javax.persistence.Column;
-import javax.persistence.Id;
 
 /**
  * A root level entity for testing AggregationDataStore.

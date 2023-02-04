@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.applyQuotes;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -51,6 +52,9 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.yahoo.elide.datastores.aggregation.validator.ColumnArgumentValidator;
 import com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator;
 import com.google.common.base.Preconditions;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,8 +71,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+
 import javax.sql.DataSource;
 
 /**

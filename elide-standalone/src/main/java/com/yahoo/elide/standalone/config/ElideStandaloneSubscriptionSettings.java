@@ -6,14 +6,15 @@
 package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket.DEFAULT_USER_FACTORY;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Message;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Message;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 /**
  * interface for configuring the GraphQL Subscriptions in the standalone application.

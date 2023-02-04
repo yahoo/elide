@@ -17,6 +17,7 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.apache.commons.lang3.StringUtils;
 import org.hjson.JsonValue;
 import org.hjson.ParseException;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

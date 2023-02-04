@@ -14,17 +14,19 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
+
 import graphql.ExecutionResult;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 
 import java.net.URI;
 import java.util.List;
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 
 public class SubscriptionTest extends IntegrationTest {
 

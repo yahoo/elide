@@ -6,6 +6,7 @@
 package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket.DEFAULT_USER_FACTORY;
+
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
@@ -18,8 +19,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
-import javax.jms.ConnectionFactory;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.jms.ConnectionFactory;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 /**
  * Configures GraphQL subscription web sockets for Elide.

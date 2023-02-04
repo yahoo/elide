@@ -10,10 +10,11 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
 import com.google.gson.Gson;
 
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.TextMessage;
+
 import java.util.function.Function;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.TextMessage;
 
 /**
  * Converts JMS messages to elide model instances via Jackson.

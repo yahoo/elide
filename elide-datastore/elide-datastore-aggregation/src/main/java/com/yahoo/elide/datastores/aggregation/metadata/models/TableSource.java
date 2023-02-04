@@ -8,14 +8,15 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.google.common.base.Preconditions;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import lombok.Data;
 import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
 
 /**
  * Pointer to a table column where a particular argument/column has its values defined.

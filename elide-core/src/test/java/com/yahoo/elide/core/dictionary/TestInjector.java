@@ -6,26 +6,25 @@
 
 package com.yahoo.elide.core.dictionary;
 
-import javax.inject.Inject;
-
 /**
  * Test Dependency Injector.
  */
 public class TestInjector implements Injector {
-    private final com.google.inject.Injector injector;
 
-    @Inject
-    public TestInjector(com.google.inject.Injector injector) {
-        this.injector = injector;
+    public TestInjector() {
     }
 
     @Override
     public void inject(Object entity) {
-        injector.injectMembers(entity);
+        //noop
     }
 
     @Override
     public <T> T instantiate(Class<T> cls) {
-        return injector.getInstance(cls);
+        try {
+            return (T) cls.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

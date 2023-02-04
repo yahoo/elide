@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.1.11-SNAPSHOT</version>
+        <version>7.0.0-RC7-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,8 +44,7 @@
     </scm>
 
     <properties>
-        <!-- Versions -->
-        <metrics.version>4.2.12</metrics.version>
+        <metrics.version>4.2.15</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -56,58 +55,58 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jms</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
-            <version>2.2</version>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
         <!-- Hibernate -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>${hibernate5.version}</version>
+            <version>${hibernate6.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-hikaricp</artifactId>
-            <version>${hibernate5.version}</version>
+            <version>${hibernate6.version}</version>
         </dependency>
 
         <!-- Jetty for embedded web server -->
@@ -167,15 +166,22 @@
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-servlets</artifactId>
+            <artifactId>metrics-jakarta-servlet</artifactId>
             <version>${metrics.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-servlet</artifactId>
+            <artifactId>metrics-jakarta-servlets</artifactId>
             <version>${metrics.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-jetty11</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+
 
         <!-- Various Utility Libraries -->
         <dependency>
@@ -187,15 +193,8 @@
         <!-- dependencies for native jetty websocket -->
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jetty-server</artifactId>
+            <artifactId>websocket-jakarta-server</artifactId>
             <version>${version.jetty}</version>
-            <exclusions>
-                <exclusion>
-                    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
-                    <groupId>org.eclipse.jetty.toolchain</groupId>
-                    <artifactId>jetty-servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -203,20 +202,6 @@
             <artifactId>websocket-servlet</artifactId>
             <version>${version.jetty}</version>
         </dependency>
-        <!-- dependencies for javax.websocket (JSR-356) websocket -->
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-javax-server</artifactId>
-            <version>${version.jetty}</version>
-            <exclusions>
-            	<exclusion>
-            	    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
-            		<groupId>org.eclipse.jetty.toolchain</groupId>
-            		<artifactId>jetty-javax-websocket-api</artifactId>
-            	</exclusion>
-            </exclusions>
-        </dependency>
-
 
         <!-- Test -->
         <dependency>
@@ -241,7 +226,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.1.11-SNAPSHOT</version>
+            <version>7.0.0-RC7-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -260,25 +245,24 @@
 
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-server</artifactId>
-            <version>2.26.0</version>
+            <artifactId>artemis-jakarta-server</artifactId>
+            <version>2.27.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-jms-client-all</artifactId>
-            <version>2.26.0</version>
+            <artifactId>artemis-jakarta-client-all</artifactId>
+            <version>2.27.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jetty-client</artifactId>
+            <artifactId>websocket-jakarta-client</artifactId>
             <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
-
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

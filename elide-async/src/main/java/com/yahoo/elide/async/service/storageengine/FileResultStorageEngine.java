@@ -11,6 +11,7 @@ import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 
 import io.reactivex.Observable;
+import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import javax.inject.Singleton;
 
 /**
  * Default implementation of ResultStorageEngine that stores results on local filesystem.

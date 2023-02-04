@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.sql.DataSource;
 
 public class JoinPathTest {

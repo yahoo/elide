@@ -6,6 +6,7 @@
 package com.yahoo.elide.swagger.model;
 
 import com.yahoo.elide.swagger.property.Relationship;
+
 import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.ArrayProperty;
 import io.swagger.models.properties.RefProperty;

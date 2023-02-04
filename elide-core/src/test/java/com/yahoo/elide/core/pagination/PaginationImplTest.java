@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Paginate;
@@ -18,7 +19,7 @@ import com.yahoo.elide.core.type.ClassType;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 /**
  * Tests parsing the page params for json-api pagination.

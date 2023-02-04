@@ -8,12 +8,12 @@ package example.dimensions;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
 import lombok.Data;
 
 import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Id;
 
 /**
  * A nested view for testing.

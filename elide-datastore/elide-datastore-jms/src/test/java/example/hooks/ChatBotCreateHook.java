@@ -7,6 +7,7 @@
 package example.hooks;
 
 import static example.Chat.CHAT;
+
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -16,12 +17,12 @@ import com.google.gson.GsonBuilder;
 import example.Chat;
 import example.ChatBot;
 
+import jakarta.inject.Inject;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSContext;
 import lombok.Data;
 
 import java.util.Optional;
-import javax.inject.Inject;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSContext;
 
 @Data
 public class ChatBotCreateHook implements LifeCycleHook<ChatBot> {

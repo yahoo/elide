@@ -7,6 +7,7 @@
 package example.checks;
 
 import static example.checks.InternalBookCheck.HIDDEN_BOOK;
+
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.expression.FilterExpression;

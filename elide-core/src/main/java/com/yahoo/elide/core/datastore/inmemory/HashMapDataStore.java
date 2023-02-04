@@ -15,6 +15,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.google.common.collect.Sets;
+
 import lombok.Getter;
 
 import java.util.Arrays;

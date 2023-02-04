@@ -7,13 +7,14 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.Table;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.Table;
 
 /**
  * Bean with Map of Enums.

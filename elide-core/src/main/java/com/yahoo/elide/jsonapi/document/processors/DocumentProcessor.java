@@ -9,8 +9,9 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import java.util.LinkedHashSet;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * An interface for building and processing a response document.

@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.service.thread;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -19,6 +20,9 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Sets;
+
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +35,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Runnable for cancelling AsyncAPI transactions

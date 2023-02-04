@@ -6,6 +6,7 @@
 package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import io.swagger.models.Swagger;
 import lombok.AllArgsConstructor;
 import lombok.Data;

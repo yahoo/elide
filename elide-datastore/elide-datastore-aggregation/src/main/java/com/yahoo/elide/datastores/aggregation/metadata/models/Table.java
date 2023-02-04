@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
 import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getValueType;
+
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -24,6 +25,10 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Named;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -36,9 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 
 /**
  * Super class of all logical or physical tables.

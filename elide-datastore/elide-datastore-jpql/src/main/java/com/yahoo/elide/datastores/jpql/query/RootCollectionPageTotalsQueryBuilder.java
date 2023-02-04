@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.jpql.query;
 
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;

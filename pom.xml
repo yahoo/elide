@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>6.1.11-SNAPSHOT</version>
+    <version>7.0.0-RC7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -74,8 +74,8 @@
         <releaseRepoUrl>https://oss.sonatype.org/service/local/staging/deploy/maven2/</releaseRepoUrl>
         <snapshotRepoUrl>https://oss.sonatype.org/content/repositories/snapshots/</snapshotRepoUrl>
         <autoVersionSubmodules>true</autoVersionSubmodules>
-        <min.jdk.version>11</min.jdk.version>
-        <max.jdk.version>12</max.jdk.version>
+        <min.jdk.version>17</min.jdk.version>
+        <max.jdk.version>18</max.jdk.version>
         <source.jdk.version>${min.jdk.version}</source.jdk.version>
         <target.jdk.version>${min.jdk.version}</target.jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -84,18 +84,18 @@
         <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
-        <version.antlr4>4.9.3</version.antlr4>
-        <version.jetty>10.0.10</version.jetty>
+        <version.antlr4>4.10.1</version.antlr4>
+        <version.jetty>11.0.13</version.jetty>
         <version.logback>1.2.11</version.logback>
         <version.restassured>5.3.0</version.restassured>
         <version.jackson>2.14.1</version.jackson>
         <version.jackson.databind>2.14.1</version.jackson.databind>
-        <version.jersey>2.35</version.jersey>
+        <version.jersey>3.1.0</version.jersey>
         <version.junit>5.9.1</version.junit>
         <version.junit.platform>1.9.1</version.junit.platform>
         <version.lombok>1.18.24</version.lombok>
         <jsonpath.version>2.7.0</jsonpath.version>
-        <hibernate5.version>5.6.14.Final</hibernate5.version>
+        <hibernate6.version>6.1.5.Final</hibernate6.version>
         <slf4j-api.version>2.0.3</slf4j-api.version>
         <jedis.version>4.3.0</jedis.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
@@ -137,9 +137,9 @@
                 <version>31.1-jre</version>
             </dependency>
             <dependency>
-                <groupId>javax.inject</groupId>
-                <artifactId>javax.inject</artifactId>
-                <version>1</version>
+                <groupId>jakarta.inject</groupId>
+                <artifactId>jakarta.inject-api</artifactId>
+                <version>2.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -308,9 +308,9 @@
             </dependency>
             <!-- JPA -->
             <dependency>
-                <groupId>javax.persistence</groupId>
-                <artifactId>javax.persistence-api</artifactId>
-                <version>2.2</version>
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>3.1.0</version>
                 <scope>provided</scope>
             </dependency>
         </dependencies>

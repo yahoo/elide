@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.jpa.porting;
 
 import com.yahoo.elide.datastores.jpa.ScrollableIterator;
 import com.yahoo.elide.datastores.jpql.porting.Query;
+
 import lombok.Getter;
 
 import java.util.Collection;
@@ -18,9 +19,9 @@ import java.util.Iterator;
  */
 public class QueryWrapper implements Query {
     @Getter
-    private javax.persistence.Query query;
+    private jakarta.persistence.Query query;
 
-    public QueryWrapper(javax.persistence.Query query) {
+    public QueryWrapper(jakarta.persistence.Query query) {
         this.query = query;
     }
 

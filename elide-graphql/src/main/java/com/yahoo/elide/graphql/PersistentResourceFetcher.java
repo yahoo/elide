@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 import static com.yahoo.elide.graphql.RelationshipOp.FETCH;
+
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -22,10 +23,12 @@ import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
+
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.reactivex.Observable;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayDeque;
@@ -39,7 +42,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.

@@ -12,6 +12,8 @@ import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -23,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Generates a simple wrapper around the sort fields from the JSON-API GET Query.

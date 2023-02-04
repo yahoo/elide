@@ -10,9 +10,10 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
 import java.io.IOException;
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 
 /**
  * JsonType serializes an object to json string and vice versa.

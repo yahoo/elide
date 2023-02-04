@@ -8,10 +8,11 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+
+import jakarta.persistence.Id;
 import lombok.Value;
 
 import java.util.Locale;
-import javax.persistence.Id;
 
 /**
  * Defines how to extract a time dimension for a specific grain from a table.

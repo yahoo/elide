@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -22,11 +23,12 @@ import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSContext;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSContext;
 
 /**
  * Elide datastore that reads models from JMS message topics.

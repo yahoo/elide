@@ -6,7 +6,7 @@
 
 package example.models.generics;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * Tests a parameterized superclass.

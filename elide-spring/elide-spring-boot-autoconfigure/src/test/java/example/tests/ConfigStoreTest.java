@@ -21,6 +21,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
+
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType;
 import com.yahoo.elide.spring.controllers.JsonApiController;
@@ -31,17 +32,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
 import io.restassured.RestAssured;
+import jakarta.ws.rs.core.MediaType;
 import lombok.Builder;
 import lombok.Data;
 
 import java.nio.file.Path;
 import java.util.TimeZone;
-import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

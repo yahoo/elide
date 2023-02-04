@@ -8,9 +8,10 @@ package example.models.generics;
 
 import example.models.BaseId;
 
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.OneToMany;
+
 import java.util.Set;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToMany;
 
 
 /**

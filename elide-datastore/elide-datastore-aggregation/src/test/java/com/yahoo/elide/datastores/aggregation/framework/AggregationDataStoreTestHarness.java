@@ -21,6 +21,9 @@ import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.hibernate.Session;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -29,8 +32,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Consumer;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+
 import javax.sql.DataSource;
 
 @AllArgsConstructor

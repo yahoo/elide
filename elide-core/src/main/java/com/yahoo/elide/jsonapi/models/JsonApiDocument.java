@@ -8,6 +8,7 @@ package com.yahoo.elide.jsonapi.models;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import lombok.ToString;
 
 import java.util.ArrayList;

@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.utils;
 
 import static org.junit.jupiter.api.Assertions.fail;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

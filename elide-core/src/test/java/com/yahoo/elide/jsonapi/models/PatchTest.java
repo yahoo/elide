@@ -6,6 +6,7 @@
 package com.yahoo.elide.jsonapi.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

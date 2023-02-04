@@ -8,12 +8,13 @@ package com.yahoo.elide.datastores.jms;
 
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 
+import jakarta.jms.JMSConsumer;
+import jakarta.jms.JMSRuntimeException;
+import jakarta.jms.Message;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
-import javax.jms.JMSConsumer;
-import javax.jms.JMSRuntimeException;
-import javax.jms.Message;
 
 /**
  * Converts a JMS message consumer into an Iterable.

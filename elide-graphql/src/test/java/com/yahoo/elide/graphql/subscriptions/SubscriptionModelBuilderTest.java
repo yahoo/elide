@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -24,6 +25,7 @@ import example.Book;
 import example.Preview;
 import example.Publisher;
 import org.junit.jupiter.api.Test;
+
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;

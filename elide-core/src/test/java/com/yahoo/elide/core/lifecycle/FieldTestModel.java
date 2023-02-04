@@ -12,9 +12,13 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.security.ChangeSpec;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,8 +26,6 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 /**
  * Tests the invocation &amp; sequencing of DataStoreTransaction method invocations and life cycle events.
@@ -84,7 +86,7 @@ public class FieldTestModel {
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
     private Set<FieldTestModel> models = new HashSet<>();
 
-    static class ClassPreSecurityHook implements LifeCycleHook<FieldTestModel> {
+    public static class ClassPreSecurityHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -95,7 +97,7 @@ public class FieldTestModel {
         }
     }
 
-    static class ClassPreFlushHook implements LifeCycleHook<FieldTestModel> {
+    public static class ClassPreFlushHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -106,7 +108,7 @@ public class FieldTestModel {
         }
     }
 
-    static class ClassPreCommitHook implements LifeCycleHook<FieldTestModel> {
+    public static class ClassPreCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -117,7 +119,7 @@ public class FieldTestModel {
         }
     }
 
-    static class ClassPreCommitHookEverything implements LifeCycleHook<FieldTestModel> {
+    public static class ClassPreCommitHookEverything implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -128,7 +130,7 @@ public class FieldTestModel {
         }
     }
 
-    static class ClassPostCommitHook implements LifeCycleHook<FieldTestModel> {
+    public static class ClassPostCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -139,7 +141,7 @@ public class FieldTestModel {
         }
     }
 
-    static class AttributePreSecurityHook implements LifeCycleHook<FieldTestModel> {
+    public static class AttributePreSecurityHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -150,7 +152,7 @@ public class FieldTestModel {
         }
     }
 
-    static class AttributePreFlushHook implements LifeCycleHook<FieldTestModel> {
+    public static class AttributePreFlushHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -161,7 +163,7 @@ public class FieldTestModel {
         }
     }
 
-    static class AttributePreCommitHook implements LifeCycleHook<FieldTestModel> {
+    public static class AttributePreCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -172,7 +174,7 @@ public class FieldTestModel {
         }
     }
 
-    static class AttributePostCommitHook implements LifeCycleHook<FieldTestModel> {
+    public static class AttributePostCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -183,7 +185,7 @@ public class FieldTestModel {
         }
     }
 
-    static class RelationPreSecurityHook implements LifeCycleHook<FieldTestModel> {
+    public static class RelationPreSecurityHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -194,7 +196,7 @@ public class FieldTestModel {
         }
     }
 
-    static class RelationPreFlushHook implements LifeCycleHook<FieldTestModel> {
+    public static class RelationPreFlushHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -205,7 +207,7 @@ public class FieldTestModel {
         }
     }
 
-    static class RelationPreCommitHook implements LifeCycleHook<FieldTestModel> {
+    public static class RelationPreCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,
@@ -216,7 +218,7 @@ public class FieldTestModel {
         }
     }
 
-    static class RelationPostCommitHook implements LifeCycleHook<FieldTestModel> {
+    public static class RelationPostCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
                             LifeCycleHookBinding.TransactionPhase phase,

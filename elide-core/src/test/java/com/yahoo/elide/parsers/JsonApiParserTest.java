@@ -6,6 +6,7 @@
 package com.yahoo.elide.parsers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import org.junit.jupiter.api.Test;
 

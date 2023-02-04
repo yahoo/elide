@@ -9,10 +9,12 @@ package com.yahoo.elide.graphql.subscriptions.hooks;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
+
 import lombok.Getter;
 
 /**

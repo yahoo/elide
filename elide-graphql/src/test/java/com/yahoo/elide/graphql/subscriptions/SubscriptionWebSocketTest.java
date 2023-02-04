@@ -19,6 +19,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -48,8 +49,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
+
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.Session;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -57,9 +62,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
-import javax.websocket.CloseReason;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
 
 /**
  * Base functionality required to test the PersistentResourceFetcher.

@@ -8,6 +8,7 @@ package com.yahoo.elide.initialization;
 import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.TestInstance;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
+
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
@@ -130,13 +132,13 @@ public abstract class IntegrationTest {
         final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
         servletHolder.setInitOrder(1);
         servletHolder.setInitParameter("jersey.config.server.provider.packages", packageName);
-        servletHolder.setInitParameter("javax.ws.rs.Application", resourceConfig);
+        servletHolder.setInitParameter("jakarta.ws.rs.Application", resourceConfig);
 
         ServletHolder graphqlServlet = servletContextHandler.addServlet(ServletContainer.class, "/graphQL/*");
         graphqlServlet.setInitOrder(2);
         graphqlServlet.setInitParameter("jersey.config.server.provider.packages",
                 com.yahoo.elide.graphql.GraphQLEndpoint.class.getPackage().getName());
-        graphqlServlet.setInitParameter("javax.ws.rs.Application", resourceConfig);
+        graphqlServlet.setInitParameter("jakarta.ws.rs.Application", resourceConfig);
 
         log.debug("...Starting Server...");
         server.start();
