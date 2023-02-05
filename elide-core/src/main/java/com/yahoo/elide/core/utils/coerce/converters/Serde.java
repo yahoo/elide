@@ -11,7 +11,6 @@ package com.yahoo.elide.core.utils.coerce.converters;
  * @param <T> The deserialized type
  */
 public interface Serde<S, T> {
-
     /**
      * Deserialize an instance of type S to type T.
      * @param val The thing to deserialize
