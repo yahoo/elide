@@ -30,7 +30,7 @@ public class ISO8601DateSerdeTest {
     @Test
     public void testSQLDateSerialization() throws Exception {
         ISO8601DateSerde serde = new ISO8601DateSerde();
-        assertEquals(java.sql.Date.class, "1970-01-01T00:00Z", serde.serialize(new java.sql.Date(0)));
+        assertEquals("1970-01-01T00:00Z", serde.serialize(new java.sql.Date(0)));
     }
 
     @Test
