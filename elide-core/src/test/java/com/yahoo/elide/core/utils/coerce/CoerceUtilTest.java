@@ -190,7 +190,7 @@ public class CoerceUtilTest {
         CoerceUtil.register(WeekendDays.class, mockSerde);
 
         CoerceUtil.coerce("Monday", WeekendDays.class);
-        verify(mockSerde, times(1)).deserialize(WeekendDays.class, eq("Monday"));
+        verify(mockSerde, times(1)).deserialize(eq(WeekendDays.class), eq("Monday"));
     }
 
     @Test
