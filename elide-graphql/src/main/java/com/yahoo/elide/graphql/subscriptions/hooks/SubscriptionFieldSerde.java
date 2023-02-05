@@ -25,8 +25,11 @@ import java.lang.reflect.Type;
 public class SubscriptionFieldSerde<T> implements JsonSerializer<T>, JsonDeserializer<T> {
     Serde<Object, T> elideSerde;
 
-    public SubscriptionFieldSerde(Serde<Object, T> elideSerde) {
+    Class<?> type;
+
+    public SubscriptionFieldSerde(Serde<Object, T> elideSerde, Class<?> type) {
         this.elideSerde = elideSerde;
+        this.type = type;
     }
 
     @Override
@@ -47,7 +50,7 @@ public class SubscriptionFieldSerde<T> implements JsonSerializer<T>, JsonDeseria
         if (jsonElement.isJsonPrimitive()) {
             JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
             if (primitive.isString()) {
-                return elideSerde.deserialize(primitive.getAsString());
+                return elideSerde.deserialize(this.type, primitive.getAsString());
             }
         }
 

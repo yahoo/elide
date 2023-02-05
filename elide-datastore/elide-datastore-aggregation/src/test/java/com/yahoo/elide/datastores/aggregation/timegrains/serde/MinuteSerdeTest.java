@@ -39,7 +39,7 @@ public class MinuteSerdeTest {
         Minute expectedDate = new Minute(LocalDateTime.from(formatter.parse(dateInString)));
         String actual = "2020-01-01T01:18";
         Serde serde = new Minute.MinuteSerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize(Minute.class, actual);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -50,7 +50,7 @@ public class MinuteSerdeTest {
         Minute expectedDate = new Minute(LocalDateTime.from(formatter.parse(dateInString)));
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Minute.MinuteSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(Minute.class, timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -61,7 +61,7 @@ public class MinuteSerdeTest {
 
         OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 01, 01, 18, 0, 0, ZoneOffset.UTC);
         Serde serde = new Minute.MinuteSerde();
-        Object actualDate = serde.deserialize(dateTime);
+        Object actualDate = serde.deserialize(Minute.class, dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -71,7 +71,7 @@ public class MinuteSerdeTest {
         String dateInString = "00:18 2020-01-01";
         Serde serde = new Minute.MinuteSerde();
         assertThrows(DateTimeParseException.class, () ->
-            serde.deserialize(dateInString)
+            serde.deserialize(Minute.class, dateInString)
         );
     }
 }

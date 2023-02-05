@@ -38,7 +38,7 @@ public class HourSerdeTest {
         String dateInString = "2020-01-01T01";
         Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(dateInString)));
         Serde serde = new Hour.HourSerde();
-        Object actualDate = serde.deserialize(dateInString);
+        Object actualDate = serde.deserialize(Hour.class, dateInString);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -49,7 +49,7 @@ public class HourSerdeTest {
         Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(dateInString)));
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Hour.HourSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(Hour.class, timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -60,7 +60,7 @@ public class HourSerdeTest {
         OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 01, 01, 00, 00, 00, ZoneOffset.UTC);
 
         Serde serde = new Hour.HourSerde();
-        Object actualDate = serde.deserialize(dateTime);
+        Object actualDate = serde.deserialize(Hour.class, dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -70,7 +70,7 @@ public class HourSerdeTest {
         String dateInString = "00 2020-01-01";
         Serde serde = new Hour.HourSerde();
         assertThrows(DateTimeParseException.class, () ->
-            serde.deserialize(dateInString)
+            serde.deserialize(Hour.class, dateInString)
         );
     }
 }

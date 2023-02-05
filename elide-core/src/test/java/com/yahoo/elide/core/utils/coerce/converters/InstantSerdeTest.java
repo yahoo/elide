@@ -17,7 +17,7 @@ public class InstantSerdeTest {
 
     @Test
     public void canDeserializeUtcIsoString() {
-        final Instant instant = serde.deserialize("2019-06-01T09:42:55Z");
+        final Instant instant = serde.deserialize(Instant.class, "2019-06-01T09:42:55Z");
 
         assertEquals(1559382175, instant.getEpochSecond());
         assertEquals(0, instant.getNano());
@@ -25,7 +25,7 @@ public class InstantSerdeTest {
 
     @Test
     public void canDeserializeOffsetIsoString() {
-        final Instant instant = serde.deserialize("2019-06-01T10:42:55+01:00");
+        final Instant instant = serde.deserialize(Instant.class, "2019-06-01T10:42:55+01:00");
 
         assertEquals(1559382175, instant.getEpochSecond());
         assertEquals(0, instant.getNano());
@@ -33,7 +33,7 @@ public class InstantSerdeTest {
 
     @Test
     public void canDeserializeSubSecondPrecisionUtcIsoString() {
-        final Instant instant = serde.deserialize("2019-06-01T09:42:55.123Z");
+        final Instant instant = serde.deserialize(Instant.class, "2019-06-01T09:42:55.123Z");
 
         assertEquals(1559382175, instant.getEpochSecond());
         assertEquals(123000000, instant.getNano());
@@ -60,7 +60,7 @@ public class InstantSerdeTest {
 
         assertThrows(
             IllegalArgumentException.class,
-            () -> serde.deserialize("2019-06-01T09:42:55.12X3Z")
+            () -> serde.deserialize(Instant.class, "2019-06-01T09:42:55.12X3Z")
         );
 
     }

@@ -84,7 +84,7 @@ public class CoerceUtil {
 
             @Override
             public <T> T convert(Class<T> aClass, Object o) {
-                return (T) serde.deserialize((S) o);
+                return (T) serde.deserialize(aClass, (S) o);
             }
 
         }, targetType);

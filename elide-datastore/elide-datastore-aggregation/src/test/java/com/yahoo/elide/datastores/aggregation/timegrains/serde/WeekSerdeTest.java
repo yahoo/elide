@@ -37,7 +37,7 @@ public class WeekSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 05, 00, 00, 00);
         Week expectedDate = new Week(localDate);
         Serde serde = new Week.WeekSerde();
-        Object actualDate = serde.deserialize("2020-01-05");
+        Object actualDate = serde.deserialize(Week.class, "2020-01-05");
         assertEquals(expectedDate, actualDate);
     }
 
@@ -48,7 +48,7 @@ public class WeekSerdeTest {
         Week expectedDate = new Week(localDate);
         Serde serde = new Week.WeekSerde();
         assertThrows(IllegalArgumentException.class, () ->
-            serde.deserialize(expectedDate)
+            serde.deserialize(Week.class, expectedDate)
         );
     }
 
@@ -59,7 +59,7 @@ public class WeekSerdeTest {
         Week expectedDate = new Week(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Week.WeekSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(Week.class, timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -69,7 +69,7 @@ public class WeekSerdeTest {
 
         Serde serde = new Week.WeekSerde();
         assertThrows(IllegalArgumentException.class, () ->
-                serde.deserialize(dateTime)
+                serde.deserialize(Week.class, dateTime)
         );
     }
 
@@ -81,7 +81,7 @@ public class WeekSerdeTest {
 
         OffsetDateTime dateTime = OffsetDateTime.of(2020, 1, 5, 0, 0, 0, 0, ZoneOffset.UTC);
         Serde serde = new Week.WeekSerde();
-        Object actualDate = serde.deserialize(dateTime);
+        Object actualDate = serde.deserialize(Week.class, dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -91,7 +91,7 @@ public class WeekSerdeTest {
         String dateInString = "January-2020-01";
         Serde serde = new Week.WeekSerde();
         assertThrows(DateTimeParseException.class, () ->
-            serde.deserialize(dateInString)
+            serde.deserialize(Week.class, dateInString)
         );
     }
 }

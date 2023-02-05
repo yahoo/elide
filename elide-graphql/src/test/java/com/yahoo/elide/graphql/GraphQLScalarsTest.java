@@ -79,7 +79,7 @@ public class GraphQLScalarsTest {
         String input = "1995-11-02T16:45:04.000000056+05:30";
         OffsetDateTimeSerde offsetDateTimeSerde = new OffsetDateTimeSerde();
         SerdeCoercing serdeCoercing =
-                new SerdeCoercing("", offsetDateTimeSerde);
+                new SerdeCoercing("", offsetDateTimeSerde, OffsetDateTime.class);
         Object actualDate = serdeCoercing.parseLiteral(new StringValue(input));
         assertEquals(expectedDate, actualDate);
     }
@@ -90,7 +90,7 @@ public class GraphQLScalarsTest {
         String input = "EST";
         TimeZoneSerde timeZoneSerde = new TimeZoneSerde();
         SerdeCoercing serdeCoercing =
-                new SerdeCoercing("", timeZoneSerde);
+                new SerdeCoercing("", timeZoneSerde, TimeZone.class);
         Object actualTz = serdeCoercing.parseLiteral(new StringValue(input));
         assertEquals(expectedTz, actualTz);
     }

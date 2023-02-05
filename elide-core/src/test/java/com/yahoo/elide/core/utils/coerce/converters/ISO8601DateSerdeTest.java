@@ -24,20 +24,20 @@ public class ISO8601DateSerdeTest {
     @Test
     public void testDateDeserialization() throws Exception {
         ISO8601DateSerde serde = new ISO8601DateSerde();
-        assertEquals(serde.deserialize("1970-01-01T00:00Z"), new Date(0));
+        assertEquals(serde.deserialize(Date.class, "1970-01-01T00:00Z"), new Date(0));
     }
 
     @Test
     public void testSQLDateSerialization() throws Exception {
         ISO8601DateSerde serde = new ISO8601DateSerde();
-        assertEquals("1970-01-01T00:00Z", serde.serialize(new java.sql.Date(0)));
+        assertEquals(java.sql.Date.class, "1970-01-01T00:00Z", serde.serialize(new java.sql.Date(0)));
     }
 
     @Test
     public void testSQLDateDeserialization() throws Exception {
         ISO8601DateSerde serde =
             new ISO8601DateSerde("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"), java.sql.Date.class);
-        assertEquals(serde.deserialize("1970-01-01T00:00Z"), new java.sql.Date(0));
+        assertEquals(serde.deserialize(java.sql.Date.class, "1970-01-01T00:00Z"), new java.sql.Date(0));
     }
 
     @Test
@@ -50,7 +50,7 @@ public class ISO8601DateSerdeTest {
     public void testSQLTimeDeserialization() throws Exception {
         ISO8601DateSerde serde =
             new ISO8601DateSerde("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"), java.sql.Time.class);
-        assertEquals(serde.deserialize("1970-01-01T00:00Z"), new java.sql.Time(0));
+        assertEquals(serde.deserialize(java.sql.Time.class, "1970-01-01T00:00Z"), new java.sql.Time(0));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class ISO8601DateSerdeTest {
         ISO8601DateSerde serde =
                 new ISO8601DateSerde("yyyy-MM-dd", TimeZone.getTimeZone("UTC"), java.sql.Timestamp.class);
         java.sql.Timestamp expected = new java.sql.Timestamp(0);
-        java.sql.Timestamp actual = (java.sql.Timestamp) serde.deserialize("1970-01-01");
+        java.sql.Timestamp actual = (java.sql.Timestamp) serde.deserialize(java.sql.Timestamp.class, "1970-01-01");
         assertEquals(expected, actual);
     }
 
@@ -73,7 +73,7 @@ public class ISO8601DateSerdeTest {
         ISO8601DateSerde serde =
                 new ISO8601DateSerde("yyyy-MM-dd", TimeZone.getTimeZone("UTC"), java.sql.Timestamp.class);
         Timestamp expected = new Timestamp(0);
-        Timestamp actual = (Timestamp) serde.deserialize(new Date(0));
+        Timestamp actual = (Timestamp) serde.deserialize(Date.class, new Date(0));
         assertEquals(expected, actual);
     }
 

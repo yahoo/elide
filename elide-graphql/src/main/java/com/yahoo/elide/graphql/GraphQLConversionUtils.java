@@ -75,7 +75,7 @@ public class GraphQLConversionUtils {
 
     private void registerCustomScalars() {
         CoerceUtil.getSerdes().forEach((type, serde) -> {
-            SerdeCoercing<?, ?> serdeCoercing = new SerdeCoercing<>(ERROR_MESSAGE, serde);
+            SerdeCoercing<?, ?> serdeCoercing = new SerdeCoercing<>(ERROR_MESSAGE, serde, type);
             ElideTypeConverter elideTypeConverter = serde.getClass().getAnnotation(ElideTypeConverter.class);
             String name = elideTypeConverter != null ? elideTypeConverter.name() : type.getSimpleName();
             String description = elideTypeConverter != null ? elideTypeConverter.description() : type.getSimpleName();

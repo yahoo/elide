@@ -48,7 +48,7 @@ public class SubscriptionScanner {
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         CoerceUtil.getSerdes().forEach((cls, serde) -> {
-            gsonBuilder.registerTypeAdapter(cls, new SubscriptionFieldSerde(serde));
+            gsonBuilder.registerTypeAdapter(cls, new SubscriptionFieldSerde(serde, cls));
         });
         gsonBuilder.addSerializationExclusionStrategy(new SubscriptionExclusionStrategy()).serializeNulls();
 

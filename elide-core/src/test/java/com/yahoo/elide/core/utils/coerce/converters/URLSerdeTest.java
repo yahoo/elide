@@ -29,7 +29,7 @@ public class URLSerdeTest {
         URL expectedURL = new URL("https://elide.io");
         String actual = "https://elide.io";
         URLSerde urlSerde = new URLSerde();
-        Object actualURL = urlSerde.deserialize(actual);
+        Object actualURL = urlSerde.deserialize(URL.class, actual);
         assertEquals(expectedURL, actualURL);
     }
 }
