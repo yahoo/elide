@@ -93,7 +93,7 @@ public class DefaultFilterDialectTest {
     }
 
     @Test
-    public void testInvalidType() throws ParseException {
+    public void testInvalidType() {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.add(
@@ -105,7 +105,7 @@ public class DefaultFilterDialectTest {
     }
 
     @Test
-    public void testInvalidAttribute() throws ParseException {
+    public void testInvalidAttribute() {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.add(

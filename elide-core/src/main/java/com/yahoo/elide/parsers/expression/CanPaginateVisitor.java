@@ -135,12 +135,12 @@ public class CanPaginateVisitor
     /**
      *  All states except for CANNOT_PAGINATE allow for pagination.
      */
-      public enum PaginationStatus {
+    public enum PaginationStatus {
         CAN_PAGINATE,
         USER_CHECK_FALSE,
         USER_CHECK_TRUE,
         CANNOT_PAGINATE
-    };
+    }
 
     private final EntityDictionary dictionary;
     private final RequestScope scope;

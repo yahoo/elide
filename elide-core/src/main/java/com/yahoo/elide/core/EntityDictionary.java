@@ -226,6 +226,9 @@ public class EntityDictionary {
      * @return binding class
      */
     public Class<?> getEntityClass(String entityName) {
+        if (entityName == null) {
+            return null;
+        }
         return bindJsonApiToEntity.get(entityName);
     }
 

@@ -37,7 +37,7 @@ public class EpochToDateConverter<T extends Date> implements Converter, Serde<Ob
                 return numberToDate(cls, (Number) value);
             }
             throw new UnsupportedOperationException(value.getClass().getSimpleName() + " is not a valid epoch");
-        } catch (IndexOutOfBoundsException | ReflectiveOperationException
+        } catch (IndexOutOfBoundsException
                 | UnsupportedOperationException | IllegalArgumentException e) {
             throw new InvalidAttributeException("Unknown " + cls.getSimpleName() + " value " + value, e);
         }
@@ -53,7 +53,7 @@ public class EpochToDateConverter<T extends Date> implements Converter, Serde<Ob
         return val.getTime();
     }
 
-    private static <T> T numberToDate(Class<T> cls, Number epoch) throws ReflectiveOperationException {
+    private static <T> T numberToDate(Class<T> cls, Number epoch) {
         if (ClassUtils.isAssignable(cls, java.sql.Date.class)) {
             return cls.cast(new java.sql.Date(epoch.longValue()));
         } else if (ClassUtils.isAssignable(cls, Timestamp.class)) {
@@ -67,7 +67,7 @@ public class EpochToDateConverter<T extends Date> implements Converter, Serde<Ob
         }
     }
 
-    private static <T> T stringToDate(Class<T> cls, String epoch) throws ReflectiveOperationException {
+    private static <T> T stringToDate(Class<T> cls, String epoch) {
         return numberToDate(cls, Long.parseLong(epoch));
     }
 }

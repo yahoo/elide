@@ -465,7 +465,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void compareNullAndEmpty() throws JsonProcessingException {
+    public void compareNullAndEmpty() {
         Data<Resource> empty = new Data<>((Resource) null);
 
         JsonApiDocument jsonApiEmpty = new JsonApiDocument();
@@ -479,7 +479,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void compareOrder() throws JsonProcessingException {
+    public void compareOrder() {
         Parent parent1 = new Parent();
         parent1.setId(123L);
         Parent parent2 = new Parent();
