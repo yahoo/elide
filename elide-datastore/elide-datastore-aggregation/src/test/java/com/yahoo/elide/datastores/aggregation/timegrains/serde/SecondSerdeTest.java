@@ -39,7 +39,7 @@ public class SecondSerdeTest {
         Second expectedDate = new Second(LocalDateTime.from(formatter.parse(dateInString)));
         String actual = "2020-01-01T01:18:19";
         Serde serde = new Second.SecondSerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize(Second.class, actual);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -50,7 +50,7 @@ public class SecondSerdeTest {
         Second expectedDate = new Second(LocalDateTime.from(formatter.parse(dateInString)));
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Second.SecondSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(Second.class, timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -61,7 +61,7 @@ public class SecondSerdeTest {
 
         OffsetDateTime dateTime = OffsetDateTime.of(2020, 1, 1, 1, 18, 19, 0, ZoneOffset.UTC);
         Serde serde = new Second.SecondSerde();
-        Object actualDate = serde.deserialize(dateTime);
+        Object actualDate = serde.deserialize(Second.class, dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -71,7 +71,7 @@ public class SecondSerdeTest {
         String dateInString = "00:18:19 2020-01-01";
         Serde serde = new Second.SecondSerde();
         assertThrows(DateTimeParseException.class, () ->
-            serde.deserialize(dateInString)
+            serde.deserialize(Second.class, dateInString)
         );
     }
 }

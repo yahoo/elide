@@ -37,7 +37,7 @@ public class DaySerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Day expectedDate = new Day(localDate);
         Serde serde = new Day.DaySerde();
-        Object actualDate = serde.deserialize("2020-01-01");
+        Object actualDate = serde.deserialize(Day.class, "2020-01-01");
         assertEquals(expectedDate, actualDate);
     }
 
@@ -48,7 +48,7 @@ public class DaySerdeTest {
         Day expectedDate = new Day(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Day.DaySerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(Timestamp.class, timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -59,7 +59,7 @@ public class DaySerdeTest {
         OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 01, 00, 00, 00, 00, ZoneOffset.UTC);
 
         Serde serde = new Day.DaySerde();
-        Object actualDate = serde.deserialize(dateTime);
+        Object actualDate = serde.deserialize(Day.class, dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -69,7 +69,7 @@ public class DaySerdeTest {
         String dateInString = "January-01-2020";
         Serde serde = new Day.DaySerde();
         assertThrows(DateTimeParseException.class, () ->
-            serde.deserialize(dateInString)
+            serde.deserialize(Day.class, dateInString)
         );
     }
 }

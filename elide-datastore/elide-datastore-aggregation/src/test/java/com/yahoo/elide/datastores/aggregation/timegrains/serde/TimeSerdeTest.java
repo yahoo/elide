@@ -28,7 +28,7 @@ public class TimeSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, false, false, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
-        Object actualDate = serde.deserialize(YEAR);
+        Object actualDate = serde.deserialize(Time.class, YEAR);
         assertEquals(expectedDate, actualDate);
         assertEquals(YEAR, serde.serialize(actualDate));
     }
@@ -38,7 +38,7 @@ public class TimeSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, false, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
-        Object actualDate = serde.deserialize(MONTH);
+        Object actualDate = serde.deserialize(Time.class, MONTH);
         assertEquals(expectedDate, actualDate);
         assertEquals(MONTH, serde.serialize(actualDate));
     }
@@ -48,7 +48,7 @@ public class TimeSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, true, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
-        Object actualDate = serde.deserialize(DATE);
+        Object actualDate = serde.deserialize(Time.class, DATE);
         assertEquals(expectedDate, actualDate);
         assertEquals(DATE, serde.serialize(actualDate));
     }
@@ -58,7 +58,7 @@ public class TimeSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
-        Object actualDate = serde.deserialize(HOUR);
+        Object actualDate = serde.deserialize(Time.class, HOUR);
         assertEquals(expectedDate, actualDate);
         assertEquals(HOUR, serde.serialize(actualDate));
     }
@@ -68,7 +68,7 @@ public class TimeSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
-        Object actualDate = serde.deserialize(MINUTE);
+        Object actualDate = serde.deserialize(Time.class, MINUTE);
         assertEquals(expectedDate, actualDate);
         assertEquals(MINUTE, serde.serialize(actualDate));
     }
@@ -78,7 +78,7 @@ public class TimeSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
-        Object actualDate = serde.deserialize(SECOND);
+        Object actualDate = serde.deserialize(Time.class, SECOND);
         assertEquals(expectedDate, actualDate);
         assertEquals(SECOND, serde.serialize(actualDate));
     }
@@ -87,7 +87,7 @@ public class TimeSerdeTest {
     public void testInvalidDeserialization() {
         Serde serde = new Time.TimeSerde();
         assertThrows(IllegalArgumentException.class, () ->
-            serde.deserialize("2020R1")
+            serde.deserialize(Time.class, "2020R1")
         );
     }
 }

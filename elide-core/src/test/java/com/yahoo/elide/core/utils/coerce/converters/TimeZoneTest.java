@@ -28,7 +28,7 @@ public class TimeZoneTest {
         TimeZone expectedTimeZone = TimeZone.getTimeZone("EST");
         String actual = "EST";
         TimeZoneSerde timeZoneSerde = new TimeZoneSerde();
-        Object actualTimeZone = timeZoneSerde.deserialize(actual);
+        Object actualTimeZone = timeZoneSerde.deserialize(TimeZone.class, actual);
         assertEquals(expectedTimeZone, actualTimeZone);
     }
 }

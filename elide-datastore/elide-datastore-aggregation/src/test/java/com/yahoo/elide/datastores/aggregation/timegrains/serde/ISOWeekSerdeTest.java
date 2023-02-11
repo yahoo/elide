@@ -38,7 +38,7 @@ public class ISOWeekSerdeTest {
 
         ISOWeek expectedDate = new ISOWeek(localDate);
         Serde serde = new ISOWeek.ISOWeekSerde();
-        Object actualDate = serde.deserialize("2020-01-06");
+        Object actualDate = serde.deserialize(ISOWeek.class, "2020-01-06");
         assertEquals(expectedDate, actualDate);
     }
 
@@ -48,7 +48,7 @@ public class ISOWeekSerdeTest {
         ISOWeek timestamp = new ISOWeek(localDate);
         Serde serde = new ISOWeek.ISOWeekSerde();
         assertThrows(IllegalArgumentException.class, () ->
-            serde.deserialize(timestamp)
+            serde.deserialize(ISOWeek.class, timestamp)
         );
     }
 
@@ -60,7 +60,7 @@ public class ISOWeekSerdeTest {
         OffsetDateTime dateTime = OffsetDateTime.of(2020, 01, 06, 00, 00, 00, 00, ZoneOffset.UTC);
 
         Serde serde = new ISOWeek.ISOWeekSerde();
-        Object actualDate = serde.deserialize(dateTime);
+        Object actualDate = serde.deserialize(ISOWeek.class, dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -70,7 +70,7 @@ public class ISOWeekSerdeTest {
 
         Serde serde = new ISOWeek.ISOWeekSerde();
         assertThrows(IllegalArgumentException.class, () ->
-                serde.deserialize(dateTime)
+                serde.deserialize(ISOWeek.class, dateTime)
         );
     }
 
@@ -80,7 +80,7 @@ public class ISOWeekSerdeTest {
         ISOWeek expectedDate = new ISOWeek(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new ISOWeek.ISOWeekSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(ISOWeek.class, timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -90,7 +90,7 @@ public class ISOWeekSerdeTest {
         String dateInString = "January-2020-01";
         Serde serde = new ISOWeek.ISOWeekSerde();
         assertThrows(DateTimeParseException.class, () ->
-            serde.deserialize(dateInString)
+            serde.deserialize(ISOWeek.class, dateInString)
         );
     }
 }
