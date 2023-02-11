@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.8.1
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/e651fee8125b082f9e656a70adebe32183373a01) Do not throw NPE for create type: null (4.x) #2882
+   
 ## 4.8.0
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/233591723cd04a3b6da54c5234a824712ca613b4) (Similar to https://github.com/yahoo/elide/pull/2342) Revised JSON-API path grammar to accept colon, space, and ampersand in ID fields (#2344) 

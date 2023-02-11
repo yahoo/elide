@@ -14,7 +14,7 @@ class Operation {
         CREATE,
         DELETE,
         UPDATE
-    };
+    }
 
     @Getter private final String id;
     @Getter private final Object instance;

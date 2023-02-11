@@ -466,6 +466,35 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void failElidePatchExtensionCreateNullResource() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String bookBody = "[{\"op\": \"add\",\"path\": \"/book\",\"value\":{"
+                + "\"type\":null,\"id\": \"A\",\"attributes\": {\"title\":\"Grapes of Wrath\"}}}]";
+
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(Book.class)).thenReturn(book);
+
+        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", bookBody, null);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        assertEquals(
+                "{\"errors\":[{\"detail\":\"JsonPatchExtensionException\"}]}",
+                response.getBody());
+
+        verify(callback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(tx).accessUser(any());
+        verify(tx, never()).preCommit();
+        verify(tx, never()).flush(isA(RequestScope.class));
+        verify(tx, never()).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
     public void testElidePatchExtensionUpdate() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
