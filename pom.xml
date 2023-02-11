@@ -89,8 +89,9 @@
         <version.jetty>9.4.39.v20210325</version.jetty>
         <version.junit>5.7.1</version.junit>
         <version.logback>1.2.3</version.logback>
+        <version.lombok>1.18.24</version.lombok>        
         <version.mysql>8.0.22</version.mysql>
-        <version.restassured>4.3.3</version.restassured>
+        <version.restassured>4.5.0</version.restassured>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <hibernate5.version>5.4.30.Final</hibernate5.version>
         <slf4j-api.version>1.7.36</slf4j-api.version>
@@ -123,7 +124,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.20</version>
+                <version>${version.lombok}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -218,25 +219,10 @@
             </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>
-                <artifactId>rest-assured</artifactId>
+                <artifactId>rest-assured-bom</artifactId>
                 <version>${version.restassured}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.rest-assured</groupId>
-                <artifactId>json-schema-validator</artifactId>
-                <version>${version.restassured}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>jackson-databind</artifactId>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>jsr305</artifactId>
-                        <groupId>com.google.code.findbugs</groupId>
-                    </exclusion>
-                </exclusions>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <!-- JPA -->
             <dependency>
@@ -560,7 +546,7 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>6.1.5</version>
                 <configuration>
-                    <failBuildOnCVSS>10</failBuildOnCVSS>
+                    <failBuildOnCVSS>9</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     <suppressionFile>suppressions.xml</suppressionFile>

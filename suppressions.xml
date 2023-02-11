@@ -2,18 +2,14 @@
 <suppressions
     xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
 
-    <!-- Invalid web socket CVE (flagging wrong package) -->
-    <suppress until="2021-12-01Z">
-        <cve>CVE-2020-11050</cve>
+    <!-- Spring -->
+    <suppress until="2023-12-01Z">
+        <cve>CVE-2016-1000027</cve>
+        <cve>CVE-2022-22965</cve>
     </suppress>
 
-    <!-- Invalid Spring Security CVE -->
-    <suppress until="2021-12-01Z">
-        <cve>CVE-2018-1258</cve>
-    </suppress>
-
-    <!-- https://hibernate.atlassian.net/browse/HHH-14225 -->
-    <suppress until="2021-06-01Z">
-        <cve>CVE-2020-25638</cve>
+    <!-- snakeyaml -->
+    <suppress until="2023-12-01Z">
+        <cve>CVE-2022-1471</cve>
     </suppress>
 </suppressions>
