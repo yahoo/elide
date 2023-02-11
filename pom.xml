@@ -215,25 +215,10 @@
             </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>
-                <artifactId>rest-assured</artifactId>
+                <artifactId>rest-assured-bom</artifactId>
                 <version>${version.restassured}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.rest-assured</groupId>
-                <artifactId>json-schema-validator</artifactId>
-                <version>${version.restassured}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>jackson-databind</artifactId>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>jsr305</artifactId>
-                        <groupId>com.google.code.findbugs</groupId>
-                    </exclusion>
-                </exclusions>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <!-- JPA -->
             <dependency>
