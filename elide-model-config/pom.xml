@@ -12,8 +12,8 @@
     <description>Elide Dynamic Model Config</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
-        <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-parent-pom</artifactId>
         <version>7.0.0-RC7-SNAPSHOT</version>
     </parent>
 
