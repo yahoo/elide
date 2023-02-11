@@ -25,6 +25,7 @@
         <module>elide-async</module>
         <module>elide-standalone</module>
         <module>elide-spring</module>
+        <module>elide-bom</module>
     </modules>
 
     <issueManagement>
