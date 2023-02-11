@@ -50,6 +50,17 @@
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.dropwizard.metrics</groupId>
+                <artifactId>metrics-bom</artifactId>
+                <version>${metrics.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <!-- Elide dependency -->
         <dependency>
@@ -161,25 +172,21 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>${metrics.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-jakarta-servlet</artifactId>
-            <version>${metrics.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-jakarta-servlets</artifactId>
-            <version>${metrics.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-jetty11</artifactId>
-            <version>${metrics.version}</version>
         </dependency>
 
 
@@ -194,13 +201,11 @@
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-jakarta-server</artifactId>
-            <version>${version.jetty}</version>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-servlet</artifactId>
-            <version>${version.jetty}</version>
         </dependency>
 
         <!-- Test -->
@@ -260,7 +265,6 @@
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-jakarta-client</artifactId>
-            <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
 
