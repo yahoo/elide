@@ -146,7 +146,7 @@ public class JsonApiController {
         };
     }
 
-    @DeleteMapping(value = "/**")
+    @DeleteMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
     public Callable<ResponseEntity<String>> elideDelete(@RequestHeader HttpHeaders requestHeaders,
                                                         @RequestParam MultiValueMap<String, String> allRequestParams,
                                                         HttpServletRequest request,
