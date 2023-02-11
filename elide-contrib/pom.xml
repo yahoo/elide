@@ -12,8 +12,8 @@
     <description>Parent pom for contrib packages</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
-        <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-parent-pom</artifactId>
         <version>4.8.1-SNAPSHOT</version>
     </parent>
 

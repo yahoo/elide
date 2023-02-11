@@ -115,7 +115,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-hibernate3</artifactId>
-            <version>${version.jackson}</version>
         </dependency>
 
         <!-- Integration test -->

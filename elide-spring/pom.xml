@@ -12,8 +12,8 @@
     <description>Parent pom for spring packages</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
-        <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-parent-pom</artifactId>
         <version>4.8.1-SNAPSHOT</version>
     </parent>
 
@@ -51,24 +51,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>io.rest-assured</groupId>
-                <artifactId>rest-assured</artifactId>
-                <version>${version.restassured}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.rest-assured</groupId>
-                <artifactId>json-path</artifactId>
-                <version>${version.restassured}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.rest-assured</groupId>
-                <artifactId>xml-path</artifactId>
-                <version>${version.restassured}</version>
-                <scope>test</scope>
-            </dependency>
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy</artifactId>

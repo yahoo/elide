@@ -24,31 +24,27 @@
         </license>
     </licenses>
 
-    <properties>
-        <elide.version>4.8.1-SNAPSHOT</elide.version>
-    </properties>
-
     <dependencies>
         <!-- Elide dependencies for integration testing -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>${elide.version}</version>
+            <version>4.8.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>${elide.version}</version>
+            <version>4.8.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-example-models</artifactId>
-            <version>${elide.version}</version>
+            <version>4.8.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>${elide.version}</version>
+            <version>4.8.1-SNAPSHOT</version>
         </dependency>
 
         <!-- Additional dependencies -->
@@ -111,7 +107,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-hibernate3</artifactId>
-            <version>${version.jackson}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -149,7 +144,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>${version.junit}</version>
         </dependency>
 
         <dependency>
