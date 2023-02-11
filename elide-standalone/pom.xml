@@ -51,6 +51,17 @@
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.dropwizard.metrics</groupId>
+                <artifactId>metrics-bom</artifactId>
+                <version>${metrics.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <!-- Elide dependency -->
         <dependency>
@@ -115,13 +126,6 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
             <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
-                    <groupId>org.eclipse.jetty.toolchain</groupId>
-                    <artifactId>jetty-servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -162,19 +166,16 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>${metrics.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-servlets</artifactId>
-            <version>${metrics.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-servlet</artifactId>
-            <version>${metrics.version}</version>
         </dependency>
 
         <!-- Various Utility Libraries -->
@@ -188,33 +189,16 @@
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-jetty-server</artifactId>
-            <version>${version.jetty}</version>
-            <exclusions>
-                <exclusion>
-                    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
-                    <groupId>org.eclipse.jetty.toolchain</groupId>
-                    <artifactId>jetty-servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-servlet</artifactId>
-            <version>${version.jetty}</version>
         </dependency>
         <!-- dependencies for javax.websocket (JSR-356) websocket -->
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-javax-server</artifactId>
-            <version>${version.jetty}</version>
-            <exclusions>
-            	<exclusion>
-            	    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
-            		<groupId>org.eclipse.jetty.toolchain</groupId>
-            		<artifactId>jetty-javax-websocket-api</artifactId>
-            	</exclusion>
-            </exclusions>
         </dependency>
 
 
@@ -275,7 +259,6 @@
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-jetty-client</artifactId>
-            <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
 
@@ -283,7 +266,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${version.jackson}</version>
         </dependency>
     </dependencies>
 

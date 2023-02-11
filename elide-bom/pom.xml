@@ -1,0 +1,125 @@
+<!--
+  ~ Copyright 2023, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>elide-bom</artifactId>
+    <packaging>pom</packaging>
+    <name>Elide: BOM</name>
+    <description>Elide Bill of Materials</description>
+    <url>https://github.com/yahoo/elide</url>
+    <parent>
+        <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-parent-pom</artifactId>
+        <version>6.1.11-SNAPSHOT</version>
+    </parent>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>Yahoo! Inc.</name>
+        <url>http://www.yahoo.com</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <url>https://github.com/yahoo/elide.git</url>
+        <tag>HEAD</tag>
+    </scm>
+    <dependencyManagement>
+        <dependencies>
+            <!-- modules -->
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-async</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-core</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-datastore-aggregation</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-datastore-hibernate</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-datastore-inmemorydb</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-datastore-jms</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-datastore-jpa</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-datastore-multiplex</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-datastore-noop</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-datastore-search</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-graphql</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-model-config</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-spring-boot-autoconfigure</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-spring-boot-starter</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-standalone</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-swagger</artifactId>
+                <version>6.1.11-SNAPSHOT</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
