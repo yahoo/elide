@@ -132,28 +132,24 @@
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-jetty-server</artifactId>
-            <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-jetty-client</artifactId>
-            <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-servlet</artifactId>
-            <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
         <!-- dependencies for javax.websocket (JSR-356) websocket -->
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-javax-server</artifactId>
-            <version>${version.jetty}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
