@@ -20,6 +20,16 @@ public interface Serde<S, T> {
     T deserialize(S val);
 
     /**
+     * Deserialize an instance of type S to type T.
+     * @param type The type to deserialize
+     * @param val The thing to deserialize
+     * @return The deserialized value
+     */
+    default T deserialize(Class<?> type, S val) {
+        return deserialize(val);
+    }
+
+    /**
      * Serializes an instance of type T as type S.
      * @param val The thing to serialize
      * @return The serialized value

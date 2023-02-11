@@ -35,7 +35,7 @@ public class OffsetDateTimeTest {
                         ZoneOffset.ofHoursMinutes(5, 30));
         String actual = "1995-11-02T16:45:04.000000056+05:30";
         OffsetDateTimeSerde offsetDateTimeScalar = new OffsetDateTimeSerde();
-        Object expected = offsetDateTimeScalar.deserialize(actual);
+        Object expected = offsetDateTimeScalar.deserialize(OffsetDateTime.class, actual);
         assertEquals(expected, actualDate);
     }
 
@@ -44,7 +44,7 @@ public class OffsetDateTimeTest {
         final OffsetDateTimeSerde offsetDateTimeScalar = new OffsetDateTimeSerde();
         assertThrows(
             IllegalArgumentException.class,
-            () -> offsetDateTimeScalar.deserialize("2019-06-01T09:42:55.12X3Z")
+            () -> offsetDateTimeScalar.deserialize(OffsetDateTime.class, "2019-06-01T09:42:55.12X3Z")
         );
     }
 }

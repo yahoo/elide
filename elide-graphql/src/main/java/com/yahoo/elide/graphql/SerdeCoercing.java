@@ -21,6 +21,8 @@ public class SerdeCoercing<I, O> implements Coercing<I, O> {
     private String errorMessage;
     private Serde<O, I> serde;
 
+    private Class<?> type;
+
     @Override
     public O serialize(Object dataFetcherResult) {
         return serde.serialize((I) dataFetcherResult);
@@ -28,7 +30,7 @@ public class SerdeCoercing<I, O> implements Coercing<I, O> {
 
     @Override
     public I parseValue(Object input) {
-        return serde.deserialize((O) input);
+        return serde.deserialize(type, (O) input);
     }
 
     public I parseLiteral(Object o) {

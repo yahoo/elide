@@ -31,7 +31,7 @@ public class SubscriptionSerdeTest {
 
         gson = new GsonBuilder()
                 .addSerializationExclusionStrategy(new SubscriptionExclusionStrategy())
-                .registerTypeAdapter(Date.class, new SubscriptionFieldSerde<>(serde))
+                .registerTypeAdapter(Date.class, new SubscriptionFieldSerde<>(serde, Date.class))
                 .serializeNulls().create();
     }
 

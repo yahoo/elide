@@ -36,7 +36,7 @@ public class QuarterSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         Quarter expectedDate = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
-        Object actualDate = serde.deserialize("2020-01");
+        Object actualDate = serde.deserialize(Quarter.class, "2020-01");
         assertEquals(expectedDate, actualDate);
     }
 
@@ -46,7 +46,7 @@ public class QuarterSerdeTest {
         Quarter quarter = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
         assertThrows(IllegalArgumentException.class, () ->
-            serde.deserialize(quarter)
+            serde.deserialize(Quarter.class, quarter)
         );
     }
 
@@ -56,7 +56,7 @@ public class QuarterSerdeTest {
         Quarter expectedDate = new Quarter(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Quarter.QuarterSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(Quarter.class, timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -66,7 +66,7 @@ public class QuarterSerdeTest {
 
         Serde serde = new Quarter.QuarterSerde();
         assertThrows(IllegalArgumentException.class, () ->
-                serde.deserialize(dateTime)
+                serde.deserialize(Quarter.class, dateTime)
         );
     }
 
@@ -76,7 +76,7 @@ public class QuarterSerdeTest {
         Quarter expectedDate = new Quarter(localDate);
         OffsetDateTime dateTime = OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
         Serde serde = new Quarter.QuarterSerde();
-        Object actualDate = serde.deserialize(dateTime);
+        Object actualDate = serde.deserialize(Quarter.class, dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -86,7 +86,7 @@ public class QuarterSerdeTest {
         String dateInString = "January-2020";
         Serde serde = new Quarter.QuarterSerde();
         assertThrows(DateTimeParseException.class, () ->
-            serde.deserialize(dateInString)
+            serde.deserialize(Quarter.class, dateInString)
         );
     }
 }

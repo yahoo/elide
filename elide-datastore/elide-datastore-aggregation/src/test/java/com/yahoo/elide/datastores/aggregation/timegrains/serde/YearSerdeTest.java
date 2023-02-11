@@ -38,7 +38,7 @@ public class YearSerdeTest {
 
         Year expectedDate = new Year(localDate);
         Serde serde = new Year.YearSerde();
-        Object actualDate = serde.deserialize("2020");
+        Object actualDate = serde.deserialize(Year.class, "2020");
         assertEquals(expectedDate, actualDate);
     }
 
@@ -49,7 +49,7 @@ public class YearSerdeTest {
         Year expectedDate = new Year(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Year.YearSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(Year.class, timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -60,7 +60,7 @@ public class YearSerdeTest {
 
         OffsetDateTime dateTime = OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
         Serde serde = new Year.YearSerde();
-        Object actualDate = serde.deserialize(dateTime);
+        Object actualDate = serde.deserialize(Year.class, dateTime);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -70,7 +70,7 @@ public class YearSerdeTest {
         String dateInString = "January";
         Serde serde = new Year.YearSerde();
         assertThrows(DateTimeParseException.class, () ->
-            serde.deserialize(dateInString)
+            serde.deserialize(Year.class, dateInString)
         );
     }
 }
