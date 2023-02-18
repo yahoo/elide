@@ -85,7 +85,7 @@
         <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
-        <version.antlr4>4.10.1</version.antlr4>
+        <version.antlr4>4.11.1</version.antlr4>
         <version.jackson>2.14.1</version.jackson>
         <version.jersey>3.1.1</version.jersey>
         <version.jetty>11.0.13</version.jetty>
@@ -203,7 +203,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>4.8.0</version>
+                <version>5.1.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

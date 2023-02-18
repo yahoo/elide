@@ -74,7 +74,7 @@
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
-                <version>7.0.5.Final</version>
+                <version>8.0.0.Final</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -98,6 +98,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
