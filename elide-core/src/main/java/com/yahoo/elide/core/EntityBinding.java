@@ -481,6 +481,17 @@ public class EntityBinding {
             type = ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()];
         }
 
+        Class<?> cls = TypeUtils.getRawType(type, parentClass);
+        if (cls != null) {
+            return cls;
+        }
+
+        if (fieldOrMethod instanceof Field) {
+            type = ((Field) fieldOrMethod).getType();
+        } else {
+            type = ((Method) fieldOrMethod).getReturnType();
+        }
+
         return TypeUtils.getRawType(type, parentClass);
     }
 
