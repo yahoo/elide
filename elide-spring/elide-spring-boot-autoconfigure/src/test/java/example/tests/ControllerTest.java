@@ -281,6 +281,18 @@ public class ControllerTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 
+    /**
+     * Function to verify the content type of a HTTP Delete error request.
+     */
+    @Test
+    public void jsonApiDeleteErrorTest() {
+        when()
+                .delete("/json/group/doestnotexist")
+                .then()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
     @Test
     @Sql(statements = {
             "INSERT INTO ArtifactProduct (name, commonName, description, group_name) VALUES\n"
