@@ -75,14 +75,10 @@ public class Relationship {
         Collection<Resource> resources = data.get();
         if (resources != null) {
             for (Resource resource : resources) {
-                try {
-                    if (resource == null) {
-                        continue;
-                    }
-                    res.add(resource.toPersistentResource(requestScope));
-                } catch (ForbiddenAccessException e) {
-                    //skip resource
+                if (resource == null) {
+                    continue;
                 }
+                res.add(resource.toPersistentResource(requestScope));
             }
         }
         return res.isEmpty() ? (data.isToOne() ? null : res) : res;
