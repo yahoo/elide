@@ -142,6 +142,19 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
+    /**
+     * Verifies that persistentResource.toPersistentResource() throws a ForbiddenAccessException when the user
+     * cannot read one of resources.
+     */
+    public void testToPersistentResourceForbidden() {
+        when(tx.loadObject(any(), eq(1L), any())).thenReturn(new NoReadEntity());
+        Relationship ids = new Relationship(null,
+                new Data<>(new ResourceIdentifier("noread", "1").castToResource()));
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        assertThrows(ForbiddenAccessException.class, () -> ids.toPersistentResources(goodScope));
+    }
+
+    @Test
     public void testUpdateToOneRelationHookInUpdateRelation() {
         FunWithPermissions fun = new FunWithPermissions();
         Child child1 = newChild(1);
