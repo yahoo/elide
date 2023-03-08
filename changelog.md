@@ -11,7 +11,7 @@ This is a major elide dependency upgrade from Elide 6.  To simplify migration, n
  * Upgrade to Jetty 11.X
  * Upgrade to Jersey 3.1.X
 
-## 6.1.11
+## 6.1.12
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/a1f7604cb3246093c04fac61bd25f2eb7e445d3f) Issue 2277 (#2301) 
  * [view commit](https://github.com/yahoo/elide/commit/25233153f89774b08257420e4de39490ae560a2f) Revert "Issue 2277 (#2301)" 
