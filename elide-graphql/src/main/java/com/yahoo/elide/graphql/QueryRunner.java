@@ -35,11 +35,10 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.GraphQLException;
 import graphql.execution.AsyncSerialExecutionStrategy;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -311,8 +310,7 @@ public class QueryRunner {
                     abortedResponseObject.put("errors", result.getErrors());
                     abortedResponseObject.put("data", null);
                     // Do not commit. Throw OK response to process tx.close correctly.
-                    throw new WebApplicationException(
-                            Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
+                    throw new GraphQLException(mapper.writeValueAsString(abortedResponseObject));
                 }
                 requestScope.saveOrCreateObjects();
             }
@@ -375,11 +373,11 @@ public class QueryRunner {
             return buildErrorResponse(mapper, mappedException, isVerbose);
         }
 
-        if (error instanceof WebApplicationException) {
-            WebApplicationException e = (WebApplicationException) error;
-            log.debug("WebApplicationException", e);
-            String body = e.getResponse().getEntity() != null ? e.getResponse().getEntity().toString() : e.getMessage();
-            return ElideResponse.builder().responseCode(e.getResponse().getStatus()).body(body).build();
+        if (error instanceof GraphQLException) {
+            GraphQLException e = (GraphQLException) error;
+            log.debug("GraphQLException", e);
+            String body = e.getMessage();
+            return ElideResponse.builder().responseCode(HttpStatus.SC_OK).body(body).build();
         }
 
         if (error instanceof HttpStatusException) {
