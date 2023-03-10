@@ -11,6 +11,14 @@ This is a major elide dependency upgrade from Elide 6.  To simplify migration, n
  * Upgrade to Jetty 11.X
  * Upgrade to Jersey 3.1.X
 
+## 6.1.12
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/a1f7604cb3246093c04fac61bd25f2eb7e445d3f) Issue 2277 (#2301) 
+ * [view commit](https://github.com/yahoo/elide/commit/25233153f89774b08257420e4de39490ae560a2f) Revert "Issue 2277 (#2301)" 
+ * [view commit](https://github.com/yahoo/elide/commit/1aca2c135c4c2ff8fd17a4de8b1f398971cbf24e) Create Elide Bill Of Materials (6.x) (#2885) 
+ * [view commit](https://github.com/yahoo/elide/commit/f0c945efa523f6a3577b21fbf346be6405a1ae22) Cleanup junit test scope (#2889) 
+ * [view commit](https://github.com/yahoo/elide/commit/ade1b3e07d31019c8ccd0d2a760316b6a284bccd) Fixes #2789 for Elide 6 (#2913) 
+
 ## 6.1.10
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/06f05b4de4d6f2cd9bbb0e6c564545dcea597554) Bump jackson-databind from 2.13.4.2 to 2.14.1 (#2843) 
