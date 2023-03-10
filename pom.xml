@@ -85,7 +85,7 @@
         <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
-        <version.antlr4>4.11.1</version.antlr4>
+        <version.antlr4>4.12.0</version.antlr4>
         <version.jackson>2.14.2</version.jackson>
         <version.jersey>3.1.1</version.jersey>
         <version.jetty>11.0.13</version.jetty>
@@ -433,7 +433,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>

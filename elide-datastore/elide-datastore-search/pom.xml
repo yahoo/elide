@@ -52,7 +52,7 @@
         <dependency>
             <groupId>org.hibernate.search</groupId>
             <artifactId>hibernate-search-mapper-orm-orm6</artifactId>
-            <version>6.1.7.Final</version>
+            <version>6.1.8.Final</version>
         </dependency>
 
         <dependency>
