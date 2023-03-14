@@ -14,7 +14,6 @@ import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +41,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @RefreshScope
 @RestController
-@Configuration
 @RequestMapping(value = "${elide.swagger.path}")
 @ConditionalOnExpression("${elide.swagger.enabled:false}")
 public class SwaggerController {

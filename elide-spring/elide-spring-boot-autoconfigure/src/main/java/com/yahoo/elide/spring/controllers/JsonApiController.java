@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -51,7 +50,6 @@ import java.util.concurrent.Callable;
  */
 @Slf4j
 @RestController
-@Configuration
 @RequestMapping(value = "${elide.json-api.path}")
 @ConditionalOnExpression("${elide.json-api.enabled:false}")
 @RefreshScope
