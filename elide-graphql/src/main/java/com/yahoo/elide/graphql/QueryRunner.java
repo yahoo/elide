@@ -37,6 +37,8 @@ import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.GraphQLException;
 import graphql.execution.AsyncSerialExecutionStrategy;
+import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.Getter;
@@ -70,9 +72,19 @@ public class QueryRunner {
 
     /**
      * Builds a new query runner.
+     * @param apiVersion The API version.
      * @param elide The singular elide instance for this service.
      */
     public QueryRunner(Elide elide, String apiVersion) {
+        this(elide, apiVersion, new SimpleDataFetcherExceptionHandler());
+    }
+    /**
+     * Builds a new query runner.
+     * @param elide The singular elide instance for this service.
+     * @param apiVersion The API version.
+     * @param exceptionHandler Overrides the default exception handler.
+     */
+    public QueryRunner(Elide elide, String apiVersion, DataFetcherExceptionHandler exceptionHandler) {
         this.elide = elide;
         this.apiVersion = apiVersion;
         this.mapper = elide.getMapper().getObjectMapper();
@@ -88,7 +100,7 @@ public class QueryRunner {
                 nonEntityDictionary, elide.getElideSettings(), fetcher, apiVersion);
 
         api = GraphQL.newGraphQL(builder.build())
-                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
+                .queryExecutionStrategy(new AsyncSerialExecutionStrategy(exceptionHandler))
                 .build();
 
         // TODO - add serializers to allow for custom handling of ExecutionResult and GraphQLError objects

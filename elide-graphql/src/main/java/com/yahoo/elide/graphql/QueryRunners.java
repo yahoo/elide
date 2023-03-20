@@ -9,6 +9,8 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.RefreshableElide;
 
+import graphql.execution.DataFetcherExceptionHandler;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,12 +25,12 @@ public class QueryRunners {
      * Constructor.
      * @param refreshableElide A hot reloadable Elide instance.
      */
-    public QueryRunners(RefreshableElide refreshableElide) {
+    public QueryRunners(RefreshableElide refreshableElide, DataFetcherExceptionHandler exceptionHandler) {
         this.runners = new HashMap<>();
         Elide elide = refreshableElide.getElide();
 
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
-            runners.put(apiVersion, new QueryRunner(elide, apiVersion));
+            runners.put(apiVersion, new QueryRunner(elide, apiVersion, exceptionHandler));
         }
     }
 

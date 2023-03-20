@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,7 +94,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         Elide elide = new Elide(settings);
         elide.doScans();
 
-        runner = new QueryRunner(elide, NO_VERSION);
+        runner = new QueryRunner(elide, NO_VERSION, new SimpleDataFetcherExceptionHandler());
     }
 
     protected void initializeMocks() {

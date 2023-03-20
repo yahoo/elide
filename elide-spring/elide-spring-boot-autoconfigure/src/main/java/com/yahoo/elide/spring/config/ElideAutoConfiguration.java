@@ -70,6 +70,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
@@ -220,15 +222,24 @@ public class ElideAutoConfiguration {
         return new RefreshableElide(elide);
     }
 
-
     @Configuration
     @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
     public static class GraphQLConfiguration {
         @Bean
         @RefreshScope
         @ConditionalOnMissingBean
-        public QueryRunners getQueryRunners(RefreshableElide refreshableElide) {
-            return new QueryRunners(refreshableElide);
+        public QueryRunners getQueryRunners(
+                RefreshableElide refreshableElide,
+                DataFetcherExceptionHandler exceptionHandler
+        ) {
+            return new QueryRunners(refreshableElide, exceptionHandler);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean
+        @Scope(SCOPE_PROTOTYPE)
+        public DataFetcherExceptionHandler getGraphQLExceptionHandler() {
+            return new SimpleDataFetcherExceptionHandler();
         }
     }
 

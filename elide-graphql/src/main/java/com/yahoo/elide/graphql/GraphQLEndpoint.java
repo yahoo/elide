@@ -16,6 +16,7 @@ import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.utils.ResourceUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -55,7 +56,7 @@ public class GraphQLEndpoint {
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
         this.runners = new HashMap<>();
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
-            runners.put(apiVersion, new QueryRunner(elide, apiVersion));
+            runners.put(apiVersion, new QueryRunner(elide, apiVersion, new SimpleDataFetcherExceptionHandler()));
         }
     }
 

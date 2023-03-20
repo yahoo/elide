@@ -14,6 +14,7 @@ import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.inject.Inject;
 import lombok.Data;
 import lombok.Getter;
@@ -59,12 +60,15 @@ public class AsyncExecutorService {
 
     @Inject
     public AsyncExecutorService(Elide elide, ExecutorService executor, ExecutorService updater,
-                    AsyncAPIDAO asyncAPIDao) {
+                                AsyncAPIDAO asyncAPIDao) {
         this.elide = elide;
         runners = new HashMap<>();
 
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
-            runners.put(apiVersion, new QueryRunner(elide, apiVersion));
+
+            //Because the queries are async, there is no need to override the default exception handler to customize
+            //the error response.
+            runners.put(apiVersion, new QueryRunner(elide, apiVersion, new SimpleDataFetcherExceptionHandler()));
         }
 
         this.executor = executor;
