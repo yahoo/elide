@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -45,7 +44,6 @@ import java.util.concurrent.Callable;
  * Spring rest controller for Elide GraphQL.
  */
 @Slf4j
-@Configuration
 @RestController
 @RequestMapping(value = "${elide.graphql.path}")
 @EnableConfigurationProperties(ElideConfigProperties.class)

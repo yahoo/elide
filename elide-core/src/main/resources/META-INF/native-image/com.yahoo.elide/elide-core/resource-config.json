@@ -1,0 +1,33 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "draftv3/schema"
+      },
+      {
+        "pattern": "draftv4/hyper-schema"
+      },
+      {
+        "pattern": "draftv4/schema"
+      },
+      {
+        "pattern": "elideDBConfigSchema.json"
+      },
+      {
+        "pattern": "elideNamespaceConfigSchema.json"
+      },
+      {
+        "pattern": "elideSecuritySchema.json"
+      },
+      {
+        "pattern": "elideTableSchema.json"
+      },
+      {
+        "pattern": "elideVariableSchema.json"
+      },
+      {
+        "pattern": "helpers.nashorn.js"
+      }
+    ]
+  }
+}

@@ -37,6 +37,7 @@ public class FileLoader {
     private static final Pattern DB_FILE = Pattern.compile("db/sql/[^/]+\\.hjson");
     private static final String CLASSPATH_PATTERN = "classpath*:";
     private static final String FILEPATH_PATTERN = "file:";
+    private static final String RESOURCEPATH_PATTERN = "resource:";
     private static final String RESOURCES = "resources";
     private static final int RESOURCES_LENGTH = 9; //"resources".length()
 
@@ -108,7 +109,15 @@ public class FileLoader {
                 log.error("Missing resource during HJSON configuration load: {}", resource.getURI());
                 continue;
             }
-            String path = resource.getURI().toString().substring(configDirURILength);
+            String resourceUri = resource.getURI().toString();
+            String path = null;
+            if (resourceUri.startsWith(RESOURCEPATH_PATTERN)) {
+                // Native image
+                int rootLength = resourceUri.indexOf(this.rootPath) + this.rootPath.length() + 1;
+                path = resourceUri.substring(rootLength);
+            } else {
+                path = resourceUri.substring(configDirURILength);
+            }
             resourceMap.put(path, ConfigFile.builder()
                     .type(toType(path))
                     .contentProvider(() -> CONTENT_PROVIDER.apply(resource))
