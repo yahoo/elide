@@ -7,8 +7,6 @@ package com.yahoo.elide.spring.controllers;
 
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,12 +31,10 @@ import java.io.IOException;
 @Slf4j
 @RestController
 @RequestMapping(value = "${elide.async.export.path:/export}")
-@ConditionalOnExpression("${elide.async.enabled:false} && ${elide.async.export.enabled:false}")
 public class ExportController {
 
     private ResultStorageEngine resultStorageEngine;
 
-    @Autowired
     public ExportController(ResultStorageEngine resultStorageEngine) {
         log.debug("Started ~~");
         this.resultStorageEngine = resultStorageEngine;

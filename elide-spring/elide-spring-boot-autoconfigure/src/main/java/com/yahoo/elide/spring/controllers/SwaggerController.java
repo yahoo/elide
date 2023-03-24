@@ -11,9 +11,6 @@ import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,10 +36,8 @@ import java.util.stream.Collectors;
  * Spring REST controller for exposing Swagger documentation.
  */
 @Slf4j
-@RefreshScope
 @RestController
 @RequestMapping(value = "${elide.swagger.path}")
-@ConditionalOnExpression("${elide.swagger.enabled:false}")
 public class SwaggerController {
 
     //Maps api version & path to swagger document.
@@ -75,7 +70,6 @@ public class SwaggerController {
      *
      * @param docs A list of documents to register.
      */
-    @Autowired
     public SwaggerController(SwaggerRegistrations docs) {
         log.debug("Started ~~");
         documents = new HashMap<>();

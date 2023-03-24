@@ -19,10 +19,6 @@ import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -46,9 +42,6 @@ import java.util.concurrent.Callable;
 @Slf4j
 @RestController
 @RequestMapping(value = "${elide.graphql.path}")
-@EnableConfigurationProperties(ElideConfigProperties.class)
-@ConditionalOnExpression("${elide.graphql.enabled:false}")
-@RefreshScope
 public class GraphqlController {
 
     private final ElideConfigProperties settings;
@@ -58,7 +51,6 @@ public class GraphqlController {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
-    @Autowired
     public GraphqlController(
             QueryRunners runners,
             JsonApiMapper jsonApiMapper,
