@@ -4,319 +4,142 @@
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jackson.jsonpointer.JsonPointerMessages",
+    "name": "com.github.fge.jackson.jsonpointer.JsonPointerMessages",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.core.messages.JsonSchemaCoreMessageBundle",
+    "name": "com.github.fge.jsonschema.core.messages.JsonSchemaCoreMessageBundle",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.core.messages.JsonSchemaSyntaxMessageBundle",
+    "name": "com.github.fge.jsonschema.core.messages.JsonSchemaSyntaxMessageBundle",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.AdditionalItemsValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.AdditionalItemsValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.AdditionalPropertiesValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.AdditionalPropertiesValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.DependenciesValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.DependenciesValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.EnumValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.EnumValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.MaxItemsValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MaxItemsValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.MaxLengthValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MaxLengthValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.MaximumValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MaximumValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.MinItemsValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MinItemsValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.MinLengthValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MinLengthValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.MinimumValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MinimumValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.PatternValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.PatternValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.common.UniqueItemsValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.common.UniqueItemsValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv3.DisallowKeywordValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.DisallowKeywordValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv3.DivisibleByValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.DivisibleByValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv3.DraftV3TypeValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.DraftV3TypeValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv3.ExtendsValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.ExtendsValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv3.PropertiesValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.PropertiesValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.AllOfValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.AllOfValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.AnyOfValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.AnyOfValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.DraftV4TypeValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.DraftV4TypeValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.MaxPropertiesValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.MaxPropertiesValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.MinPropertiesValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.MinPropertiesValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.MultipleOfValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.MultipleOfValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.NotValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.NotValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.OneOfValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.OneOfValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.keyword.validator.draftv4.RequiredKeywordValidator",
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.RequiredKeywordValidator",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.messages.JsonSchemaConfigurationBundle",
+    "name": "com.github.fge.jsonschema.messages.JsonSchemaConfigurationBundle",
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.github.fge.jsonschema.messages.JsonSchemaValidationBundle",
+    "name": "com.github.fge.jsonschema.messages.JsonSchemaValidationBundle",
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIAdmin",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIOwner",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIStatusQueuedValue",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIStatusValue",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.Column",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.Dimension",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.Metric",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.Namespace",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.Table",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.TableSource",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker",
+    "name": "com.yahoo.elide.core.exceptions.ErrorObjects",
     "allDeclaredFields": true,
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Day$DaySerde",
+    "name": "com.yahoo.elide.core.security.checks.prefab.Collections$AppendOnly",
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true
   },
   {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Hour$HourSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.ISOWeek$ISOWeekSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Minute$MinuteSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Month$MonthSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Quarter$QuarterSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Second$SecondSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Time",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Time$TimeSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Week$WeekSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.aggregation.timegrains.Year$YearSerde",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.datastores.multiplex.MultiplexManager",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.graphql.SerializeId",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket$UserFactory",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.protocol.AbstractProtocolMessage",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.protocol.AbstractProtocolMessageWithID",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionAck",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name":"com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe$Payload",
-    "allDeclaredFields": true,
+    "name": "com.yahoo.elide.core.security.checks.prefab.Collections$RemoveOnly",
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true
   },
@@ -351,12 +174,6 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.core.exceptions.ErrorObjects",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
     "name": "com.yahoo.elide.jsonapi.serialization.DataSerializer",
     "allDeclaredConstructors": true
   },
@@ -370,112 +187,6 @@
   },
   {
     "name": "com.yahoo.elide.jsonapi.serialization.KeySerializer",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.core.security.checks.prefab.Collections$AppendOnly",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.core.security.checks.prefab.Collections$RemoveOnly",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.jsonformats.ValidateArgsPropertiesValidator",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.jsonformats.ValidateDimPropertiesValidator",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.jsonformats.ValidateTimeDimPropertiesValidator",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Argument",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.DBConfig",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Dimension",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.ElideDBConfig",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.ElideNamespaceConfig",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.ElideSecurityConfig",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.ElideSQLDBConfig",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.ElideTableConfig",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Grain",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Join",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Measure",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.NamespaceConfig",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Rule",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Table",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.TableSource",
-    "allDeclaredFields": true,
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "graphql.schema.GraphQLSchema",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
     "allDeclaredConstructors": true
   },
   {
@@ -659,14 +370,6 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "org.apache.calcite.avatica.AvaticaJdbc41Factory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.apache.calcite.jdbc.CalciteJdbc41Factory",
-    "allDeclaredConstructors": true
-  },
-  {
     "name": "java.util.LinkedHashSet",
     "allDeclaredConstructors": true
   },
@@ -681,5 +384,13 @@
   },
   {
     "name": "java.sql.Timestamp[]"
+  },
+  {
+    "name": "org.apache.calcite.avatica.AvaticaJdbc41Factory",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "org.apache.calcite.jdbc.CalciteJdbc41Factory",
+    "allDeclaredConstructors": true
   }
 ]

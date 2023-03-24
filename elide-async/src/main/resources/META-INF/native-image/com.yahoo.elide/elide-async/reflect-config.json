@@ -1,0 +1,22 @@
+[
+  {
+    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIAdmin",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIOwner",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIStatusQueuedValue",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIStatusValue",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  }
+]

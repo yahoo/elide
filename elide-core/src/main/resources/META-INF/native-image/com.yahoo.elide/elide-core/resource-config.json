@@ -11,21 +11,6 @@
         "pattern": "draftv4/schema"
       },
       {
-        "pattern": "elideDBConfigSchema.json"
-      },
-      {
-        "pattern": "elideNamespaceConfigSchema.json"
-      },
-      {
-        "pattern": "elideSecuritySchema.json"
-      },
-      {
-        "pattern": "elideTableSchema.json"
-      },
-      {
-        "pattern": "elideVariableSchema.json"
-      },
-      {
         "pattern": "helpers.nashorn.js"
       }
     ]
