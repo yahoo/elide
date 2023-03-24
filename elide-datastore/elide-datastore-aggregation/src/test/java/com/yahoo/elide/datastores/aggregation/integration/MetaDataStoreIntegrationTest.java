@@ -49,7 +49,6 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -106,7 +105,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     @Override
     protected DataStoreTestHarness createHarness() {
 
-        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
+        HikariConfig config = new HikariConfig("/" + "jpah2db.properties");
         DataSource defaultDataSource = new HikariDataSource(config);
         SQLDialect defaultDialect = SQLDialectFactory.getDefaultDialect();
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);

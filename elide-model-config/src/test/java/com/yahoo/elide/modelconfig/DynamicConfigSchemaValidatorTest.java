@@ -36,7 +36,7 @@ public class DynamicConfigSchemaValidatorTest {
         String expectedMessage = "Schema validation failed for: security_invalid.hjson\n"
                         + "[ERROR]\n"
                         + "object instance has properties which are not allowed by the schema: [\"cardinality\",\"description\",\"name\",\"schema$\",\"table\"]";
-        assertEquals(expectedMessage, e.getMessage());
+        assertEquals(expectedMessage.replaceAll("\n", System.lineSeparator()), e.getMessage());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "object instance has properties which are not allowed by the schema: [\"schema$\"]\n"
                         + "[ERROR]\n"
                         + "Instance[/cardinality] failed to validate against schema[/patternProperties/^([A-Za-z0-9_]+[.]?)+$]. instance type (null) does not match any allowed primitive type (allowed: [\"array\",\"boolean\",\"integer\",\"number\",\"object\",\"string\"])";
-        assertEquals(expectedMessage, e.getMessage());
+        assertEquals(expectedMessage.replaceAll("\n", System.lineSeparator()), e.getMessage());
     }
 
     // Table config test
@@ -147,7 +147,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/tables/0/name] failed to validate against schema[/properties/tables/items/properties/name]. Name [Country@10] is not allowed. Name must start with an alphabetic character and can include alaphabets, numbers and '_' only.";
 
-        assertEquals(expectedMessage, e.getMessage());
+        assertEquals(expectedMessage.replaceAll("\n", System.lineSeparator()), e.getMessage());
     }
 
     // DB config test
@@ -178,7 +178,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "Instance[/dbconfigs/1/dialect] failed to validate against schema[/properties/dbconfigs/items/properties/dialect]. instance type (integer) does not match any allowed primitive type (allowed: [\"string\"])\n"
                         + "[ERROR]\n"
                         + "Instance[/dbconfigs/1/url] failed to validate against schema[/properties/dbconfigs/items/properties/url]. Input value [ojdbc:mysql://localhost/testdb?serverTimezone=UTC] is not a valid JDBC url, it must start with 'jdbc:'.";
-        assertEquals(expectedMessage, e.getMessage());
+        assertEquals(expectedMessage.replaceAll("\n", System.lineSeparator()), e.getMessage());
     }
 
     private String loadHjsonFromClassPath(String resource) throws Exception {

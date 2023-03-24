@@ -13,6 +13,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
@@ -65,6 +66,11 @@ public class SubscriptionTest extends IntegrationTest {
 
             assertEquals(1, results.size());
             assertEquals(0, results.get(0).getErrors().size());
+
+            when()
+                    .delete("/json/group/com.example.repository2")
+                    .then()
+                    .statusCode(HttpStatus.SC_NO_CONTENT);
         }
     }
 }
