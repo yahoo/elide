@@ -158,11 +158,11 @@ public class TableExportIT extends AsyncApiIT {
                         equalTo("http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cf830a"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
-
-        assertEquals("\"title\"\n"
+        String expected = "\"title\"\n"
                 + "\"For Whom the Bell Tolls\"\n"
                 + "\"Song of Ice and Fire\"\n"
-                + "\"Ender's Game\"\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf830a"));
+                + "\"Ender's Game\"\n";
+        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf830a"));
     }
 
     /**
@@ -205,11 +205,12 @@ public class TableExportIT extends AsyncApiIT {
                         equalTo("http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cf831a"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
-        assertEquals("[\n"
+        String expected = "[\n"
                 + "{\"title\":\"For Whom the Bell Tolls\"}\n"
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"Ender's Game\"}\n"
-                + "]\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf831a"));
+                + "]\n";
+        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf831a"));
 
     }
 
@@ -269,10 +270,11 @@ public class TableExportIT extends AsyncApiIT {
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        assertEquals("\"title\"\n"
+        String expected = "\"title\"\n"
                 + "\"Ender's Game\"\n"
                 + "\"Song of Ice and Fire\"\n"
-                + "\"For Whom the Bell Tolls\"\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf828e"));
+                + "\"For Whom the Bell Tolls\"\n";
+        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf828e"));
     }
 
     /**
@@ -341,11 +343,12 @@ public class TableExportIT extends AsyncApiIT {
                  + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        assertEquals("[\n"
+        String expected = "[\n"
                 + "{\"title\":\"Ender's Game\"}\n"
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"For Whom the Bell Tolls\"}\n"
-                + "]\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf829e"));
+                + "]\n";
+        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf829e"));
     }
 
     /**
@@ -404,10 +407,11 @@ public class TableExportIT extends AsyncApiIT {
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        assertEquals("\"title\"\n"
+        String expected = "\"title\"\n"
                 + "\"Ender's Game\"\n"
                 + "\"Song of Ice and Fire\"\n"
-                + "\"For Whom the Bell Tolls\"\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab28e"));
+                + "\"For Whom the Bell Tolls\"\n";
+        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab28e"));
     }
 
     /**
@@ -476,11 +480,12 @@ public class TableExportIT extends AsyncApiIT {
                  + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        assertEquals("[\n"
+        String expected = "[\n"
                 + "{\"bookName\":\"Ender's Game\"}\n"
                 + ",{\"bookName\":\"Song of Ice and Fire\"}\n"
                 + ",{\"bookName\":\"For Whom the Bell Tolls\"}\n"
-                + "]\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab29e"));
+                + "]\n";
+        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab29e"));
     }
 
     /**

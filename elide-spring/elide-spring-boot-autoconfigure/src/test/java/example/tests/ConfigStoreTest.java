@@ -35,13 +35,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.FileSystemUtils;
 
 import io.restassured.RestAssured;
 import jakarta.ws.rs.core.MediaType;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.TimeZone;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -67,9 +71,14 @@ public class ConfigStoreTest {
     @LocalServerPort
     protected int port;
 
+    static Path tempDir;
+
     @BeforeAll
-    public static void initialize(@TempDir Path testDirectory) {
-        System.setProperty("elide.dynamic-config.path", testDirectory.toFile().getAbsolutePath());
+    public static void initialize(@TempDir Path testDirectory) throws IOException {
+        tempDir = testDirectory;
+        Path configPath = Paths.get(testDirectory.toFile().getAbsolutePath(), "1", "2", "3", "4", "5"); // for path traversal attempt
+        Files.createDirectories(configPath);
+        System.setProperty("elide.dynamic-config.path", configPath.toFile().getAbsolutePath());
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
@@ -77,6 +86,11 @@ public class ConfigStoreTest {
     @AfterAll
     public static void cleanup() {
         System.clearProperty("elide.dynamic-config.path");
+        try {
+            FileSystemUtils.deleteRecursively(tempDir);
+        } catch (IOException e) {
+            // Do nothing
+        }
     }
 
     /**
