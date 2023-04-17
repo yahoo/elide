@@ -96,7 +96,7 @@
         <embedded-redis.version>0.11.0</embedded-redis.version>
         <hibernate6.version>6.1.5.Final</hibernate6.version>
         <jedis.version>4.3.0</jedis.version>
-        <jsonpath.version>2.7.0</jsonpath.version>
+        <jsonpath.version>2.8.0</jsonpath.version>
         <slf4j-api.version>2.0.3</slf4j-api.version>
         <maven-site-plugin-version>3.12.1</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
