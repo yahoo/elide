@@ -56,7 +56,7 @@ public class FileResultStorageEngineTest {
 
         // verify contents of stored files are readable and match original
         String finalResult = readResultsFile(tempDir.toString(), queryId);
-        assertEquals(finalResult, validOutput);
+        assertEquals(finalResult, validOutput.replaceAll("\n", System.lineSeparator()));
     }
 
     // O/P Directory does not exist.

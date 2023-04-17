@@ -17,7 +17,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.modelconfig.io.FileLoader;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import com.yahoo.elide.modelconfig.validator.Validator;
-import org.apache.commons.io.FileUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -201,27 +200,27 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
     private void deleteFile(String path) {
         Path deletePath = Path.of(fileLoader.getRootPath(), path);
-        File file = deletePath.toFile();
 
-        if (! file.exists()) {
+        if (! Files.exists(deletePath)) {
             return;
         }
 
-        if (! file.delete()) {
-            log.error("Error deleting file: {}", file.getPath());
-            throw new IllegalStateException("Unable to delete: " + path);
+        try {
+            Files.delete(deletePath);
+        } catch (IOException e) {
+            log.error("Error deleting file: {} with message: {}", deletePath, e.getMessage());
+            throw new IllegalStateException("Unable to delete: " + deletePath, e);
         }
     }
 
     private void updateFile(String path, String content) {
         Path updatePath = Path.of(fileLoader.getRootPath(), path);
-        File file = updatePath.toFile();
 
         try {
-            FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
+            Files.writeString(updatePath, content, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            log.error("Error updating file: {} with message: {}", file.getPath(), e.getMessage());
-            throw new IllegalStateException(e);
+            log.error("Error updating file: {} with message: {}", updatePath, e.getMessage());
+            throw new IllegalStateException("Unable to update:" + updatePath, e);
         }
     }
     private void createFile(String path) {

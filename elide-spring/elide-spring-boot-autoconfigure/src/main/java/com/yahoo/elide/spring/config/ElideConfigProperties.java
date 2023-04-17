@@ -6,6 +6,7 @@
 package com.yahoo.elide.spring.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import lombok.Data;
 
@@ -19,41 +20,49 @@ public class ElideConfigProperties {
     /**
      * Settings for the JSON-API controller.
      */
+    @NestedConfigurationProperty
     private JsonApiControllerProperties jsonApi;
 
     /**
      * Settings for the GraphQL controller.
      */
+    @NestedConfigurationProperty
     private GraphQLControllerProperties graphql;
 
     /**
      * Settings for the Swagger document controller.
      */
+    @NestedConfigurationProperty
     private SwaggerControllerProperties swagger;
 
     /**
      * Settings for the Async.
      */
+    @NestedConfigurationProperty
     private AsyncProperties async = new AsyncProperties();
 
     /**
      * Settings for subscriptions.
      */
+    @NestedConfigurationProperty
     private SubscriptionProperties subscription = new SubscriptionProperties();
 
     /**
      * Settings for the Dynamic Configuration.
      */
+    @NestedConfigurationProperty
     private DynamicConfigProperties dynamicConfig = new DynamicConfigProperties();
 
     /**
      * Settings for the Aggregation Store.
      */
+    @NestedConfigurationProperty
     private AggregationStoreProperties aggregationStore = new AggregationStoreProperties();
 
     /**
      * Settings for the JPA Store.
      */
+    @NestedConfigurationProperty
     private JpaStoreProperties jpaStore = new JpaStoreProperties();
 
     /**

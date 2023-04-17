@@ -176,7 +176,7 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("Invalid Hjson Syntax: Found '[' where a key name was "
-                + "expected (check your syntax or use quotes if the key name includes {}[],: or whitespace) at 3:7\n",
+                + "expected (check your syntax or use quotes if the key name includes {}[],: or whitespace) at 3:7\n".replaceAll("\n", System.lineSeparator()),
                 error);
     }
 
@@ -200,7 +200,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Undefined model: B is used as a Parent(extend) for another model.\n", error);
+        assertEquals("Undefined model: B is used as a Parent(extend) for another model.\n".replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -212,7 +212,7 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("Invalid Hjson Syntax: Found '[' where a key name was expected "
-                + "(check your syntax or use quotes if the key name includes {}[],: or whitespace) at 3:11\n",
+                + "(check your syntax or use quotes if the key name includes {}[],: or whitespace) at 3:11\n".replaceAll("\n", System.lineSeparator()),
                 error);
     }
 
@@ -224,7 +224,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Duplicate!! Role name: 'prefab.role.all' is already defined. Please use different role.\n", error);
+        assertEquals("Duplicate!! Role name: 'prefab.role.all' is already defined. Please use different role.\n".replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -240,7 +240,7 @@ public class DynamicConfigValidatorTest {
                         + "Instance[/roles/0] failed to validate against schema[/properties/roles/items]. Role [admin,] is not allowed. Role must start with an alphabetic character and can include alaphabets, numbers, spaces and '.' only.\n"
                         + "[ERROR]\n"
                         + "Instance[/roles/1] failed to validate against schema[/properties/roles/items]. Role [guest,] is not allowed. Role must start with an alphabetic character and can include alaphabets, numbers, spaces and '.' only.\n";
-        assertEquals(expectedError, error);
+        assertEquals(expectedError.replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -251,7 +251,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Found undefined security checks: [guest, member, user]\n", error);
+        assertEquals("Found undefined security checks: [guest, member, user]\n".replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -265,7 +265,7 @@ public class DynamicConfigValidatorTest {
         String expected = "Schema validation failed for: models/namespaces/test_namespace.hjson\n"
                 + "[ERROR]\n"
                 + "Instance[/namespaces/0/name] failed to validate against schema[/properties/namespaces/items/properties/name]. Name [Default] clashes with the 'default' namespace. Either change the case or pick a different namespace name.\n";
-        assertEquals(expected, error);
+        assertEquals(expected.replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -276,7 +276,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Found undefined security checks: [namespaceRead]\n", error);
+        assertEquals("Found undefined security checks: [namespaceRead]\n".replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -287,7 +287,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Namespace: TestNamespace is not included in dynamic configs\n", error);
+        assertEquals("Namespace: TestNamespace is not included in dynamic configs\n".replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -303,7 +303,7 @@ public class DynamicConfigValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/tables/0/joins/1/type] failed to validate against schema[/definitions/join/properties/type]. Join type [full outer] is not allowed. Supported value is one of [left, inner, full, cross].\n";
 
-        assertEquals(expected, error);
+        assertEquals(expected.replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -330,7 +330,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals(expectedMessage, error);
+        assertEquals(expectedMessage.replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
@@ -364,7 +364,7 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("foobar is used as a variable in either table or security config files "
-                        + "but is not defined in variables config file.\n", error);
+                        + "but is not defined in variables config file.\n".replaceAll("\n", System.lineSeparator()), error);
     }
 
     public void testBadTableSource() throws Exception {
@@ -389,7 +389,7 @@ public class DynamicConfigValidatorTest {
 
         //Java 11 introduces (and prints) the following deprecation warning:
         //"Warning: Nashorn engine is planned to be removed from a future JDK release"
-        assertTrue(error.contains("Multiple DB configs found with the same name: OracleConnection\n"));
+        assertTrue(error.contains("Multiple DB configs found with the same name: OracleConnection\n".replaceAll("\n", System.lineSeparator())));
     }
 
     @Test

@@ -49,6 +49,7 @@ import jakarta.ws.rs.core.MediaType;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +70,8 @@ public class ElideStandaloneConfigStoreTest {
 
     @BeforeAll
     public void init() throws Exception {
-        configRoot = Files.createTempDirectory("test");
+        configRoot = Paths.get(Files.createTempDirectory("test").toFile().getAbsolutePath(), "1", "2", "3", "4", "5"); // for path traversal attempt
+        Files.createDirectories(configRoot);
         settings = new ElideStandaloneTestSettings() {
 
             @Override

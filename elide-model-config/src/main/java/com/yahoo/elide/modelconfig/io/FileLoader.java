@@ -11,7 +11,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
-import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -20,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -37,6 +38,7 @@ public class FileLoader {
     private static final Pattern DB_FILE = Pattern.compile("db/sql/[^/]+\\.hjson");
     private static final String CLASSPATH_PATTERN = "classpath*:";
     private static final String FILEPATH_PATTERN = "file:";
+    private static final String RESOURCEPATH_PATTERN = "resource:";
     private static final String RESOURCES = "resources";
     private static final int RESOURCES_LENGTH = 9; //"resources".length()
 
@@ -45,8 +47,8 @@ public class FileLoader {
     private final PathMatchingResourcePatternResolver resolver;
 
     private static final Function<Resource, String> CONTENT_PROVIDER = (resource) -> {
-        try {
-            return IOUtils.toString(resource.getInputStream(), UTF_8);
+        try (InputStream inputStream = resource.getInputStream()) {
+            return new String(inputStream.readAllBytes(), UTF_8);
         } catch (IOException e) {
             log.error ("Error converting stream to String: {}", e.getMessage());
             throw new IllegalStateException(e);
@@ -100,7 +102,15 @@ public class FileLoader {
      */
     public Map<String, ConfigFile> loadResources() throws IOException {
         Map<String, ConfigFile> resourceMap = new LinkedHashMap<>();
-        int configDirURILength = resolver.getResources(this.rootURL)[0].getURI().toString().length();
+        URI configDirURI = resolver.getResources(this.rootURL)[0].getURI();
+        String configDirURIString = configDirURI.toString();
+        int configDirURILength = configDirURIString.length();
+        if (configDirURIString.startsWith(FILEPATH_PATTERN) && !configDirURIString.startsWith(FILEPATH_PATTERN + "/")) {
+            // URI for configDir is missing slash the ie file:path and not file:/path and spring
+            // resolver will return with file:/path
+            // See https://github.com/spring-projects/spring-framework/issues/29275
+            configDirURILength += 1;
+        }
 
         Resource[] hjsonResources = resolver.getResources(this.rootURL + HJSON_EXTN);
         for (Resource resource : hjsonResources) {
@@ -108,7 +118,15 @@ public class FileLoader {
                 log.error("Missing resource during HJSON configuration load: {}", resource.getURI());
                 continue;
             }
-            String path = resource.getURI().toString().substring(configDirURILength);
+            String resourceUri = resource.getURI().toString();
+            String path = null;
+            if (resourceUri.startsWith(RESOURCEPATH_PATTERN)) {
+                // Native image
+                int rootLength = resourceUri.indexOf(this.rootPath) + this.rootPath.length() + 1;
+                path = resourceUri.substring(rootLength);
+            } else {
+                path = resourceUri.substring(configDirURILength);
+            }
             resourceMap.put(path, ConfigFile.builder()
                     .type(toType(path))
                     .contentProvider(() -> CONTENT_PROVIDER.apply(resource))

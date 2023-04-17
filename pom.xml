@@ -103,9 +103,6 @@
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
-        <checkstyle.config.location>${parent.pom.dir}/checkstyle-style.xml</checkstyle.config.location>
-        <checkstyle.suppressions.location>${parent.pom.dir}/checkstyle-suppressions.xml
-        </checkstyle.suppressions.location>
 
         <dependency.locations.enabled>false</dependency.locations.enabled>
         <dependency.details.enabled>false</dependency.details.enabled>
@@ -315,6 +312,7 @@
                             <id>validate</id>
                             <phase>validate</phase>
                             <configuration>
+                                <configLocation>${parent.pom.dir}/checkstyle-style.xml</configLocation>
                                 <includeTestSourceDirectory>true</includeTestSourceDirectory>
                                 <includes>**\/*</includes>
                                 <resourceIncludes>**\/*</resourceIncludes>
@@ -322,6 +320,7 @@
                                     <sourceDirectory>src/main/java</sourceDirectory>
                                 </sourceDirectories>
                                 <propertyExpansion>basedir=${project.basedir}</propertyExpansion>
+                                <propertyExpansion>config_loc=${parent.pom.dir}</propertyExpansion>
                                 <failsOnError>true</failsOnError>
                                 <consoleOutput>true</consoleOutput>
                                 <encoding>UTF-8</encoding>
@@ -555,7 +554,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>enforce-java</id>
@@ -577,7 +576,7 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ssh-external</artifactId>
-                <version>3.5.2</version>
+                <version>3.5.3</version>
             </extension>
         </extensions>
     </build>
