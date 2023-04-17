@@ -1,0 +1,396 @@
+[
+  {
+    "name": "com.github.benmanes.caffeine.cache.SSSMSW",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jackson.jsonpointer.JsonPointerMessages",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.core.messages.JsonSchemaCoreMessageBundle",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.core.messages.JsonSchemaSyntaxMessageBundle",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.AdditionalItemsValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.AdditionalPropertiesValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.DependenciesValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.EnumValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MaxItemsValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MaxLengthValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MaximumValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MinItemsValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MinLengthValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.MinimumValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.PatternValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.common.UniqueItemsValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.DisallowKeywordValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.DivisibleByValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.DraftV3TypeValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.ExtendsValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv3.PropertiesValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.AllOfValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.AnyOfValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.DraftV4TypeValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.MaxPropertiesValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.MinPropertiesValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.MultipleOfValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.NotValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.OneOfValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.keyword.validator.draftv4.RequiredKeywordValidator",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.messages.JsonSchemaConfigurationBundle",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.github.fge.jsonschema.messages.JsonSchemaValidationBundle",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.core.exceptions.ErrorObjects",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.core.security.checks.prefab.Collections$AppendOnly",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.core.security.checks.prefab.Collections$RemoveOnly",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.JsonApiDocument",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Relationship",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Resource",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.ResourceIdentifier",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Meta",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.serialization.DataSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.serialization.DataDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.serialization.MetaDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.serialization.KeySerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.jackson.mixin.IgnoreOriginalRefMixin",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.jackson.mixin.OperationResponseMixin",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.jackson.mixin.ResponseSchemaMixin",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.AbstractModel",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.Info",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.Model",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.ModelImpl",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.Operation",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.Path",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.Response",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.Responses",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.Swagger",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.Tag",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.parameters.AbstractParameter",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.parameters.AbstractSerializableParameter",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.parameters.BodyParameter",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.parameters.Parameter",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.parameters.PathParameter",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.parameters.QueryParameter",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.parameters.SerializableParameter",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.AbstractNumericProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.AbstractProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.ArrayProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.BaseIntegerProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.DateTimeProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.LongProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.ObjectProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.Property",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.RefProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.swagger.models.properties.StringProperty",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "java.util.LinkedHashSet",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "java.util.Calendar[]"
+  },
+  {
+    "name": "java.sql.Date[]"
+  },
+  {
+    "name": "java.sql.Time[]"
+  },
+  {
+    "name": "java.sql.Timestamp[]"
+  },
+  {
+    "name": "org.apache.calcite.avatica.AvaticaJdbc41Factory",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "org.apache.calcite.jdbc.CalciteJdbc41Factory",
+    "allDeclaredConstructors": true
+  }
+]

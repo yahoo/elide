@@ -100,7 +100,7 @@ public abstract class SQLUnitTest {
     protected static MetaDataStore metaDataStore;
 
     private static final DataSource DUMMY_DATASOURCE = new HikariDataSource();
-    private static final String NEWLINE = System.lineSeparator();
+    private static final String NEWLINE = "\n";
     protected static SQLQueryEngine engine;
 
     protected QueryEngine.Transaction transaction;

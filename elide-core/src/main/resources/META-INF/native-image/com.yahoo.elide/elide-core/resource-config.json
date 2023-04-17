@@ -1,0 +1,18 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "draftv3/schema"
+      },
+      {
+        "pattern": "draftv4/hyper-schema"
+      },
+      {
+        "pattern": "draftv4/schema"
+      },
+      {
+        "pattern": "helpers.nashorn.js"
+      }
+    ]
+  }
+}

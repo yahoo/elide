@@ -210,14 +210,14 @@
   <module name="RegexpHeader">
     <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a yahoo/apache copyright block."/>
     <property name="severity" value="error"/>
-    <property name="headerFile" value="java.header"/>
+    <property name="headerFile" value="${config_loc}/java.header"/>
     <property name="multiLines" value="2"/>
     <property name="fileExtensions" value="java,groovy,g4"/>
   </module>
   <module name="RegexpHeader">
     <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a yahoo/apache copyright block."/>
     <property name="severity" value="error"/>
-    <property name="headerFile" value="xml.header"/>
+    <property name="headerFile" value="${config_loc}/xml.header"/>
     <property name="fileExtensions" value="xml"/>
   </module>
   <module name="FileTabCharacter">
@@ -253,5 +253,8 @@
     <property name="severity" value="error"/>
     <property name="format" value="\s$"/>
     <property name="message" value="Trailing space"/>
+  </module>
+  <module name="SuppressionFilter">
+    <property name="file" value="${config_loc}/checkstyle-suppressions.xml"/>
   </module>
 </module>
