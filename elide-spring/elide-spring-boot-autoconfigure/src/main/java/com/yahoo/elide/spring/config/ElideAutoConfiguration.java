@@ -13,6 +13,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -53,6 +54,9 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.spring.controllers.ExportController;
+import com.yahoo.elide.spring.controllers.GraphqlController;
+import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.spring.controllers.SwaggerController;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
@@ -61,6 +65,7 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -69,6 +74,8 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
@@ -155,86 +162,9 @@ public class ElideAutoConfiguration {
         };
     }
 
-    /**
-     * Creates the Elide instance with standard settings.
-     * @param dictionary Stores the static metadata about Elide models.
-     * @param dataStore The persistence store.
-     * @param headerProcessor HTTP header function which is invoked for every request.
-     * @param transactionRegistry Global transaction registry.
-     * @param settings Elide settings.
-     * @return A new elide instance.
-     */
-    @Bean
-    @RefreshScope
-    @ConditionalOnMissingBean
-    public RefreshableElide getRefreshableElide(EntityDictionary dictionary,
-                                                DataStore dataStore,
-                                                HeaderUtils.HeaderProcessor headerProcessor,
-                                                TransactionRegistry transactionRegistry,
-                                                ElideConfigProperties settings,
-                                                JsonApiMapper mapper,
-                                                ErrorMapper errorMapper) {
-
-        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withErrorMapper(errorMapper)
-                .withJsonApiMapper(mapper)
-                .withDefaultMaxPageSize(settings.getMaxPageSize())
-                .withDefaultPageSize(settings.getPageSize())
-                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withAuditLogger(new Slf4jLogger())
-                .withBaseUrl(settings.getBaseUrl())
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
-                .withJsonApiPath(settings.getJsonApi().getPath())
-                .withHeaderProcessor(headerProcessor)
-                .withGraphQLApiPath(settings.getGraphql().getPath());
-
-        if (settings.isVerboseErrors()) {
-            builder.withVerboseErrors();
-        }
-
-        if (settings.getAsync() != null
-                && settings.getAsync().getExport() != null
-                && settings.getAsync().getExport().isEnabled()) {
-            builder.withExportApiPath(settings.getAsync().getExport().getPath());
-        }
-
-        if (settings.getGraphql() != null && settings.getGraphql().enableFederation) {
-            builder.withGraphQLFederation(true);
-        }
-
-        if (settings.getJsonApi() != null
-                && settings.getJsonApi().isEnabled()
-                && settings.getJsonApi().isEnableLinks()) {
-            String baseUrl = settings.getBaseUrl();
-
-            if (StringUtils.isEmpty(baseUrl)) {
-                builder.withJSONApiLinks(new DefaultJSONApiLinks());
-            } else {
-                String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
-                builder.withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl));
-            }
-        }
-
-        Elide elide = new Elide(builder.build(), transactionRegistry, dictionary.getScanner(), true);
-
-        return new RefreshableElide(elide);
-    }
-
     @Configuration
     @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
     public static class GraphQLConfiguration {
-        @Bean
-        @RefreshScope
-        @ConditionalOnMissingBean
-        public QueryRunners getQueryRunners(
-                RefreshableElide refreshableElide,
-                DataFetcherExceptionHandler exceptionHandler
-        ) {
-            return new QueryRunners(refreshableElide, exceptionHandler);
-        }
-
         @Bean
         @ConditionalOnMissingBean
         @Scope(SCOPE_PROTOTYPE)
@@ -491,31 +421,6 @@ public class ElideAutoConfiguration {
         return new Slf4jQueryLogger();
     }
 
-    /**
-     * Creates a singular swagger document for JSON-API.
-     * @param elide Singleton elide instance.
-     * @param settings Elide configuration settings.
-     * @return An instance of a JPA DataStore.
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
-    @RefreshScope
-    public SwaggerController.SwaggerRegistrations buildSwagger(
-            RefreshableElide elide,
-            ElideConfigProperties settings
-    ) {
-        EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
-        Info info = new Info()
-                .title(settings.getSwagger().getName())
-                .version(settings.getSwagger().getVersion());
-
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
-        return new SwaggerController.SwaggerRegistrations(
-                builder.build().basePath(settings.getJsonApi().getPath())
-        );
-    }
-
     @Bean
     @ConditionalOnMissingBean
     public ClassScanner getClassScanner() {
@@ -533,6 +438,231 @@ public class ElideAutoConfiguration {
     @Scope(SCOPE_PROTOTYPE)
     public JsonApiMapper mapper() {
         return new JsonApiMapper();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnExpression("${elide.async.enabled:false} && ${elide.async.export.enabled:false}")
+    public ExportController exportController(ResultStorageEngine resultStorageEngine) {
+        return new ExportController(resultStorageEngine);
+    }
+
+    @Configuration
+    @ConditionalOnClass(RefreshScope.class)
+    @ConditionalOnProperty(name = "spring.cloud.refresh.enabled", havingValue = "true", matchIfMissing = true)
+    @Order(Ordered.LOWEST_PRECEDENCE - 1)
+    public static class RefreshableConfiguration {
+        /**
+         * Creates the Elide instance with standard settings.
+         * @param dictionary Stores the static metadata about Elide models.
+         * @param dataStore The persistence store.
+         * @param headerProcessor HTTP header function which is invoked for every request.
+         * @param transactionRegistry Global transaction registry.
+         * @param settings Elide settings.
+         * @return A new elide instance.
+         */
+        @Bean
+        @RefreshScope
+        @ConditionalOnMissingBean
+        public RefreshableElide refreshableElide(EntityDictionary dictionary, DataStore dataStore,
+                HeaderUtils.HeaderProcessor headerProcessor, TransactionRegistry transactionRegistry,
+                ElideConfigProperties settings, JsonApiMapper mapper, ErrorMapper errorMapper) {
+            return buildRefreshableElide(dictionary, dataStore, headerProcessor, transactionRegistry, settings, mapper,
+                    errorMapper);
+        }
+
+        @Configuration
+        @ConditionalOnProperty(name = "elide.json-api.enabled", havingValue = "true")
+        public static class JsonApiConfiguration {
+            @Bean
+            @RefreshScope
+            @ConditionalOnMissingBean(name = "jsonApiController")
+            public JsonApiController jsonApiController(RefreshableElide refreshableElide,
+                    ElideConfigProperties settings) {
+                return new JsonApiController(refreshableElide, settings);
+            }
+        }
+
+        @Configuration
+        @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
+        public static class SwaggerConfiguration {
+            /**
+             * Creates a singular swagger document for JSON-API.
+             * @param elide Singleton elide instance.
+             * @param settings Elide configuration settings.
+             * @return An instance of a JPA DataStore.
+             */
+            @Bean
+            @RefreshScope
+            @ConditionalOnMissingBean
+            public SwaggerController.SwaggerRegistrations swaggerRegistrations(RefreshableElide elide,
+                    ElideConfigProperties settings) {
+                return buildSwaggerRegistrations(elide, settings);
+            }
+
+            @Bean
+            @RefreshScope
+            @ConditionalOnMissingBean(name = "swaggerController")
+            public SwaggerController swaggerController(SwaggerController.SwaggerRegistrations docs) {
+                return new SwaggerController(docs);
+            }
+        }
+
+        @Configuration
+        @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
+        public static class GraphQLConfiguration {
+            @Bean
+            @RefreshScope
+            @ConditionalOnMissingBean
+            public QueryRunners queryRunners(RefreshableElide refreshableElide,
+                    DataFetcherExceptionHandler exceptionHandler) {
+                return new QueryRunners(refreshableElide, exceptionHandler);
+            }
+
+            @Bean
+            @RefreshScope
+            @ConditionalOnMissingBean(name = "graphqlController")
+            public GraphqlController graphqlController(QueryRunners runners, JsonApiMapper jsonApiMapper,
+                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings) {
+                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings);
+            }
+        }
+    }
+
+    @Configuration
+    @ConditionalOnProperty(name = "spring.cloud.refresh.enabled", havingValue = "false", matchIfMissing = true)
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    public static class NonRefreshableConfiguration {
+        /**
+         * Creates the Elide instance with standard settings.
+         * @param dictionary Stores the static metadata about Elide models.
+         * @param dataStore The persistence store.
+         * @param headerProcessor HTTP header function which is invoked for every request.
+         * @param transactionRegistry Global transaction registry.
+         * @param settings Elide settings.
+         * @return A new elide instance.
+         */
+        @Bean
+        @ConditionalOnMissingBean
+        public RefreshableElide refreshableElide(EntityDictionary dictionary, DataStore dataStore,
+                HeaderUtils.HeaderProcessor headerProcessor, TransactionRegistry transactionRegistry,
+                ElideConfigProperties settings, JsonApiMapper mapper, ErrorMapper errorMapper) {
+            return buildRefreshableElide(dictionary, dataStore, headerProcessor, transactionRegistry, settings, mapper,
+                    errorMapper);
+        }
+
+        @Configuration
+        @ConditionalOnProperty(name = "elide.json-api.enabled", havingValue = "true")
+        public static class JsonApiConfiguration {
+            @Bean
+            @ConditionalOnMissingBean(name = "jsonApiController")
+            public JsonApiController jsonApiController(RefreshableElide refreshableElide,
+                    ElideConfigProperties settings) {
+                return new JsonApiController(refreshableElide, settings);
+            }
+        }
+
+        @Configuration
+        @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
+        public static class SwaggerConfiguration {
+            /**
+             * Creates a singular swagger document for JSON-API.
+             * @param elide Singleton elide instance.
+             * @param settings Elide configuration settings.
+             * @return An instance of a JPA DataStore.
+             */
+            @Bean
+            @ConditionalOnMissingBean
+            public SwaggerController.SwaggerRegistrations swaggerRegistrations(RefreshableElide elide,
+                    ElideConfigProperties settings) {
+                return buildSwaggerRegistrations(elide, settings);
+            }
+
+            @Bean
+            @ConditionalOnMissingBean(name = "swaggerController")
+            public SwaggerController swaggerController(SwaggerController.SwaggerRegistrations docs) {
+                return new SwaggerController(docs);
+            }
+        }
+
+        @Configuration
+        @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
+        public static class GraphQLConfiguration {
+            @Bean
+            @ConditionalOnMissingBean
+            public QueryRunners queryRunners(RefreshableElide refreshableElide,
+                    DataFetcherExceptionHandler exceptionHandler) {
+                return new QueryRunners(refreshableElide, exceptionHandler);
+            }
+
+            @Bean
+            @ConditionalOnMissingBean(name = "graphqlController")
+            public GraphqlController graphqlController(QueryRunners runners, JsonApiMapper jsonApiMapper,
+                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings) {
+                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings);
+            }
+        }
+    }
+
+    public static RefreshableElide buildRefreshableElide(EntityDictionary dictionary, DataStore dataStore,
+            HeaderUtils.HeaderProcessor headerProcessor, TransactionRegistry transactionRegistry,
+            ElideConfigProperties settings, JsonApiMapper mapper, ErrorMapper errorMapper) {
+
+        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore).withEntityDictionary(dictionary)
+                .withErrorMapper(errorMapper).withJsonApiMapper(mapper)
+                .withDefaultMaxPageSize(settings.getMaxPageSize()).withDefaultPageSize(settings.getPageSize())
+                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .withAuditLogger(new Slf4jLogger()).withBaseUrl(settings.getBaseUrl())
+                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                .withHeaderProcessor(headerProcessor);
+
+        if (settings.isVerboseErrors()) {
+            builder.withVerboseErrors();
+        }
+
+        if (settings.getAsync() != null && settings.getAsync().getExport() != null
+                && settings.getAsync().getExport().isEnabled()) {
+            builder.withExportApiPath(settings.getAsync().getExport().getPath());
+        }
+
+        if (settings.getGraphql() != null && settings.getGraphql().isEnabled()) {
+            builder.withGraphQLApiPath(settings.getGraphql().getPath());
+
+            if (settings.getGraphql().isEnableFederation()) {
+                builder.withGraphQLFederation(true);
+            }
+        }
+
+        if (settings.getJsonApi() != null && settings.getJsonApi().isEnabled()) {
+            builder.withJsonApiPath(settings.getJsonApi().getPath());
+
+            if (settings.getJsonApi().isEnableLinks()) {
+                String baseUrl = settings.getBaseUrl();
+
+                if (StringUtils.isEmpty(baseUrl)) {
+                    builder.withJSONApiLinks(new DefaultJSONApiLinks());
+                } else {
+                    String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
+                    builder.withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl));
+                }
+            }
+        }
+
+        Elide elide = new Elide(builder.build(), transactionRegistry, dictionary.getScanner(), true);
+
+        return new RefreshableElide(elide);
+    }
+
+    public static SwaggerController.SwaggerRegistrations buildSwaggerRegistrations(RefreshableElide elide,
+            ElideConfigProperties settings) {
+        String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : null;
+
+        EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
+        Info info = new Info().title(settings.getSwagger().getName()).version(settings.getSwagger().getVersion());
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
+        return new SwaggerController.SwaggerRegistrations(builder.build().basePath(jsonApiPath));
     }
 
     private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

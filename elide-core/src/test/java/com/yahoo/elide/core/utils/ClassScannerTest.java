@@ -26,7 +26,7 @@ public class ClassScannerTest {
     @Test
     public void testGetAllClasses() {
         Set<Class<?>> classes = scanner.getAllClasses("com.yahoo.elide.core.utils");
-        assertEquals(33, classes.size());
+        assertEquals(34, classes.size());
         assertTrue(classes.contains(ClassScannerTest.class));
     }
 

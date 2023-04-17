@@ -41,7 +41,6 @@ import jakarta.persistence.Persistence;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.SecurityContext;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
@@ -60,7 +59,7 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
 
     public static DynamicConfigValidator VALIDATOR;
 
-    public static HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
+    public static HikariConfig config = new HikariConfig("/" + "jpah2db.properties");
 
     static {
         VALIDATOR = new DynamicConfigValidator(DefaultClassScanner.getInstance(), "src/test/resources/configs");
