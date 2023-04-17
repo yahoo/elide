@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.core.utils;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
@@ -15,7 +12,6 @@ import io.github.classgraph.ScanResult;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,33 +23,10 @@ import java.util.stream.Collectors;
  */
 public class DefaultClassScanner implements ClassScanner {
 
-    /**
-     * Class Scanning is terribly costly for service boot, so we do all the scanning up front once to
-     * save on startup costs.  All Annotations Elide scans for must be listed here:
-     */
-    private static final String [] CACHE_ANNOTATIONS  = {
-            //Elide Core Annotations
-            Include.class.getCanonicalName(),
-            SecurityCheck.class.getCanonicalName(),
-            ElideTypeConverter.class.getCanonicalName(),
-
-            //GraphQL annotations.  Strings here to avoid dependency.
-            "com.yahoo.elide.graphql.subscriptions.annotations.Subscription",
-
-            //Aggregation Store Annotations.  Strings here to avoid dependency.
-            "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable",
-            "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery",
-            "org.hibernate.annotations.Subselect",
-
-            //JPA
-            "jakarta.persistence.Entity",
-            "jakarta.persistence.Table"
-    };
-
     private final Map<String, Set<Class<?>>> startupCache;
 
     /**
-     * Primarily for tests so builds don't take forever.
+     * Primarily for tests so builds don't take forever. //TODO This is no longer needed with the lazy static cache
      */
     private static DefaultClassScanner _instance;
 
@@ -69,16 +42,7 @@ public class DefaultClassScanner implements ClassScanner {
      * For use within a container where class scanning happens at boot time.
      */
     public DefaultClassScanner() {
-        this.startupCache = new HashMap<>();
-        try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
-            for (String annotationName : CACHE_ANNOTATIONS) {
-                startupCache.put(annotationName, scanResult.getClassesWithAnnotation(annotationName)
-                        .stream()
-                        .map(ClassInfo::loadClass)
-                        .collect(Collectors.toCollection(LinkedHashSet::new)));
-
-            }
-        }
+        this.startupCache = ClassScannerCache.getInstance();
     }
 
     @Override
@@ -122,7 +86,7 @@ public class DefaultClassScanner implements ClassScanner {
     @Override
     public Set<Class<?>> getAllClasses(String packageName) {
         try (ScanResult scanResult = new ClassGraph()
-                .enableClassInfo().whitelistPackages(packageName).scan()) {
+                .enableClassInfo().acceptPackages(packageName).scan()) {
             return scanResult.getAllClasses().stream()
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toCollection(LinkedHashSet::new));

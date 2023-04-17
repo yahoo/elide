@@ -48,7 +48,7 @@ spring:
         physical-strategy: 'org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl'
       ddl-auto: 'create'
   datasource:
-    url: 'jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1'
+    url: 'jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;TIME ZONE=UTC'
     username: 'sa'
     password: ''
     driver-class-name: 'org.h2.Driver'

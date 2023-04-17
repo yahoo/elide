@@ -22,6 +22,7 @@ import redis.embedded.RedisServer;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Test cases for RedisResultStorageEngine.
@@ -112,7 +113,7 @@ public class RedisResultStorageEngineTest {
 
         observable.subscribe(subscriber);
         subscriber.assertComplete();
-        assertEquals(subscriber.getEvents().iterator().next(), expected);
+        assertEquals(subscriber.getEvents().iterator().next(), expected.stream().map(data -> data.replaceAll("\n", System.lineSeparator())).collect(Collectors.toList()));
     }
 
     private void storeResults(String queryId, Observable<String> storable) {
