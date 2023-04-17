@@ -1,0 +1,21 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "elideDBConfigSchema.json"
+      },
+      {
+        "pattern": "elideNamespaceConfigSchema.json"
+      },
+      {
+        "pattern": "elideSecuritySchema.json"
+      },
+      {
+        "pattern": "elideTableSchema.json"
+      },
+      {
+        "pattern": "elideVariableSchema.json"
+      }
+    ]
+  }
+}
