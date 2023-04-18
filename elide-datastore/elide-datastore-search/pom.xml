@@ -58,7 +58,7 @@
         <dependency>
             <groupId>org.hibernate.search</groupId>
             <artifactId>hibernate-search-backend-lucene</artifactId>
-            <version>6.1.7.Final</version>
+            <version>6.1.8.Final</version>
         </dependency>
 
         <dependency>
