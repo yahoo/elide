@@ -1,5 +1,21 @@
 [
   {
+    "name": "com.yahoo.elide.graphql.ExecutionResultDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.graphql.ExecutionResultSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.graphql.GraphQLErrorDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.graphql.GraphQLErrorSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
     "name": "com.yahoo.elide.graphql.SerializeId",
     "allDeclaredConstructors": true
   },
