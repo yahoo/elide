@@ -16,8 +16,10 @@ import com.yahoo.elide.datastores.jpql.query.DefaultQueryLogger;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.Metamodel;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,35 +33,49 @@ public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
     protected final JpaTransactionSupplier writeTransactionSupplier;
+    protected final MetamodelSupplier metamodelSupplier;
     protected final Set<Type<?>> modelsToBind;
     protected final QueryLogger logger;
 
-    public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
+    private JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
                         QueryLogger logger,
+                        MetamodelSupplier metamodelSupplier,
                         Type<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
         this.writeTransactionSupplier = writeTransactionSupplier;
+        this.metamodelSupplier = metamodelSupplier;
         this.logger = logger;
         this.modelsToBind = new HashSet<>();
-        for (Type<?> model : models) {
-            modelsToBind.add(model);
-        }
+        Collections.addAll(this.modelsToBind, models);
     }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
-                        Type<?> ... models) {
-        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, DEFAULT_LOGGER, models);
+                        MetamodelSupplier metamodelSupplier) {
+        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, DEFAULT_LOGGER,
+                metamodelSupplier);
     }
 
+    public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
+            JpaTransactionSupplier readTransactionSupplier,
+            JpaTransactionSupplier writeTransactionSupplier,
+            Type<?> ... models) {
+        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, DEFAULT_LOGGER, null, models);
+    }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier transactionSupplier,
-                        Type<?> ... models) {
+                        MetamodelSupplier metamodelSupplier) {
+        this(entityManagerSupplier, transactionSupplier, transactionSupplier, metamodelSupplier);
+    }
+
+    public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
+            JpaTransactionSupplier transactionSupplier,
+            Type<?> ... models) {
         this(entityManagerSupplier, transactionSupplier, transactionSupplier, models);
     }
 
@@ -67,12 +83,12 @@ public class JpaDataStore implements JPQLDataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         // If the user provided models, we'll manually add them and skip scanning for entities.
         if (! modelsToBind.isEmpty()) {
-            modelsToBind.forEach((model) -> bindEntityClass(model, dictionary));
+            modelsToBind.forEach(model -> bindEntityClass(model, dictionary));
             return;
         }
 
         // Use the entities defined in the entity manager factory.
-        for (EntityType type : entityManagerSupplier.get().getMetamodel().getEntities()) {
+        for (EntityType<?> type : metamodelSupplier.get().getEntities()) {
             try {
                 Type<?> mappedClass = ClassType.of(type.getJavaType());
                 // Ignore this result. We are just checking to see if it throws an exception meaning that
@@ -118,5 +134,13 @@ public class JpaDataStore implements JPQLDataStore {
     @FunctionalInterface
     public interface JpaTransactionSupplier {
         JpaTransaction get(EntityManager entityManager);
+    }
+
+    /**
+     * Functional interface for describing a method to supply Metamodel.
+     */
+    @FunctionalInterface
+    public interface MetamodelSupplier {
+        Metamodel get();
     }
 }

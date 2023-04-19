@@ -439,7 +439,8 @@ public interface ElideStandaloneSettings {
 
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true));
+                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true),
+                entityManagerFactory::getMetamodel);
 
         stores.add(jpaDataStore);
 
@@ -462,7 +463,8 @@ public interface ElideStandaloneSettings {
     default DataStore getDataStore(EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true));
+                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true, true),
+                entityManagerFactory::getMetamodel);
 
         return jpaDataStore;
     }
