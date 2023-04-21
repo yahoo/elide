@@ -3,11 +3,10 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.swagger.property;
+package com.yahoo.elide.swagger.models.media;
 
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
-import io.swagger.v3.oas.models.media.Schema;
 
 /**
  * Represents a JSON-API single resource or resource identifier.
@@ -29,9 +28,10 @@ public class Datum extends ObjectSchema {
      * @param definitionName The swagger model to reference in 'data'.
      * @param included Whether or not to add the 'included' property to the schema.
      */
+    @SuppressWarnings("unchecked")
     public Datum(String definitionName, boolean included) {
         super();
-        addProperty("data", new Schema().$ref(definitionName));
+        addProperty("data", new ObjectSchema().$ref(definitionName));
 
         if (included) {
             addProperty("included", new ArraySchema()

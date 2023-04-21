@@ -17,9 +17,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
-public class SwaggerIT extends AbstractApiResourceInitializer {
-    public SwaggerIT() {
-        super(SwaggerResourceConfig.class, DocEndpoint.class.getPackage().getName());
+public class OpenApiIT extends AbstractApiResourceInitializer {
+    public OpenApiIT() {
+        super(OpenApiResourceConfig.class, DocEndpoint.class.getPackage().getName());
     }
 
     @Test

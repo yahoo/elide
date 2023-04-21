@@ -49,7 +49,7 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
-import com.yahoo.elide.swagger.SwaggerBuilder;
+import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 
 import org.apache.commons.lang3.StringUtils;
@@ -325,19 +325,19 @@ public interface ElideStandaloneSettings {
      * @param dictionary Contains the static metadata about Elide models. .
      * @return list of swagger registration objects.
      */
-    default List<DocEndpoint.SwaggerRegistration> buildSwagger(EntityDictionary dictionary) {
+    default List<DocEndpoint.OpenApiRegistration> buildSwagger(EntityDictionary dictionary) {
         Info info = new Info()
                 .title(getSwaggerName())
                 .version(getSwaggerVersion());
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
 
         String moduleBasePath = getJsonApiPathSpec().replaceAll("/\\*", "");
 
         Swagger swagger = builder.build().basePath(moduleBasePath);
 
-        List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
-        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger));
+        List<DocEndpoint.OpenApiRegistration> docs = new ArrayList<>();
+        docs.add(new DocEndpoint.OpenApiRegistration("test", swagger));
 
         return docs;
     }

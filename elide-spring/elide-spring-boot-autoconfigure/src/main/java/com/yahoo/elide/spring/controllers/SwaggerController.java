@@ -7,7 +7,7 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.swagger.SwaggerBuilder;
+import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
@@ -79,7 +79,7 @@ public class SwaggerController {
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
-            documents.put(Pair.of(apiVersion, apiPath), SwaggerBuilder.getDocument(doc.document));
+            documents.put(Pair.of(apiVersion, apiPath), OpenApiBuilder.getDocument(doc.document));
         });
     }
 

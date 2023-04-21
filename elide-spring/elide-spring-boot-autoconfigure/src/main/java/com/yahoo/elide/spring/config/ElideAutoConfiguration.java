@@ -58,6 +58,7 @@ import com.yahoo.elide.spring.controllers.ExportController;
 import com.yahoo.elide.spring.controllers.GraphqlController;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.spring.controllers.SwaggerController;
+import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.spring.orm.jpa.EntityManagerProxySupplier;
 import com.yahoo.elide.spring.orm.jpa.PlatformJpaTransactionSupplier;
 import com.yahoo.elide.swagger.SwaggerBuilder;
@@ -722,7 +723,7 @@ public class ElideAutoConfiguration {
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
         Info info = new Info().title(settings.getSwagger().getName()).version(settings.getSwagger().getVersion());
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info).withLegacyFilterDialect(false);
         return new SwaggerController.SwaggerRegistrations(builder.build().basePath(jsonApiPath));
     }
 

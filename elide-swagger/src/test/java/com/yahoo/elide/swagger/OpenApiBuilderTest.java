@@ -14,14 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.swagger.property.Data;
-import com.yahoo.elide.swagger.property.Datum;
-import com.yahoo.elide.swagger.property.Relationship;
+import com.yahoo.elide.swagger.models.media.Data;
+import com.yahoo.elide.swagger.models.media.Datum;
+import com.yahoo.elide.swagger.models.media.Relationship;
 
-//import com.yahoo.elide.swagger.model.Resource;
-//import com.yahoo.elide.swagger.property.Data;
-//import com.yahoo.elide.swagger.property.Datum;
-//import com.yahoo.elide.swagger.property.Relationship;
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
@@ -37,11 +33,9 @@ import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
-//import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.tags.Tag;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -54,9 +48,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SwaggerBuilderTest {
+class OpenApiBuilderTest {
     EntityDictionary dictionary;
-    OpenAPI swagger;
+    OpenAPI openApi;
 
     @BeforeAll
     public void setup() {
@@ -67,41 +61,41 @@ public class SwaggerBuilderTest {
         dictionary.bindEntity(Publisher.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
-        swagger = builder.build();
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
+        openApi = builder.build();
     }
 
     @Test
-    public void testPathGeneration() throws Exception {
-        assertTrue(swagger.getPaths().containsKey("/publisher"));
-        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}"));
+    void testPathGeneration() throws Exception {
+        assertTrue(openApi.getPaths().containsKey("/publisher"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}"));
 
-        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books"));
-        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}"));
-        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/books"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/books"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/relationships/books"));
 
-        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors"));
-        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
-        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/exclusiveAuthors"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/relationships/exclusiveAuthors"));
 
-        assertTrue(swagger.getPaths().containsKey("/book"));
-        assertTrue(swagger.getPaths().containsKey("/book/{bookId}"));
+        assertTrue(openApi.getPaths().containsKey("/book"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}"));
 
-        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors"));
-        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}"));
-        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/authors"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/authors"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/authors/{authorId}"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/relationships/authors"));
 
-        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher"));
-        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
-        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/publisher"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/publisher"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/relationships/publisher"));
 
-        assertEquals(16, swagger.getPaths().size());
+        assertEquals(16, openApi.getPaths().size());
     }
 
     @Test
-    public void testOperationGeneration() throws Exception {
+    void testOperationGeneration() throws Exception {
         /* For each path, ensure the correct operations exist */
-        swagger.getPaths().forEach((url, path) -> {
+        openApi.getPaths().forEach((url, path) -> {
 
             /* All paths should have a GET */
             assertNotNull(path.getGet());
@@ -130,8 +124,8 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testPathParams() throws Exception {
-        PathItem path = swagger.getPaths().get("/book/{bookId}/authors/{authorId}");
+    void testPathParams() throws Exception {
+        PathItem path = openApi.getPaths().get("/book/{bookId}/authors/{authorId}");
         assertEquals(2,
                 path.getParameters().stream()
                 .filter((param) -> param.getIn().equals("path"))
@@ -153,7 +147,7 @@ public class SwaggerBuilderTest {
         assertEquals("path", authorId.getIn());
         assertTrue(authorId.getRequired());
 
-        path = swagger.getPaths().get("/book/{bookId}/authors");
+        path = openApi.getPaths().get("/book/{bookId}/authors");
         assertEquals(1,
                 path.getParameters().stream()
                 .filter((param) -> param.getIn().equals("path"))
@@ -167,7 +161,7 @@ public class SwaggerBuilderTest {
         assertEquals("path", bookId.getIn());
         assertTrue(bookId.getRequired());
 
-        path = swagger.getPaths().get("/book/{bookId}/relationships/authors");
+        path = openApi.getPaths().get("/book/{bookId}/relationships/authors");
         assertEquals(1,
                 path.getParameters().stream()
                 .filter((param) -> param.getIn().equals("path"))
@@ -183,92 +177,76 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testOperationRequestBodies() throws Exception {
+    void testOperationRequestBodies() throws Exception {
         /* These take a datum pointing to a resource */
         Operation[] resourceOps = {
-                swagger.getPaths().get("/book").getPost(),
-                swagger.getPaths().get("/book/{bookId}").getPatch(),
+                openApi.getPaths().get("/book").getPost(),
+                openApi.getPaths().get("/book/{bookId}").getPatch(),
         };
 
         for (Operation op : resourceOps) {
-//            BodyParameter bodyParam = (BodyParameter) op.getParameters().stream()
-//                    .filter((param) -> param.getIn().equals("body"))
-//                    .findFirst()
-//                    .get();
-//
             assertNotNull(op.getRequestBody());
-//            verifyDatum(bodyParam.getSchema(), "book");
+            verifyDatum(op.getRequestBody().getContent(), "book", true);
         }
 
         /* These don't take any params */
         Operation[] noParamOps = {
-                swagger.getPaths().get("/book").getGet(),
-                swagger.getPaths().get("/book/{bookId}").getDelete(),
-                swagger.getPaths().get("/book/{bookId}").getGet(),
+                openApi.getPaths().get("/book").getGet(),
+                openApi.getPaths().get("/book/{bookId}").getDelete(),
+                openApi.getPaths().get("/book/{bookId}").getGet(),
         };
 
         for (Operation op : noParamOps) {
-//             Optional<Parameter> bodyParam = op.getParameters().stream()
-//                    .filter((param) -> param.getIn().equals("body"))
-//                    .findFirst();
-//
-//            assertFalse(bodyParam.isPresent());
             assertNull(op.getRequestBody());
         }
 
         /* These take a 'data' of relationships */
         Operation[] relationshipOps = {
-                swagger.getPaths().get("/book/{bookId}/relationships/authors").getPatch(),
-                swagger.getPaths().get("/book/{bookId}/relationships/authors").getDelete(),
-                swagger.getPaths().get("/book/{bookId}/relationships/authors").getPost(),
+                openApi.getPaths().get("/book/{bookId}/relationships/authors").getPatch(),
+                openApi.getPaths().get("/book/{bookId}/relationships/authors").getDelete(),
+                openApi.getPaths().get("/book/{bookId}/relationships/authors").getPost(),
         };
 
         for (Operation op : relationshipOps) {
-//            BodyParameter bodyParam = (BodyParameter) op.getParameters().stream()
-//                    .filter((param) -> param.getIn().equals("body"))
-//                    .findFirst()
-//                    .get();
-//            assertNotNull(bodyParam);
-//            verifyDataRelationship(bodyParam.getSchema(), "author");
             assertNotNull(op.getRequestBody());
             verifyDataRelationship(op.getRequestBody().getContent(), "author");
         }
     }
 
     @Test
-    public void testOperationSuccessResponseBodies() throws Exception {
-        ApiResponse response = swagger.getPaths().get("/book").getGet().getResponses().get("200");
+    void testOperationSuccessResponseBodies() throws Exception {
+        ApiResponse response = openApi.getPaths().get("/book").getGet().getResponses().get("200");
         verifyData(response.getContent(), "book");
 
-        response = swagger.getPaths().get("/book").getPost().getResponses().get("201");
+        response = openApi.getPaths().get("/book").getPost().getResponses().get("201");
         verifyDatum(response.getContent(), "book", false);
 
-        response = swagger.getPaths().get("/book/{bookId}").getGet().getResponses().get("200");
+        response = openApi.getPaths().get("/book/{bookId}").getGet().getResponses().get("200");
         verifyDatum(response.getContent(), "book", true);
 
-        response = swagger.getPaths().get("/book/{bookId}").getPatch().getResponses().get("204");
+        response = openApi.getPaths().get("/book/{bookId}").getPatch().getResponses().get("204");
         assertNull(response.getContent());
 
-        response = swagger.getPaths().get("/book/{bookId}").getDelete().getResponses().get("204");
+        response = openApi.getPaths().get("/book/{bookId}").getDelete().getResponses().get("204");
         assertNull(response.getContent());
 
-        response = swagger.getPaths().get("/book/{bookId}/relationships/authors").getGet().getResponses().get("200");
+        response = openApi.getPaths().get("/book/{bookId}/relationships/authors").getGet().getResponses().get("200");
         verifyDataRelationship(response.getContent(), "author");
 
-        response = swagger.getPaths().get("/book/{bookId}/relationships/authors").getPost().getResponses().get("201");
+        response = openApi.getPaths().get("/book/{bookId}/relationships/authors").getPost().getResponses().get("201");
         verifyDataRelationship(response.getContent(), "author");
 
-        response = swagger.getPaths().get("/book/{bookId}/relationships/authors").getPatch().getResponses().get("204");
+        response = openApi.getPaths().get("/book/{bookId}/relationships/authors").getPatch().getResponses().get("204");
         assertNull(response.getContent());
 
-        response = swagger.getPaths().get("/book/{bookId}/relationships/authors").getDelete().getResponses().get("204");
+        response = openApi.getPaths().get("/book/{bookId}/relationships/authors").getDelete().getResponses().get("204");
         assertNull(response.getContent());
     }
 
     @Test
-    public void testOperationSuccessResponseCodes() throws Exception {
+    void testOperationSuccessResponseCodes() throws Exception {
         /* For each path, ensure the correct operations exist */
-        swagger.getPaths().forEach((url, path) -> {
+        openApi.getPaths().forEach((url, path) -> {
 
             Operation getOperation = path.getGet();
             assertTrue(getOperation.getResponses().containsKey("200"));
@@ -301,10 +279,10 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testFilterParam() throws Exception {
+    void testFilterParam() throws Exception {
 
         /* Test root filters */
-        List<Parameter> params = swagger.getPaths().get("/book").getGet().getParameters();
+        List<Parameter> params = openApi.getPaths().get("/book").getGet().getParameters();
 
         Set<String> paramNames = params.stream()
                 .map((param) -> param.getName())
@@ -329,7 +307,7 @@ public class SwaggerBuilderTest {
 
 
         /* Test relationships filters */
-        params = swagger.getPaths().get("/book/{bookId}/relationships/authors").getGet().getParameters();
+        params = openApi.getPaths().get("/book/{bookId}/relationships/authors").getGet().getParameters();
         paramNames = params.stream()
                 .map((param) -> param.getName())
                 .collect(Collectors.toSet());
@@ -352,9 +330,9 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testPageParam() throws Exception {
+    void testPageParam() throws Exception {
         /* Tests root collection */
-        List<Parameter> params = swagger.getPaths().get("/book").getGet().getParameters();
+        List<Parameter> params = openApi.getPaths().get("/book").getGet().getParameters();
 
         Set<String> paramNames = params.stream()
                 .map((param) -> param.getName())
@@ -370,7 +348,7 @@ public class SwaggerBuilderTest {
         assertTrue(paramNames.contains("page[totals]"));
 
         /* Tests relationship collection */
-        params = swagger.getPaths().get("/book/{bookId}/relationships/authors").getGet().getParameters();
+        params = openApi.getPaths().get("/book/{bookId}/relationships/authors").getGet().getParameters();
 
         paramNames = params.stream()
                 .map((param) -> param.getName())
@@ -386,9 +364,10 @@ public class SwaggerBuilderTest {
         assertTrue(paramNames.contains("page[totals]"));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void testSortParam() throws Exception {
-        List<Parameter> params = swagger.getPaths().get("/book").getGet().getParameters();
+    void testSortParam() throws Exception {
+        List<Parameter> params = openApi.getPaths().get("/book").getGet().getParameters();
 
         Set<String> paramNames = params.stream()
                 .map((param) -> param.getName())
@@ -410,9 +389,10 @@ public class SwaggerBuilderTest {
 //        assertEquals("csv", sortParam.getCollectionFormat());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void testIncludeParam() throws Exception {
-        List<Parameter> params = swagger.getPaths().get("/book").getGet().getParameters();
+    void testIncludeParam() throws Exception {
+        List<Parameter> params = openApi.getPaths().get("/book").getGet().getParameters();
 
         Set<String> paramNames = params.stream()
                 .map((param) -> param.getName())
@@ -434,9 +414,10 @@ public class SwaggerBuilderTest {
 //        assertEquals("csv", includeParam.getCollectionFormat());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void testSparseFieldsParam() throws Exception {
-        List<Parameter> params = swagger.getPaths().get("/book").getGet().getParameters();
+    void testSparseFieldsParam() throws Exception {
+        List<Parameter> params = openApi.getPaths().get("/book").getGet().getParameters();
 
         Set<String> paramNames = params.stream()
                 .map((param) -> param.getName())
@@ -459,48 +440,25 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testDefinitionGeneration() throws Exception {
-//        Map<String, Model> definitions = swagger.getDefinitions();
-//
-//        assertEquals(4, definitions.size());
-//        assertTrue(definitions.containsKey("book"));
-//        assertTrue(definitions.containsKey("author"));
-//        assertTrue(definitions.containsKey("publisher"));
-//        assertTrue(definitions.containsKey("Address"));
-//
-//        Model bookModel = definitions.get("book");
-//        assertTrue(bookModel instanceof Resource);
-//
-//        assertEquals("A book", bookModel.getDescription());
-//
-//        ObjectProperty attributeProps = (ObjectProperty) bookModel.getProperties().get("attributes");
-//        assertTrue(attributeProps.getProperties().containsKey("title"));
-//
-//        ObjectProperty relationProps = (ObjectProperty) bookModel.getProperties().get("relationships");
-//        assertTrue(relationProps.getProperties().containsKey("publisher"));
-//        assertTrue(relationProps.getProperties().containsKey("authors"));
-    }
-
-    @Test
-    public void testTagGeneration() throws Exception {
+    void testTagGeneration() throws Exception {
 
         /* Check for the global tag definitions */
-        assertEquals(3, swagger.getTags().size());
+        assertEquals(3, openApi.getTags().size());
 
-        Tag bookTag = swagger.getTags().stream()
+        String bookTag = openApi.getTags().stream()
                 .filter((tag) -> tag.getName().equals("book"))
-                .findFirst().get();
+                .findFirst().get().getName();
 
         assertNotNull(bookTag);
 
-        Tag publisherTag = swagger.getTags().stream()
+        String publisherTag = openApi.getTags().stream()
                 .filter((tag) -> tag.getName().equals("publisher"))
-                .findFirst().get();
+                .findFirst().get().getName();
 
         assertNotNull(publisherTag);
 
         /* For each operation, ensure its tagged with the root collection name */
-        swagger.getPaths().forEach((url, path) -> {
+        openApi.getPaths().forEach((url, path) -> {
             if (url.endsWith("relationships/books")) {
                 path.getGet().getTags().contains(bookTag);
                 path.getPost().getTags().contains(bookTag);
@@ -528,20 +486,20 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testGlobalErrorResponses() throws Exception {
+    void testGlobalErrorResponses() throws Exception {
         Info info = new Info()
                 .title("Test Service")
                 .version(NO_VERSION);
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
 
         Map<String, ApiResponse> responses = new HashMap<>();
 
-        responses.put("401", SwaggerBuilder.UNAUTHORIZED_RESPONSE);
-        responses.put("403", SwaggerBuilder.FORBIDDEN_RESPONSE);
-        responses.put("404", SwaggerBuilder.NOT_FOUND_RESPONSE);
-        responses.put("408", SwaggerBuilder.REQUEST_TIMEOUT_RESPONSE);
-        responses.put("429", SwaggerBuilder.REQUEST_TIMEOUT_RESPONSE);
+        responses.put("401", OpenApiBuilder.UNAUTHORIZED_RESPONSE);
+        responses.put("403", OpenApiBuilder.FORBIDDEN_RESPONSE);
+        responses.put("404", OpenApiBuilder.NOT_FOUND_RESPONSE);
+        responses.put("408", OpenApiBuilder.REQUEST_TIMEOUT_RESPONSE);
+        responses.put("429", OpenApiBuilder.REQUEST_TIMEOUT_RESPONSE);
 
         responses.forEach(
                 (code, response) -> {
@@ -582,7 +540,7 @@ public class SwaggerBuilderTest {
         entityDictionary.bindEntity(NothingToSort.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);
 
-        SwaggerBuilder builder = new SwaggerBuilder(entityDictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(entityDictionary, info);
         OpenAPI testSwagger = builder.build();
 
         List<Parameter> params = testSwagger.getPaths().get("/nothingToSort").getGet().getParameters();
@@ -594,16 +552,16 @@ public class SwaggerBuilderTest {
 
         assertEquals("query", sortParam.getIn());
 
-//        List<String> sortValues = Arrays.asList("id", "-id");
-//        assertEquals(sortValues, ((StringProperty) sortParam.getItems()).getEnum());
+        List<String> sortValues = Arrays.asList("id", "-id");
+        assertEquals(sortValues, ((StringSchema) sortParam.getSchema().getItems()).getEnum());
     }
 
     @Test
-    public void testAllFilterParameters() throws Exception {
+    void testAllFilterParameters() throws Exception {
         Info info = new Info()
                 .title("Test Service");
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
         OpenAPI swagger = builder.build();
 
         Operation op = swagger.getPaths().get("/book").getGet();
@@ -627,11 +585,11 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testRsqlOnlyFilterParameters() throws Exception {
+    void testRsqlOnlyFilterParameters() throws Exception {
         Info info = new Info()
                 .title("Test Service");
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
         builder = builder.withLegacyFilterDialect(false);
         OpenAPI swagger = builder.build();
 
@@ -649,11 +607,11 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testLegacyOnlyFilterParameters() throws Exception {
+    void testLegacyOnlyFilterParameters() throws Exception {
         Info info = new Info()
                 .title("Test Service");
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
         builder = builder.withRSQLFilterDialect(false);
         OpenAPI swagger = builder.build();
 
@@ -676,18 +634,24 @@ public class SwaggerBuilderTest {
         assertEquals(expectedNames, paramNames);
     }
 
+    /**
+     * Verifies that the given property is of type 'Data' containing a reference to the given model.
+     * @param content The content to check
+     * @param refTypeName The model name
+     */
     private void verifyData(Content content, String refTypeName) {
         verifyData(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName);
     }
+
     /**
      * Verifies that the given property is of type 'Data' containing a reference to the given model.
-     * @param property The property to check
+     * @param schema The property to check
      * @param refTypeName The model name
      */
-    private void verifyData(Schema<?> property, String refTypeName) {
-        assertTrue((property instanceof Data));
+    private void verifyData(Schema<?> schema, String refTypeName) {
+        assertTrue((schema instanceof Data));
 
-        ArraySchema data = (ArraySchema) ((Data) property).getProperties().get("data");
+        ArraySchema data = (ArraySchema) ((Data) schema).getProperties().get("data");
 
         Schema<?> ref = data.getItems();
 
@@ -695,54 +659,39 @@ public class SwaggerBuilderTest {
     }
 
     /**
-     * Verifies that the given model is of type 'Data' containing a reference to the given model name.
-     * @param model The model to check
-     * @param refTypeName The model name to check
+     * Verifies that the given property is of type 'Datum' containing a reference to the given model.
+     * @param content The content to check
+     * @param refTypeName The model name
+     * @param included Whether or not the datum should have an 'included' section.
      */
-//    private void verifyData(Model model, String refTypeName) {
-//        assertTrue((model instanceof com.yahoo.elide.swagger.model.Data));
-//
-//        ArrayProperty data = (ArrayProperty) model.getProperties().get("model");
-//
-//        RefProperty ref = (RefProperty) data.getItems();
-//        assertEquals("#/definitions/" + refTypeName, ref.get$ref());
-//    }
-
     private void verifyDatum(Content content, String refTypeName, boolean included) {
         verifyDatum(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName, included);
     }
 
     /**
      * Verifies that the given property is of type 'Datum' containing a reference to the given model.
-     * @param property The property to check
+     * @param schema The property to check
      * @param refTypeName The model name
      * @param included Whether or not the datum should have an 'included' section.
      */
-    private void verifyDatum(Schema<?> property, String refTypeName, boolean included) {
-        assertTrue((property instanceof Datum));
+    private void verifyDatum(Schema<?> schema, String refTypeName, boolean included) {
+        assertTrue((schema instanceof Datum));
 
-        Schema<?> ref = ((Datum) property).getProperties().get("data");
+        Schema<?> ref = ((Datum) schema).getProperties().get("data");
 
         assertEquals("#/components/schemas/" + refTypeName, ref.get$ref());
 
         if (included) {
-            assertNotNull(((Datum) property).getProperties().get("included"));
+            assertNotNull(((Datum) schema).getProperties().get("included"));
         }
     }
 
     /**
-     * Verifies that the given model is of type 'Datum' containing a reference to the given model name.
-     * @param model The model to check
-     * @param refTypeName The model name to check
+     * Verifies that the given property is of type 'Data' containing a 'Relationship' with the
+     * correct type field.
+     * @param content The content to check
+     * @param refTypeName The type field to match against
      */
-//    private void verifyDatum(Model model, String refTypeName) {
-//        assertTrue((model instanceof com.yahoo.elide.swagger.model.Datum));
-//
-//        RefProperty ref = (RefProperty) model.getProperties().get("data");
-//
-//        assertEquals("#/definitions/" + refTypeName, ref.get$ref());
-//    }
-
     private void verifyDataRelationship(Content content, String refTypeName) {
         verifyDataRelationship(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName);
     }
@@ -750,32 +699,16 @@ public class SwaggerBuilderTest {
     /**
      * Verifies that the given property is of type 'Data' containing a 'Relationship' with the
      * correct type field.
-     * @param property The property to check
+     * @param schema The property to check
      * @param refTypeName The type field to match against
      */
-    private void verifyDataRelationship(Schema<?> property, String refTypeName) {
-        assertTrue((property instanceof Data));
+    private void verifyDataRelationship(Schema<?> schema, String refTypeName) {
+        assertTrue((schema instanceof Data));
 
-        ArraySchema data = (ArraySchema) property.getProperties().get("data");
+        ArraySchema data = (ArraySchema) schema.getProperties().get("data");
 
         Relationship relation = (Relationship) data.getItems();
         StringSchema type = (StringSchema) relation.getProperties().get("type");
         assertTrue(type.getEnum().contains(refTypeName));
     }
-
-     /**
-     * Verifies that the given model is of type 'Data' containing a 'Relationship' with the
-     * correct type field.
-     * @param model The model to check
-     * @param refTypeName The type field to match against
-     */
-//    private void verifyDataRelationship(Model model, String refTypeName) {
-//        assertTrue((model instanceof com.yahoo.elide.swagger.model.Data));
-//
-//        ArrayProperty data = (ArrayProperty) model.getProperties().get("data");
-//
-//        Relationship relation = (Relationship) data.getItems();
-//        StringProperty type = (StringProperty) relation.getProperties().get("type");
-//        assertTrue(type.getEnum().contains(refTypeName));
-//    }
 }

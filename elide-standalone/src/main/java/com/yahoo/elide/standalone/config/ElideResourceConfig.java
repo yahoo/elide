@@ -267,8 +267,8 @@ public class ElideResourceConfig extends ResourceConfig {
                 EntityDictionary dictionary = elide.getElideSettings().getDictionary();
 
                 if (settings.enableSwagger()) {
-                    List<DocEndpoint.SwaggerRegistration> swaggerDocs = settings.buildSwagger(dictionary);
-                    bind(swaggerDocs).named("swagger").to(new TypeLiteral<List<DocEndpoint.SwaggerRegistration>>() { });
+                    List<DocEndpoint.OpenApiRegistration> swaggerDocs = settings.buildSwagger(dictionary);
+                    bind(swaggerDocs).named("swagger").to(new TypeLiteral<List<DocEndpoint.OpenApiRegistration>>() { });
                 }
             }
         });

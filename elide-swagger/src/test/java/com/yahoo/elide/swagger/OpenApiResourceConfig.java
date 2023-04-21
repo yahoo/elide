@@ -23,16 +23,16 @@ import io.swagger.v3.oas.models.info.Info;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SwaggerResourceConfig extends ResourceConfig {
+public class OpenApiResourceConfig extends ResourceConfig {
 
-    public SwaggerResourceConfig() {
+    public OpenApiResourceConfig() {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                bindFactory(new Factory<List<DocEndpoint.SwaggerRegistration>>() {
+                bindFactory(new Factory<List<DocEndpoint.OpenApiRegistration>>() {
 
                     @Override
-                    public List<DocEndpoint.SwaggerRegistration> provide() {
+                    public List<DocEndpoint.OpenApiRegistration> provide() {
                         EntityDictionary dictionary = EntityDictionary.builder().build();
 
                         dictionary.bindEntity(Book.class);
@@ -41,24 +41,24 @@ public class SwaggerResourceConfig extends ResourceConfig {
                         dictionary.bindEntity(Publisher.class);
                         Info info1 = new Info().title("Test Service");
 
-                        SwaggerBuilder builder1 = new SwaggerBuilder(dictionary, info1).withLegacyFilterDialect(false);
-                        OpenAPI swagger1 = builder1.build();
+                        OpenApiBuilder builder1 = new OpenApiBuilder(dictionary, info1).withLegacyFilterDialect(false);
+                        OpenAPI openApi1 = builder1.build();
 
                         Info info2 = new Info().title("Test Service").version("1.0");
-                        SwaggerBuilder builder2 = new SwaggerBuilder(dictionary, info2);
-                        OpenAPI swagger2 = builder2.build();
+                        OpenApiBuilder builder2 = new OpenApiBuilder(dictionary, info2);
+                        OpenAPI openApi2 = builder2.build();
 
-                        List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
-                        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger1));
-                        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger2));
+                        List<DocEndpoint.OpenApiRegistration> docs = new ArrayList<>();
+                        docs.add(new DocEndpoint.OpenApiRegistration("test", openApi1));
+                        docs.add(new DocEndpoint.OpenApiRegistration("test", openApi2));
                         return docs;
                     }
 
                     @Override
-                    public void dispose(List<DocEndpoint.SwaggerRegistration> instance) {
+                    public void dispose(List<DocEndpoint.OpenApiRegistration> instance) {
                         //NOP
                     }
-                }).to(new TypeLiteral<List<DocEndpoint.SwaggerRegistration>>() {
+                }).to(new TypeLiteral<List<DocEndpoint.OpenApiRegistration>>() {
                 }).named("swagger");
             }
         });

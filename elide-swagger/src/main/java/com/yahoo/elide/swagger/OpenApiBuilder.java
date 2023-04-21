@@ -13,15 +13,11 @@ import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.swagger.property.Data;
-import com.yahoo.elide.swagger.property.Datum;
-import com.yahoo.elide.swagger.property.Relationship;
-
+import com.yahoo.elide.swagger.models.media.Data;
+import com.yahoo.elide.swagger.models.media.Datum;
+import com.yahoo.elide.swagger.models.media.Relationship;
 import com.google.common.collect.Sets;
 
-//import io.swagger.v3.core.converter.ModelConverter;
-//import io.swagger.v3.core.converter.ModelConverterContextImpl;
-import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -61,7 +57,7 @@ import java.util.stream.Collectors;
  * Builds a 'Swagger' object from Swagger-Core by walking the static Elide entity metadata contained in the
  * 'EntityDictionary'.  The 'Swagger' object can be used to generate a Swagger document.
  */
-public class SwaggerBuilder {
+public class OpenApiBuilder {
     protected EntityDictionary dictionary;
     protected Set<Type<?>> rootClasses;
     protected Set<Type<?>> allClasses;
@@ -230,12 +226,12 @@ public class SwaggerBuilder {
             ApiResponse okSingularResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.property.Datum(new Relationship(typeName)))));
+                            .schema(new com.yahoo.elide.swagger.models.media.Datum(new Relationship(typeName)))));
 
             ApiResponse okPluralResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.property.Data(new Relationship(typeName)))));
+                            .schema(new com.yahoo.elide.swagger.models.media.Data(new Relationship(typeName)))));
 
             ApiResponse okEmptyResponse = new ApiResponse()
                     .description("Successful response");
@@ -312,12 +308,12 @@ public class SwaggerBuilder {
             ApiResponse okSingularResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.property.Datum(typeName))));
+                            .schema(new com.yahoo.elide.swagger.models.media.Datum(typeName))));
 
             ApiResponse okPluralResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.property.Data(typeName))));
+                            .schema(new com.yahoo.elide.swagger.models.media.Data(typeName))));
 
             String getDescription;
             String postDescription;
@@ -373,7 +369,7 @@ public class SwaggerBuilder {
             ApiResponse okSingularResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.property.Datum(typeName))));
+                            .schema(new com.yahoo.elide.swagger.models.media.Datum(typeName))));
 
             ApiResponse okEmptyResponse = new ApiResponse()
                     .description("Successful response");
@@ -462,7 +458,6 @@ public class SwaggerBuilder {
 
             return new QueryParameter()
                     .schema(new ArraySchema().items(new StringSchema()._enum(relationshipNames)))
-                    .schema(new ArraySchema())
                     .name("include")
                     .description("Selects the set of relationships that should be expanded as a compound document in "
                             + "the result.");
@@ -652,7 +647,7 @@ public class SwaggerBuilder {
      * @param dictionary The entity dictionary.
      * @param info Basic service information that cannot be generated.
      */
-    public SwaggerBuilder(EntityDictionary dictionary, Info info) {
+    public OpenApiBuilder(EntityDictionary dictionary, Info info) {
         this.dictionary = dictionary;
         this.supportLegacyDialect = true;
         this.supportRSQLDialect = true;
@@ -682,7 +677,7 @@ public class SwaggerBuilder {
      * @param response The global response to add to every operation
      * @return the builder
      */
-    public SwaggerBuilder withGlobalResponse(String code, ApiResponse response) {
+    public OpenApiBuilder withGlobalResponse(String code, ApiResponse response) {
         globalResponses.put(code, response);
         return this;
     }
@@ -692,7 +687,7 @@ public class SwaggerBuilder {
      * @param enableLegacyDialect Whether or not to enable the legacy filter dialect.
      * @return the builder
      */
-    public SwaggerBuilder withLegacyFilterDialect(boolean enableLegacyDialect) {
+    public OpenApiBuilder withLegacyFilterDialect(boolean enableLegacyDialect) {
         supportLegacyDialect = enableLegacyDialect;
         return this;
     }
@@ -702,7 +697,7 @@ public class SwaggerBuilder {
      * @param enableRSQLDialect Whether or not to enable the RSQL filter dialect.
      * @return the builder
      */
-    public SwaggerBuilder withRSQLFilterDialect(boolean enableRSQLDialect) {
+    public OpenApiBuilder withRSQLFilterDialect(boolean enableRSQLDialect) {
         supportRSQLDialect = enableRSQLDialect;
         return this;
     }
@@ -712,7 +707,7 @@ public class SwaggerBuilder {
      * @param param the parameter to decorate
      * @return the builder
      */
-    public SwaggerBuilder withGlobalParameter(Parameter param) {
+    public OpenApiBuilder withGlobalParameter(Parameter param) {
         globalParams.add(param);
         return this;
     }
@@ -723,7 +718,7 @@ public class SwaggerBuilder {
      * @param classes A subset of the entities in the entity dictionary.
      * @return the builder
      */
-    public SwaggerBuilder withExplicitClassList(Set<Type<?>> classes) {
+    public OpenApiBuilder withExplicitClassList(Set<Type<?>> classes) {
         allClasses = new HashSet<>(classes);
         return this;
     }
@@ -733,7 +728,7 @@ public class SwaggerBuilder {
      * @param ops The subset of filter operations to support.
      * @return the builder
      */
-    public SwaggerBuilder withFilterOps(Set<Operator> ops) {
+    public OpenApiBuilder withFilterOps(Set<Operator> ops) {
         filterOperators = new HashSet<>(ops);
         return this;
     }
@@ -743,12 +738,6 @@ public class SwaggerBuilder {
      * @return the constructed 'Swagger' object
      */
     public OpenAPI build() {
-
-        /* Used to convert Elide POJOs into Swagger Model objects */
-        ModelConverters converters = ModelConverters.getInstance();
-        //ModelConverter converter = new JsonSchemaResolver(dictionary);
-        //converters.addConverter(converter);
-
         String apiVersion = swagger.getInfo().getVersion();
         if (apiVersion == null) {
             apiVersion = NO_VERSION;
@@ -762,27 +751,6 @@ public class SwaggerBuilder {
                 throw new IllegalArgumentException("None of the provided classes are exported by Elide");
             }
         }
-
-        /*
-         * Create a Model for each Elide entity.
-         * Elide entity could be of ClassType or DynamicType.
-         * For ClassType, extract the class and pass it to ModelConverters#readAll method.
-         * ModelConverters#readAll doesn't support Elide Dynamic Type, so calling the
-         * JsonSchemaResolver#resolve method directly when its not a ClassType.
-         */
-        /*
-        Map<String, Model> models = new HashMap<>();
-        for (Type<?> clazz : allClasses) {
-            if (clazz instanceof ClassType) {
-                models.putAll(converters.readAll(((ClassType) clazz).getCls()));
-            } else {
-                ModelConverterContextImpl context = new ModelConverterContextImpl(Arrays.asList(converter));
-                context.resolve(clazz);
-                models.putAll(context.getDefinedModels());
-            }
-        }
-        swagger.setDefinitions(models);
-        */
 
         rootClasses =  allClasses.stream()
                 .filter(dictionary::isRoot)
@@ -836,9 +804,9 @@ public class SwaggerBuilder {
 
         /* We create Swagger 'tags' for each entity so Swagger UI organizes the paths by entities */
         List<Tag> tags = allClasses.stream()
-                .map((clazz) -> dictionary.getJsonAliasFor(clazz))
-                .map((alias) -> new Tag().name(alias))
-                .collect(Collectors.toList());
+                .map(clazz -> dictionary.getJsonAliasFor(clazz))
+                .map(alias -> new Tag().name(alias))
+                .toList();
 
         swagger.tags(tags);
 

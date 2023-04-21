@@ -7,7 +7,7 @@ package com.yahoo.elide.swagger.resources;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.swagger.SwaggerBuilder;
+import com.yahoo.elide.swagger.OpenApiBuilder;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -30,18 +30,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * A convenience endpoint to expose a swagger document.
+ * A convenience endpoint to expose a openapi document.
  */
 
 @Path("/doc")
 @Produces("application/json")
 public class DocEndpoint {
-    //Maps api version & path to a swagger document.
+    //Maps api version & path to a openapi document.
     protected Map<Pair<String, String>, String> documents;
 
     @Data
     @AllArgsConstructor
-    public static class SwaggerRegistration {
+    public static class OpenApiRegistration {
         private String path;
         private OpenAPI document;
     }
@@ -49,18 +49,18 @@ public class DocEndpoint {
     /**
      * Constructs the resource.
      *
-     * @param docs Map of path parameter name to swagger document.
+     * @param docs Map of path parameter name to openapi document.
      */
     @Inject
-    public DocEndpoint(@Named("swagger") List<SwaggerRegistration> docs) {
+    public DocEndpoint(@Named("swagger") List<OpenApiRegistration> docs) {
         documents = new HashMap<>();
 
-        docs.forEach((doc) -> {
+        docs.forEach(doc -> {
             String apiVersion = doc.document.getInfo().getVersion();
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
-            documents.put(Pair.of(apiVersion, apiPath), SwaggerBuilder.getDocument(doc.document));
+            documents.put(Pair.of(apiVersion, apiPath), OpenApiBuilder.getDocument(doc.document));
         });
     }
 
