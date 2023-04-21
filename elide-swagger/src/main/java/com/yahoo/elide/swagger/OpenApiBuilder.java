@@ -24,7 +24,6 @@ import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.util.Json;
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -76,6 +75,7 @@ public class OpenApiBuilder {
     protected Set<Operator> filterOperators;
     protected boolean supportLegacyDialect;
     protected boolean supportRSQLDialect;
+    protected String version = NO_VERSION;
 
     public static final ApiResponse UNAUTHORIZED_RESPONSE = new ApiResponse().description("Unauthorized");
     public static final ApiResponse FORBIDDEN_RESPONSE = new ApiResponse().description("Forbidden");
@@ -628,6 +628,14 @@ public class OpenApiBuilder {
                 Operator.GE, Operator.GT, Operator.LE, Operator.LT, Operator.ISNULL, Operator.NOTNULL);
         openApi = new OpenAPI();
         openApi.info(info);
+
+        if (info != null) {
+            String apiVersion = info.getVersion();
+            if (apiVersion == null) {
+                apiVersion = NO_VERSION;
+            }
+            withVersion(apiVersion);
+        }
     }
 
     /**
@@ -700,15 +708,26 @@ public class OpenApiBuilder {
         return this;
     }
 
+    public OpenApiBuilder withVersion(String version) {
+        this.version = version;
+        return this;
+    }
+
     /**
      * Builds a OpenAPI object.
      * @return the constructed 'OpenAPI' object
      */
     public OpenAPI build() {
-        String apiVersion = openApi.getInfo().getVersion();
-        if (apiVersion == null) {
-            apiVersion = NO_VERSION;
-        }
+        apply(this.openApi);
+        return this.openApi;
+    }
+
+    /**
+     * Builds a OpenAPI object.
+     * @param openAPI Apply configuration on 'OpenAPI' object
+     */
+    public void apply(OpenAPI openApi) {
+        String apiVersion = this.version;
 
         if (allClasses.isEmpty()) {
             allClasses = dictionary.getBoundClassesByVersion(apiVersion);
@@ -729,20 +748,17 @@ public class OpenApiBuilder {
         ModelConverters converters = ModelConverters.getInstance();
         ModelConverter converter = new JsonApiModelResolver(this.dictionary);
         converters.addConverter(converter);
-        Components components = new Components();
         for (Type<?> clazz : allClasses) {
             if (clazz instanceof ClassType<?> classType) {
-                converters.readAll(classType.getCls()).forEach(components::addSchemas);
+                converters.readAll(classType.getCls()).forEach(openApi::schema);
             } else {
                 DynamicModelConverterContext context = new DynamicModelConverterContext(Arrays.asList(converter));
                 context.resolve(new AnnotatedType().type(clazz));
-                context.getDefinedModels().forEach(components::addSchemas);
+                context.getDefinedModels().forEach(openApi::schema);
             }
         }
-        openApi.components(components);
 
-
-        rootClasses =  allClasses.stream()
+        rootClasses = allClasses.stream()
                 .filter(dictionary::isRoot)
                 .collect(Collectors.toSet());
 
@@ -793,14 +809,10 @@ public class OpenApiBuilder {
         }
 
         /* We create Swagger 'tags' for each entity so Swagger UI organizes the paths by entities */
-        List<Tag> tags = allClasses.stream()
+        allClasses.stream()
                 .map(clazz -> dictionary.getJsonAliasFor(clazz))
                 .map(alias -> new Tag().name(alias))
-                .toList();
-
-        openApi.tags(tags);
-
-        return openApi;
+                .forEach(openApi::addTagsItem);
     }
 
     /**
