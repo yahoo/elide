@@ -18,7 +18,12 @@ import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.google.common.collect.Sets;
 
+import io.swagger.v3.core.converter.AnnotatedType;
+import io.swagger.v3.core.converter.ModelConverter;
+import io.swagger.v3.core.converter.ModelConverterContextImpl;
+import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -54,8 +59,9 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 
 /**
- * Builds a 'OpenAPI' object from Swagger-Core by walking the static Elide entity metadata contained in the
- * 'EntityDictionary'.  The 'OpenAPI' object can be used to generate a OpenAPI document.
+ * Builds a 'OpenAPI' object from Swagger-Core by walking the static Elide
+ * entity metadata contained in the 'EntityDictionary'. The 'OpenAPI' object can
+ * be used to generate a OpenAPI document.
  */
 public class OpenApiBuilder {
     protected EntityDictionary dictionary;
@@ -104,18 +110,19 @@ public class OpenApiBuilder {
 
         /**
          * Constructs a PathMetaData for a 'root' entity.
+         *
          * @param type the 'root' entity type of the first segment of the URL.
          */
         public PathMetaData(Type<?> type) {
             this(new Stack<>(), dictionary.getJsonAliasFor(type), type);
         }
 
-
         /**
          * Required argument constructor.
+         *
          * @param lineage The lineage of prior path elements.
-         * @param name The relationship of the path element.
-         * @param type The type associated with the relationship.
+         * @param name    The relationship of the path element.
+         * @param type    The type associated with the relationship.
          */
         public PathMetaData(Stack<PathMetaData> lineage, String name, Type<?> type) {
             this.lineage = lineage;
@@ -126,6 +133,7 @@ public class OpenApiBuilder {
 
         /**
          * Returns the root type (first collection) of this path.
+         *
          * @return The class that represents the root collection of the path.
          */
         public Type<?> getRootType() {
@@ -138,6 +146,7 @@ public class OpenApiBuilder {
 
         /**
          * Returns a URL that represents the collection.
+         *
          * @return Something like '/book/{bookId}/authors' or '/publisher'
          */
         public String getCollectionUrl() {
@@ -149,6 +158,7 @@ public class OpenApiBuilder {
 
         /**
          * Constructs a URL that returns an instance of the entity.
+         *
          * @return Something like '/book/{bookId}'
          */
         private String constructInstanceUrl() {
@@ -158,6 +168,7 @@ public class OpenApiBuilder {
 
         /**
          * Constructs a URL that returns a relationship collection.
+         *
          * @return Something like '/book/{bookId}/relationships/authors'
          * @throws IllegalStateException for errors.
          */
@@ -178,8 +189,9 @@ public class OpenApiBuilder {
         }
 
         /**
-         * All Paths are 'tagged' in swagger with the final entity type name in the path.
-         * This allows swaggerUI to group the paths by entities.
+         * All Paths are 'tagged' in swagger with the final entity type name in the
+         * path. This allows swaggerUI to group the paths by entities.
+         *
          * @return the entity type name
          */
         private String getTag() {
@@ -192,22 +204,21 @@ public class OpenApiBuilder {
 
         /**
          * Returns the path parameter for the instance URL.
+         *
          * @return the swagger PathParameter for this particular path segment.
          */
         private Parameter getPathParameter() {
             String typeName = dictionary.getJsonAliasFor(type);
 
-            Parameter param = new PathParameter()
-                    .name(typeName + "Id")
-                    .description(typeName + " Identifier")
+            return new PathParameter().name(typeName + "Id").description(typeName + " Identifier")
                     .schema(new StringSchema());
-
-            return param;
         }
 
         /**
          * Returns the OpenAPI path for a relationship URL.
-         * @return the OpenAPI 'Path' for a relationship URL (/books/{bookId}/relationships/author).
+         *
+         * @return the OpenAPI 'Path' for a relationship URL
+         *         (/books/{bookId}/relationships/author).
          * @throws IllegalStateException for errors.
          */
         public PathItem getRelationshipPath() {
@@ -218,65 +229,43 @@ public class OpenApiBuilder {
             PathItem path = new PathItem();
 
             /* The path parameter apply for all operations */
-            lineage.stream().forEach(item ->
-                    path.addParametersItem(item.getPathParameter()));
+            lineage.stream().forEach(item -> path.addParametersItem(item.getPathParameter()));
 
             String typeName = dictionary.getJsonAliasFor(type);
 
-            ApiResponse okSingularResponse = new ApiResponse()
-                    .description("Successful response")
-                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new Datum(new Relationship(typeName)))));
+            ApiResponse okSingularResponse = new ApiResponse().description("Successful response").content(new Content()
+                    .addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Datum(new Relationship(typeName)))));
 
-            ApiResponse okPluralResponse = new ApiResponse()
-                    .description("Successful response")
-                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new Data(new Relationship(typeName)))));
+            ApiResponse okPluralResponse = new ApiResponse().description("Successful response").content(new Content()
+                    .addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Data(new Relationship(typeName)))));
 
-            ApiResponse okEmptyResponse = new ApiResponse()
-                    .description("Successful response");
+            ApiResponse okEmptyResponse = new ApiResponse().description("Successful response");
 
             Type<?> parentClass = lineage.peek().getType();
             RelationshipType relationshipType = dictionary.getRelationshipType(parentClass, name);
 
             if (relationshipType.isToMany()) {
-                path.get(new Operation()
-                        .tags(getTags())
-                        .description("Returns the relationship identifiers for " + name)
+                path.get(new Operation().tags(getTags()).description("Returns the relationship identifiers for " + name)
                         .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
 
-                path.patch(new Operation()
-                        .tags(getTags())
-                        .description("Replaces the relationship " + name)
-                        .requestBody(new RequestBody()
-                                .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                        new MediaType().schema(new Data(new Relationship(typeName))))))
+                path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
+                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                new MediaType().schema(new Data(new Relationship(typeName))))))
                         .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
-                path.delete(new Operation()
-                        .tags(getTags())
-                        .description("Deletes items from the relationship " + name)
-                        .requestBody(new RequestBody()
-                                .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                        new MediaType().schema(new Data(new Relationship(typeName))))))
+                path.delete(new Operation().tags(getTags()).description("Deletes items from the relationship " + name)
+                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                new MediaType().schema(new Data(new Relationship(typeName))))))
                         .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
-                path.post(new Operation()
-                        .tags(getTags())
-                        .description("Adds items to the relationship " + name)
-                        .requestBody(new RequestBody()
-                                .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                        new MediaType().schema(new Data(new Relationship(typeName))))))
+                path.post(new Operation().tags(getTags()).description("Adds items to the relationship " + name)
+                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                new MediaType().schema(new Data(new Relationship(typeName))))))
                         .responses(new ApiResponses().addApiResponse("201", okPluralResponse)));
             } else {
-                path.get(new Operation()
-                        .tags(getTags())
-                        .description("Returns the relationship identifiers for " + name)
+                path.get(new Operation().tags(getTags()).description("Returns the relationship identifiers for " + name)
                         .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
-                path.patch(new Operation()
-                        .tags(getTags())
-                        .description("Replaces the relationship " + name)
-                        .requestBody(new RequestBody()
-                                .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                        new MediaType().schema(new Datum(new Relationship(typeName))))))
+                path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
+                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                new MediaType().schema(new Datum(new Relationship(typeName))))))
                         .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
             }
 
@@ -295,6 +284,7 @@ public class OpenApiBuilder {
 
         /**
          * Returns the Swagger Path for a collection URL.
+         *
          * @return the Swagger 'Path' for a collection URL (/books).
          */
         public PathItem getCollectionPath() {
@@ -302,18 +292,13 @@ public class OpenApiBuilder {
             PathItem path = new PathItem();
 
             /* The path parameter apply for all operations */
-            lineage.stream().forEach(item ->
-                path.addParametersItem(item.getPathParameter()));
+            lineage.stream().forEach(item -> path.addParametersItem(item.getPathParameter()));
 
-            ApiResponse okSingularResponse = new ApiResponse()
-                    .description("Successful response")
-                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new Datum(typeName))));
+            ApiResponse okSingularResponse = new ApiResponse().description("Successful response").content(
+                    new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Datum(typeName))));
 
-            ApiResponse okPluralResponse = new ApiResponse()
-                    .description("Successful response")
-                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new Data(typeName))));
+            ApiResponse okPluralResponse = new ApiResponse().description("Successful response").content(
+                    new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Data(typeName))));
 
             String getDescription;
             String postDescription;
@@ -325,12 +310,8 @@ public class OpenApiBuilder {
                 postDescription = "Creates an item of type " + typeName + " and adds it to " + name;
             }
 
-            path.get(new Operation()
-                    .tags(getTags())
-                    .description(getDescription)
-                    .addParametersItem(getSortParameter())
-                    .addParametersItem(getSparseFieldsParameter())
-                    .addParametersItem(getIncludeParameter())
+            path.get(new Operation().tags(getTags()).description(getDescription).addParametersItem(getSortParameter())
+                    .addParametersItem(getSparseFieldsParameter()).addParametersItem(getIncludeParameter())
                     .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
 
             for (Parameter param : getFilterParameters()) {
@@ -341,12 +322,9 @@ public class OpenApiBuilder {
                 path.getGet().addParametersItem(param);
             }
 
-            path.post(new Operation()
-                    .tags(getTags())
-                    .description(postDescription)
-                    .requestBody(new RequestBody()
-                            .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                    new MediaType().schema(new Datum(typeName)))))
+            path.post(new Operation().tags(getTags()).description(postDescription)
+                    .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                            new MediaType().schema(new Datum(typeName)))))
                     .responses(new ApiResponses().addApiResponse("201", okSingularResponse)));
 
             decorateGlobalResponses(path);
@@ -355,43 +333,33 @@ public class OpenApiBuilder {
         }
 
         /**
-         * Returns the Swagger Path for an instance URL.
-         * @return the Swagger 'Path' for a instance URL (/books/{bookID}).
+         * Returns the OpenAPI Path for an instance URL.
+         *
+         * @return the OpenAPI 'Path' for a instance URL (/books/{bookID}).
          */
         public PathItem getInstancePath() {
             String typeName = dictionary.getJsonAliasFor(type);
             PathItem path = new PathItem();
 
             /* The path parameter apply for all operations */
-            getFullLineage().stream().forEach(item ->
-                path.addParametersItem(item.getPathParameter()));
+            getFullLineage().stream().forEach(item -> path.addParametersItem(item.getPathParameter()));
 
-            ApiResponse okSingularResponse = new ApiResponse()
-                    .description("Successful response")
-                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.models.media.Datum(typeName))));
+            ApiResponse okSingularResponse = new ApiResponse().description("Successful response")
+                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                            new MediaType().schema(new com.yahoo.elide.swagger.models.media.Datum(typeName))));
 
-            ApiResponse okEmptyResponse = new ApiResponse()
-                    .description("Successful response");
+            ApiResponse okEmptyResponse = new ApiResponse().description("Successful response");
 
-            path.get(new Operation()
-                    .tags(getTags())
-                    .description("Returns an instance of type " + typeName)
-                    .addParametersItem(getSparseFieldsParameter())
-                    .addParametersItem(getIncludeParameter())
+            path.get(new Operation().tags(getTags()).description("Returns an instance of type " + typeName)
+                    .addParametersItem(getSparseFieldsParameter()).addParametersItem(getIncludeParameter())
                     .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
 
-            path.patch(new Operation()
-                    .tags(getTags())
-                    .description("Modifies an instance of type " + typeName)
-                    .requestBody(new RequestBody()
-                            .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                    new MediaType().schema(new Datum(typeName)))))
+            path.patch(new Operation().tags(getTags()).description("Modifies an instance of type " + typeName)
+                    .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                            new MediaType().schema(new Datum(typeName)))))
                     .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
 
-            path.delete(new Operation()
-                    .tags(getTags())
-                    .description("Deletes an instance of type " + typeName)
+            path.delete(new Operation().tags(getTags()).description("Deletes an instance of type " + typeName)
                     .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
 
             decorateGlobalResponses(path);
@@ -401,6 +369,7 @@ public class OpenApiBuilder {
 
         /**
          * Decorates with path parameters that apply to all paths.
+         *
          * @param path the path to decorate
          * @return the decorated path
          */
@@ -411,127 +380,116 @@ public class OpenApiBuilder {
 
         /**
          * Decorates with responses that apply to all operations for all paths.
+         *
          * @param path the path to decorate.
          * @return the decorated path.
          */
         private PathItem decorateGlobalResponses(PathItem path) {
-            globalResponses.forEach(
-                (code, response) -> {
-                        if (path.getGet() != null) {
-                            path.getGet().getResponses().addApiResponse(code, response);
-                        }
-                        if (path.getDelete() != null) {
-                            path.getDelete().getResponses().addApiResponse(code, response);
-                        }
-                        if (path.getPost() != null) {
-                            path.getPost().getResponses().addApiResponse(code, response);
-                        }
-                        if (path.getPatch() != null) {
-                            path.getPatch().getResponses().addApiResponse(code, response);
-                        }
+            globalResponses.forEach((code, response) -> {
+                if (path.getGet() != null) {
+                    path.getGet().getResponses().addApiResponse(code, response);
                 }
-            );
+                if (path.getDelete() != null) {
+                    path.getDelete().getResponses().addApiResponse(code, response);
+                }
+                if (path.getPost() != null) {
+                    path.getPost().getResponses().addApiResponse(code, response);
+                }
+                if (path.getPatch() != null) {
+                    path.getPatch().getResponses().addApiResponse(code, response);
+                }
+            });
             return path;
         }
 
         /**
          * Returns the sparse fields query parameter.
+         *
          * @return the JSON-API 'field' query parameter for some GET operations.
          */
         private Parameter getSparseFieldsParameter() {
             String typeName = dictionary.getJsonAliasFor(type);
             List<String> fieldNames = dictionary.getAllExposedFields(type);
 
-            return new QueryParameter()
-                    .schema(new ArraySchema().items(new StringSchema()._enum(fieldNames)))
+            return new QueryParameter().schema(new ArraySchema().items(new StringSchema()._enum(fieldNames)))
                     .name("fields[" + typeName + "]")
                     .description("Selects the set of " + typeName + " fields that should be returned in the result.");
-                    //.collectionFormat("csv");
+            // .collectionFormat("csv");
         }
 
         /**
          * Returns the include parameter.
+         *
          * @return the JSON-API 'include' query parameter for some GET operations.
          */
         private Parameter getIncludeParameter() {
             List<String> relationshipNames = dictionary.getRelationships(type);
 
-            return new QueryParameter()
-                    .schema(new ArraySchema().items(new StringSchema()._enum(relationshipNames)))
+            return new QueryParameter().schema(new ArraySchema().items(new StringSchema()._enum(relationshipNames)))
                     .name("include")
                     .description("Selects the set of relationships that should be expanded as a compound document in "
                             + "the result.");
-                    //.collectionFormat("csv");
+            // .collectionFormat("csv");
         }
 
         /**
          * Returns the pagination parameter.
+         *
          * @return the Elide 'page' query parameter for some GET operations.
          */
         private List<Parameter> getPageParameters() {
             List<Parameter> params = new ArrayList<>();
 
-            params.add(new QueryParameter()
-                    .name("page[number]")
+            params.add(new QueryParameter().name("page[number]")
                     .description("Number of pages to return.  Can be used with page[size]")
-                    .schema(new IntegerSchema())
-            );
+                    .schema(new IntegerSchema()));
 
-            params.add(new QueryParameter()
-                            .name("page[size]")
-                            .description("Number of elements per page.  Can be used with page[number]")
-                            .schema(new IntegerSchema())
-            );
+            params.add(new QueryParameter().name("page[size]")
+                    .description("Number of elements per page.  Can be used with page[number]")
+                    .schema(new IntegerSchema()));
 
-            params.add(new QueryParameter()
-                    .name("page[offset]")
+            params.add(new QueryParameter().name("page[offset]")
                     .description("Offset from 0 to start paginating.  Can be used with page[limit]")
-                    .schema(new IntegerSchema())
-            );
+                    .schema(new IntegerSchema()));
 
-            params.add(new QueryParameter()
-                    .name("page[limit]")
+            params.add(new QueryParameter().name("page[limit]")
                     .description("Maximum number of items to return.  Can be used with page[offset]")
-                    .schema(new IntegerSchema())
-            );
+                    .schema(new IntegerSchema()));
 
-            params.add(new QueryParameter()
-                    .name("page[totals]")
+            params.add(new QueryParameter().name("page[totals]")
                     .description("For requesting total pages/records be included in the response page meta data")
-                    /* Swagger UI doesn't support parameters that don't take args today.  We'll just make
-                     * this a string for now */
-                    .schema(new StringSchema())
-            );
+                    /*
+                     * Swagger UI doesn't support parameters that don't take args today. We'll just
+                     * make this a string for now
+                     */
+                    .schema(new StringSchema()));
 
             return params;
         }
 
         /**
          * Returns the sort parameter.
+         *
          * @return the JSON-API 'sort' query parameter for some GET operations.
          */
         private Parameter getSortParameter() {
-            List<String> filterAttributes = dictionary.getAttributes(type).stream()
-                    .filter(name -> {
-                        Type<?> attributeClass = dictionary.getType(type, name);
-                        return (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass));
-                    })
-                    .map(name -> Arrays.asList(name, "-" + name))
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList());
+            List<String> filterAttributes = dictionary.getAttributes(type).stream().filter(name -> {
+                Type<?> attributeClass = dictionary.getType(type, name);
+                return (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass));
+            }).map(name -> Arrays.asList(name, "-" + name)).flatMap(Collection::stream).collect(Collectors.toList());
 
             filterAttributes.add("id");
             filterAttributes.add("-id");
 
-            return new QueryParameter()
-                    .name("sort")
+            return new QueryParameter().name("sort")
                     .schema(new ArraySchema().items(new StringSchema()._enum(filterAttributes)))
                     .description("Sorts the collection on the selected attributes.  A prefix of '-' sorts descending");
-                    //.collectionFormat("csv");
+            // .collectionFormat("csv");
         }
 
         /**
          * Returns the filter parameter.
+         *
          * @return the Elide 'filter' query parameter for some GET operations.
          */
         private List<Parameter> getFilterParameters() {
@@ -542,19 +500,13 @@ public class OpenApiBuilder {
 
             if (supportRSQLDialect) {
                 /* Add RSQL Disjoint Filter Query Param */
-                params.add(new QueryParameter()
-                        .schema(new StringSchema())
-                        .name("filter[" + typeName + "]")
-                        .description("Filters the collection of " + typeName
-                                + " using a 'disjoint' RSQL expression"));
+                params.add(new QueryParameter().schema(new StringSchema()).name("filter[" + typeName + "]")
+                        .description("Filters the collection of " + typeName + " using a 'disjoint' RSQL expression"));
 
                 if (lineage.isEmpty()) {
                     /* Add RSQL Joined Filter Query Param */
-                    params.add(new QueryParameter()
-                            .schema(new StringSchema())
-                            .name("filter")
-                            .description("Filters the collection of " + typeName
-                                    + " using a 'joined' RSQL expression"));
+                    params.add(new QueryParameter().schema(new StringSchema()).name("filter").description(
+                            "Filters the collection of " + typeName + " using a 'joined' RSQL expression"));
                 }
             }
 
@@ -565,11 +517,10 @@ public class OpenApiBuilder {
 
                         /* Only filter attributes that can be assigned to strings or primitives */
                         if (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass)) {
-                            params.add(new QueryParameter()
-                                    .schema(new StringSchema())
+                            params.add(new QueryParameter().schema(new StringSchema())
                                     .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
-                                    .description("Filters the collection of " + typeName + " by the attribute "
-                                            + name + " " + "using the operator " + op.getNotation()));
+                                    .description("Filters the collection of " + typeName + " by the attribute " + name
+                                            + " " + "using the operator " + op.getNotation()));
                         }
                     });
                 }
@@ -580,6 +531,7 @@ public class OpenApiBuilder {
 
         /**
          * Constructs a new lineage including the current path element.
+         *
          * @return ALL of the path segments in the URL including this segment.
          */
         public Stack<PathMetaData> getFullLineage() {
@@ -591,7 +543,9 @@ public class OpenApiBuilder {
         }
 
         /**
-         * Returns true if this path is a shorter path to the same entity than the given path.
+         * Returns true if this path is a shorter path to the same entity than the given
+         * path.
+         *
          * @param compare The path to compare against.
          * @return is shorter or same
          */
@@ -619,9 +573,11 @@ public class OpenApiBuilder {
         }
 
         /**
-         * Checks if a given path segment is already within the URL/lineage (forming a cycle).
+         * Checks if a given path segment is already within the URL/lineage (forming a
+         * cycle).
+         *
          * @param other the segment to search for.
-         * @return true if the lineage contains the given segment.  False otherwise.
+         * @return true if the lineage contains the given segment. False otherwise.
          */
         private boolean lineageContainsType(PathMetaData other) {
             if (this.type.equals(other.type)) {
@@ -644,8 +600,9 @@ public class OpenApiBuilder {
 
     /**
      * Constructor.
+     *
      * @param dictionary The entity dictionary.
-     * @param info Basic service information that cannot be generated.
+     * @param info       Basic service information that cannot be generated.
      */
     public OpenApiBuilder(EntityDictionary dictionary, Info info) {
         this.dictionary = dictionary;
@@ -654,26 +611,16 @@ public class OpenApiBuilder {
         globalResponses = new HashMap<>();
         globalParams = new HashSet<>();
         allClasses = new HashSet<>();
-        filterOperators = Sets.newHashSet(
-                Operator.IN,
-                Operator.NOT,
-                Operator.INFIX,
-                Operator.PREFIX,
-                Operator.POSTFIX,
-                Operator.GE,
-                Operator.GT,
-                Operator.LE,
-                Operator.LT,
-                Operator.ISNULL,
-                Operator.NOTNULL
-        );
+        filterOperators = Sets.newHashSet(Operator.IN, Operator.NOT, Operator.INFIX, Operator.PREFIX, Operator.POSTFIX,
+                Operator.GE, Operator.GT, Operator.LE, Operator.LT, Operator.ISNULL, Operator.NOTNULL);
         openApi = new OpenAPI();
         openApi.info(info);
     }
 
     /**
      * Decorates every operation on every path with the given response.
-     * @param code The HTTP status code to associate with the response
+     *
+     * @param code     The HTTP status code to associate with the response
      * @param response The global response to add to every operation
      * @return the builder
      */
@@ -684,7 +631,9 @@ public class OpenApiBuilder {
 
     /**
      * Turns on or off the legacy filter dialect.
-     * @param enableLegacyDialect Whether or not to enable the legacy filter dialect.
+     *
+     * @param enableLegacyDialect Whether or not to enable the legacy filter
+     *                            dialect.
      * @return the builder
      */
     public OpenApiBuilder withLegacyFilterDialect(boolean enableLegacyDialect) {
@@ -694,6 +643,7 @@ public class OpenApiBuilder {
 
     /**
      * Turns on or off the RSQL filter dialect.
+     *
      * @param enableRSQLDialect Whether or not to enable the RSQL filter dialect.
      * @return the builder
      */
@@ -704,6 +654,7 @@ public class OpenApiBuilder {
 
     /**
      * Decorates every path with the given parameter.
+     *
      * @param param the parameter to decorate
      * @return the builder
      */
@@ -713,8 +664,9 @@ public class OpenApiBuilder {
     }
 
     /**
-     * The classes for which API paths will be generated.  All paths that include other entities
-     * are dropped.
+     * The classes for which API paths will be generated. All paths that include
+     * other entities are dropped.
+     *
      * @param classes A subset of the entities in the entity dictionary.
      * @return the builder
      */
@@ -724,7 +676,9 @@ public class OpenApiBuilder {
     }
 
     /**
-     * Assigns a subset of the complete set of filter operations to support for each GET operation.
+     * Assigns a subset of the complete set of filter operations to support for each
+     * GET operation.
+     *
      * @param ops The subset of filter operations to support.
      * @return the builder
      */
@@ -751,6 +705,29 @@ public class OpenApiBuilder {
                 throw new IllegalArgumentException("None of the provided classes are exported by Elide");
             }
         }
+
+        /*
+         * Create a Model for each Elide entity.
+         * Elide entity could be of ClassType or DynamicType.
+         * For ClassType, extract the class and pass it to ModelConverters#readAll method.
+         * ModelConverters#readAll doesn't support Elide Dynamic Type, so calling the
+         * JsonApiResolver#resolve method directly when its not a ClassType.
+         */
+        ModelConverters converters = ModelConverters.getInstance();
+        ModelConverter converter = new JsonApiModelResolver(this.dictionary);
+        converters.addConverter(converter);
+        Components components = new Components();
+        for (Type<?> clazz : allClasses) {
+            if (clazz instanceof ClassType<?> classType) {
+                converters.readAll(classType.getCls()).forEach(components::addSchemas);
+            } else {
+                ModelConverterContextImpl context = new ModelConverterContextImpl(Arrays.asList(converter));
+                context.resolve(new AnnotatedType().type(clazz));
+                context.getDefinedModels().forEach(components::addSchemas);
+            }
+        }
+        openApi.components(components);
+
 
         rootClasses =  allClasses.stream()
                 .filter(dictionary::isRoot)
@@ -814,8 +791,9 @@ public class OpenApiBuilder {
     }
 
     /**
-     * Finds all the paths by navigating the entity relationship graph - starting at the given root entity.
-     * Cycles are avoided.
+     * Finds all the paths by navigating the entity relationship graph - starting at
+     * the given root entity. Cycles are avoided.
+     *
      * @param rootClass the starting node of the graph
      * @return set of discovered paths.
      */
@@ -825,14 +803,14 @@ public class OpenApiBuilder {
 
         toVisit.add(new PathMetaData(rootClass));
 
-        while (! toVisit.isEmpty()) {
+        while (!toVisit.isEmpty()) {
             PathMetaData current = toVisit.remove();
 
             List<String> relationshipNames;
             try {
                 relationshipNames = dictionary.getRelationships(current.getType());
 
-            /* If the entity is not bound in the dictionary, skip it */
+                /* If the entity is not bound in the dictionary, skip it */
             } catch (IllegalArgumentException e) {
                 continue;
             }
@@ -842,7 +820,10 @@ public class OpenApiBuilder {
 
                 PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
 
-                /* We don't allow cycles AND we only record paths that traverse through the provided subgraph */
+                /*
+                 * We don't allow cycles AND we only record paths that traverse through the
+                 * provided subgraph
+                 */
                 if (current.lineageContainsType(next) || !allClasses.contains(relationshipClass)) {
                     continue;
                 }
@@ -856,6 +837,7 @@ public class OpenApiBuilder {
 
     /**
      * Converts a OpenAPI document to human-formatted JSON.
+     *
      * @param openApi Swagger-Core OpenAPI POJO
      * @return Pretty printed 'OpenAPI' document in JSON.
      */
