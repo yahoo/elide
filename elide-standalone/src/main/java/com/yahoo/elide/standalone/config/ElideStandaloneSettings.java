@@ -207,12 +207,12 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
+     * API root path specification for the OpenAPI endpoint. Namely, this is the root uri for OpenAPI docs.
      *
-     * @return Default: /swagger/*
+     * @return Default: /api-docs/*
      */
     default String getApiDocsPathSpec() {
-        return "/swagger/*";
+        return "/api-docs/*";
     }
 
     /**
@@ -299,7 +299,7 @@ public interface ElideStandaloneSettings {
     /**
      * OpenAPI documentation requires an API version.
      * The models with the same version are included.
-     * @return swagger version;
+     * @return OpenAPI version;
      */
     default String getOpenApiVersion() {
         return NO_VERSION;
@@ -323,11 +323,11 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Creates a singular swagger document for JSON-API.
+     * Creates a singular OpenAPI document for JSON-API.
      * @param dictionary Contains the static metadata about Elide models. .
-     * @return list of swagger registration objects.
+     * @return list of OpenAPI registration objects.
      */
-    default List<ApiDocsEndpoint.ApiDocRegistration> buildApiDocs(EntityDictionary dictionary) {
+    default List<ApiDocsEndpoint.ApiDocsRegistration> buildApiDocs(EntityDictionary dictionary) {
         Info info = new Info()
                 .title(getOpenApiName())
                 .version(getOpenApiVersion());
@@ -338,8 +338,8 @@ public interface ElideStandaloneSettings {
 
         OpenAPI openApi = builder.build().addServersItem(new Server().url(moduleBasePath));
 
-        List<ApiDocsEndpoint.ApiDocRegistration> docs = new ArrayList<>();
-        docs.add(new ApiDocsEndpoint.ApiDocRegistration("test", openApi));
+        List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
+        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi));
 
         return docs;
     }

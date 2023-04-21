@@ -508,13 +508,13 @@ class OpenApiBuilderTest {
                 }
         );
 
-        OpenAPI swagger = builder.build();
+        OpenAPI openApi = builder.build();
 
         Operation [] ops = {
-                swagger.getPaths().get("/book/{bookId}").getGet(),
-                swagger.getPaths().get("/book/{bookId}").getDelete(),
-                swagger.getPaths().get("/publisher/{publisherId}/relationships/exclusiveAuthors").getPatch(),
-                swagger.getPaths().get("/publisher").getPost(),
+                openApi.getPaths().get("/book/{bookId}").getGet(),
+                openApi.getPaths().get("/book/{bookId}").getDelete(),
+                openApi.getPaths().get("/publisher/{publisherId}/relationships/exclusiveAuthors").getPatch(),
+                openApi.getPaths().get("/publisher").getPost(),
         };
 
         for (Operation op : ops) {
@@ -562,9 +562,9 @@ class OpenApiBuilderTest {
                 .title("Test Service");
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
-        OpenAPI swagger = builder.build();
+        OpenAPI openApi = builder.build();
 
-        Operation op = swagger.getPaths().get("/book").getGet();
+        Operation op = openApi.getPaths().get("/book").getGet();
 
         List<String> paramNames = op.getParameters().stream()
                 .filter(param -> param.getName().startsWith("filter"))
@@ -591,9 +591,9 @@ class OpenApiBuilderTest {
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
         builder = builder.withLegacyFilterDialect(false);
-        OpenAPI swagger = builder.build();
+        OpenAPI openApi = builder.build();
 
-        Operation op = swagger.getPaths().get("/book").getGet();
+        Operation op = openApi.getPaths().get("/book").getGet();
 
         List<String> paramNames = op.getParameters().stream()
                 .filter(param -> param.getName().startsWith("filter"))
@@ -613,9 +613,9 @@ class OpenApiBuilderTest {
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
         builder = builder.withRSQLFilterDialect(false);
-        OpenAPI swagger = builder.build();
+        OpenAPI openApi = builder.build();
 
-        Operation op = swagger.getPaths().get("/book").getGet();
+        Operation op = openApi.getPaths().get("/book").getGet();
 
         List<String> paramNames = op.getParameters().stream()
                 .filter(param -> param.getName().startsWith("filter"))

@@ -547,10 +547,10 @@ public class ElideAutoConfiguration {
         }
 
         @Configuration
-        @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
-        public static class SwaggerConfiguration {
+        @ConditionalOnProperty(name = "elide.api-docs.enabled", havingValue = "true")
+        public static class ApiDocsConfiguration {
             /**
-             * Creates a singular swagger document for JSON-API.
+             * Creates a singular openapi document for JSON-API.
              * @param elide Singleton elide instance.
              * @param settings Elide configuration settings.
              * @return An instance of a JPA DataStore.
@@ -558,15 +558,15 @@ public class ElideAutoConfiguration {
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean
-            public ApiDocsController.ApiDocRegistrations swaggerRegistrations(RefreshableElide elide,
+            public ApiDocsController.ApiDocsRegistrations apiDocsRegistrations(RefreshableElide elide,
                     ElideConfigProperties settings) {
-                return buildSwaggerRegistrations(elide, settings);
+                return buildApiDocsRegistrations(elide, settings);
             }
 
             @Bean
             @RefreshScope
-            @ConditionalOnMissingBean(name = "swaggerController")
-            public ApiDocsController swaggerController(ApiDocsController.ApiDocRegistrations docs) {
+            @ConditionalOnMissingBean(name = "apiDocsController")
+            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs) {
                 return new ApiDocsController(docs);
             }
         }
@@ -626,24 +626,24 @@ public class ElideAutoConfiguration {
         }
 
         @Configuration
-        @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
-        public static class SwaggerConfiguration {
+        @ConditionalOnProperty(name = "elide.api-docs.enabled", havingValue = "true")
+        public static class ApiDocsConfiguration {
             /**
-             * Creates a singular swagger document for JSON-API.
+             * Creates a singular openapi document for JSON-API.
              * @param elide Singleton elide instance.
              * @param settings Elide configuration settings.
              * @return An instance of a JPA DataStore.
              */
             @Bean
             @ConditionalOnMissingBean
-            public ApiDocsController.ApiDocRegistrations swaggerRegistrations(RefreshableElide elide,
+            public ApiDocsController.ApiDocsRegistrations apiDocsRegistrations(RefreshableElide elide,
                     ElideConfigProperties settings) {
-                return buildSwaggerRegistrations(elide, settings);
+                return buildApiDocsRegistrations(elide, settings);
             }
 
             @Bean
-            @ConditionalOnMissingBean(name = "swaggerController")
-            public ApiDocsController swaggerController(ApiDocsController.ApiDocRegistrations docs) {
+            @ConditionalOnMissingBean(name = "apiDocsController")
+            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs) {
                 return new ApiDocsController(docs);
             }
         }
@@ -717,7 +717,7 @@ public class ElideAutoConfiguration {
         return new RefreshableElide(elide);
     }
 
-    public static ApiDocsController.ApiDocRegistrations buildSwaggerRegistrations(RefreshableElide elide,
+    public static ApiDocsController.ApiDocsRegistrations buildApiDocsRegistrations(RefreshableElide elide,
             ElideConfigProperties settings) {
         String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : null;
 
@@ -725,7 +725,7 @@ public class ElideAutoConfiguration {
         Info info = new Info().title(settings.getApiDocs().getName()).version(settings.getApiDocs().getVersion());
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary, info).withLegacyFilterDialect(false);
-        return new ApiDocsController.ApiDocRegistrations(
+        return new ApiDocsController.ApiDocsRegistrations(
                 builder.build().addServersItem(new Server().url(jsonApiPath)));
     }
 

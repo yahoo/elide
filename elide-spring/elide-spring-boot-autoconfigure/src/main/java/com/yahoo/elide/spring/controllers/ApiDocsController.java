@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "${elide.api-docs.path}")
 public class ApiDocsController {
 
-    //Maps api version & path to swagger document.
+    //Maps api version & path to OpenAPI document.
     protected Map<Pair<String, String>, String> documents;
     private static final String JSON_CONTENT_TYPE = "application/json";
 
@@ -49,18 +49,18 @@ public class ApiDocsController {
      */
     @Data
     @AllArgsConstructor
-    public static class ApiDocRegistrations {
+    public static class ApiDocsRegistrations {
 
-        public ApiDocRegistrations(OpenAPI doc) {
-            registrations = List.of(new ApiDocRegistration("", doc));
+        public ApiDocsRegistrations(OpenAPI doc) {
+            registrations = List.of(new ApiDocsRegistration("", doc));
         }
 
-        List<ApiDocRegistration> registrations;
+        List<ApiDocsRegistration> registrations;
     }
 
     @Data
     @AllArgsConstructor
-    public static class ApiDocRegistration {
+    public static class ApiDocsRegistration {
         private String path;
         private OpenAPI document;
     }
@@ -70,7 +70,7 @@ public class ApiDocsController {
      *
      * @param docs A list of documents to register.
      */
-    public ApiDocsController(ApiDocRegistrations docs) {
+    public ApiDocsController(ApiDocsRegistrations docs) {
         log.debug("Started ~~");
         documents = new HashMap<>();
 

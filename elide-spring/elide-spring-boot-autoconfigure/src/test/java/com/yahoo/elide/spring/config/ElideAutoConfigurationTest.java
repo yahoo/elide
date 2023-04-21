@@ -55,7 +55,7 @@ class ElideAutoConfigurationTest {
         Set<String> nonRefreshableBeans = new HashSet<>();
 
         contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false", "elide.json-api.enabled=true",
-                "elide.swagger.enabled=true", "elide.graphql.enabled=true").run(context -> {
+                "elide.api-docs.enabled=true", "elide.graphql.enabled=true").run(context -> {
                     Arrays.stream(context.getBeanDefinitionNames()).forEach(beanDefinitionName -> {
                         if (context.getBeanFactory() instanceof BeanDefinitionRegistry beanDefinitionRegistry) {
                             BeanDefinition beanDefinition = beanDefinitionRegistry
@@ -66,14 +66,14 @@ class ElideAutoConfigurationTest {
                     });
                 });
         assertThat(nonRefreshableBeans).contains("refreshableElide", "graphqlController", "queryRunners",
-                "swaggerController", "swaggerRegistrations", "jsonApiController");
+                "apiDocsController", "apiDocsRegistrations", "jsonApiController");
     }
 
     enum RefreshableInput {
         GRAPHQL(new String[] { "elide.graphql.enabled=true" },
                 new String[] { "refreshableElide", "graphqlController", "queryRunners" }),
-        SWAGGER(new String[] { "elide.swagger.enabled=true" },
-                new String[] { "refreshableElide", "swaggerController", "swaggerRegistrations" }),
+        SWAGGER(new String[] { "elide.api-docs.enabled=true" },
+                new String[] { "refreshableElide", "apiDocsController", "apiDocsRegistrations" }),
         JSONAPI(new String[] { "elide.json-api.enabled=true" },
                 new String[] { "refreshableElide", "jsonApiController" });
 
@@ -120,14 +120,14 @@ class ElideAutoConfigurationTest {
     }
 
     @RestController
-    public static class UserSwaggerController {
+    public static class UserApiDocsController {
     }
 
     @Configuration(proxyBeanMethods = false)
     public static class UserSwaggerControllerConfiguration {
         @Bean
-        public UserSwaggerController swaggerController() {
-            return new UserSwaggerController();
+        public UserApiDocsController apiDocsController() {
+            return new UserApiDocsController();
         }
     }
 
@@ -146,8 +146,8 @@ class ElideAutoConfigurationTest {
     enum OverrideControllerInput {
         GRAPHQL(new String[] { "elide.graphql.enabled=true" }, UserGraphqlControllerConfiguration.class,
                 "graphqlController"),
-        SWAGGER(new String[] { "elide.swagger.enabled=true" }, UserSwaggerControllerConfiguration.class,
-                "swaggerController"),
+        SWAGGER(new String[] { "elide.api-docs.enabled=true" }, UserSwaggerControllerConfiguration.class,
+                "apiDocsController"),
         JSONAPI(new String[] { "elide.json-api.enabled=true" }, UserJsonApiControllerConfiguration.class,
                 "jsonApiController");
 

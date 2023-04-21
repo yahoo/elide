@@ -41,7 +41,7 @@ public class ApiDocsEndpoint {
 
     @Data
     @AllArgsConstructor
-    public static class ApiDocRegistration {
+    public static class ApiDocsRegistration {
         private String path;
         private OpenAPI document;
     }
@@ -52,7 +52,7 @@ public class ApiDocsEndpoint {
      * @param docs Map of path parameter name to openapi document.
      */
     @Inject
-    public ApiDocsEndpoint(@Named("swagger") List<ApiDocRegistration> docs) {
+    public ApiDocsEndpoint(@Named("apiDocs") List<ApiDocsRegistration> docs) {
         documents = new HashMap<>();
 
         docs.forEach(doc -> {

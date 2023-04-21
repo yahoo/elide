@@ -57,9 +57,9 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
 
     @Override
     @Test
-    public void swaggerDocumentTest() {
+    public void apiDocsDocumentTest() {
         when()
-                .get("/swagger/doc/test")
+                .get("/api-docs/doc/test")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView"));

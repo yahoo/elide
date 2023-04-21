@@ -220,11 +220,11 @@ public class ElideStandaloneExportTest {
                 .statusCode(HttpStatus.SC_OK);
     }
 
-    // TableExport should be available in Swagger Doc
+    // TableExport should be available in OpenAPI Doc
     @Test
-    public void swaggerDocumentTest() {
+    public void apiDocsDocumentTest() {
         when()
-               .get("/swagger/doc/test")
+               .get("/api-docs/doc/test")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "argument", "metric",

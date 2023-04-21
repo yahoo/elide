@@ -418,7 +418,7 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void swaggerDocumentTest() {
+    public void apiDocsDocumentTest() {
         when()
                 .get("/doc")
                 .then()
@@ -430,7 +430,7 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void versionedSwaggerDocumentTest() {
+    public void versionedApiDocsDocumentTest() {
         given()
                 .header("ApiVersion", "1.0")
                 .when()
@@ -441,7 +441,7 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void swaggerXSSDocumentTest() {
+    public void apiDocsXSSDocumentTest() {
         when()
                 .get("/doc/<script>")
                 .then()

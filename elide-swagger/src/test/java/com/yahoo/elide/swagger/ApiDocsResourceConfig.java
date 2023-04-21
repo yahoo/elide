@@ -29,10 +29,10 @@ public class ApiDocsResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                bindFactory(new Factory<List<ApiDocsEndpoint.ApiDocRegistration>>() {
+                bindFactory(new Factory<List<ApiDocsEndpoint.ApiDocsRegistration>>() {
 
                     @Override
-                    public List<ApiDocsEndpoint.ApiDocRegistration> provide() {
+                    public List<ApiDocsEndpoint.ApiDocsRegistration> provide() {
                         EntityDictionary dictionary = EntityDictionary.builder().build();
 
                         dictionary.bindEntity(Book.class);
@@ -48,18 +48,18 @@ public class ApiDocsResourceConfig extends ResourceConfig {
                         OpenApiBuilder builder2 = new OpenApiBuilder(dictionary, info2);
                         OpenAPI openApi2 = builder2.build();
 
-                        List<ApiDocsEndpoint.ApiDocRegistration> docs = new ArrayList<>();
-                        docs.add(new ApiDocsEndpoint.ApiDocRegistration("test", openApi1));
-                        docs.add(new ApiDocsEndpoint.ApiDocRegistration("test", openApi2));
+                        List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
+                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi1));
+                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi2));
                         return docs;
                     }
 
                     @Override
-                    public void dispose(List<ApiDocsEndpoint.ApiDocRegistration> instance) {
+                    public void dispose(List<ApiDocsEndpoint.ApiDocsRegistration> instance) {
                         //NOP
                     }
-                }).to(new TypeLiteral<List<ApiDocsEndpoint.ApiDocRegistration>>() {
-                }).named("swagger");
+                }).to(new TypeLiteral<List<ApiDocsEndpoint.ApiDocsRegistration>>() {
+                }).named("apiDocs");
             }
         });
     }

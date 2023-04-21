@@ -24,7 +24,7 @@ public class DisableAggStoreControllerTest extends ControllerTest {
 
     @Override
     @Test
-    public void swaggerDocumentTest() {
+    public void apiDocsDocumentTest() {
         when()
                 .get("/doc")
                 .then()

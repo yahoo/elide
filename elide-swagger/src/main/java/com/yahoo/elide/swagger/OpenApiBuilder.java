@@ -54,14 +54,14 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 
 /**
- * Builds a 'Swagger' object from Swagger-Core by walking the static Elide entity metadata contained in the
- * 'EntityDictionary'.  The 'Swagger' object can be used to generate a Swagger document.
+ * Builds a 'OpenAPI' object from Swagger-Core by walking the static Elide entity metadata contained in the
+ * 'EntityDictionary'.  The 'OpenAPI' object can be used to generate a OpenAPI document.
  */
 public class OpenApiBuilder {
     protected EntityDictionary dictionary;
     protected Set<Type<?>> rootClasses;
     protected Set<Type<?>> allClasses;
-    protected OpenAPI swagger;
+    protected OpenAPI openApi;
     protected Map<String, ApiResponse> globalResponses;
     protected Set<Parameter> globalParams;
     protected Set<Operator> filterOperators;
@@ -206,8 +206,8 @@ public class OpenApiBuilder {
         }
 
         /**
-         * Returns the swagger path for a relationship URL.
-         * @return the Swagger 'Path' for a relationship URL (/books/{bookId}/relationships/author).
+         * Returns the OpenAPI path for a relationship URL.
+         * @return the OpenAPI 'Path' for a relationship URL (/books/{bookId}/relationships/author).
          * @throws IllegalStateException for errors.
          */
         public PathItem getRelationshipPath() {
@@ -226,12 +226,12 @@ public class OpenApiBuilder {
             ApiResponse okSingularResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.models.media.Datum(new Relationship(typeName)))));
+                            .schema(new Datum(new Relationship(typeName)))));
 
             ApiResponse okPluralResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.models.media.Data(new Relationship(typeName)))));
+                            .schema(new Data(new Relationship(typeName)))));
 
             ApiResponse okEmptyResponse = new ApiResponse()
                     .description("Successful response");
@@ -308,12 +308,12 @@ public class OpenApiBuilder {
             ApiResponse okSingularResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.models.media.Datum(typeName))));
+                            .schema(new Datum(typeName))));
 
             ApiResponse okPluralResponse = new ApiResponse()
                     .description("Successful response")
                     .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
-                            .schema(new com.yahoo.elide.swagger.models.media.Data(typeName))));
+                            .schema(new Data(typeName))));
 
             String getDescription;
             String postDescription;
@@ -667,8 +667,8 @@ public class OpenApiBuilder {
                 Operator.ISNULL,
                 Operator.NOTNULL
         );
-        swagger = new OpenAPI();
-        swagger.info(info);
+        openApi = new OpenAPI();
+        openApi.info(info);
     }
 
     /**
@@ -734,11 +734,11 @@ public class OpenApiBuilder {
     }
 
     /**
-     * Builds a swagger object.
-     * @return the constructed 'Swagger' object
+     * Builds a OpenAPI object.
+     * @return the constructed 'OpenAPI' object
      */
     public OpenAPI build() {
-        String apiVersion = swagger.getInfo().getVersion();
+        String apiVersion = openApi.getInfo().getVersion();
         if (apiVersion == null) {
             apiVersion = NO_VERSION;
         }
@@ -792,13 +792,13 @@ public class OpenApiBuilder {
 
         /* Each path constructs 3 URLs (collection, instance, and relationship) */
         for (PathMetaData pathDatum : pathData) {
-            swagger.path(pathDatum.getCollectionUrl(), pathDatum.getCollectionPath());
+            openApi.path(pathDatum.getCollectionUrl(), pathDatum.getCollectionPath());
 
-            swagger.path(pathDatum.getUrl(), pathDatum.getInstancePath());
+            openApi.path(pathDatum.getUrl(), pathDatum.getInstancePath());
 
             /* We only construct relationship URLs if the entity is not a root collection */
             if (! pathDatum.lineage.isEmpty()) {
-                swagger.path(pathDatum.getRelationshipUrl(), pathDatum.getRelationshipPath());
+                openApi.path(pathDatum.getRelationshipUrl(), pathDatum.getRelationshipPath());
             }
         }
 
@@ -808,9 +808,9 @@ public class OpenApiBuilder {
                 .map(alias -> new Tag().name(alias))
                 .toList();
 
-        swagger.tags(tags);
+        openApi.tags(tags);
 
-        return swagger;
+        return openApi;
     }
 
     /**
@@ -855,11 +855,11 @@ public class OpenApiBuilder {
     }
 
     /**
-     * Converts a swagger document to human-formatted JSON.
-     * @param swagger Swagger-Core swagger POJO
-     * @return Pretty printed 'Swagger' document in JSON.
+     * Converts a OpenAPI document to human-formatted JSON.
+     * @param openApi Swagger-Core OpenAPI POJO
+     * @return Pretty printed 'OpenAPI' document in JSON.
      */
-    public static String getDocument(OpenAPI swagger) {
-        return Json.pretty(swagger);
+    public static String getDocument(OpenAPI openApi) {
+        return Json.pretty(openApi);
     }
 }

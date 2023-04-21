@@ -10,7 +10,7 @@ import io.swagger.v3.oas.models.media.ObjectSchema;
 
 /**
  * Represents a JSON-API collection of resources or resource identifiers.
- * It is used when a property is required for swagger.
+ * It is used when a property is required for OpenAPI.
  */
 public class Data extends ObjectSchema {
 
