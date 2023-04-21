@@ -29,8 +29,8 @@ public class OpenApiIT extends AbstractApiResourceInitializer {
         assertTrue(node.get("paths").size() > 1);
         assertNotNull(node.get("paths").get("/book"));
         assertNotNull(node.get("paths").get("/publisher"));
-        assertNotNull(node.get("components").get("schemas").get("Book"));
-        assertNotNull(node.get("components").get("schemas").get("Publisher"));
+        assertNotNull(node.get("components").get("schemas").get("book"));
+        assertNotNull(node.get("components").get("schemas").get("publisher"));
     }
 
     @Test

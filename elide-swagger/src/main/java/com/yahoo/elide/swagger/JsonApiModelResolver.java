@@ -14,7 +14,6 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.yahoo.elide.swagger.models.media.Resource;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.SimpleType;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -114,17 +112,16 @@ public class JsonApiModelResolver extends ModelResolver {
         ModelConverterContext context, Iterator<ModelConverter> next) {
 
         Preconditions.checkState(attributeType instanceof ClassType);
-//        Schema<?> attribute = super.resolveProperty(((ClassType) attributeType).getCls(), context, null, next);
-
-        JavaType type = objectMapper().constructType(((ClassType) attributeType).getCls());
-        Map<String, Schema> schemaProperties = super.resolveSchemaProperties(type, null, context);
-        Schema<?> attribute = schemaProperties.values().iterator().next();
-
+        Class<?> attributeTypeClass = ((ClassType) attributeType).getCls();
+        Schema<?> attribute = super.resolve(new AnnotatedType().type(attributeTypeClass), context, next);
+        if (attribute == null) {
+            attribute = super.resolve(new AnnotatedType().resolveAsRef(true).type(attributeTypeClass), context, next);
+        }
         String permissions = getFieldPermissions(clazzType, attributeName);
         String description = getFieldDescription(clazzType, attributeName);
 
         attribute.setDescription(StringUtils.defaultIfEmpty(joinNonEmpty("\n", description, permissions), null));
-        attribute.setExample((Object) StringUtils.defaultIfEmpty(getFieldExample(clazzType, attributeName), null));
+        attribute.setExample(StringUtils.defaultIfEmpty(getFieldExample(clazzType, attributeName), null));
         attribute.setReadOnly(getFieldReadOnly(clazzType, attributeName));
         attribute.setRequired(getFieldRequired(clazzType, attributeName));
 
