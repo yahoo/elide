@@ -13,6 +13,8 @@ import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.swagger.converter.DynamicModelConverterContext;
+import com.yahoo.elide.swagger.converter.JsonApiModelResolver;
 import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
@@ -20,7 +22,6 @@ import com.google.common.collect.Sets;
 
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
-import io.swagger.v3.core.converter.ModelConverterContextImpl;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.Components;
@@ -721,7 +722,7 @@ public class OpenApiBuilder {
             if (clazz instanceof ClassType<?> classType) {
                 converters.readAll(classType.getCls()).forEach(components::addSchemas);
             } else {
-                ModelConverterContextImpl context = new ModelConverterContextImpl(Arrays.asList(converter));
+                DynamicModelConverterContext context = new DynamicModelConverterContext(Arrays.asList(converter));
                 context.resolve(new AnnotatedType().type(clazz));
                 context.getDefinedModels().forEach(components::addSchemas);
             }
