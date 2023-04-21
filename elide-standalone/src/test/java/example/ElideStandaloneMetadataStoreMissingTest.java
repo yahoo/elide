@@ -18,6 +18,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 
 import java.util.Optional;
 
@@ -63,6 +67,15 @@ public class ElideStandaloneMetadataStoreMissingTest {
         });
     }
 
+    private void setLoggingLevel(Level level) {
+        Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        logger.setLevel(level);
+    }
+
+    private Level getLoggingLevel() {
+        return ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLevel();
+    }
+
     @AfterAll
     public void shutdown() throws Exception {
         elide.stop();
@@ -70,6 +83,13 @@ public class ElideStandaloneMetadataStoreMissingTest {
 
     @Test
     public void testMetadataStoreMissing() {
-       assertThrows(MultiException.class, () -> elide.start(false));
+        Level old = getLoggingLevel();
+
+        try {
+            setLoggingLevel(Level.OFF);
+            assertThrows(MultiException.class, () -> elide.start(false));
+        } finally {
+            setLoggingLevel(old);
+        }
     }
 }
