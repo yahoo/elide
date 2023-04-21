@@ -35,6 +35,7 @@ import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.Parameter.StyleEnum;
 import io.swagger.v3.oas.models.parameters.PathParameter;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
@@ -423,8 +424,8 @@ public class OpenApiBuilder {
 
             return new QueryParameter().schema(new ArraySchema().items(new StringSchema()._enum(fieldNames)))
                     .name("fields[" + typeName + "]")
-                    .description("Selects the set of " + typeName + " fields that should be returned in the result.");
-            // .collectionFormat("csv");
+                    .description("Selects the set of " + typeName + " fields that should be returned in the result.")
+                    .style(StyleEnum.FORM).explode(false); // style form explode false is collection format csv
         }
 
         /**
@@ -440,8 +441,8 @@ public class OpenApiBuilder {
             return Optional.of(new QueryParameter()
                     .schema(new ArraySchema().items(new StringSchema()._enum(relationshipNames))).name("include")
                     .description("Selects the set of relationships that should be expanded as a compound document in "
-                            + "the result."));
-            // .collectionFormat("csv");
+                            + "the result.")
+                    .style(StyleEnum.FORM).explode(false)); // style form explode false is collection format csv
         }
 
         /**
@@ -495,8 +496,8 @@ public class OpenApiBuilder {
 
             return new QueryParameter().name("sort")
                     .schema(new ArraySchema().items(new StringSchema()._enum(filterAttributes)))
-                    .description("Sorts the collection on the selected attributes.  A prefix of '-' sorts descending");
-            // .collectionFormat("csv");
+                    .description("Sorts the collection on the selected attributes.  A prefix of '-' sorts descending")
+                    .style(StyleEnum.FORM).explode(false); // style form explode false is collection format csv
         }
 
         /**
