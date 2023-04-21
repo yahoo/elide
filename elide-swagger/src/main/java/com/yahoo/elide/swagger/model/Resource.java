@@ -5,11 +5,6 @@
  */
 package com.yahoo.elide.swagger.model;
 
-import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.Property;
-import io.swagger.models.properties.StringProperty;
-
 /**
  * Represents a Swagger Model that was mapped from a POJO.  Each instance will
  * be bound to a specific POJO class.

@@ -7,7 +7,7 @@ package example.models;
 
 import com.yahoo.elide.annotation.Include;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 
@@ -21,7 +21,7 @@ public class Author {
 
     public String name;
 
-    @ApiModelProperty(required = true)
+    @Schema(required = true)
     public String phone;
 
     @OneToMany

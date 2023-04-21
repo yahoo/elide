@@ -8,9 +8,11 @@ package com.yahoo.elide.swagger.resources;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.swagger.SwaggerBuilder;
+
 import org.apache.commons.lang3.tuple.Pair;
 
-import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.GET;
@@ -41,7 +43,7 @@ public class DocEndpoint {
     @AllArgsConstructor
     public static class SwaggerRegistration {
         private String path;
-        private Swagger document;
+        private OpenAPI document;
     }
 
     /**

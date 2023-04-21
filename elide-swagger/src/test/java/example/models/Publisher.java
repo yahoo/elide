@@ -7,7 +7,7 @@ package example.models;
 
 import com.yahoo.elide.annotation.Include;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 
@@ -46,6 +46,6 @@ public class Publisher {
 
     public Map<String, Integer> billingCodes;
 
-    @ApiModelProperty(value = "Phone number", example = "555-000-1111")
+    @Schema(description = "Phone number", example = "555-000-1111")
     public String phone;
 }

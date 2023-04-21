@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.swagger.property;
 
-import io.swagger.models.properties.ArrayProperty;
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.RefProperty;
+import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
 
 /**
  * Represents a JSON-API single resource or resource identifier.
  * It is used when a schema is required for swagger.
  */
-public class Datum extends ObjectProperty {
+public class Datum extends ObjectSchema {
 
     /**
      * Constructs a singular resource (referenced by type).
@@ -31,12 +31,12 @@ public class Datum extends ObjectProperty {
      */
     public Datum(String definitionName, boolean included) {
         super();
-        property("data", new RefProperty(definitionName));
+        addProperty("data", new Schema().$ref(definitionName));
 
         if (included) {
-            property("included", new ArrayProperty()
+            addProperty("included", new ArraySchema()
                             .description("Included resources")
-                            .uniqueItems()
+                            .uniqueItems(true)
                             .items(new IncludedResource())
             );
         }
@@ -49,6 +49,6 @@ public class Datum extends ObjectProperty {
      */
     public Datum(Relationship relationship) {
         super();
-        property("data", relationship);
+        addProperty("data", relationship);
     }
 }

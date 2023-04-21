@@ -28,7 +28,7 @@ import io.swagger.models.properties.StringProperty;
 import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class JsonApiModelResolverTest {
+public class JsonSchemaResolverTest {
 
     private static final String KEY_BOOK = "book";
     private static final String KEY_PUBLISHER = "publisher";
@@ -50,7 +50,7 @@ public class JsonApiModelResolverTest {
         dictionary.bindEntity(ENTITIES.get(KEY_AUTHOR));
 
         converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
+        converters.addConverter(new JsonSchemaResolver(dictionary));
     }
 
     @Test

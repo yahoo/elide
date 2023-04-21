@@ -11,13 +11,14 @@ import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
 import example.models.versioned.BookV2;
+
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,11 +42,11 @@ public class SwaggerResourceConfig extends ResourceConfig {
                         Info info1 = new Info().title("Test Service");
 
                         SwaggerBuilder builder1 = new SwaggerBuilder(dictionary, info1).withLegacyFilterDialect(false);
-                        Swagger swagger1 = builder1.build();
+                        OpenAPI swagger1 = builder1.build();
 
                         Info info2 = new Info().title("Test Service").version("1.0");
                         SwaggerBuilder builder2 = new SwaggerBuilder(dictionary, info2);
-                        Swagger swagger2 = builder2.build();
+                        OpenAPI swagger2 = builder2.build();
 
                         List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
                         docs.add(new DocEndpoint.SwaggerRegistration("test", swagger1));

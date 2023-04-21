@@ -18,14 +18,12 @@ import com.fasterxml.jackson.databind.type.SimpleType;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.converter.ModelConverter;
-import io.swagger.converter.ModelConverterContext;
-import io.swagger.jackson.ModelResolver;
-import io.swagger.models.Model;
-import io.swagger.models.properties.Property;
-import io.swagger.util.Json;
+import io.swagger.v3.core.converter.AnnotatedType;
+import io.swagger.v3.core.converter.ModelConverter;
+import io.swagger.v3.core.converter.ModelConverterContext;
+import io.swagger.v3.core.jackson.ModelResolver;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.models.media.Schema;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -45,7 +43,7 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     @Override
-    public Model resolve(java.lang.reflect.Type type, ModelConverterContext context, Iterator<ModelConverter> next) {
+    public Schema resolve(AnnotatedType type, ModelConverterContext context, Iterator<ModelConverter> next) {
 
         if (!(type instanceof Class || type instanceof SimpleType || type instanceof Type)) {
             return super.resolve(type, context, next);
@@ -144,12 +142,12 @@ public class JsonApiModelResolver extends ModelResolver {
         return relationship;
     }
 
-    private ApiModel getApiModel(Type<?> clazz) {
-        return dictionary.getAnnotation(clazz, ApiModel.class);
+    private Schema getSchema(Type<?> clazz) {
+        return dictionary.getAnnotation(clazz, Schema.class);
     }
 
     private String getModelDescription(Type<?> clazz) {
-        ApiModel model = getApiModel(clazz);
+        Schema model = getSchema(clazz);
         if (model == null) {
 
             String description = EntityDictionary.getEntityDescription(clazz);
@@ -163,28 +161,28 @@ public class JsonApiModelResolver extends ModelResolver {
         return model.description();
     }
 
-    private ApiModelProperty getApiModelProperty(Type<?> clazz, String fieldName) {
-        return dictionary.getAttributeOrRelationAnnotation(clazz, ApiModelProperty.class, fieldName);
+    private Schema getSchema(Type<?> clazz, String fieldName) {
+        return dictionary.getAttributeOrRelationAnnotation(clazz, Schema.class, fieldName);
     }
 
     private boolean getFieldRequired(Type<?> clazz, String fieldName) {
-        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
+        Schema property = getSchema(clazz, fieldName);
         return property != null && property.required();
     }
 
     private boolean getFieldReadOnly(Type<?> clazz, String fieldName) {
-        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
+        Schema property = getSchema(clazz, fieldName);
         return property != null && property.readOnly();
     }
 
     private String getFieldExample(Type<?> clazz, String fieldName) {
-        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
+        Schema property = getSchema(clazz, fieldName);
         return property == null ? "" : property.example();
     }
 
     private String getFieldDescription(Type<?> clazz, String fieldName) {
-        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
-        return property == null ? "" : property.value();
+        Schema property = getSchema(clazz, fieldName);
+        return property == null ? "" : property.description();
     }
 
     /**

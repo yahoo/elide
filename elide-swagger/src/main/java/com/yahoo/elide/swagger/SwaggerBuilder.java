@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.swagger;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -12,32 +13,40 @@ import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.swagger.model.Data;
-import com.yahoo.elide.swagger.model.Datum;
+import com.yahoo.elide.swagger.property.Data;
+import com.yahoo.elide.swagger.property.Datum;
 import com.yahoo.elide.swagger.property.Relationship;
+
 import com.google.common.collect.Sets;
 
-import io.swagger.converter.ModelConverter;
-import io.swagger.converter.ModelConverterContextImpl;
-import io.swagger.converter.ModelConverters;
-import io.swagger.models.Info;
-import io.swagger.models.Model;
-import io.swagger.models.Path;
-import io.swagger.models.Response;
-import io.swagger.models.Swagger;
-import io.swagger.models.Tag;
-import io.swagger.models.parameters.BodyParameter;
-import io.swagger.models.parameters.Parameter;
-import io.swagger.models.parameters.PathParameter;
-import io.swagger.models.parameters.QueryParameter;
-import io.swagger.models.properties.StringProperty;
-import io.swagger.util.Json;
+//import io.swagger.v3.core.converter.ModelConverter;
+//import io.swagger.v3.core.converter.ModelConverterContextImpl;
+import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.PathParameter;
+import io.swagger.v3.oas.models.parameters.QueryParameter;
+import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.tags.Tag;
+
 import lombok.Getter;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,18 +65,18 @@ public class SwaggerBuilder {
     protected EntityDictionary dictionary;
     protected Set<Type<?>> rootClasses;
     protected Set<Type<?>> allClasses;
-    protected Swagger swagger;
-    protected Map<Integer, Response> globalResponses;
+    protected OpenAPI swagger;
+    protected Map<String, ApiResponse> globalResponses;
     protected Set<Parameter> globalParams;
     protected Set<Operator> filterOperators;
     protected boolean supportLegacyDialect;
     protected boolean supportRSQLDialect;
 
-    public static final Response UNAUTHORIZED_RESPONSE = new Response().description("Unauthorized");
-    public static final Response FORBIDDEN_RESPONSE = new Response().description("Forbidden");
-    public static final Response NOT_FOUND_RESPONSE = new Response().description("Not Found");
-    public static final Response REQUEST_TIMEOUT_RESPONSE = new Response().description("Request Timeout");
-    public static final Response TOO_MANY_REQUESTS_RESPONSE = new Response().description("Too Many Requests");
+    public static final ApiResponse UNAUTHORIZED_RESPONSE = new ApiResponse().description("Unauthorized");
+    public static final ApiResponse FORBIDDEN_RESPONSE = new ApiResponse().description("Forbidden");
+    public static final ApiResponse NOT_FOUND_RESPONSE = new ApiResponse().description("Not Found");
+    public static final ApiResponse REQUEST_TIMEOUT_RESPONSE = new ApiResponse().description("Request Timeout");
+    public static final ApiResponse TOO_MANY_REQUESTS_RESPONSE = new ApiResponse().description("Too Many Requests");
 
     /**
      * Metadata for constructing URLs and Swagger 'Path' objects.
@@ -181,6 +190,10 @@ public class SwaggerBuilder {
             return dictionary.getJsonAliasFor(type);
         }
 
+        private List<String> getTags() {
+            return Collections.singletonList(getTag());
+        }
+
         /**
          * Returns the path parameter for the instance URL.
          * @return the swagger PathParameter for this particular path segment.
@@ -191,7 +204,7 @@ public class SwaggerBuilder {
             Parameter param = new PathParameter()
                     .name(typeName + "Id")
                     .description(typeName + " Identifier")
-                    .property(new StringProperty());
+                    .schema(new StringSchema());
 
             return param;
         }
@@ -201,86 +214,82 @@ public class SwaggerBuilder {
          * @return the Swagger 'Path' for a relationship URL (/books/{bookId}/relationships/author).
          * @throws IllegalStateException for errors.
          */
-        public Path getRelationshipPath() {
+        public PathItem getRelationshipPath() {
             if (lineage.isEmpty()) {
                 throw new IllegalStateException("Root collections don't have relationships");
             }
 
-            Path path = new Path();
+            PathItem path = new PathItem();
 
             /* The path parameter apply for all operations */
             lineage.stream().forEach(item ->
-                    path.addParameter(item.getPathParameter()));
+                    path.addParametersItem(item.getPathParameter()));
 
             String typeName = dictionary.getJsonAliasFor(type);
 
-            Response okSingularResponse = new Response()
+            ApiResponse okSingularResponse = new ApiResponse()
                     .description("Successful response")
-                    .schema(new com.yahoo.elide.swagger.property.Datum(
-                            new Relationship(typeName)));
+                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
+                            .schema(new com.yahoo.elide.swagger.property.Datum(new Relationship(typeName)))));
 
-            Response okPluralResponse = new Response()
+            ApiResponse okPluralResponse = new ApiResponse()
                     .description("Successful response")
-                    .schema(new com.yahoo.elide.swagger.property.Data(
-                            new Relationship(typeName)));
+                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
+                            .schema(new com.yahoo.elide.swagger.property.Data(new Relationship(typeName)))));
 
-            Response okEmptyResponse = new Response()
+            ApiResponse okEmptyResponse = new ApiResponse()
                     .description("Successful response");
 
             Type<?> parentClass = lineage.peek().getType();
             RelationshipType relationshipType = dictionary.getRelationshipType(parentClass, name);
 
             if (relationshipType.isToMany()) {
-                path.get(new JsonApiOperation()
+                path.get(new Operation()
+                        .tags(getTags())
                         .description("Returns the relationship identifiers for " + name)
-                        .tag(getTag())
-                        .response(200, okPluralResponse));
+                        .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
 
-                path.patch(new JsonApiOperation()
+                path.patch(new Operation()
+                        .tags(getTags())
                         .description("Replaces the relationship " + name)
-                        .tag(getTag())
-                        .response(204, okEmptyResponse)
-                        .parameter(new BodyParameter()
-                                .schema(new Data(new Relationship(typeName)))
-                                .name("relationship"))
-                );
-                path.delete(new JsonApiOperation()
-                                .description("Deletes items from the relationship " + name)
-                                .tag(getTag())
-                                .response(204, okEmptyResponse)
-                                .parameter(new BodyParameter()
-                                        .schema(new Data(new Relationship(typeName)))
-                                        .name("relationship"))
-                );
-                path.post(new JsonApiOperation()
-                                .description("Adds items to the relationship " + name)
-                                .tag(getTag())
-                                .response(201, okPluralResponse)
-                                .parameter(new BodyParameter()
-                                        .schema(new Data(new Relationship(typeName)))
-                                        .name("relationship"))
-                );
+                        .requestBody(new RequestBody()
+                                .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                        new MediaType().schema(new Data(new Relationship(typeName))))))
+                        .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+                path.delete(new Operation()
+                        .tags(getTags())
+                        .description("Deletes items from the relationship " + name)
+                        .requestBody(new RequestBody()
+                                .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                        new MediaType().schema(new Data(new Relationship(typeName))))))
+                        .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+                path.post(new Operation()
+                        .tags(getTags())
+                        .description("Adds items to the relationship " + name)
+                        .requestBody(new RequestBody()
+                                .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                        new MediaType().schema(new Data(new Relationship(typeName))))))
+                        .responses(new ApiResponses().addApiResponse("201", okPluralResponse)));
             } else {
-                path.get(new JsonApiOperation()
+                path.get(new Operation()
+                        .tags(getTags())
                         .description("Returns the relationship identifiers for " + name)
-                        .tag(getTag())
-                        .response(200, okSingularResponse));
-                path.patch(new JsonApiOperation()
+                        .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
+                path.patch(new Operation()
+                        .tags(getTags())
                         .description("Replaces the relationship " + name)
-                        .tag(getTag())
-                        .response(204, okEmptyResponse)
-                        .parameter(new BodyParameter()
-                                .schema(new Datum(new Relationship(typeName)))
-                                .name("relationship"))
-                );
+                        .requestBody(new RequestBody()
+                                .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                        new MediaType().schema(new Datum(new Relationship(typeName))))))
+                        .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
             }
 
             for (Parameter param : getFilterParameters()) {
-                path.getGet().addParameter(param);
+                path.getGet().addParametersItem(param);
             }
 
             for (Parameter param : getPageParameters()) {
-                path.getGet().addParameter(param);
+                path.getGet().addParametersItem(param);
             }
 
             decorateGlobalResponses(path);
@@ -292,21 +301,23 @@ public class SwaggerBuilder {
          * Returns the Swagger Path for a collection URL.
          * @return the Swagger 'Path' for a collection URL (/books).
          */
-        public Path getCollectionPath() {
+        public PathItem getCollectionPath() {
             String typeName = dictionary.getJsonAliasFor(type);
-            Path path = new Path();
+            PathItem path = new PathItem();
 
             /* The path parameter apply for all operations */
             lineage.stream().forEach(item ->
-                path.addParameter(item.getPathParameter()));
+                path.addParametersItem(item.getPathParameter()));
 
-            Response okSingularResponse = new Response()
+            ApiResponse okSingularResponse = new ApiResponse()
                     .description("Successful response")
-                    .schema(new com.yahoo.elide.swagger.property.Datum(typeName, false));
+                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
+                            .schema(new com.yahoo.elide.swagger.property.Datum(typeName))));
 
-            Response okPluralResponse = new Response()
+            ApiResponse okPluralResponse = new ApiResponse()
                     .description("Successful response")
-                    .schema(new com.yahoo.elide.swagger.property.Data(typeName));
+                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
+                            .schema(new com.yahoo.elide.swagger.property.Data(typeName))));
 
             String getDescription;
             String postDescription;
@@ -318,30 +329,29 @@ public class SwaggerBuilder {
                 postDescription = "Creates an item of type " + typeName + " and adds it to " + name;
             }
 
-            path.get(new JsonApiOperation()
+            path.get(new Operation()
+                    .tags(getTags())
                     .description(getDescription)
-                    .parameter(getSortParameter())
-                    .parameter(getSparseFieldsParameter())
-                    .parameter(getIncludeParameter())
-                    .tag(getTag())
-                    .response(200, okPluralResponse));
+                    .addParametersItem(getSortParameter())
+                    .addParametersItem(getSparseFieldsParameter())
+                    .addParametersItem(getIncludeParameter())
+                    .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
 
             for (Parameter param : getFilterParameters()) {
-                path.getGet().addParameter(param);
+                path.getGet().addParametersItem(param);
             }
 
             for (Parameter param : getPageParameters()) {
-                path.getGet().addParameter(param);
+                path.getGet().addParametersItem(param);
             }
 
-            path.post(new JsonApiOperation()
+            path.post(new Operation()
+                    .tags(getTags())
                     .description(postDescription)
-                    .tag(getTag())
-                    .response(201, okSingularResponse)
-                    .parameter(new BodyParameter()
-                            .schema(new Datum(typeName))
-                            .name(typeName))
-            );
+                    .requestBody(new RequestBody()
+                            .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                    new MediaType().schema(new Datum(typeName)))))
+                    .responses(new ApiResponses().addApiResponse("201", okSingularResponse)));
 
             decorateGlobalResponses(path);
             decorateGlobalParameters(path);
@@ -352,41 +362,41 @@ public class SwaggerBuilder {
          * Returns the Swagger Path for an instance URL.
          * @return the Swagger 'Path' for a instance URL (/books/{bookID}).
          */
-        public Path getInstancePath() {
+        public PathItem getInstancePath() {
             String typeName = dictionary.getJsonAliasFor(type);
-            Path path = new Path();
+            PathItem path = new PathItem();
 
             /* The path parameter apply for all operations */
             getFullLineage().stream().forEach(item ->
-                path.addParameter(item.getPathParameter()));
+                path.addParametersItem(item.getPathParameter()));
 
-            Response okSingularResponse = new Response()
-                .description("Successful response")
-                .schema(new com.yahoo.elide.swagger.property.Datum(typeName));
+            ApiResponse okSingularResponse = new ApiResponse()
+                    .description("Successful response")
+                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType()
+                            .schema(new com.yahoo.elide.swagger.property.Datum(typeName))));
 
-            Response okEmptyResponse = new Response()
-                .description("Successful response");
+            ApiResponse okEmptyResponse = new ApiResponse()
+                    .description("Successful response");
 
-            path.get(new JsonApiOperation()
+            path.get(new Operation()
+                    .tags(getTags())
                     .description("Returns an instance of type " + typeName)
-                    .tag(getTag())
-                    .parameter(getSparseFieldsParameter())
-                    .parameter(getIncludeParameter())
-                    .response(200, okSingularResponse));
+                    .addParametersItem(getSparseFieldsParameter())
+                    .addParametersItem(getIncludeParameter())
+                    .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
 
-            path.patch(new JsonApiOperation()
+            path.patch(new Operation()
+                    .tags(getTags())
                     .description("Modifies an instance of type " + typeName)
-                    .tag(getTag())
-                    .response(204, okEmptyResponse)
-                    .parameter(new BodyParameter()
-                            .schema(new Datum(typeName))
-                            .name(typeName))
-            );
+                    .requestBody(new RequestBody()
+                            .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                    new MediaType().schema(new Datum(typeName)))))
+                    .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
 
-            path.delete(new JsonApiOperation()
-                     .description("Deletes an instance of type " + typeName)
-                     .tag(getTag())
-                     .response(204, okEmptyResponse));
+            path.delete(new Operation()
+                    .tags(getTags())
+                    .description("Deletes an instance of type " + typeName)
+                    .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
 
             decorateGlobalResponses(path);
             decorateGlobalParameters(path);
@@ -398,9 +408,8 @@ public class SwaggerBuilder {
          * @param path the path to decorate
          * @return the decorated path
          */
-        private Path decorateGlobalParameters(Path path) {
-            globalParams.forEach(param ->
-                path.addParameter(param));
+        private PathItem decorateGlobalParameters(PathItem path) {
+            globalParams.forEach(path::addParametersItem);
             return path;
         }
 
@@ -409,20 +418,20 @@ public class SwaggerBuilder {
          * @param path the path to decorate.
          * @return the decorated path.
          */
-        private Path decorateGlobalResponses(Path path) {
+        private PathItem decorateGlobalResponses(PathItem path) {
             globalResponses.forEach(
                 (code, response) -> {
                         if (path.getGet() != null) {
-                            path.getGet().response(code, response);
+                            path.getGet().getResponses().addApiResponse(code, response);
                         }
                         if (path.getDelete() != null) {
-                            path.getDelete().response(code, response);
+                            path.getDelete().getResponses().addApiResponse(code, response);
                         }
                         if (path.getPost() != null) {
-                            path.getPost().response(code, response);
+                            path.getPost().getResponses().addApiResponse(code, response);
                         }
                         if (path.getPatch() != null) {
-                            path.getPatch().response(code, response);
+                            path.getPatch().getResponses().addApiResponse(code, response);
                         }
                 }
             );
@@ -438,11 +447,10 @@ public class SwaggerBuilder {
             List<String> fieldNames = dictionary.getAllExposedFields(type);
 
             return new QueryParameter()
-                    .type("array")
+                    .schema(new ArraySchema().items(new StringSchema()._enum(fieldNames)))
                     .name("fields[" + typeName + "]")
-                    .description("Selects the set of " + typeName + " fields that should be returned in the result.")
-                    .items(new StringProperty()._enum(fieldNames))
-                    .collectionFormat("csv");
+                    .description("Selects the set of " + typeName + " fields that should be returned in the result.");
+                    //.collectionFormat("csv");
         }
 
         /**
@@ -453,12 +461,12 @@ public class SwaggerBuilder {
             List<String> relationshipNames = dictionary.getRelationships(type);
 
             return new QueryParameter()
-                    .type("array")
+                    .schema(new ArraySchema().items(new StringSchema()._enum(relationshipNames)))
+                    .schema(new ArraySchema())
                     .name("include")
                     .description("Selects the set of relationships that should be expanded as a compound document in "
-                            + "the result.")
-                    .items(new StringProperty()._enum(relationshipNames))
-                    .collectionFormat("csv");
+                            + "the result.");
+                    //.collectionFormat("csv");
         }
 
         /**
@@ -471,25 +479,25 @@ public class SwaggerBuilder {
             params.add(new QueryParameter()
                     .name("page[number]")
                     .description("Number of pages to return.  Can be used with page[size]")
-                    .type("integer")
+                    .schema(new IntegerSchema())
             );
 
             params.add(new QueryParameter()
                             .name("page[size]")
                             .description("Number of elements per page.  Can be used with page[number]")
-                            .type("integer")
+                            .schema(new IntegerSchema())
             );
 
             params.add(new QueryParameter()
                     .name("page[offset]")
                     .description("Offset from 0 to start paginating.  Can be used with page[limit]")
-                    .type("integer")
+                    .schema(new IntegerSchema())
             );
 
             params.add(new QueryParameter()
                     .name("page[limit]")
                     .description("Maximum number of items to return.  Can be used with page[offset]")
-                    .type("integer")
+                    .schema(new IntegerSchema())
             );
 
             params.add(new QueryParameter()
@@ -497,7 +505,7 @@ public class SwaggerBuilder {
                     .description("For requesting total pages/records be included in the response page meta data")
                     /* Swagger UI doesn't support parameters that don't take args today.  We'll just make
                      * this a string for now */
-                    .type("string")
+                    .schema(new StringSchema())
             );
 
             return params;
@@ -509,11 +517,11 @@ public class SwaggerBuilder {
          */
         private Parameter getSortParameter() {
             List<String> filterAttributes = dictionary.getAttributes(type).stream()
-                    .filter((name) -> {
+                    .filter(name -> {
                         Type<?> attributeClass = dictionary.getType(type, name);
                         return (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass));
                     })
-                    .map((name) -> Arrays.asList(name, "-" + name))
+                    .map(name -> Arrays.asList(name, "-" + name))
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
 
@@ -522,10 +530,9 @@ public class SwaggerBuilder {
 
             return new QueryParameter()
                     .name("sort")
-                    .type("array")
-                    .description("Sorts the collection on the selected attributes.  A prefix of '-' sorts descending")
-                    .items(new StringProperty()._enum(filterAttributes))
-                    .collectionFormat("csv");
+                    .schema(new ArraySchema().items(new StringSchema()._enum(filterAttributes)))
+                    .description("Sorts the collection on the selected attributes.  A prefix of '-' sorts descending");
+                    //.collectionFormat("csv");
         }
 
         /**
@@ -541,7 +548,7 @@ public class SwaggerBuilder {
             if (supportRSQLDialect) {
                 /* Add RSQL Disjoint Filter Query Param */
                 params.add(new QueryParameter()
-                        .type("string")
+                        .schema(new StringSchema())
                         .name("filter[" + typeName + "]")
                         .description("Filters the collection of " + typeName
                                 + " using a 'disjoint' RSQL expression"));
@@ -549,7 +556,7 @@ public class SwaggerBuilder {
                 if (lineage.isEmpty()) {
                     /* Add RSQL Joined Filter Query Param */
                     params.add(new QueryParameter()
-                            .type("string")
+                            .schema(new StringSchema())
                             .name("filter")
                             .description("Filters the collection of " + typeName
                                     + " using a 'joined' RSQL expression"));
@@ -564,7 +571,7 @@ public class SwaggerBuilder {
                         /* Only filter attributes that can be assigned to strings or primitives */
                         if (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass)) {
                             params.add(new QueryParameter()
-                                    .type("string")
+                                    .schema(new StringSchema())
                                     .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
                                     .description("Filters the collection of " + typeName + " by the attribute "
                                             + name + " " + "using the operator " + op.getNotation()));
@@ -665,7 +672,7 @@ public class SwaggerBuilder {
                 Operator.ISNULL,
                 Operator.NOTNULL
         );
-        swagger = new Swagger();
+        swagger = new OpenAPI();
         swagger.info(info);
     }
 
@@ -675,7 +682,7 @@ public class SwaggerBuilder {
      * @param response The global response to add to every operation
      * @return the builder
      */
-    public SwaggerBuilder withGlobalResponse(int code, Response response) {
+    public SwaggerBuilder withGlobalResponse(String code, ApiResponse response) {
         globalResponses.put(code, response);
         return this;
     }
@@ -735,12 +742,12 @@ public class SwaggerBuilder {
      * Builds a swagger object.
      * @return the constructed 'Swagger' object
      */
-    public Swagger build() {
+    public OpenAPI build() {
 
         /* Used to convert Elide POJOs into Swagger Model objects */
         ModelConverters converters = ModelConverters.getInstance();
-        ModelConverter converter = new JsonApiModelResolver(dictionary);
-        converters.addConverter(converter);
+        //ModelConverter converter = new JsonSchemaResolver(dictionary);
+        //converters.addConverter(converter);
 
         String apiVersion = swagger.getInfo().getVersion();
         if (apiVersion == null) {
@@ -761,8 +768,9 @@ public class SwaggerBuilder {
          * Elide entity could be of ClassType or DynamicType.
          * For ClassType, extract the class and pass it to ModelConverters#readAll method.
          * ModelConverters#readAll doesn't support Elide Dynamic Type, so calling the
-         * JsonApiModelResolver#resolve method directly when its not a ClassType.
+         * JsonSchemaResolver#resolve method directly when its not a ClassType.
          */
+        /*
         Map<String, Model> models = new HashMap<>();
         for (Type<?> clazz : allClasses) {
             if (clazz instanceof ClassType) {
@@ -774,6 +782,7 @@ public class SwaggerBuilder {
             }
         }
         swagger.setDefinitions(models);
+        */
 
         rootClasses =  allClasses.stream()
                 .filter(dictionary::isRoot)
@@ -882,7 +891,7 @@ public class SwaggerBuilder {
      * @param swagger Swagger-Core swagger POJO
      * @return Pretty printed 'Swagger' document in JSON.
      */
-    public static String getDocument(Swagger swagger) {
+    public static String getDocument(OpenAPI swagger) {
         return Json.pretty(swagger);
     }
 }
