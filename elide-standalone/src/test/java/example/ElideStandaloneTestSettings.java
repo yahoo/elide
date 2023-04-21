@@ -85,7 +85,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
     }
 
     @Override
-    public boolean enableSwagger() {
+    public boolean enableApiDocs() {
         return true;
     }
 

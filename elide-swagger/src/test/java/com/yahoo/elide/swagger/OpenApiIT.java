@@ -12,14 +12,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
-import com.yahoo.elide.swagger.resources.DocEndpoint;
+import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 public class OpenApiIT extends AbstractApiResourceInitializer {
     public OpenApiIT() {
-        super(OpenApiResourceConfig.class, DocEndpoint.class.getPackage().getName());
+        super(ApiDocsResourceConfig.class, ApiDocsEndpoint.class.getPackage().getName());
     }
 
     @Test

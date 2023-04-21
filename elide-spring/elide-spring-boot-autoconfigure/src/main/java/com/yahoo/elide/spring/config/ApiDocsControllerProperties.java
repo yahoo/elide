@@ -9,11 +9,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Extra controller properties for the Swagger document endpoint.
+ * Extra controller properties for the OpenAPI document endpoint.
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class SwaggerControllerProperties extends ControllerProperties {
+public class ApiDocsControllerProperties extends ControllerProperties {
 
     /**
      * Swagger needs a name for the service.

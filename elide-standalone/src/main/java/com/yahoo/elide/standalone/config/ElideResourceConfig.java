@@ -41,7 +41,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.standalone.Util;
-import com.yahoo.elide.swagger.resources.DocEndpoint;
+import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -266,9 +266,10 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 EntityDictionary dictionary = elide.getElideSettings().getDictionary();
 
-                if (settings.enableSwagger()) {
-                    List<DocEndpoint.OpenApiRegistration> swaggerDocs = settings.buildSwagger(dictionary);
-                    bind(swaggerDocs).named("swagger").to(new TypeLiteral<List<DocEndpoint.OpenApiRegistration>>() { });
+                if (settings.enableApiDocs()) {
+                    List<ApiDocsEndpoint.ApiDocRegistration> apiDocs = settings.buildApiDocs(dictionary);
+                    bind(apiDocs).named("swagger").to(new TypeLiteral<List<ApiDocsEndpoint.ApiDocRegistration>>() {
+                    });
                 }
             }
         });

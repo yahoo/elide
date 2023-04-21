@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -33,36 +33,36 @@ import java.util.stream.Collectors;
 
 
 /**
- * Spring REST controller for exposing Swagger documentation.
+ * Spring REST controller for exposing OpenAPI documentation.
  */
 @Slf4j
 @RestController
-@RequestMapping(value = "${elide.swagger.path}")
-public class SwaggerController {
+@RequestMapping(value = "${elide.api-docs.path}")
+public class ApiDocsController {
 
     //Maps api version & path to swagger document.
     protected Map<Pair<String, String>, String> documents;
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     /**
-     * Wraps a list of swagger registrations so that they can be wrapped with an AOP proxy.
+     * Wraps a list of open api registrations so that they can be wrapped with an AOP proxy.
      */
     @Data
     @AllArgsConstructor
-    public static class SwaggerRegistrations {
+    public static class ApiDocRegistrations {
 
-        public SwaggerRegistrations(Swagger doc) {
-            registrations = List.of(new SwaggerRegistration("", doc));
+        public ApiDocRegistrations(OpenAPI doc) {
+            registrations = List.of(new ApiDocRegistration("", doc));
         }
 
-        List<SwaggerRegistration> registrations;
+        List<ApiDocRegistration> registrations;
     }
 
     @Data
     @AllArgsConstructor
-    public static class SwaggerRegistration {
+    public static class ApiDocRegistration {
         private String path;
-        private Swagger document;
+        private OpenAPI document;
     }
 
     /**
@@ -70,11 +70,11 @@ public class SwaggerController {
      *
      * @param docs A list of documents to register.
      */
-    public SwaggerController(SwaggerRegistrations docs) {
+    public ApiDocsController(ApiDocRegistrations docs) {
         log.debug("Started ~~");
         documents = new HashMap<>();
 
-        docs.getRegistrations().forEach((doc) -> {
+        docs.getRegistrations().forEach(doc -> {
             String apiVersion = doc.document.getInfo().getVersion();
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
@@ -90,7 +90,7 @@ public class SwaggerController {
         final List<String> documentPaths = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(apiVersion))
                 .map(Pair::getRight)
-                .collect(Collectors.toList());
+                .toList();
 
         return new Callable<ResponseEntity<String>>() {
             @Override

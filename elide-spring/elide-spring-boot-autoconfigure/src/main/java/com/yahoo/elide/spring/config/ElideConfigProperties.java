@@ -33,7 +33,7 @@ public class ElideConfigProperties {
      * Settings for the Swagger document controller.
      */
     @NestedConfigurationProperty
-    private SwaggerControllerProperties swagger;
+    private ApiDocsControllerProperties apiDocs;
 
     /**
      * Settings for the Async.

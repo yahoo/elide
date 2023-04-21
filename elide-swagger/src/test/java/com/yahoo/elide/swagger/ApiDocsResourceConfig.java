@@ -6,7 +6,7 @@
 package com.yahoo.elide.swagger;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.swagger.resources.DocEndpoint;
+import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
@@ -23,16 +23,16 @@ import io.swagger.v3.oas.models.info.Info;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OpenApiResourceConfig extends ResourceConfig {
+public class ApiDocsResourceConfig extends ResourceConfig {
 
-    public OpenApiResourceConfig() {
+    public ApiDocsResourceConfig() {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                bindFactory(new Factory<List<DocEndpoint.OpenApiRegistration>>() {
+                bindFactory(new Factory<List<ApiDocsEndpoint.ApiDocRegistration>>() {
 
                     @Override
-                    public List<DocEndpoint.OpenApiRegistration> provide() {
+                    public List<ApiDocsEndpoint.ApiDocRegistration> provide() {
                         EntityDictionary dictionary = EntityDictionary.builder().build();
 
                         dictionary.bindEntity(Book.class);
@@ -48,17 +48,17 @@ public class OpenApiResourceConfig extends ResourceConfig {
                         OpenApiBuilder builder2 = new OpenApiBuilder(dictionary, info2);
                         OpenAPI openApi2 = builder2.build();
 
-                        List<DocEndpoint.OpenApiRegistration> docs = new ArrayList<>();
-                        docs.add(new DocEndpoint.OpenApiRegistration("test", openApi1));
-                        docs.add(new DocEndpoint.OpenApiRegistration("test", openApi2));
+                        List<ApiDocsEndpoint.ApiDocRegistration> docs = new ArrayList<>();
+                        docs.add(new ApiDocsEndpoint.ApiDocRegistration("test", openApi1));
+                        docs.add(new ApiDocsEndpoint.ApiDocRegistration("test", openApi2));
                         return docs;
                     }
 
                     @Override
-                    public void dispose(List<DocEndpoint.OpenApiRegistration> instance) {
+                    public void dispose(List<ApiDocsEndpoint.ApiDocRegistration> instance) {
                         //NOP
                     }
-                }).to(new TypeLiteral<List<DocEndpoint.OpenApiRegistration>>() {
+                }).to(new TypeLiteral<List<ApiDocsEndpoint.ApiDocRegistration>>() {
                 }).named("swagger");
             }
         });

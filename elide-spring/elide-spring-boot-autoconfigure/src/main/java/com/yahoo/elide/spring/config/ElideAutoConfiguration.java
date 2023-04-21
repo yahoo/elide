@@ -54,10 +54,10 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.spring.controllers.ApiDocsController;
 import com.yahoo.elide.spring.controllers.ExportController;
 import com.yahoo.elide.spring.controllers.GraphqlController;
 import com.yahoo.elide.spring.controllers.JsonApiController;
-import com.yahoo.elide.spring.controllers.SwaggerController;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.spring.orm.jpa.EntityManagerProxySupplier;
 import com.yahoo.elide.spring.orm.jpa.PlatformJpaTransactionSupplier;
@@ -89,7 +89,8 @@ import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
-import io.swagger.models.Info;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 
@@ -557,7 +558,7 @@ public class ElideAutoConfiguration {
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean
-            public SwaggerController.SwaggerRegistrations swaggerRegistrations(RefreshableElide elide,
+            public ApiDocsController.ApiDocRegistrations swaggerRegistrations(RefreshableElide elide,
                     ElideConfigProperties settings) {
                 return buildSwaggerRegistrations(elide, settings);
             }
@@ -565,8 +566,8 @@ public class ElideAutoConfiguration {
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean(name = "swaggerController")
-            public SwaggerController swaggerController(SwaggerController.SwaggerRegistrations docs) {
-                return new SwaggerController(docs);
+            public ApiDocsController swaggerController(ApiDocsController.ApiDocRegistrations docs) {
+                return new ApiDocsController(docs);
             }
         }
 
@@ -635,15 +636,15 @@ public class ElideAutoConfiguration {
              */
             @Bean
             @ConditionalOnMissingBean
-            public SwaggerController.SwaggerRegistrations swaggerRegistrations(RefreshableElide elide,
+            public ApiDocsController.ApiDocRegistrations swaggerRegistrations(RefreshableElide elide,
                     ElideConfigProperties settings) {
                 return buildSwaggerRegistrations(elide, settings);
             }
 
             @Bean
             @ConditionalOnMissingBean(name = "swaggerController")
-            public SwaggerController swaggerController(SwaggerController.SwaggerRegistrations docs) {
-                return new SwaggerController(docs);
+            public ApiDocsController swaggerController(ApiDocsController.ApiDocRegistrations docs) {
+                return new ApiDocsController(docs);
             }
         }
 
@@ -716,15 +717,16 @@ public class ElideAutoConfiguration {
         return new RefreshableElide(elide);
     }
 
-    public static SwaggerController.SwaggerRegistrations buildSwaggerRegistrations(RefreshableElide elide,
+    public static ApiDocsController.ApiDocRegistrations buildSwaggerRegistrations(RefreshableElide elide,
             ElideConfigProperties settings) {
         String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : null;
 
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
-        Info info = new Info().title(settings.getSwagger().getName()).version(settings.getSwagger().getVersion());
+        Info info = new Info().title(settings.getApiDocs().getName()).version(settings.getApiDocs().getVersion());
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary, info).withLegacyFilterDialect(false);
-        return new SwaggerController.SwaggerRegistrations(builder.build().basePath(jsonApiPath));
+        return new ApiDocsController.ApiDocRegistrations(
+                builder.build().addServersItem(new Server().url(jsonApiPath)));
     }
 
     public static boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

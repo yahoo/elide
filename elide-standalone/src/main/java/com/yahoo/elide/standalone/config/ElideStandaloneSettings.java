@@ -50,7 +50,7 @@ import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.OpenApiBuilder;
-import com.yahoo.elide.swagger.resources.DocEndpoint;
+import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -58,9 +58,11 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
 
+
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 
+import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 import jakarta.persistence.EntityManager;
@@ -209,7 +211,7 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: /swagger/*
      */
-    default String getSwaggerPathSpec() {
+    default String getApiDocsPathSpec() {
         return "/swagger/*";
     }
 
@@ -287,19 +289,19 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Enable swagger documentation.
-     * @return whether Swagger is enabled;
+     * Enable OpenAPI documentation.
+     * @return whether OpenAPI is enabled;
      */
-    default boolean enableSwagger() {
+    default boolean enableApiDocs() {
         return false;
     }
 
     /**
-     * Swagger documentation requires an API version.
+     * OpenAPI documentation requires an API version.
      * The models with the same version are included.
      * @return swagger version;
      */
-    default String getSwaggerVersion() {
+    default String getOpenApiVersion() {
         return NO_VERSION;
     }
 
@@ -313,10 +315,10 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Swagger documentation requires an API name.
-     * @return swagger service name;
+     * OpenAPI documentation requires an API name.
+     * @return open api service name;
      */
-    default String getSwaggerName() {
+    default String getOpenApiName() {
         return "Elide Service";
     }
 
@@ -325,19 +327,19 @@ public interface ElideStandaloneSettings {
      * @param dictionary Contains the static metadata about Elide models. .
      * @return list of swagger registration objects.
      */
-    default List<DocEndpoint.OpenApiRegistration> buildSwagger(EntityDictionary dictionary) {
+    default List<ApiDocsEndpoint.ApiDocRegistration> buildApiDocs(EntityDictionary dictionary) {
         Info info = new Info()
-                .title(getSwaggerName())
-                .version(getSwaggerVersion());
+                .title(getOpenApiName())
+                .version(getOpenApiVersion());
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
 
         String moduleBasePath = getJsonApiPathSpec().replaceAll("/\\*", "");
 
-        Swagger swagger = builder.build().basePath(moduleBasePath);
+        OpenAPI openApi = builder.build().addServersItem(new Server().url(moduleBasePath));
 
-        List<DocEndpoint.OpenApiRegistration> docs = new ArrayList<>();
-        docs.add(new DocEndpoint.OpenApiRegistration("test", swagger));
+        List<ApiDocsEndpoint.ApiDocRegistration> docs = new ArrayList<>();
+        docs.add(new ApiDocsEndpoint.ApiDocRegistration("test", openApi));
 
         return docs;
     }

@@ -35,13 +35,13 @@ import java.util.stream.Collectors;
 
 @Path("/doc")
 @Produces("application/json")
-public class DocEndpoint {
+public class ApiDocsEndpoint {
     //Maps api version & path to a openapi document.
     protected Map<Pair<String, String>, String> documents;
 
     @Data
     @AllArgsConstructor
-    public static class OpenApiRegistration {
+    public static class ApiDocRegistration {
         private String path;
         private OpenAPI document;
     }
@@ -52,7 +52,7 @@ public class DocEndpoint {
      * @param docs Map of path parameter name to openapi document.
      */
     @Inject
-    public DocEndpoint(@Named("swagger") List<OpenApiRegistration> docs) {
+    public ApiDocsEndpoint(@Named("swagger") List<ApiDocRegistration> docs) {
         documents = new HashMap<>();
 
         docs.forEach(doc -> {
