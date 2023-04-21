@@ -54,6 +54,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -311,8 +312,12 @@ public class OpenApiBuilder {
                 postDescription = "Creates an item of type " + typeName + " and adds it to " + name;
             }
 
-            path.get(new Operation().tags(getTags()).description(getDescription).addParametersItem(getSortParameter())
-                    .addParametersItem(getSparseFieldsParameter()).addParametersItem(getIncludeParameter())
+            List<Parameter> parameters = new ArrayList<>();
+            parameters.add(getSortParameter());
+            parameters.add(getSparseFieldsParameter());
+            getIncludeParameter().ifPresent(parameters::add);
+
+            path.get(new Operation().tags(getTags()).description(getDescription).parameters(parameters)
                     .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
 
             for (Parameter param : getFilterParameters()) {
@@ -351,8 +356,12 @@ public class OpenApiBuilder {
 
             ApiResponse okEmptyResponse = new ApiResponse().description("Successful response");
 
+            List<Parameter> parameters = new ArrayList<>();
+            parameters.add(getSparseFieldsParameter());
+            getIncludeParameter().ifPresent(parameters::add);
+
             path.get(new Operation().tags(getTags()).description("Returns an instance of type " + typeName)
-                    .addParametersItem(getSparseFieldsParameter()).addParametersItem(getIncludeParameter())
+                    .parameters(parameters)
                     .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
 
             path.patch(new Operation().tags(getTags()).description("Modifies an instance of type " + typeName)
@@ -423,13 +432,15 @@ public class OpenApiBuilder {
          *
          * @return the JSON-API 'include' query parameter for some GET operations.
          */
-        private Parameter getIncludeParameter() {
+        private Optional<Parameter> getIncludeParameter() {
             List<String> relationshipNames = dictionary.getRelationships(type);
-
-            return new QueryParameter().schema(new ArraySchema().items(new StringSchema()._enum(relationshipNames)))
-                    .name("include")
+            if (relationshipNames.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(new QueryParameter()
+                    .schema(new ArraySchema().items(new StringSchema()._enum(relationshipNames))).name("include")
                     .description("Selects the set of relationships that should be expanded as a compound document in "
-                            + "the result.");
+                            + "the result."));
             // .collectionFormat("csv");
         }
 
