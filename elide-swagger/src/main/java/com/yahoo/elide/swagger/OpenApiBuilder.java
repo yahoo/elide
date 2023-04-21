@@ -513,7 +513,7 @@ public class OpenApiBuilder {
 
             if (supportLegacyDialect) {
                 for (Operator op : filterOperators) {
-                    attributeNames.forEach((name) -> {
+                    attributeNames.forEach(name -> {
                         Type<?> attributeClass = dictionary.getType(type, name);
 
                         /* Only filter attributes that can be assigned to strings or primitives */

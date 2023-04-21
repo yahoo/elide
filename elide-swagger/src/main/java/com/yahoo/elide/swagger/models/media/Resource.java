@@ -42,7 +42,7 @@ public class Resource extends ObjectSchema {
         attributes.addProperty(attributeName, attribute);
     }
 
-    public void addRelationship(String relationshipName, Schema<?> relationship) {
-        relationships.addProperty(relationshipName, relationship);
+    public void addRelationship(String relationshipName, Relationship relationship) {
+        relationships.addProperty(relationshipName, new Data(relationship));
     }
 }
