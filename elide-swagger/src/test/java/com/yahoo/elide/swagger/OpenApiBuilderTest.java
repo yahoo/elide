@@ -501,12 +501,7 @@ class OpenApiBuilderTest {
         responses.put("408", OpenApiBuilder.REQUEST_TIMEOUT_RESPONSE);
         responses.put("429", OpenApiBuilder.REQUEST_TIMEOUT_RESPONSE);
 
-        responses.forEach(
-                (code, response) -> {
-                    builder.withGlobalResponse(code, response);
-
-                }
-        );
+        responses.forEach(builder::globalResponse);
 
         OpenAPI openApi = builder.build();
 
@@ -590,7 +585,7 @@ class OpenApiBuilderTest {
                 .title("Test Service");
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
-        builder = builder.withLegacyFilterDialect(false);
+        builder = builder.supportLegacyFilterDialect(false);
         OpenAPI openApi = builder.build();
 
         Operation op = openApi.getPaths().get("/book").getGet();
@@ -612,7 +607,7 @@ class OpenApiBuilderTest {
                 .title("Test Service");
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
-        builder = builder.withRSQLFilterDialect(false);
+        builder = builder.supportRSQLFilterDialect(false);
         OpenAPI openApi = builder.build();
 
         Operation op = openApi.getPaths().get("/book").getGet();

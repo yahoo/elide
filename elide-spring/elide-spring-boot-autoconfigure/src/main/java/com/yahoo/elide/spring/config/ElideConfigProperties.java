@@ -30,7 +30,7 @@ public class ElideConfigProperties {
     private GraphQLControllerProperties graphql;
 
     /**
-     * Settings for the Swagger document controller.
+     * Settings for the OpenAPI document controller.
      */
     @NestedConfigurationProperty
     private ApiDocsControllerProperties apiDocs;

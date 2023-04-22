@@ -41,7 +41,8 @@ public class ApiDocsResourceConfig extends ResourceConfig {
                         dictionary.bindEntity(Publisher.class);
                         Info info1 = new Info().title("Test Service");
 
-                        OpenApiBuilder builder1 = new OpenApiBuilder(dictionary, info1).withLegacyFilterDialect(false);
+                        OpenApiBuilder builder1 = new OpenApiBuilder(dictionary, info1)
+                                .supportLegacyFilterDialect(false);
                         OpenAPI openApi1 = builder1.build();
 
                         Info info2 = new Info().title("Test Service").version("1.0");

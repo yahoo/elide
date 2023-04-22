@@ -58,6 +58,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -71,10 +72,10 @@ public class OpenApiBuilder {
     protected Set<Type<?>> allClasses;
     protected OpenAPI openApi;
     protected Map<String, ApiResponse> globalResponses;
-    protected Set<Parameter> globalParams;
+    protected Set<Parameter> globalParameters;
     protected Set<Operator> filterOperators;
-    protected boolean supportLegacyDialect;
-    protected boolean supportRSQLDialect;
+    protected boolean supportLegacyFilterDialect;
+    protected boolean supportRSQLFilterDialect;
     protected String version = NO_VERSION;
 
     public static final ApiResponse UNAUTHORIZED_RESPONSE = new ApiResponse().description("Unauthorized");
@@ -385,7 +386,7 @@ public class OpenApiBuilder {
          * @return the decorated path
          */
         private PathItem decorateGlobalParameters(PathItem path) {
-            globalParams.forEach(path::addParametersItem);
+            globalParameters.forEach(path::addParametersItem);
             return path;
         }
 
@@ -511,7 +512,7 @@ public class OpenApiBuilder {
 
             List<Parameter> params = new ArrayList<>();
 
-            if (supportRSQLDialect) {
+            if (supportRSQLFilterDialect) {
                 /* Add RSQL Disjoint Filter Query Param */
                 params.add(new QueryParameter().schema(new StringSchema()).name("filter[" + typeName + "]")
                         .description("Filters the collection of " + typeName + " using a 'disjoint' RSQL expression"));
@@ -523,7 +524,7 @@ public class OpenApiBuilder {
                 }
             }
 
-            if (supportLegacyDialect) {
+            if (supportLegacyFilterDialect) {
                 for (Operator op : filterOperators) {
                     attributeNames.forEach(name -> {
                         Type<?> attributeClass = dictionary.getType(type, name);
@@ -619,22 +620,23 @@ public class OpenApiBuilder {
      */
     public OpenApiBuilder(EntityDictionary dictionary, Info info) {
         this.dictionary = dictionary;
-        this.supportLegacyDialect = true;
-        this.supportRSQLDialect = true;
-        globalResponses = new HashMap<>();
-        globalParams = new HashSet<>();
-        allClasses = new HashSet<>();
-        filterOperators = Sets.newHashSet(Operator.IN, Operator.NOT, Operator.INFIX, Operator.PREFIX, Operator.POSTFIX,
-                Operator.GE, Operator.GT, Operator.LE, Operator.LT, Operator.ISNULL, Operator.NOTNULL);
-        openApi = new OpenAPI();
-        openApi.info(info);
+        this.supportLegacyFilterDialect = true;
+        this.supportRSQLFilterDialect = true;
+        this.globalResponses = new HashMap<>();
+        this.globalParameters = new HashSet<>();
+        this.allClasses = new HashSet<>();
+        this.filterOperators = Sets.newHashSet(Operator.IN, Operator.NOT, Operator.INFIX, Operator.PREFIX,
+                Operator.POSTFIX, Operator.GE, Operator.GT, Operator.LE, Operator.LT, Operator.ISNULL,
+                Operator.NOTNULL);
+        this.openApi = new OpenAPI();
+        this.openApi.info(info);
 
         if (info != null) {
             String apiVersion = info.getVersion();
             if (apiVersion == null) {
                 apiVersion = NO_VERSION;
             }
-            withVersion(apiVersion);
+            version(apiVersion);
         }
     }
 
@@ -645,42 +647,42 @@ public class OpenApiBuilder {
      * @param response The global response to add to every operation
      * @return the builder
      */
-    public OpenApiBuilder withGlobalResponse(String code, ApiResponse response) {
-        globalResponses.put(code, response);
+    public OpenApiBuilder globalResponse(String code, ApiResponse response) {
+        this.globalResponses.put(code, response);
         return this;
     }
 
     /**
      * Turns on or off the legacy filter dialect.
      *
-     * @param enableLegacyDialect Whether or not to enable the legacy filter
+     * @param enableLegacyFilterDialect Whether or not to enable the legacy filter
      *                            dialect.
      * @return the builder
      */
-    public OpenApiBuilder withLegacyFilterDialect(boolean enableLegacyDialect) {
-        supportLegacyDialect = enableLegacyDialect;
+    public OpenApiBuilder supportLegacyFilterDialect(boolean enableLegacyFilterDialect) {
+        this.supportLegacyFilterDialect = enableLegacyFilterDialect;
         return this;
     }
 
     /**
      * Turns on or off the RSQL filter dialect.
      *
-     * @param enableRSQLDialect Whether or not to enable the RSQL filter dialect.
+     * @param enableRSQLFilterDialect Whether or not to enable the RSQL filter dialect.
      * @return the builder
      */
-    public OpenApiBuilder withRSQLFilterDialect(boolean enableRSQLDialect) {
-        supportRSQLDialect = enableRSQLDialect;
+    public OpenApiBuilder supportRSQLFilterDialect(boolean enableRSQLFilterDialect) {
+        this.supportRSQLFilterDialect = enableRSQLFilterDialect;
         return this;
     }
 
     /**
      * Decorates every path with the given parameter.
      *
-     * @param param the parameter to decorate
+     * @param parameter the parameter to decorate
      * @return the builder
      */
-    public OpenApiBuilder withGlobalParameter(Parameter param) {
-        globalParams.add(param);
+    public OpenApiBuilder globalParameter(Parameter parameter) {
+        this.globalParameters.add(parameter);
         return this;
     }
 
@@ -691,8 +693,8 @@ public class OpenApiBuilder {
      * @param classes A subset of the entities in the entity dictionary.
      * @return the builder
      */
-    public OpenApiBuilder withExplicitClassList(Set<Type<?>> classes) {
-        allClasses = new HashSet<>(classes);
+    public OpenApiBuilder explicitClassList(Set<Type<?>> classes) {
+        this.allClasses = new HashSet<>(classes);
         return this;
     }
 
@@ -703,30 +705,34 @@ public class OpenApiBuilder {
      * @param ops The subset of filter operations to support.
      * @return the builder
      */
-    public OpenApiBuilder withFilterOps(Set<Operator> ops) {
-        filterOperators = new HashSet<>(ops);
+    public OpenApiBuilder filterOperators(Set<Operator> ops) {
+        this.filterOperators = new HashSet<>(ops);
         return this;
     }
 
-    public OpenApiBuilder withVersion(String version) {
+    /**
+     * Customize the set of filter operations to support for each
+     * GET operation.
+     *
+     * @param customizer the customizer
+     * @return
+     */
+    public OpenApiBuilder filterOperators(Consumer<Set<Operator>> customizer) {
+        customizer.accept(this.filterOperators);
+        return this;
+    }
+
+    public OpenApiBuilder version(String version) {
         this.version = version;
         return this;
     }
 
     /**
      * Builds a OpenAPI object.
-     * @return the constructed 'OpenAPI' object
+     * @param openApi Apply configuration on 'OpenAPI' object
+     * @return the builder
      */
-    public OpenAPI build() {
-        apply(this.openApi);
-        return this.openApi;
-    }
-
-    /**
-     * Builds a OpenAPI object.
-     * @param openAPI Apply configuration on 'OpenAPI' object
-     */
-    public void apply(OpenAPI openApi) {
+    public OpenApiBuilder applyTo(OpenAPI openApi) {
         String apiVersion = this.version;
 
         if (allClasses.isEmpty()) {
@@ -813,6 +819,17 @@ public class OpenApiBuilder {
                 .map(clazz -> dictionary.getJsonAliasFor(clazz))
                 .map(alias -> new Tag().name(alias))
                 .forEach(openApi::addTagsItem);
+
+        return this;
+    }
+
+    /**
+     * Builds a OpenAPI object.
+     * @return the constructed 'OpenAPI' object
+     */
+    public OpenAPI build() {
+        applyTo(this.openApi);
+        return this.openApi;
     }
 
     /**

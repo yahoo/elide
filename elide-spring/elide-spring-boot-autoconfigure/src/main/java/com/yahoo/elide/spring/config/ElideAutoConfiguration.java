@@ -724,7 +724,7 @@ public class ElideAutoConfiguration {
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
         Info info = new Info().title(settings.getApiDocs().getName()).version(settings.getApiDocs().getVersion());
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info).withLegacyFilterDialect(false);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info).supportLegacyFilterDialect(false);
         return new ApiDocsController.ApiDocsRegistrations(
                 builder.build().addServersItem(new Server().url(jsonApiPath)));
     }
