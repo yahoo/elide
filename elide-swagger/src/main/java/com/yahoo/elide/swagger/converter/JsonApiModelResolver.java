@@ -132,6 +132,7 @@ public class JsonApiModelResolver extends ModelResolver {
         attribute.setDescription(StringUtils.defaultIfEmpty(joinNonEmpty("\n", description, permissions), null));
         attribute.setExample(StringUtils.defaultIfEmpty(getFieldExample(clazzType, attributeName), null));
         attribute.setReadOnly(getFieldReadOnly(clazzType, attributeName));
+        attribute.setWriteOnly(getFieldWriteOnly(clazzType, attributeName));
         attribute.setRequired(getFieldRequired(clazzType, attributeName));
 
         return attribute;
@@ -153,6 +154,7 @@ public class JsonApiModelResolver extends ModelResolver {
         relationship.setDescription(StringUtils.defaultIfEmpty(joinNonEmpty("\n", description, permissions), null));
         relationship.setExample(StringUtils.defaultIfEmpty(getFieldExample(clazz, relationshipName), null));
         relationship.setReadOnly(getFieldReadOnly(clazz, relationshipName));
+        relationship.setWriteOnly(getFieldWriteOnly(clazz, relationshipName));
         relationship.setRequired(getFieldRequired(clazz, relationshipName));
 
         return relationship;
@@ -191,6 +193,12 @@ public class JsonApiModelResolver extends ModelResolver {
     private boolean getFieldReadOnly(Type<?> clazz, String fieldName) {
         io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
         return property != null && (AccessMode.READ_ONLY.equals(property.accessMode()) || property.readOnly());
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean getFieldWriteOnly(Type<?> clazz, String fieldName) {
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
+        return property != null && (AccessMode.WRITE_ONLY.equals(property.accessMode()) || property.writeOnly());
     }
 
     private String getFieldExample(Type<?> clazz, String fieldName) {
