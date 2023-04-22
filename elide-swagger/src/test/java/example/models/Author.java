@@ -8,6 +8,7 @@ package example.models;
 import com.yahoo.elide.annotation.Include;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 
@@ -21,7 +22,7 @@ public class Author {
 
     public String name;
 
-    @Schema(required = true)
+    @Schema(requiredMode = RequiredMode.REQUIRED)
     public String phone;
 
     @OneToMany

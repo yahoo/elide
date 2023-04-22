@@ -126,7 +126,7 @@ public class ApiDocsController {
      *
      * @param requestHeaders request headers
      * @param name           document name
-     * @return response The Swagger JSON document
+     * @return response The OpenAPI JSON document
      */
     @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_JSON)
     public Callable<ResponseEntity<String>> listJson(@RequestHeader HttpHeaders requestHeaders,
@@ -136,6 +136,13 @@ public class ApiDocsController {
         return list(apiVersion, name, MediaType.APPLICATION_JSON);
     }
 
+    /**
+     * Read handler.
+     *
+     * @param requestHeaders request headers
+     * @param name           document name
+     * @return response The OpenAPI YAML document
+     */
     @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_YAML)
     public Callable<ResponseEntity<String>> listYaml(@RequestHeader HttpHeaders requestHeaders,
             @PathVariable("name") String name) {

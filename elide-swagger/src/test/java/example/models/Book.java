@@ -12,6 +12,8 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -30,7 +32,7 @@ public class Book {
     @OneToMany
     @Size(max = 10)
     @UpdatePermission(expression = "Principal is author")
-    @Schema(description = "Writers", required = false, readOnly = true,
+    @Schema(description = "Writers", requiredMode = RequiredMode.NOT_REQUIRED, accessMode = AccessMode.READ_ONLY,
         example = "[\"author1\", \"author2\", \"author3\"]")
     public Set<Author> getAuthors() {
         return null;
@@ -43,9 +45,9 @@ public class Book {
     }
 
     @NotNull
-    @Schema(required = true)
+    @Schema(requiredMode = RequiredMode.REQUIRED)
     public String title;
 
-    @Schema(description = "Year published", example = "1999", readOnly = true)
+    @Schema(description = "Year published", example = "1999", accessMode = AccessMode.READ_ONLY)
     public String year;
 }

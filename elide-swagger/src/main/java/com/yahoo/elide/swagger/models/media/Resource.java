@@ -10,7 +10,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 
 /**
- * Represents a Swagger Model that was mapped from a POJO.  Each instance will
+ * Represents a OpenAPI Model that was mapped from a POJO.  Each instance will
  * be bound to a specific POJO class.
  */
 public class Resource extends ObjectSchema {

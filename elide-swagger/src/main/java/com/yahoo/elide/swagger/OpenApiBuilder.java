@@ -83,7 +83,7 @@ public class OpenApiBuilder {
     public static final ApiResponse TOO_MANY_REQUESTS_RESPONSE = new ApiResponse().description("Too Many Requests");
 
     /**
-     * Metadata for constructing URLs and Swagger 'Path' objects.
+     * Metadata for constructing URLs and OpenAPI 'Path' objects.
      */
     public class PathMetaData {
 
@@ -285,9 +285,9 @@ public class OpenApiBuilder {
         }
 
         /**
-         * Returns the Swagger Path for a collection URL.
+         * Returns the OpenAPI Path for a collection URL.
          *
-         * @return the Swagger 'Path' for a collection URL (/books).
+         * @return the OpenAPI 'Path' for a collection URL (/books).
          */
         public PathItem getCollectionPath() {
             String typeName = dictionary.getJsonAliasFor(type);
@@ -809,7 +809,7 @@ public class OpenApiBuilder {
             }
         }
 
-        /* We create Swagger 'tags' for each entity so Swagger UI organizes the paths by entities */
+        /* We create OpenAPI 'tags' for each entity so Swagger UI organizes the paths by entities */
         allClasses.stream()
                 .map(clazz -> dictionary.getJsonAliasFor(clazz))
                 .map(alias -> new Tag().name(alias))
