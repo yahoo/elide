@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.yahoo.elide.swagger.models.media.Resource;
 import com.fasterxml.jackson.databind.type.SimpleType;
@@ -113,6 +114,14 @@ public class JsonApiModelResolver extends ModelResolver {
 
         Preconditions.checkState(attributeType instanceof ClassType);
         Class<?> attributeTypeClass = ((ClassType) attributeType).getCls();
+
+        Serde serde = dictionary.getSerdeLookup().apply(attributeTypeClass);
+        if (serde != null) {
+            // Gets the serde interface type argument
+            attributeTypeClass = (Class<?>) ((java.lang.reflect.ParameterizedType) serde.getClass()
+                    .getGenericInterfaces()[0]).getActualTypeArguments()[0];
+        }
+
         Schema<?> attribute = super.resolve(new AnnotatedType().type(attributeTypeClass), context, next);
         if (attribute == null) {
             attribute = super.resolve(new AnnotatedType().resolveAsRef(true).type(attributeTypeClass), context, next);
@@ -178,9 +187,10 @@ public class JsonApiModelResolver extends ModelResolver {
         return property != null ? Arrays.asList(property.requiredProperties()) : Collections.emptyList();
     }
 
+    @SuppressWarnings("deprecation")
     private boolean getFieldReadOnly(Type<?> clazz, String fieldName) {
         io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
-        return property != null && AccessMode.READ_ONLY.equals(property.accessMode());
+        return property != null && (AccessMode.READ_ONLY.equals(property.accessMode()) || property.readOnly());
     }
 
     private String getFieldExample(Type<?> clazz, String fieldName) {

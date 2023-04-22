@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 @Entity
 @Include
@@ -48,4 +49,8 @@ public class Publisher {
 
     @Schema(description = "Phone number", example = "555-000-1111")
     public String phone;
+
+    /* Test for custom serde */
+    @Schema(description = "Time Zone")
+    public TimeZone timeZone;
 }

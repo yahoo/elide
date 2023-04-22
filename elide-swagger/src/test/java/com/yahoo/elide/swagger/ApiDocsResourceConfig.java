@@ -6,6 +6,7 @@
 package com.yahoo.elide.swagger;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 import example.models.Author;
 import example.models.Book;
@@ -22,6 +23,7 @@ import io.swagger.v3.oas.models.info.Info;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 public class ApiDocsResourceConfig extends ResourceConfig {
 
@@ -33,7 +35,12 @@ public class ApiDocsResourceConfig extends ResourceConfig {
 
                     @Override
                     public List<ApiDocsEndpoint.ApiDocsRegistration> provide() {
-                        EntityDictionary dictionary = EntityDictionary.builder().build();
+                        EntityDictionary dictionary = EntityDictionary.builder().serdeLookup(clazz -> {
+                            if (TimeZone.class.equals(clazz)) {
+                                return new TimeZoneSerde();
+                            }
+                            return null;
+                        }).build();
 
                         dictionary.bindEntity(Book.class);
                         dictionary.bindEntity(BookV2.class);
