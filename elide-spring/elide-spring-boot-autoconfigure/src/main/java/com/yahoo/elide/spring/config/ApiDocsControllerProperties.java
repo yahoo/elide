@@ -15,26 +15,29 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class ApiDocsControllerProperties extends ControllerProperties {
     /**
-     * The OpenAPI version to generate.
+     * The OpenAPI document version to generate. Either 3.0 or 3.1.
      */
     private String version = "3.0";
 
+    /**
+     * Information about the API.
+     */
     private Info info = new Info();
 
     @Data
     public static class Info {
         /**
-         * OpenAPI needs a title for the service.
+         * The title of the API.
          */
         private String title = "Elide Service";
 
         /**
-         * The API version.
+         * The version of the API.
          */
         private String version = "";
 
         /**
-         * The description.
+         * The description of the API.
          */
         private String description = "";
     }

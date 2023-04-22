@@ -7,8 +7,8 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.swagger.OpenApiBuilder;
-import com.yahoo.elide.swagger.OpenApiVersion;
+import com.yahoo.elide.swagger.OpenApiDocument;
+import com.yahoo.elide.swagger.OpenApiDocument.MediaType;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-
 /**
  * Spring REST controller for exposing OpenAPI documentation.
  */
@@ -41,12 +40,12 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "${elide.api-docs.path}")
 public class ApiDocsController {
 
-    //Maps api version & path to OpenAPI document.
-    protected Map<Pair<String, String>, String> documents;
-    private static final String JSON_CONTENT_TYPE = "application/json";
+    // Maps api version & path to OpenAPI document.
+    protected Map<Pair<String, String>, OpenApiDocument> documents;
 
     /**
-     * Wraps a list of open api registrations so that they can be wrapped with an AOP proxy.
+     * Wraps a list of open api registrations so that they can be wrapped with an
+     * AOP proxy.
      */
     @Data
     @AllArgsConstructor
@@ -86,30 +85,35 @@ public class ApiDocsController {
             String apiPath = doc.path;
 
             documents.put(Pair.of(apiVersion, apiPath),
-                    OpenApiBuilder.getDocument(doc.document, OpenApiVersion.from(doc.version)));
+                    new OpenApiDocument(doc.document, OpenApiDocument.Version.from(doc.version)));
         });
     }
 
-    @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)
-    public Callable<ResponseEntity<String>> list(@RequestHeader HttpHeaders requestHeaders) {
+    @GetMapping(value = { "/", "" }, produces = MediaType.APPLICATION_JSON)
+    public Callable<ResponseEntity<String>> listJson(@RequestHeader HttpHeaders requestHeaders) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        return list(apiVersion, MediaType.APPLICATION_JSON);
+    }
 
-        final List<String> documentPaths = documents.keySet().stream()
-                .filter(key -> key.getLeft().equals(apiVersion))
-                .map(Pair::getRight)
-                .toList();
+    @GetMapping(value = { "/", "" }, produces = MediaType.APPLICATION_YAML)
+    public Callable<ResponseEntity<String>> listYaml(@RequestHeader HttpHeaders requestHeaders) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        return list(apiVersion, MediaType.APPLICATION_YAML);
+    }
+
+    public Callable<ResponseEntity<String>> list(String apiVersion, String mediaType) {
+        final List<String> documentPaths = documents.keySet().stream().filter(key -> key.getLeft().equals(apiVersion))
+                .map(Pair::getRight).toList();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 if (documentPaths.size() == 1) {
-                    return ResponseEntity
-                            .status(HttpStatus.OK)
-                            .body(documents.values().iterator().next());
+                    return ResponseEntity.status(HttpStatus.OK)
+                            .body(documents.values().iterator().next().ofMediaType(mediaType));
                 }
 
-                String body = documentPaths.stream()
-                        .map(key -> '"' + key + '"')
+                String body = documentPaths.stream().map(key -> '"' + key + '"')
                         .collect(Collectors.joining(",", "[", "]"));
 
                 return ResponseEntity.status(HttpStatus.OK).body(body);
@@ -121,14 +125,26 @@ public class ApiDocsController {
      * Read handler.
      *
      * @param requestHeaders request headers
-     * @param name document name
+     * @param name           document name
      * @return response The Swagger JSON document
      */
-    @GetMapping(value = "/{name}", produces = JSON_CONTENT_TYPE)
-    public Callable<ResponseEntity<String>> list(@RequestHeader HttpHeaders requestHeaders,
-                                                 @PathVariable("name") String name) {
+    @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_JSON)
+    public Callable<ResponseEntity<String>> listJson(@RequestHeader HttpHeaders requestHeaders,
+            @PathVariable("name") String name) {
 
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        return list(apiVersion, name, MediaType.APPLICATION_JSON);
+    }
+
+    @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_YAML)
+    public Callable<ResponseEntity<String>> listYaml(@RequestHeader HttpHeaders requestHeaders,
+            @PathVariable("name") String name) {
+
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        return list(apiVersion, name, MediaType.APPLICATION_YAML);
+    }
+
+    public Callable<ResponseEntity<String>> list(String apiVersion, String name, String mediaType) {
         final String encodedName = Encode.forHtml(name);
 
         return new Callable<ResponseEntity<String>>() {
@@ -136,7 +152,7 @@ public class ApiDocsController {
             public ResponseEntity<String> call() throws Exception {
                 Pair<String, String> lookupKey = Pair.of(apiVersion, encodedName);
                 if (documents.containsKey(lookupKey)) {
-                    return ResponseEntity.status(HttpStatus.OK).body(documents.get(lookupKey));
+                    return ResponseEntity.status(HttpStatus.OK).body(documents.get(lookupKey).ofMediaType(mediaType));
                 }
                 return ResponseEntity.status(404).body("Unknown document: " + encodedName);
             }

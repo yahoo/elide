@@ -7,8 +7,8 @@ package com.yahoo.elide.swagger.resources;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.swagger.OpenApiBuilder;
-import com.yahoo.elide.swagger.OpenApiVersion;
+import com.yahoo.elide.swagger.OpenApiDocument;
+import com.yahoo.elide.swagger.OpenApiDocument.MediaType;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -35,10 +35,9 @@ import java.util.stream.Collectors;
  */
 
 @Path("/doc")
-@Produces("application/json")
 public class ApiDocsEndpoint {
     //Maps api version & path to a openapi document.
-    protected Map<Pair<String, String>, String> documents;
+    protected Map<Pair<String, String>, OpenApiDocument> documents;
 
     @Data
     @AllArgsConstructor
@@ -67,14 +66,28 @@ public class ApiDocsEndpoint {
             String apiPath = doc.path;
 
             documents.put(Pair.of(apiVersion, apiPath),
-                    OpenApiBuilder.getDocument(doc.document, OpenApiVersion.from(doc.version)));
+                    new OpenApiDocument(doc.document, OpenApiDocument.Version.from(doc.version)));
         });
     }
 
     @GET
-    @Path("/")
-    public Response list(@HeaderParam("ApiVersion") String apiVersion) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listJson(@HeaderParam("ApiVersion") String apiVersion) {
+        return list(apiVersion, MediaType.APPLICATION_JSON);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_YAML)
+    public Response listYaml(@HeaderParam("ApiVersion") String apiVersion) {
+        return list(apiVersion, MediaType.APPLICATION_YAML);
+    }
+
+    public Response list(String apiVersion, String mediaType) {
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
+
+        if (documents.size() == 1) {
+            return Response.ok(documents.values().iterator().next().ofMediaType(mediaType)).build();
+        }
 
         String body = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(safeApiVersion))
@@ -88,16 +101,36 @@ public class ApiDocsEndpoint {
     /**
      * Read handler.
      *
+     * @param apiVersion the API Version
      * @param name document name
-     * @return response The Swagger JSON document
+     * @return response The OpenAPI JSON document
      */
     @GET
     @Path("/{name}")
-    public Response get(@HeaderParam("ApiVersion") String apiVersion, @PathParam("name") String name) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getJson(@HeaderParam("ApiVersion") String apiVersion, @PathParam("name") String name) {
+        return get(apiVersion, name, MediaType.APPLICATION_JSON);
+    }
+
+    /**
+     * Read handler.
+     *
+     * @param apiVersion the API Version
+     * @param name document name
+     * @return response The OpenAPI YAML document
+     */
+    @GET
+    @Path("/{name}")
+    @Produces(MediaType.APPLICATION_YAML)
+    public Response getYaml(@HeaderParam("ApiVersion") String apiVersion, @PathParam("name") String name) {
+        return get(apiVersion, name, MediaType.APPLICATION_YAML);
+    }
+
+    public Response get(String apiVersion, String name, String mediaType) {
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         Pair<String, String> lookupKey = Pair.of(safeApiVersion, name);
         if (documents.containsKey(lookupKey)) {
-            return Response.ok(documents.get(lookupKey)).build();
+            return Response.ok(documents.get(lookupKey).ofMediaType(mediaType)).build();
         }
         return Response.status(404).entity("Unknown document: " + name).build();
     }

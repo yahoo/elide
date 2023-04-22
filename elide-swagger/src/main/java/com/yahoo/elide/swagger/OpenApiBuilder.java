@@ -23,8 +23,6 @@ import com.google.common.collect.Sets;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverters;
-import io.swagger.v3.core.util.Json;
-import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -872,18 +870,5 @@ public class OpenApiBuilder {
             paths.add(current);
         }
         return paths;
-    }
-
-    /**
-     * Converts a OpenAPI document to human-formatted JSON.
-     *
-     * @param openApi Swagger-Core OpenAPI POJO
-     * @return Pretty printed 'OpenAPI' document in JSON.
-     */
-    public static String getDocument(OpenAPI openApi, OpenApiVersion version) {
-        if (OpenApiVersion.OPENAPI_3_1.equals(version)) {
-            return Json31.pretty(openApi);
-        }
-        return Json.pretty(openApi);
     }
 }
