@@ -299,10 +299,18 @@ public interface ElideStandaloneSettings {
     /**
      * OpenAPI documentation requires an API version.
      * The models with the same version are included.
-     * @return OpenAPI version;
+     * @return the API version;
+     */
+    default String getApiVersion() {
+        return NO_VERSION;
+    }
+
+    /**
+     * The version of OpenAPI to generate.
+     * @return the OpenAPI version to generate
      */
     default String getOpenApiVersion() {
-        return NO_VERSION;
+        return "3.0";
     }
 
     /**
@@ -318,7 +326,7 @@ public interface ElideStandaloneSettings {
      * OpenAPI documentation requires an API name.
      * @return open api service name;
      */
-    default String getOpenApiName() {
+    default String getApiTitle() {
         return "Elide Service";
     }
 
@@ -329,17 +337,17 @@ public interface ElideStandaloneSettings {
      */
     default List<ApiDocsEndpoint.ApiDocsRegistration> buildApiDocs(EntityDictionary dictionary) {
         Info info = new Info()
-                .title(getOpenApiName())
-                .version(getOpenApiVersion());
+                .title(getApiTitle())
+                .version(getApiVersion());
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
 
         String moduleBasePath = getJsonApiPathSpec().replaceAll("/\\*", "");
 
-        OpenAPI openApi = builder.build().addServersItem(new Server().url(moduleBasePath));
+        OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
 
         List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
-        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi));
+        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi, getOpenApiVersion()));
 
         return docs;
     }

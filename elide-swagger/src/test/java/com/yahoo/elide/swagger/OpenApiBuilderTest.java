@@ -61,8 +61,8 @@ class OpenApiBuilderTest {
         dictionary.bindEntity(Publisher.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
-        openApi = builder.build();
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
+        openApi = builder.build().info(info);
     }
 
     @Test
@@ -491,7 +491,7 @@ class OpenApiBuilderTest {
                 .title("Test Service")
                 .version(NO_VERSION);
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
 
         Map<String, ApiResponse> responses = new HashMap<>();
 
@@ -503,7 +503,7 @@ class OpenApiBuilderTest {
 
         responses.forEach(builder::globalResponse);
 
-        OpenAPI openApi = builder.build();
+        OpenAPI openApi = builder.build().info(info);
 
         Operation [] ops = {
                 openApi.getPaths().get("/book/{bookId}").getGet(),
@@ -535,10 +535,10 @@ class OpenApiBuilderTest {
         entityDictionary.bindEntity(NothingToSort.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);
 
-        OpenApiBuilder builder = new OpenApiBuilder(entityDictionary, info);
-        OpenAPI testSwagger = builder.build();
+        OpenApiBuilder builder = new OpenApiBuilder(entityDictionary).apiVersion(info.getVersion());
+        OpenAPI testOpenApi = builder.build().info(info);
 
-        List<Parameter> params = testSwagger.getPaths().get("/nothingToSort").getGet().getParameters();
+        List<Parameter> params = testOpenApi.getPaths().get("/nothingToSort").getGet().getParameters();
 
         QueryParameter sortParam = (QueryParameter) params.stream()
                 .filter((param) -> param.getName().equals("sort"))
@@ -556,8 +556,8 @@ class OpenApiBuilderTest {
         Info info = new Info()
                 .title("Test Service");
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
-        OpenAPI openApi = builder.build();
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
+        OpenAPI openApi = builder.build().info(info);
 
         Operation op = openApi.getPaths().get("/book").getGet();
 
@@ -584,9 +584,9 @@ class OpenApiBuilderTest {
         Info info = new Info()
                 .title("Test Service");
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
         builder = builder.supportLegacyFilterDialect(false);
-        OpenAPI openApi = builder.build();
+        OpenAPI openApi = builder.build().info(info);
 
         Operation op = openApi.getPaths().get("/book").getGet();
 
@@ -606,9 +606,9 @@ class OpenApiBuilderTest {
         Info info = new Info()
                 .title("Test Service");
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
         builder = builder.supportRSQLFilterDialect(false);
-        OpenAPI openApi = builder.build();
+        OpenAPI openApi = builder.build().info(info);
 
         Operation op = openApi.getPaths().get("/book").getGet();
 

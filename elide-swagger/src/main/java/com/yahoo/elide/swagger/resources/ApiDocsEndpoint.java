@@ -8,6 +8,7 @@ package com.yahoo.elide.swagger.resources;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.swagger.OpenApiBuilder;
+import com.yahoo.elide.swagger.OpenApiVersion;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -44,6 +45,11 @@ public class ApiDocsEndpoint {
     public static class ApiDocsRegistration {
         private String path;
         private OpenAPI document;
+
+        /**
+         * The OpenAPI version.
+         */
+        private String version;
     }
 
     /**
@@ -60,7 +66,8 @@ public class ApiDocsEndpoint {
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
-            documents.put(Pair.of(apiVersion, apiPath), OpenApiBuilder.getDocument(doc.document));
+            documents.put(Pair.of(apiVersion, apiPath),
+                    OpenApiBuilder.getDocument(doc.document, OpenApiVersion.from(doc.version)));
         });
     }
 

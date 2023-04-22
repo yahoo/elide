@@ -24,10 +24,10 @@ import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.IntegerSchema;
@@ -76,7 +76,7 @@ public class OpenApiBuilder {
     protected Set<Operator> filterOperators;
     protected boolean supportLegacyFilterDialect;
     protected boolean supportRSQLFilterDialect;
-    protected String version = NO_VERSION;
+    protected String apiVersion = NO_VERSION;
 
     public static final ApiResponse UNAUTHORIZED_RESPONSE = new ApiResponse().description("Unauthorized");
     public static final ApiResponse FORBIDDEN_RESPONSE = new ApiResponse().description("Forbidden");
@@ -616,9 +616,8 @@ public class OpenApiBuilder {
      * Constructor.
      *
      * @param dictionary The entity dictionary.
-     * @param info       Basic service information that cannot be generated.
      */
-    public OpenApiBuilder(EntityDictionary dictionary, Info info) {
+    public OpenApiBuilder(EntityDictionary dictionary) {
         this.dictionary = dictionary;
         this.supportLegacyFilterDialect = true;
         this.supportRSQLFilterDialect = true;
@@ -629,15 +628,6 @@ public class OpenApiBuilder {
                 Operator.POSTFIX, Operator.GE, Operator.GT, Operator.LE, Operator.LT, Operator.ISNULL,
                 Operator.NOTNULL);
         this.openApi = new OpenAPI();
-        this.openApi.info(info);
-
-        if (info != null) {
-            String apiVersion = info.getVersion();
-            if (apiVersion == null) {
-                apiVersion = NO_VERSION;
-            }
-            version(apiVersion);
-        }
     }
 
     /**
@@ -722,8 +712,17 @@ public class OpenApiBuilder {
         return this;
     }
 
-    public OpenApiBuilder version(String version) {
-        this.version = version;
+    /**
+     * Sets the version of the API that is to be documented.
+     *
+     * @param apiVersion version of the API
+     * @return
+     */
+    public OpenApiBuilder apiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
+        if (this.apiVersion == null) {
+            this.apiVersion = NO_VERSION;
+        }
         return this;
     }
 
@@ -733,12 +732,10 @@ public class OpenApiBuilder {
      * @return the builder
      */
     public OpenApiBuilder applyTo(OpenAPI openApi) {
-        String apiVersion = this.version;
-
         if (allClasses.isEmpty()) {
-            allClasses = dictionary.getBoundClassesByVersion(apiVersion);
+            allClasses = dictionary.getBoundClassesByVersion(this.apiVersion);
         } else {
-            allClasses = Sets.intersection(dictionary.getBoundClassesByVersion(apiVersion), allClasses);
+            allClasses = Sets.intersection(dictionary.getBoundClassesByVersion(this.apiVersion), allClasses);
             if (allClasses.isEmpty()) {
                 throw new IllegalArgumentException("None of the provided classes are exported by Elide");
             }
@@ -883,7 +880,10 @@ public class OpenApiBuilder {
      * @param openApi Swagger-Core OpenAPI POJO
      * @return Pretty printed 'OpenAPI' document in JSON.
      */
-    public static String getDocument(OpenAPI openApi) {
+    public static String getDocument(OpenAPI openApi, OpenApiVersion version) {
+        if (OpenApiVersion.OPENAPI_3_1.equals(version)) {
+            return Json31.pretty(openApi);
+        }
         return Json.pretty(openApi);
     }
 }

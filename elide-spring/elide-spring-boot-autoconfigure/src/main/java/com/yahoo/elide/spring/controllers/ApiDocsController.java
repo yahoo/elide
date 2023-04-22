@@ -8,6 +8,7 @@ package com.yahoo.elide.spring.controllers;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.swagger.OpenApiBuilder;
+import com.yahoo.elide.swagger.OpenApiVersion;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
@@ -51,8 +52,8 @@ public class ApiDocsController {
     @AllArgsConstructor
     public static class ApiDocsRegistrations {
 
-        public ApiDocsRegistrations(OpenAPI doc) {
-            registrations = List.of(new ApiDocsRegistration("", doc));
+        public ApiDocsRegistrations(OpenAPI doc, String version) {
+            registrations = List.of(new ApiDocsRegistration("", doc, version));
         }
 
         List<ApiDocsRegistration> registrations;
@@ -63,6 +64,11 @@ public class ApiDocsController {
     public static class ApiDocsRegistration {
         private String path;
         private OpenAPI document;
+
+        /**
+         * The OpenAPI version.
+         */
+        private String version;
     }
 
     /**
@@ -79,7 +85,8 @@ public class ApiDocsController {
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
-            documents.put(Pair.of(apiVersion, apiPath), OpenApiBuilder.getDocument(doc.document));
+            documents.put(Pair.of(apiVersion, apiPath),
+                    OpenApiBuilder.getDocument(doc.document, OpenApiVersion.from(doc.version)));
         });
     }
 

@@ -722,11 +722,15 @@ public class ElideAutoConfiguration {
         String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : null;
 
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
-        Info info = new Info().title(settings.getApiDocs().getName()).version(settings.getApiDocs().getVersion());
+        Info info = new Info().title(settings.getApiDocs().getInfo().getTitle())
+                .version(settings.getApiDocs().getInfo().getVersion())
+                .description(settings.getApiDocs().getInfo().getDescription());
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary, info).supportLegacyFilterDialect(false);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion())
+                .supportLegacyFilterDialect(false);
         return new ApiDocsController.ApiDocsRegistrations(
-                builder.build().addServersItem(new Server().url(jsonApiPath)));
+                builder.build().info(info).addServersItem(new Server().url(jsonApiPath)),
+                settings.getApiDocs().getVersion());
     }
 
     public static boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

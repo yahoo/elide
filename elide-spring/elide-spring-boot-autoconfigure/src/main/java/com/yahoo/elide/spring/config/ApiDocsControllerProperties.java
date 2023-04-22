@@ -14,14 +14,28 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ApiDocsControllerProperties extends ControllerProperties {
-
     /**
-     * Swagger needs a name for the service.
+     * The OpenAPI version to generate.
      */
-    private String name = "Elide Service";
+    private String version = "3.0";
 
-    /**
-     * Swagger needs a version for the service.
-     */
-    private String version = "";
+    private Info info = new Info();
+
+    @Data
+    public static class Info {
+        /**
+         * OpenAPI needs a title for the service.
+         */
+        private String title = "Elide Service";
+
+        /**
+         * The API version.
+         */
+        private String version = "";
+
+        /**
+         * The description.
+         */
+        private String description = "";
+    }
 }

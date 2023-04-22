@@ -41,17 +41,17 @@ public class ApiDocsResourceConfig extends ResourceConfig {
                         dictionary.bindEntity(Publisher.class);
                         Info info1 = new Info().title("Test Service");
 
-                        OpenApiBuilder builder1 = new OpenApiBuilder(dictionary, info1)
+                        OpenApiBuilder builder1 = new OpenApiBuilder(dictionary).apiVersion(info1.getVersion())
                                 .supportLegacyFilterDialect(false);
-                        OpenAPI openApi1 = builder1.build();
+                        OpenAPI openApi1 = builder1.build().info(info1);
 
                         Info info2 = new Info().title("Test Service").version("1.0");
-                        OpenApiBuilder builder2 = new OpenApiBuilder(dictionary, info2);
-                        OpenAPI openApi2 = builder2.build();
+                        OpenApiBuilder builder2 = new OpenApiBuilder(dictionary).apiVersion(info2.getVersion());
+                        OpenAPI openApi2 = builder2.build().info(info2);
 
                         List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
-                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi1));
-                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi2));
+                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi1, "3.0"));
+                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi2, "3.0"));
                         return docs;
                     }
 
