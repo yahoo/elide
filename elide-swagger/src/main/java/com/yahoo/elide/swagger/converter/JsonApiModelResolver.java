@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import io.swagger.v3.oas.models.media.Schema;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -115,6 +116,41 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     @SuppressWarnings("rawtypes")
+    private Class<?> getSerdeSerializedClass(Serde serde) {
+        // Gets the serde interface type argument
+        Class<?> attributeTypeClass = Object.class;
+
+        try {
+            for (java.lang.reflect.Type type : serde.getClass().getGenericInterfaces()) {
+                if (type instanceof java.lang.reflect.ParameterizedType parameterizedType) {
+                    if (Serde.class.equals(parameterizedType.getRawType())) {
+                        attributeTypeClass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            // Do nothing
+        }
+
+        // Using Object.class as the type argument isn't very helpful so try to get the return type
+        try {
+            if (Object.class.equals(attributeTypeClass)) {
+                for (Method method : serde.getClass().getDeclaredMethods()) {
+                    if ("serialize".equals(method.getName())) {
+                        Class<?> returnType = method.getReturnType();
+                        if (!Object.class.equals(returnType)) {
+                           return returnType;
+                        }
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            // Do nothing
+        }
+        return attributeTypeClass;
+    }
+
+    @SuppressWarnings("rawtypes")
     private Schema<?> processAttribute(Type<?> clazzType, String attributeName, Type<?> attributeType,
         ModelConverterContext context, Iterator<ModelConverter> next, List<String> required) {
 
@@ -123,9 +159,7 @@ public class JsonApiModelResolver extends ModelResolver {
 
         Serde serde = dictionary.getSerdeLookup().apply(attributeTypeClass);
         if (serde != null) {
-            // Gets the serde interface type argument
-            attributeTypeClass = (Class<?>) ((java.lang.reflect.ParameterizedType) serde.getClass()
-                    .getGenericInterfaces()[0]).getActualTypeArguments()[0];
+            attributeTypeClass = getSerdeSerializedClass(serde);
         }
 
         Schema<?> attribute = super.resolve(new AnnotatedType().type(attributeTypeClass), context, next);

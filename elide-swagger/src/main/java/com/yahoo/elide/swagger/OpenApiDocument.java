@@ -18,6 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * The Open API Document.
  */
 public class OpenApiDocument {
+    public static final String DEFAULT_TITLE = "Elide Service";
+
     /**
      * The OpenAPI media types.
      */
@@ -33,7 +35,8 @@ public class OpenApiDocument {
      * The OpenAPI version.
      */
     public enum Version {
-        OPENAPI_3_0("3.0"), OPENAPI_3_1("3.1");
+        OPENAPI_3_0("3.0"),
+        OPENAPI_3_1("3.1");
 
         private final String value;
 

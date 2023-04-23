@@ -812,7 +812,7 @@ public class OpenApiBuilder {
 
         /* We create OpenAPI 'tags' for each entity so Swagger UI organizes the paths by entities */
         allClasses.stream()
-                .map(clazz -> dictionary.getJsonAliasFor(clazz))
+                .map(dictionary::getJsonAliasFor)
                 .map(alias -> new Tag().name(alias))
                 .forEach(openApi::addTagsItem);
         return this;

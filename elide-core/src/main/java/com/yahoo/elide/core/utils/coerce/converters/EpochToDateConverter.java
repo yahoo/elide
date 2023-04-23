@@ -47,7 +47,7 @@ public class EpochToDateConverter<T extends Date> implements Converter, Serde<Ob
     }
 
     @Override
-    public Object serialize(T val) {
+    public Long serialize(T val) {
         return val.getTime();
     }
 

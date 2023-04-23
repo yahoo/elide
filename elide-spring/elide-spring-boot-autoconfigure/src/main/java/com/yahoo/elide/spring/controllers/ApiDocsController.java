@@ -51,8 +51,8 @@ public class ApiDocsController {
     @AllArgsConstructor
     public static class ApiDocsRegistrations {
 
-        public ApiDocsRegistrations(OpenAPI doc, String version) {
-            registrations = List.of(new ApiDocsRegistration("", doc, version));
+        public ApiDocsRegistrations(OpenAPI doc, String version, String apiVersion) {
+            registrations = List.of(new ApiDocsRegistration("", doc, version, apiVersion));
         }
 
         List<ApiDocsRegistration> registrations;
@@ -65,9 +65,14 @@ public class ApiDocsController {
         private OpenAPI document;
 
         /**
-         * The OpenAPI version.
+         * The OpenAPI Document version.
          */
         private String version;
+
+        /**
+         * The API version.
+         */
+        private String apiVersion;
     }
 
     /**
@@ -80,7 +85,7 @@ public class ApiDocsController {
         documents = new HashMap<>();
 
         docs.getRegistrations().forEach(doc -> {
-            String apiVersion = doc.document.getInfo().getVersion();
+            String apiVersion = doc.getApiVersion();
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 

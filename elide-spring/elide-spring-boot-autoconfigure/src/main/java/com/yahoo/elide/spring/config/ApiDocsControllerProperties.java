@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.spring.config;
 
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -20,25 +22,7 @@ public class ApiDocsControllerProperties extends ControllerProperties {
     private String version = "3.0";
 
     /**
-     * Information about the API.
+     * The API version that should correspond with the API versions in the Entity Dictionary.
      */
-    private Info info = new Info();
-
-    @Data
-    public static class Info {
-        /**
-         * The title of the API.
-         */
-        private String title = "Elide Service";
-
-        /**
-         * The version of the API.
-         */
-        private String version = "";
-
-        /**
-         * The description of the API.
-         */
-        private String description = "";
-    }
+    private String apiVersion = EntityDictionary.NO_VERSION;
 }

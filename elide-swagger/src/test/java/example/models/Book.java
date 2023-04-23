@@ -20,6 +20,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -50,4 +51,6 @@ public class Book {
 
     @Schema(description = "Year published", example = "1999", accessMode = AccessMode.READ_ONLY)
     public String year;
+
+    public Date publishedOn;
 }

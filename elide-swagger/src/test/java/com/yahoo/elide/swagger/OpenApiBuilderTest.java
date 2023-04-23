@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
@@ -42,6 +43,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,8 @@ class OpenApiBuilderTest {
         dictionary = EntityDictionary.builder().serdeLookup(clazz -> {
             if (TimeZone.class.equals(clazz)) {
                 return new TimeZoneSerde();
+            } else if (Date.class.equals(clazz)) {
+                return new EpochToDateConverter<>(Date.class);
             }
             return null;
         }).build();
@@ -637,13 +641,22 @@ class OpenApiBuilderTest {
     }
 
     @Test
-    void testCustomSerde() {
+    void testTimeZoneSerde() {
         OpenAPI openApi = new OpenApiBuilder(dictionary).build();
         Schema<?> publisher = openApi.getComponents().getSchemas().get("publisher");
         Schema<?> attributes = publisher.getProperties().get("attributes");
         Schema<?> timeZone = attributes.getProperties().get("timeZone");
         assertEquals("string", timeZone.getType());
         assertEquals("Time Zone", timeZone.getDescription());
+    }
+
+    @Test
+    void testEpochSerde() {
+        OpenAPI openApi = new OpenApiBuilder(dictionary).build();
+        Schema<?> book = openApi.getComponents().getSchemas().get("book");
+        Schema<?> attributes = book.getProperties().get("attributes");
+        Schema<?> publishedOn = attributes.getProperties().get("publishedOn");
+        assertEquals("integer", publishedOn.getType());
     }
 
     @Test

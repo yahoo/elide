@@ -33,7 +33,7 @@ public class ElideConfigProperties {
      * Settings for the OpenAPI document controller.
      */
     @NestedConfigurationProperty
-    private ApiDocsControllerProperties apiDocs;
+    private ApiDocsControllerProperties apiDocs = new ApiDocsControllerProperties();
 
     /**
      * Settings for the Async.

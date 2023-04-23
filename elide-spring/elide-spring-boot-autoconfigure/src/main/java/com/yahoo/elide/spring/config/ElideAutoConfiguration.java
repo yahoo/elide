@@ -54,6 +54,10 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.spring.api.BasicOpenApiDocumentCustomizer;
+import com.yahoo.elide.spring.api.DefaultElideOpenApiCustomizer;
+import com.yahoo.elide.spring.api.ElideOpenApiCustomizer;
+import com.yahoo.elide.spring.api.OpenApiDocumentCustomizer;
 import com.yahoo.elide.spring.controllers.ApiDocsController;
 import com.yahoo.elide.spring.controllers.ExportController;
 import com.yahoo.elide.spring.controllers.GraphqlController;
@@ -64,6 +68,7 @@ import com.yahoo.elide.spring.orm.jpa.PlatformJpaTransactionSupplier;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -89,7 +94,7 @@ import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
-import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -511,6 +516,24 @@ public class ElideAutoConfiguration {
     }
 
     @Configuration
+    @ConditionalOnClass(OpenApiCustomizer.class)
+    @ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true", matchIfMissing = true)
+    public static class SpringDocConfiguration {
+        /**
+         * Creates a SpringDoc OpenApiCustomizer for Elide to add all the models to.
+         * @param elide Singleton elide instance.
+         * @param settings Elide configuration settings.
+         * @return
+         */
+        @Bean
+        @ConditionalOnMissingBean
+        @Scope(SCOPE_PROTOTYPE)
+        public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide, ElideConfigProperties settings) {
+            return new DefaultElideOpenApiCustomizer(elide, settings.getApiDocs().getApiVersion());
+        }
+    }
+
+    @Configuration
     @ConditionalOnClass(RefreshScope.class)
     @ConditionalOnProperty(name = "spring.cloud.refresh.enabled", havingValue = "true", matchIfMissing = true)
     @Order(Ordered.LOWEST_PRECEDENCE - 1)
@@ -553,14 +576,15 @@ public class ElideAutoConfiguration {
              * Creates a singular openapi document for JSON-API.
              * @param elide Singleton elide instance.
              * @param settings Elide configuration settings.
+             * @param customizer Customizer to customize the OpenAPI document.
              * @return An instance of a JPA DataStore.
              */
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean
             public ApiDocsController.ApiDocsRegistrations apiDocsRegistrations(RefreshableElide elide,
-                    ElideConfigProperties settings) {
-                return buildApiDocsRegistrations(elide, settings);
+                    ElideConfigProperties settings, OpenApiDocumentCustomizer customizer) {
+                return buildApiDocsRegistrations(elide, settings, customizer);
             }
 
             @Bean
@@ -568,6 +592,13 @@ public class ElideAutoConfiguration {
             @ConditionalOnMissingBean(name = "apiDocsController")
             public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs) {
                 return new ApiDocsController(docs);
+            }
+
+            @Bean
+            @RefreshScope
+            @ConditionalOnMissingBean
+            public OpenApiDocumentCustomizer openApiDocumentCustomizer() {
+                return new BasicOpenApiDocumentCustomizer();
             }
         }
 
@@ -632,19 +663,26 @@ public class ElideAutoConfiguration {
              * Creates a singular openapi document for JSON-API.
              * @param elide Singleton elide instance.
              * @param settings Elide configuration settings.
+             * @param customizer Customizer to customize the OpenAPI document.
              * @return An instance of a JPA DataStore.
              */
             @Bean
             @ConditionalOnMissingBean
             public ApiDocsController.ApiDocsRegistrations apiDocsRegistrations(RefreshableElide elide,
-                    ElideConfigProperties settings) {
-                return buildApiDocsRegistrations(elide, settings);
+                    ElideConfigProperties settings, OpenApiDocumentCustomizer customizer) {
+                return buildApiDocsRegistrations(elide, settings, customizer);
             }
 
             @Bean
             @ConditionalOnMissingBean(name = "apiDocsController")
             public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs) {
                 return new ApiDocsController(docs);
+            }
+
+            @Bean
+            @ConditionalOnMissingBean
+            public OpenApiDocumentCustomizer openApiDocumentCustomizer() {
+                return new BasicOpenApiDocumentCustomizer();
             }
         }
 
@@ -718,19 +756,18 @@ public class ElideAutoConfiguration {
     }
 
     public static ApiDocsController.ApiDocsRegistrations buildApiDocsRegistrations(RefreshableElide elide,
-            ElideConfigProperties settings) {
+            ElideConfigProperties settings, OpenApiDocumentCustomizer customizer) {
         String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : null;
 
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
-        Info info = new Info().title(settings.getApiDocs().getInfo().getTitle())
-                .version(settings.getApiDocs().getInfo().getVersion())
-                .description(settings.getApiDocs().getInfo().getDescription());
 
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion())
+        String apiVersion = settings.getApiDocs().getApiVersion();
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
                 .supportLegacyFilterDialect(false);
-        return new ApiDocsController.ApiDocsRegistrations(
-                builder.build().info(info).addServersItem(new Server().url(jsonApiPath)),
-                settings.getApiDocs().getVersion());
+        OpenAPI openApi = builder.build();
+        openApi.addServersItem(new Server().url(jsonApiPath));
+        customizer.customize(openApi);
+        return new ApiDocsController.ApiDocsRegistrations(openApi, settings.getApiDocs().getVersion(), apiVersion);
     }
 
     public static boolean isDynamicConfigEnabled(ElideConfigProperties settings) {
