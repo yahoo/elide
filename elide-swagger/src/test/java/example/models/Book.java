@@ -32,7 +32,7 @@ public class Book {
     @OneToMany
     @Size(max = 10)
     @UpdatePermission(expression = "Principal is author")
-    @Schema(description = "Writers", requiredMode = RequiredMode.NOT_REQUIRED, accessMode = AccessMode.READ_ONLY,
+    @Schema(description = "Writers", requiredMode = RequiredMode.REQUIRED, accessMode = AccessMode.READ_ONLY,
         example = "[\"author1\", \"author2\", \"author3\"]")
     public Set<Author> getAuthors() {
         return null;

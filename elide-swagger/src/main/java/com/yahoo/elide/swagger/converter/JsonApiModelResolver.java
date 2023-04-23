@@ -25,8 +25,10 @@ import io.swagger.v3.core.converter.ModelConverterContext;
 import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import io.swagger.v3.oas.models.media.Schema;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -77,32 +79,36 @@ public class JsonApiModelResolver extends ModelResolver {
         }
 
         Resource entitySchema = new Resource();
-        entitySchema.description(getModelDescription(clazzType));
+        entitySchema.description(getSchemaDescription(clazzType));
         entitySchema.setSecurityDescription(getClassPermissions(clazzType));
 
         /* Populate the attributes */
+        List<String> requiredAttributes = new ArrayList<>();
         List<String> attributeNames = dictionary.getAttributes(clazzType);
         for (String attributeName : attributeNames) {
             Type<?> attributeType = dictionary.getType(clazzType, attributeName);
 
             Schema<?> attribute = processAttribute(clazzType, attributeName, attributeType,
-                            context, next);
+                            context, next, requiredAttributes);
             entitySchema.addAttribute(attributeName, attribute);
         }
+        entitySchema.getAttributes().required(requiredAttributes);
 
         /* Populate the relationships */
+        List<String> requiredRelationships = new ArrayList<>();
         List<String> relationshipNames = dictionary.getRelationships(clazzType);
         for (String relationshipName : relationshipNames) {
 
             Type<?> relationshipType = dictionary.getParameterizedType(clazzType, relationshipName);
 
-            Relationship relationship = processRelationship(clazzType, relationshipName, relationshipType);
+            Relationship relationship = processRelationship(clazzType, relationshipName, relationshipType,
+                    requiredRelationships);
 
             if (relationship != null) {
                 entitySchema.addRelationship(relationshipName, relationship);
             }
-
         }
+        entitySchema.getRelationships().required(requiredRelationships);
 
         entitySchema.name(typeAlias);
         return entitySchema;
@@ -110,7 +116,7 @@ public class JsonApiModelResolver extends ModelResolver {
 
     @SuppressWarnings("rawtypes")
     private Schema<?> processAttribute(Type<?> clazzType, String attributeName, Type<?> attributeType,
-        ModelConverterContext context, Iterator<ModelConverter> next) {
+        ModelConverterContext context, Iterator<ModelConverter> next, List<String> required) {
 
         Preconditions.checkState(attributeType instanceof ClassType);
         Class<?> attributeTypeClass = ((ClassType) attributeType).getCls();
@@ -126,19 +132,23 @@ public class JsonApiModelResolver extends ModelResolver {
         if (attribute == null) {
             attribute = super.resolve(new AnnotatedType().resolveAsRef(true).type(attributeTypeClass), context, next);
         }
-        String permissions = getFieldPermissions(clazzType, attributeName);
         String description = getFieldDescription(clazzType, attributeName);
+        String permissions = getFieldPermissions(clazzType, attributeName);
 
         attribute.setDescription(StringUtils.defaultIfEmpty(joinNonEmpty("\n", description, permissions), null));
         attribute.setExample(StringUtils.defaultIfEmpty(getFieldExample(clazzType, attributeName), null));
         attribute.setReadOnly(getFieldReadOnly(clazzType, attributeName));
         attribute.setWriteOnly(getFieldWriteOnly(clazzType, attributeName));
-        attribute.setRequired(getFieldRequired(clazzType, attributeName));
+        attribute.setRequired(getFieldRequiredProperties(clazzType, attributeName));
 
+        if (getFieldRequired(clazzType, attributeName)) {
+            required.add(attributeName);
+        }
         return attribute;
     }
 
-    private Relationship processRelationship(Type<?> clazz, String relationshipName, Type<?> relationshipClazz) {
+    private Relationship processRelationship(Type<?> clazz, String relationshipName, Type<?> relationshipClazz,
+            List<String> required) {
         Relationship relationship = null;
         try {
             relationship = new Relationship(dictionary.getJsonAliasFor(relationshipClazz));
@@ -155,8 +165,11 @@ public class JsonApiModelResolver extends ModelResolver {
         relationship.setExample(StringUtils.defaultIfEmpty(getFieldExample(clazz, relationshipName), null));
         relationship.setReadOnly(getFieldReadOnly(clazz, relationshipName));
         relationship.setWriteOnly(getFieldWriteOnly(clazz, relationshipName));
-        relationship.setRequired(getFieldRequired(clazz, relationshipName));
+        relationship.setRequired(getFieldRequiredProperties(clazz, relationshipName));
 
+        if (getFieldRequired(clazz, relationshipName)) {
+            required.add(relationshipName);
+        }
         return relationship;
     }
 
@@ -164,9 +177,9 @@ public class JsonApiModelResolver extends ModelResolver {
         return dictionary.getAnnotation(clazz, io.swagger.v3.oas.annotations.media.Schema.class);
     }
 
-    private String getModelDescription(Type<?> clazz) {
-        io.swagger.v3.oas.annotations.media.Schema model = getSchema(clazz);
-        if (model == null) {
+    private String getSchemaDescription(Type<?> clazz) {
+        io.swagger.v3.oas.annotations.media.Schema schema = getSchema(clazz);
+        if (schema == null) {
 
             String description = EntityDictionary.getEntityDescription(clazz);
 
@@ -176,7 +189,7 @@ public class JsonApiModelResolver extends ModelResolver {
 
             return description;
         }
-        return model.description();
+        return schema.description();
     }
 
     private io.swagger.v3.oas.annotations.media.Schema getSchema(Type<?> clazz, String fieldName) {
@@ -184,9 +197,15 @@ public class JsonApiModelResolver extends ModelResolver {
                 fieldName);
     }
 
-    private List<String> getFieldRequired(Type<?> clazz, String fieldName) {
+    private List<String> getFieldRequiredProperties(Type<?> clazz, String fieldName) {
         io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
         return property != null ? Arrays.asList(property.requiredProperties()) : Collections.emptyList();
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean getFieldRequired(Type<?> clazz, String fieldName) {
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
+        return property != null && (RequiredMode.REQUIRED.equals(property.requiredMode()) || property.required());
     }
 
     @SuppressWarnings("deprecation")

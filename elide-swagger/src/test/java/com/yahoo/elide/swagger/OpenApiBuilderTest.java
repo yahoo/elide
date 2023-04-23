@@ -530,7 +530,7 @@ class OpenApiBuilderTest {
     }
 
     @Test
-    public void testSortParameter() {
+    void testSortParameter() {
         @Entity
         @Include
         class NothingToSort {
@@ -644,6 +644,22 @@ class OpenApiBuilderTest {
         Schema<?> timeZone = attributes.getProperties().get("timeZone");
         assertEquals("string", timeZone.getType());
         assertEquals("Time Zone", timeZone.getDescription());
+    }
+
+    @Test
+    void testRequiredAttribute() {
+        OpenAPI openApi = new OpenApiBuilder(dictionary).build();
+        Schema<?> book = openApi.getComponents().getSchemas().get("book");
+        Schema<?> attributes = book.getProperties().get("attributes");
+        assertTrue(attributes.getRequired().contains("title"));
+    }
+
+    @Test
+    void testRequiredRelationship() {
+        OpenAPI openApi = new OpenApiBuilder(dictionary).build();
+        Schema<?> book = openApi.getComponents().getSchemas().get("book");
+        Schema<?> relationships = book.getProperties().get("relationships");
+        assertTrue(relationships.getRequired().contains("authors"));
     }
 
     /**

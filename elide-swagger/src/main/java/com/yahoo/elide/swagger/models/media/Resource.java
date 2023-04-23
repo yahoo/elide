@@ -45,4 +45,12 @@ public class Resource extends ObjectSchema {
     public void addRelationship(String relationshipName, Relationship relationship) {
         relationships.addProperty(relationshipName, new Data(relationship));
     }
+
+    public ObjectSchema getAttributes() {
+        return this.attributes;
+    }
+
+    public ObjectSchema getRelationships() {
+        return this.relationships;
+    }
 }
