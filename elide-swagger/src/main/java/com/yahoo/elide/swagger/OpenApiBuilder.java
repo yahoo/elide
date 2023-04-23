@@ -75,6 +75,7 @@ public class OpenApiBuilder {
     protected boolean supportLegacyFilterDialect;
     protected boolean supportRSQLFilterDialect;
     protected String apiVersion = NO_VERSION;
+    protected String basePath = null;
 
     public static final ApiResponse UNAUTHORIZED_RESPONSE = new ApiResponse().description("Unauthorized");
     public static final ApiResponse FORBIDDEN_RESPONSE = new ApiResponse().description("Forbidden");
@@ -799,13 +800,13 @@ public class OpenApiBuilder {
 
         /* Each path constructs 3 URLs (collection, instance, and relationship) */
         for (PathMetaData pathDatum : pathData) {
-            openApi.path(pathDatum.getCollectionUrl(), pathDatum.getCollectionPath());
+            openApi.path(pathOf(pathDatum.getCollectionUrl()), pathDatum.getCollectionPath());
 
-            openApi.path(pathDatum.getUrl(), pathDatum.getInstancePath());
+            openApi.path(pathOf(pathDatum.getUrl()), pathDatum.getInstancePath());
 
             /* We only construct relationship URLs if the entity is not a root collection */
             if (! pathDatum.lineage.isEmpty()) {
-                openApi.path(pathDatum.getRelationshipUrl(), pathDatum.getRelationshipPath());
+                openApi.path(pathOf(pathDatum.getRelationshipUrl()), pathDatum.getRelationshipPath());
             }
         }
 
@@ -814,7 +815,18 @@ public class OpenApiBuilder {
                 .map(clazz -> dictionary.getJsonAliasFor(clazz))
                 .map(alias -> new Tag().name(alias))
                 .forEach(openApi::addTagsItem);
+        return this;
+    }
 
+    protected String pathOf(String url) {
+        if (basePath == null || "/".equals(basePath)) {
+            return url;
+        }
+        return basePath + url;
+    }
+
+    public OpenApiBuilder basePath(String basePath) {
+        this.basePath = basePath;
         return this;
     }
 
