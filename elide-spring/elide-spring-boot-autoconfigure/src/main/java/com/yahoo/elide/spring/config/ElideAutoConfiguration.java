@@ -767,7 +767,8 @@ public class ElideAutoConfiguration {
         OpenAPI openApi = builder.build();
         openApi.addServersItem(new Server().url(jsonApiPath));
         customizer.customize(openApi);
-        return new ApiDocsController.ApiDocsRegistrations(openApi, settings.getApiDocs().getVersion(), apiVersion);
+        return new ApiDocsController.ApiDocsRegistrations(openApi, settings.getApiDocs().getVersion().getValue(),
+                apiVersion);
     }
 
     public static boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

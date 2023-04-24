@@ -87,6 +87,33 @@ import java.util.function.Function;
  * Interface for configuring an ElideStandalone application.
  */
 public interface ElideStandaloneSettings {
+    /**
+     * The OpenAPI Specification Version.
+     */
+    public enum OpenApiVersion {
+        OPENAPI_3_0("3.0"),
+        OPENAPI_3_1("3.1");
+
+        private final String value;
+
+        OpenApiVersion(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return this.value;
+        }
+
+        public static OpenApiVersion from(String version) {
+            if (version.startsWith(OPENAPI_3_1.getValue())) {
+                return OPENAPI_3_1;
+            } else if (version.startsWith(OPENAPI_3_0.getValue())) {
+                return OPENAPI_3_0;
+            }
+            throw new IllegalArgumentException("Invalid OpenAPI version. Only versions 3.0 and 3.1 are supported.");
+        }
+    }
+
     /* Elide settings */
 
      public final Consumer<EntityManager> TXCANCEL = em -> em.unwrap(Session.class).cancelQuery();
@@ -306,11 +333,11 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * The version of OpenAPI to generate.
-     * @return the OpenAPI version to generate
+     * The OpenAPI Specification Version to generate.
+     * @return the OpenAPI Specification Version to generate
      */
-    default String getOpenApiVersion() {
-        return "3.0";
+    default OpenApiVersion getOpenApiVersion() {
+        return OpenApiVersion.OPENAPI_3_0;
     }
 
     /**
@@ -347,7 +374,7 @@ public interface ElideStandaloneSettings {
         OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
 
         List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
-        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi, getOpenApiVersion()));
+        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi, getOpenApiVersion().getValue()));
 
         return docs;
     }

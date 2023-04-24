@@ -65,7 +65,7 @@ public class ApiDocsController {
         private OpenAPI document;
 
         /**
-         * The OpenAPI Document version.
+         * The OpenAPI Specification Version.
          */
         private String version;
 

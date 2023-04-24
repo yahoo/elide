@@ -32,7 +32,7 @@ public class OpenApiDocument {
     }
 
     /**
-     * The OpenAPI version.
+     * The OpenAPI Specification Version.
      */
     public enum Version {
         OPENAPI_3_0("3.0"),

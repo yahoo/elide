@@ -46,7 +46,7 @@ public class ApiDocsEndpoint {
         private OpenAPI document;
 
         /**
-         * The OpenAPI version.
+         * The OpenAPI Specification Version.
          */
         private String version;
     }

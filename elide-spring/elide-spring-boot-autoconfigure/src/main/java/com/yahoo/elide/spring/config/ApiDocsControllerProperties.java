@@ -17,9 +17,36 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class ApiDocsControllerProperties extends ControllerProperties {
     /**
-     * The OpenAPI document version to generate. Either 3.0 or 3.1.
+     * The OpenAPI Specification Version.
      */
-    private String version = "3.0";
+    public enum Version {
+        OPENAPI_3_0("3.0"),
+        OPENAPI_3_1("3.1");
+
+        private final String value;
+
+        Version(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return this.value;
+        }
+
+        public static Version from(String version) {
+            if (version.startsWith(OPENAPI_3_1.getValue())) {
+                return OPENAPI_3_1;
+            } else if (version.startsWith(OPENAPI_3_0.getValue())) {
+                return OPENAPI_3_0;
+            }
+            throw new IllegalArgumentException("Invalid OpenAPI version. Only versions 3.0 and 3.1 are supported.");
+        }
+    }
+
+    /**
+     * The OpenAPI Specification Version to generate. Either openapi_3_0 or openapi_3_1.
+     */
+    private Version version = Version.OPENAPI_3_0;
 
     /**
      * The API version that should correspond with the API versions in the Entity Dictionary.

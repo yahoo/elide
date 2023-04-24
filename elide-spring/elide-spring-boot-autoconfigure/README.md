@@ -11,19 +11,19 @@ The Elide spring autoconfigure package provides the core code needed to use Elid
    
 ## Configuration Properties   
 
-| *Property*                        | *Required* |  *Default*      | *Description*                                               |
-| --------------------------------- | -----------| --------------- | ----------------------------------------------------------- |
-| elide.page-size                   | No         | 500             | Default pagination page size for collections                |
-| elide.max-page-size               | No         | 10000           | Max pagination page size a client can request.              |
-| elide.json-api.path               | No         | '/'             | URL path prefix for JSON-API endpoint.                      |
-| elide.json-api.enabled            | No         | false           | Whether or not the JSON-API endpoint is exposed.            |
-| elide.graphql.path                | No         | '/'             | URL path prefix for GraphQL endpoint.                       |
-| elide.graphql.enabled             | No         | false           | Whether or not the GraphQL endpoint is exposed.             |
-| elide.api-docs.path               | No         | '/'             | URL path prefix for OpenAPI document endpoint.              |
-| elide.api-docs.enabled            | No         | false           | Whether or not the OpenAPI document endpoint is exposed.    |
-| elide.api-docs.version            | No         | '3.0'           | The version of the OpenAPI document. Either '3.0' or '3.1.' |
-| elide.api-docs.api-version        | No         | ''              | The version of the API to document.                         |
-| elide.query-cache-maximum-entries | No         | 1024            | Maximum number of entries in query result cache.            |
+| *Property*                        | *Required* |  *Default*      | *Description*                                                                     |
+| --------------------------------- | -----------| --------------- | --------------------------------------------------------------------------------- |
+| elide.page-size                   | No         | 500             | Default pagination page size for collections                                      |
+| elide.max-page-size               | No         | 10000           | Max pagination page size a client can request.                                    |
+| elide.json-api.path               | No         | '/'             | URL path prefix for JSON-API endpoint.                                            |
+| elide.json-api.enabled            | No         | false           | Whether or not the JSON-API endpoint is exposed.                                  |
+| elide.graphql.path                | No         | '/'             | URL path prefix for GraphQL endpoint.                                             |
+| elide.graphql.enabled             | No         | false           | Whether or not the GraphQL endpoint is exposed.                                   |
+| elide.api-docs.path               | No         | '/'             | URL path prefix for OpenAPI document endpoint.                                    |
+| elide.api-docs.enabled            | No         | false           | Whether or not the OpenAPI document endpoint is exposed.                          |
+| elide.api-docs.version            | No         | openapi_3_0     | The OpenAPI Specification Version to generate. Either openapi_3_0 or openapi_3_1. |
+| elide.api-docs.api-version        | No         | ''              | The version of the API to document.                                               |
+| elide.query-cache-maximum-entries | No         | 1024            | Maximum number of entries in query result cache.                                  |
 
 
 ## Entity Dictionary Override
