@@ -115,11 +115,6 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
-                <artifactId>artemis-server</artifactId>
-                <version>${artemis.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.activemq</groupId>
                 <artifactId>artemis-journal</artifactId>
                 <version>${artemis.version}</version>
             </dependency>

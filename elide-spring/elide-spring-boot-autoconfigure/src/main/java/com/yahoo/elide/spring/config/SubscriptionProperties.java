@@ -6,11 +6,13 @@
 package com.yahoo.elide.spring.config;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Extra properties for setting up GraphQL subscription support.
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class SubscriptionProperties extends ControllerProperties {
 
     /**
