@@ -20,7 +20,7 @@ import java.util.List;
  * JsonApiPatchMapper.
  */
 public class JsonApiPatchMapper {
-    private final ObjectMapper objectMapper;
+    protected final ObjectMapper objectMapper;
 
     public JsonApiPatchMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;

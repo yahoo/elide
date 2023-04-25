@@ -21,7 +21,7 @@ import java.util.List;
  * JsonApiAtomicOperationsMapper.
  */
 public class JsonApiAtomicOperationsMapper {
-    private final ObjectMapper objectMapper;
+    protected final ObjectMapper objectMapper;
 
     public JsonApiAtomicOperationsMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;

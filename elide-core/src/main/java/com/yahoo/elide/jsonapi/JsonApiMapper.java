@@ -18,9 +18,9 @@ import java.io.IOException;
  * Serializer/Deserializer for JSON API.
  */
 public class JsonApiMapper {
-    private final ObjectMapper mapper;
-    private final JsonApiPatchMapper jsonPatchMapper;
-    private final JsonApiAtomicOperationsMapper atomicOperationsMapper;
+    protected final ObjectMapper mapper;
+    protected final JsonApiPatchMapper jsonPatchMapper;
+    protected final JsonApiAtomicOperationsMapper atomicOperationsMapper;
 
     /**
      * Instantiates a new Json Api Mapper.
