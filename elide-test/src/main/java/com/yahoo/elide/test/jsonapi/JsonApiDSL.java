@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.test.jsonapi;
 
+import com.yahoo.elide.test.jsonapi.elements.AtomicOperation;
+import com.yahoo.elide.test.jsonapi.elements.AtomicOperationCode;
+import com.yahoo.elide.test.jsonapi.elements.AtomicOperations;
 import com.yahoo.elide.test.jsonapi.elements.Attribute;
 import com.yahoo.elide.test.jsonapi.elements.Attributes;
 import com.yahoo.elide.test.jsonapi.elements.Data;
@@ -348,5 +351,13 @@ public class JsonApiDSL {
      */
     public static PatchOperation patchOperation(PatchOperationType operation, String path, Resource value) {
         return new PatchOperation(operation, path, value);
+    }
+
+    public static AtomicOperations atomicOperations(AtomicOperation... atomicOperations) {
+        return new AtomicOperations(atomicOperations);
+    }
+
+    public static AtomicOperation atomicOperation(AtomicOperationCode operation, String href, Resource value) {
+        return new AtomicOperation(operation, href, value);
     }
 }

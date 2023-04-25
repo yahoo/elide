@@ -11,6 +11,8 @@ import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.add;
 import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.test.jsonapi.elements.AtomicOperationCode;
+
 import org.junit.jupiter.api.Test;
 
 public class JsonApiDSLTest {
@@ -378,6 +380,34 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
+        assertEquals(expected, actual);
+    }
+    @Test
+    void verifyAtomicOperation() {
+        String expected = """
+                {"atomic:operations":[{"op":"add","href":"/parent","data":{"type":"parent","id":"1","relationships":{"children":{"data":[{"type":"child","id":"2"}]},"spouses":{"data":[{"type":"parent","id":"3"}]}}}},{"op":"add","href":"/parent/1/children","data":{"type":"child","id":"2"}}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                    JsonApiDSL.atomicOperation(AtomicOperationCode.add, "/parent",
+                            JsonApiDSL.resource(
+                                    JsonApiDSL.type("parent"),
+                                    JsonApiDSL.id("1"),
+                                    JsonApiDSL.relationships(
+                                            JsonApiDSL.relation("children",
+                                                    JsonApiDSL.linkage(JsonApiDSL.type("child"), JsonApiDSL.id("2"))
+                                            ),
+                                            JsonApiDSL.relation("spouses",
+                                                    JsonApiDSL.linkage(JsonApiDSL.type("parent"), JsonApiDSL.id("3"))
+                                            )
+                                    )
+                            )
+                    ),
+                    JsonApiDSL.atomicOperation(AtomicOperationCode.add, "/parent/1/children",
+                            JsonApiDSL.resource(
+                                    JsonApiDSL.type("child"),
+                                    JsonApiDSL.id("2")
+                            )
+                    )
+                ).toJSON();
         assertEquals(expected, actual);
     }
 }
