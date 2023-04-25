@@ -12,17 +12,16 @@ import com.google.gson.GsonBuilder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Atomic Operations.
  */
-public class AtomicOperations {
+public class AtomicOperations extends HashMap<String, List<AtomicOperation>> {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Gson GSON_INSTANCE = new GsonBuilder()
            .serializeNulls().create();
-
-   Map<String, List<AtomicOperation>> value = new HashMap<>();
 
    /**
     * Patch Set.
@@ -30,7 +29,7 @@ public class AtomicOperations {
     * @param atomicOperations the set of patch operations
     */
    public AtomicOperations(AtomicOperation... atomicOperations) {
-      this.value.put("atomic:operations", Arrays.asList(atomicOperations));
+      this.put("atomic:operations", Arrays.asList(atomicOperations));
    }
 
    /**
@@ -39,6 +38,6 @@ public class AtomicOperations {
     * @return the string
     */
    public String toJSON() {
-      return GSON_INSTANCE.toJson(value);
+      return GSON_INSTANCE.toJson(this);
    }
 }

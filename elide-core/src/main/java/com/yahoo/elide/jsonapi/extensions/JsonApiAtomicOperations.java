@@ -15,6 +15,7 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Operation;
+import com.yahoo.elide.jsonapi.models.Operation.OperationCode;
 import com.yahoo.elide.jsonapi.models.Operations;
 import com.yahoo.elide.jsonapi.models.Ref;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -24,6 +25,7 @@ import com.yahoo.elide.jsonapi.parser.DeleteVisitor;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -37,10 +39,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -149,14 +148,8 @@ public class JsonApiAtomicOperations {
 
             return () -> {
                 try {
-                    String path = requestScope.getBaseUrlEndPoint() + "/"
-                            + requestScope.getElideSettings().getJsonApiPath();
-                    return Pair.of(HttpStatus.SC_OK, mergeResponse(results, requestScope.getMapper(), result -> {
-                        Map<String, String> links = new HashMap<>();
-                        links.put("self", path + "/" + result.getData().getType() + "/" + result.getData().getId());
-                        result.getData().setLinks(links);
-                        return result;
-                    }));
+                    return Pair.of(HttpStatus.SC_OK,
+                            mergeResponse(results, requestScope.getMapper()));
                 } catch (HttpStatusException e) {
                     throwErrorResponse();
                     // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
@@ -170,6 +163,37 @@ public class JsonApiAtomicOperations {
         }
     }
 
+    protected String getFullPath(Ref ref) {
+        if (ref != null) {
+            StringBuilder fullPathBuilder = new StringBuilder();
+            if (ref.getType() == null) {
+                throw new InvalidEntityBodyException(
+                        "Atomic Operations extension requires ref type to be specified.");
+            } else if (ref.getId() == null && ref.getLid() == null) {
+                throw new InvalidEntityBodyException(
+                        "Atomic Operations extension requires either ref id or ref lid to be specified.");
+            }
+            fullPathBuilder.append(ref.getType());
+            if (ref.getId() != null) {
+                fullPathBuilder.append("/");
+                fullPathBuilder.append(ref.getId());
+            }
+            if (ref.getLid() != null) {
+                fullPathBuilder.append("/");
+                fullPathBuilder.append(ref.getLid());
+            }
+            if (ref.getRelationship() != null) {
+                fullPathBuilder.append("/");
+                fullPathBuilder.append("relationships");
+                fullPathBuilder.append("/");
+                fullPathBuilder.append(ref.getRelationship());
+            }
+            return fullPathBuilder.toString();
+        }
+        return null;
+
+    }
+
     /**
      * Handle a patch action.
      *
@@ -180,47 +204,25 @@ public class JsonApiAtomicOperations {
         return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonApiDocument>> result;
             try {
+                Operation operation = action.operation;
+                if (operation == null) {
+                    throw new InvalidEntityBodyException("Atomic Operations extension operation must be specified.");
+                }
+
                 String href = action.operation.getHref();
                 Ref ref = action.operation.getRef();
                 String fullPath = href;
                 if (fullPath == null) {
-                    StringBuilder fullPathBuilder = new StringBuilder();
-                    if (ref != null) {
-                        if (ref.getType() == null) {
-                            throw new InvalidEntityBodyException(
-                                    "Atomic Operations extension requires ref type to be specified.");
-                        } else if (ref.getId() == null && ref.getLid() == null) {
-                            throw new InvalidEntityBodyException(
-                                    "Atomic Operations extension requires either ref id or ref lid to be specified.");
-                        }
-                        fullPathBuilder.append(ref.getType());
-                        if (ref.getId() != null) {
-                            fullPathBuilder.append("/");
-                            fullPathBuilder.append(ref.getId());
-                        }
-                        if (ref.getLid() != null) {
-                            fullPathBuilder.append("/");
-                            fullPathBuilder.append(ref.getLid());
-                        }
-                        if (ref.getRelationship() != null) {
-                            fullPathBuilder.append("/");
-                            fullPathBuilder.append("relationships");
-                            fullPathBuilder.append("/");
-                            fullPathBuilder.append(ref.getRelationship());
-                        }
-                        fullPath = fullPathBuilder.toString();
-                    }
+                    fullPath = getFullPath(ref);
                 }
-
+                if (fullPath == null) {
+                    fullPath = inferFullPath(requestScope, operation);
+                }
                 if (fullPath == null) {
                     throw new InvalidEntityBodyException(
                             "Atomic Operations extension requires either href or ref to be specified.");
                 }
 
-                Operation operation = action.operation;
-                if (operation == null) {
-                    throw new InvalidEntityBodyException("Atomic Operations extension operation must be specified.");
-                }
                 switch (operation.getOperationCode()) {
                     case ADD:
                         result = handleAddOp(fullPath, action.operation.getData(), requestScope, action);
@@ -242,6 +244,34 @@ public class JsonApiAtomicOperations {
                 throw e;
             }
         }).toList();
+    }
+
+    private String inferFullPath(AtomicOperationsRequestScope requestScope, Operation operation) {
+        // Attempt to infer the path from the data
+        if (operation.getData() != null && !operation.getData().isArray()) {
+            try {
+                Resource resource = requestScope.getMapper().forAtomicOperations()
+                        .readResource(operation.getData());
+                if (resource.getType() != null) {
+                    if (resource.getAttributes() == null || resource.getAttributes().isEmpty()) {
+                        if (OperationCode.REMOVE.equals(operation.getOperationCode())
+                                && resource.getId() != null) {
+                            return resource.getType() + "/" + resource.getId();
+                        }
+                    } else {
+                        if (OperationCode.ADD.equals(operation.getOperationCode())) {
+                            return resource.getType();
+                        } else if (OperationCode.UPDATE.equals(operation.getOperationCode())
+                                && resource.getId() != null) {
+                            return resource.getType() + "/" + resource.getId();
+                        }
+                    }
+                }
+            } catch (JsonProcessingException e) {
+                // Do nothing as it will fall back on InvalidEntityBodyException
+            }
+        }
+        return null;
     }
 
     /**
@@ -438,13 +468,16 @@ public class JsonApiAtomicOperations {
      */
     private static JsonNode mergeResponse(
             List<Supplier<Pair<Integer, JsonApiDocument>>> results,
-            JsonApiMapper mapper,
-            Function<Result, Result> customizer
+            JsonApiMapper mapper
     ) {
         List<Result> list = new ArrayList<>();
         for (Supplier<Pair<Integer, JsonApiDocument>> result : results) {
             JsonApiDocument document = result.get().getRight();
-            document.getData().get().stream().map(Result::new).map(customizer).forEach(list::add);
+            if (document != null) {
+                document.getData().get().stream().map(Result::new).forEach(list::add);
+            } else {
+                list.add(new Result(null));
+            }
         }
         return mapper.getObjectMapper().valueToTree(new Results(list));
     }

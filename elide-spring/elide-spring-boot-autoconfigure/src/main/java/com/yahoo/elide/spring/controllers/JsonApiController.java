@@ -54,6 +54,7 @@ public class JsonApiController {
 
     public static final String JSON_API_CONTENT_TYPE = JsonApi.MEDIA_TYPE;
     public static final String JSON_API_PATCH_CONTENT_TYPE = JsonApi.Extensions.JsonPatch.MEDIA_TYPE;
+    public static final String JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE = JsonApi.Extensions.AtomicOperations.MEDIA_TYPE;
 
     public JsonApiController(RefreshableElide refreshableElide, ElideConfigProperties settings) {
         log.debug("Started ~~");

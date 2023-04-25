@@ -12,6 +12,8 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.atomicOperation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.atomicOperations;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -26,6 +28,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.add;
+import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.replace;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.contains;
@@ -39,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
+import com.yahoo.elide.test.jsonapi.elements.AtomicOperationCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,6 +61,7 @@ import io.restassured.response.Response;
 
 import jakarta.ws.rs.core.MediaType;
 
+import java.util.Map;
 /**
  * Example functional test.
  */
@@ -221,7 +226,7 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPatchExtensionTest() {
-        given()
+        ExtractableResponse<Response> response = given()
                 .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
                 .accept(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
                 .body(
@@ -229,9 +234,27 @@ public class ControllerTest extends IntegrationTest {
                                 patchOperation(add, "/group",
                                         resource(
                                                 type("group"),
-                                                id("com.example.repository.foo"),
+                                                id("com.example.patch1"),
                                                 attributes(
                                                         attr("commonName", "Foo")
+                                                )
+                                        )
+                                ),
+                                patchOperation(add, "/group",
+                                        resource(
+                                                type("group"),
+                                                id("com.example.patch2"),
+                                                attributes(
+                                                        attr("commonName", "Foo2")
+                                                )
+                                        )
+                                ),
+                                patchOperation(replace, "/group/com.example.patch2",
+                                        resource(
+                                                type("group"),
+                                                id("com.example.patch2"),
+                                                attributes(
+                                                        attr("description", "Updated Description")
                                                 )
                                         )
                                 )
@@ -240,7 +263,103 @@ public class ControllerTest extends IntegrationTest {
                 .when()
                 .patch("/json")
                 .then()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        Map<String, Object> attributes = response.path("[1].data.attributes");
+        assertEquals("Foo2", attributes.get("commonName"));
+        assertEquals("Updated Description", attributes.get("description"));
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionTest() {
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.add, "/group",
+                                        resource(
+                                                type("group"),
+                                                id("com.example.operations1"),
+                                                attributes(
+                                                        attr("commonName", "Foo1")
+                                                )
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.add, "/group",
+                                        resource(
+                                                type("group"),
+                                                id("com.example.operations2"),
+                                                attributes(
+                                                        attr("commonName", "Foo2")
+                                                )
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.update, "/group/com.example.operations2",
+                                        resource(
+                                                type("group"),
+                                                id("com.example.operations2"),
+                                                attributes(
+                                                        attr("description", "Updated Description")
+                                                )
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        Map<String, Object> attributes = response.path("'atomic:results'[1].data.attributes");
+        assertEquals("Foo2", attributes.get("commonName"));
+        assertEquals("Updated Description", attributes.get("description"));
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionPathInferTest() {
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.add, null,
+                                        resource(
+                                                type("group"),
+                                                id("com.example.operationsinfer1"),
+                                                attributes(
+                                                        attr("commonName", "Foo1")
+                                                )
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.add, null,
+                                        resource(
+                                                type("group"),
+                                                id("com.example.operationsinfer2"),
+                                                attributes(
+                                                        attr("commonName", "Foo2")
+                                                )
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.update, null,
+                                        resource(
+                                                type("group"),
+                                                id("com.example.operationsinfer2"),
+                                                attributes(
+                                                        attr("description", "Updated Description")
+                                                )
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        Map<String, Object> attributes = response.path("'atomic:results'[1].data.attributes");
+        assertEquals("Foo2", attributes.get("commonName"));
+        assertEquals("Updated Description", attributes.get("description"));
     }
 
     @Test

@@ -6,14 +6,11 @@
 package com.yahoo.elide.jsonapi.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The JSON Atomic Operations extension result body.
  */
-@JsonInclude(Include.NON_NULL)
 public class Result {
     private final Resource data;
 
