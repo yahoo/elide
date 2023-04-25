@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Yahoo Inc.
+ * Copyright 2023, the original author or authors.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -10,12 +10,16 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
+import com.yahoo.elide.core.exceptions.JsonAtomicExtensionException;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.jsonapi.models.Patch;
+import com.yahoo.elide.jsonapi.models.Operation;
+import com.yahoo.elide.jsonapi.models.Operations;
+import com.yahoo.elide.jsonapi.models.Ref;
 import com.yahoo.elide.jsonapi.models.Resource;
+import com.yahoo.elide.jsonapi.models.Result;
+import com.yahoo.elide.jsonapi.models.Results;
 import com.yahoo.elide.jsonapi.parser.DeleteVisitor;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
@@ -25,27 +29,29 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
- * Json API patch extension.
- * @see <a href="http://jsonapi.org/extensions/jsonpatch/">JSON Patch Extension</a>
+ * JSON API Atomic Operations extension.
+ * @see <a href="https://jsonapi.org/ext/atomic/">Atomic Operations</a>
  */
-public class JsonApiPatch {
-    public static final String EXTENSION = "jsonpatch";
+public class JsonApiAtomicOperations {
+    public static final String EXTENSION = "\"https://jsonapi.org/ext/atomic\"";
 
-    private static class PatchAction {
-        public final Patch patch;
+    private static class OperationAction {
+        public final Operation operation;
 
         // Failure
         public HttpStatusException cause;
@@ -55,17 +61,17 @@ public class JsonApiPatch {
         public JsonApiDocument doc;
         public String path;
 
-        public PatchAction(Patch patch) {
-            this.patch = patch;
+        public OperationAction(Operation operation) {
+            this.operation = operation;
             this.cause = null;
         }
 
-        public void postProcess(PatchRequestScope requestScope) {
+        public void postProcess(AtomicOperationsRequestScope requestScope) {
             if (isPostProcessing) {
                 try {
                     // Only update relationships
                     clearAllExceptRelationships(doc);
-                    PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, doc, requestScope));
+                    PatchVisitor visitor = new PatchVisitor(new AtomicOperationsRequestScope(path, doc, requestScope));
                     visitor.visit(JsonApiParser.parse(path));
                 } catch (HttpStatusException e) {
                     cause = e;
@@ -75,7 +81,7 @@ public class JsonApiPatch {
         }
     }
 
-    private final List<PatchAction> actions;
+    private final List<OperationAction> actions;
     private final String rootUri;
 
     private static final ObjectNode ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION;
@@ -92,25 +98,26 @@ public class JsonApiPatch {
     }
 
     /**
-     * Process json patch.
+     * Process JSON Atomic Operations.
      *
      * @param dataStore the dataStore
      * @param uri the uri
-     * @param patchDoc the patch doc
+     * @param operationsDoc the operations doc
      * @param requestScope request scope
      * @return pair
      */
-    public static Supplier<Pair<Integer, JsonNode>> processJsonPatch(DataStore dataStore,
+    public static Supplier<Pair<Integer, JsonNode>> processAtomicOperations(DataStore dataStore,
             String uri,
-            String patchDoc,
-            PatchRequestScope requestScope) {
-        List<Patch> actions;
+            String operationsDoc,
+            AtomicOperationsRequestScope requestScope) {
+        List<Operation> actions;
         try {
-            actions = requestScope.getMapper().forJsonPatch().readDoc(patchDoc);
+            Operations operations = requestScope.getMapper().forAtomicOperations().readDoc(operationsDoc);
+            actions = operations.getOperations();
         } catch (IOException e) {
-            throw new InvalidEntityBodyException(patchDoc);
+            throw new InvalidEntityBodyException(operationsDoc);
         }
-        JsonApiPatch processor = new JsonApiPatch(dataStore, actions, uri, requestScope);
+        JsonApiAtomicOperations processor = new JsonApiAtomicOperations(dataStore, actions, uri, requestScope);
         return processor.processActions(requestScope);
     }
 
@@ -121,11 +128,11 @@ public class JsonApiPatch {
      * @param actions List of patch actions
      * @param rootUri root URI
      */
-    private JsonApiPatch(DataStore dataStore,
-            List<Patch> actions,
+    private JsonApiAtomicOperations(DataStore dataStore,
+            List<Operation> actions,
             String rootUri,
             RequestScope requestScope) {
-        this.actions = actions.stream().map(PatchAction::new).collect(Collectors.toList());
+        this.actions = actions.stream().map(OperationAction::new).toList();
         this.rootUri = rootUri;
     }
 
@@ -134,7 +141,7 @@ public class JsonApiPatch {
      *
      * @return Pair (return code, JsonNode)
      */
-    private Supplier<Pair<Integer, JsonNode>> processActions(PatchRequestScope requestScope) {
+    private Supplier<Pair<Integer, JsonNode>> processActions(AtomicOperationsRequestScope requestScope) {
         try {
             List<Supplier<Pair<Integer, JsonApiDocument>>> results = handleActions(requestScope);
 
@@ -142,7 +149,14 @@ public class JsonApiPatch {
 
             return () -> {
                 try {
-                    return Pair.of(HttpStatus.SC_OK, mergeResponse(results, requestScope.getMapper()));
+                    String path = requestScope.getBaseUrlEndPoint() + "/"
+                            + requestScope.getElideSettings().getJsonApiPath();
+                    return Pair.of(HttpStatus.SC_OK, mergeResponse(results, requestScope.getMapper(), result -> {
+                        Map<String, String> links = new HashMap<>();
+                        links.put("self", path + "/" + result.getData().getType() + "/" + result.getData().getId());
+                        result.getData().setLinks(links);
+                        return result;
+                    }));
                 } catch (HttpStatusException e) {
                     throwErrorResponse();
                     // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
@@ -162,51 +176,81 @@ public class JsonApiPatch {
      * @param requestScope outer request scope
      * @return List of responders
      */
-    private List<Supplier<Pair<Integer, JsonApiDocument>>> handleActions(PatchRequestScope requestScope) {
+    private List<Supplier<Pair<Integer, JsonApiDocument>>> handleActions(AtomicOperationsRequestScope requestScope) {
         return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonApiDocument>> result;
             try {
-                String path = action.patch.getPath();
-                if (path == null) {
-                    throw new InvalidEntityBodyException("Patch extension requires all objects "
-                            + "to have an assigned path");
+                String href = action.operation.getHref();
+                Ref ref = action.operation.getRef();
+                String fullPath = href;
+                if (fullPath == null) {
+                    StringBuilder fullPathBuilder = new StringBuilder();
+                    if (ref != null) {
+                        if (ref.getType() == null) {
+                            throw new InvalidEntityBodyException(
+                                    "Atomic Operations extension requires ref type to be specified.");
+                        } else if (ref.getId() == null && ref.getLid() == null) {
+                            throw new InvalidEntityBodyException(
+                                    "Atomic Operations extension requires either ref id or ref lid to be specified.");
+                        }
+                        fullPathBuilder.append(ref.getType());
+                        if (ref.getId() != null) {
+                            fullPathBuilder.append("/");
+                            fullPathBuilder.append(ref.getId());
+                        }
+                        if (ref.getLid() != null) {
+                            fullPathBuilder.append("/");
+                            fullPathBuilder.append(ref.getLid());
+                        }
+                        if (ref.getRelationship() != null) {
+                            fullPathBuilder.append("/");
+                            fullPathBuilder.append("relationships");
+                            fullPathBuilder.append("/");
+                            fullPathBuilder.append(ref.getRelationship());
+                        }
+                        fullPath = fullPathBuilder.toString();
+                    }
                 }
-                String[] combined = ArrayUtils.addAll(rootUri.split("/"), action.patch.getPath().split("/"));
-                String fullPath = String.join("/", combined).replace("/-", "");
 
-                Patch.Operation operation = action.patch.getOperation();
-                if (operation == null) {
-                    throw new InvalidEntityBodyException("Patch extension operation cannot be null.");
+                if (fullPath == null) {
+                    throw new InvalidEntityBodyException(
+                            "Atomic Operations extension requires either href or ref to be specified.");
                 }
-                switch (operation) {
+
+                Operation operation = action.operation;
+                if (operation == null) {
+                    throw new InvalidEntityBodyException("Atomic Operations extension operation must be specified.");
+                }
+                switch (operation.getOperationCode()) {
                     case ADD:
-                        result = handleAddOp(fullPath, action.patch.getValue(), requestScope, action);
+                        result = handleAddOp(fullPath, action.operation.getData(), requestScope, action);
                         break;
-                    case REPLACE:
-                        result = handleReplaceOp(fullPath, action.patch.getValue(), requestScope, action);
+                    case UPDATE:
+                        result = handleUpdateOp(fullPath, action.operation.getData(), requestScope, action);
                         break;
                     case REMOVE:
-                        result = handleRemoveOp(fullPath, action.patch.getValue(), requestScope);
+                        result = handleRemoveOp(fullPath, action.operation.getData(), requestScope);
                         break;
                     default:
                         throw new InvalidEntityBodyException(
-                            "Could not parse patch extension operation:" + action.patch.getOperation());
+                            "Invalid Atomic Operations extension operation code:"
+                                    + action.operation.getOperationCode());
                 }
                 return result;
             } catch (HttpStatusException e) {
                 action.cause = e;
                 throw e;
             }
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     /**
-     * Add a document via patch extension.
+     * Add a document via atomic operations extension.
      */
     private Supplier<Pair<Integer, JsonApiDocument>> handleAddOp(
-            String path, JsonNode patchValue, PatchRequestScope requestScope, PatchAction action) {
+            String path, JsonNode dataValue, AtomicOperationsRequestScope requestScope, OperationAction action) {
         try {
-            JsonApiDocument value = requestScope.getMapper().forJsonPatch().readValue(patchValue);
+            JsonApiDocument value = requestScope.getMapper().forAtomicOperations().readData(dataValue);
             Data<Resource> data = value.getData();
             if (data == null || data.get() == null) {
                 throw new InvalidEntityBodyException("Expected an entity body but received none.");
@@ -217,34 +261,35 @@ public class JsonApiPatch {
                 String id = getSingleResource(resources).getId();
 
                 if (StringUtils.isEmpty(id)) {
-                    throw new InvalidEntityBodyException("Patch extension requires all objects to have an assigned "
-                            + "ID (temporary or permanent) when assigning relationships.");
+                    throw new InvalidEntityBodyException(
+                            "Atomic Operations extension requires all objects to have an assigned "
+                                    + "ID (temporary or permanent) when assigning relationships.");
                 }
                 String fullPath = path + "/" + id;
                 // Defer relationship updating until the end
                 getSingleResource(resources).setRelationships(null);
                 // Reparse since we mangle it first
-                action.doc = requestScope.getMapper().forJsonPatch().readValue(patchValue);
+                action.doc = requestScope.getMapper().forAtomicOperations().readData(dataValue);
                 action.path = fullPath;
                 action.isPostProcessing = true;
             }
-            PostVisitor visitor = new PostVisitor(new PatchRequestScope(path, value, requestScope));
+            PostVisitor visitor = new PostVisitor(new AtomicOperationsRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));
         } catch (HttpStatusException e) {
             action.cause = e;
             throw e;
         } catch (IOException e) {
-            throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchValue);
+            throw new InvalidEntityBodyException("Could not parse Atomic Operations extension value: " + dataValue);
         }
     }
 
     /**
-     * Replace data via patch extension.
+     * Update data via atomic operations extension.
      */
-    private Supplier<Pair<Integer, JsonApiDocument>> handleReplaceOp(
-            String path, JsonNode patchVal, PatchRequestScope requestScope, PatchAction action) {
+    private Supplier<Pair<Integer, JsonApiDocument>> handleUpdateOp(
+            String path, JsonNode dataValue, AtomicOperationsRequestScope requestScope, OperationAction action) {
         try {
-            JsonApiDocument value = requestScope.getMapper().forJsonPatch().readValue(patchVal);
+            JsonApiDocument value = requestScope.getMapper().forAtomicOperations().readData(dataValue);
 
             if (!path.contains("relationships")) { // Reserved
                 Data<Resource> data = value.getData();
@@ -252,26 +297,26 @@ public class JsonApiPatch {
                 // Defer relationship updating until the end
                 getSingleResource(resources).setRelationships(null);
                 // Reparse since we mangle it first
-                action.doc = requestScope.getMapper().forJsonPatch().readValue(patchVal);
+                action.doc = requestScope.getMapper().forAtomicOperations().readData(dataValue);
                 action.path = path;
                 action.isPostProcessing = true;
             }
             // Defer relationship updating until the end
-            PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, value, requestScope));
+            PatchVisitor visitor = new PatchVisitor(new AtomicOperationsRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));
         } catch (IOException e) {
-            throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchVal);
+            throw new InvalidEntityBodyException("Could not parse Atomic Operations extension value: " + dataValue);
         }
     }
 
     /**
-     * Remove data via patch extension.
+     * Remove data via atomic operations extension.
      */
     private Supplier<Pair<Integer, JsonApiDocument>> handleRemoveOp(String path,
-                                                             JsonNode patchValue,
-                                                             PatchRequestScope requestScope) {
+                                                             JsonNode dataValue,
+                                                             AtomicOperationsRequestScope requestScope) {
         try {
-            JsonApiDocument value = requestScope.getMapper().forJsonPatch().readValue(patchValue);
+            JsonApiDocument value = requestScope.getMapper().forAtomicOperations().readData(dataValue);
             String fullPath;
             if (path.contains("relationships")) { // Reserved keyword for relationships
                 fullPath = path;
@@ -286,10 +331,10 @@ public class JsonApiPatch {
                 }
             }
             DeleteVisitor visitor = new DeleteVisitor(
-                new PatchRequestScope(path, value, requestScope));
+                new AtomicOperationsRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(fullPath));
         } catch (IOException e) {
-            throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchValue);
+            throw new InvalidEntityBodyException("Could not parse Atomic Operations extension value: " + dataValue);
         }
     }
 
@@ -303,26 +348,26 @@ public class JsonApiPatch {
      *
      * @param requestScope request scope
      */
-    private void postProcessRelationships(PatchRequestScope requestScope) {
+    private void postProcessRelationships(AtomicOperationsRequestScope requestScope) {
         actions.forEach(action -> action.postProcess(requestScope));
     }
 
     /**
-     * Turn an exception into a proper error response from patch extension.
+     * Turn an exception into a proper error response from Atomic Operations extension.
      */
     private void throwErrorResponse() {
         ArrayNode errorContainer = getErrorContainer();
 
         boolean failed = false;
-        for (PatchAction action : actions) {
+        for (OperationAction action : actions) {
             failed = processAction(errorContainer, failed, action);
         }
 
-        JsonPatchExtensionException failure =
-                new JsonPatchExtensionException(HttpStatus.SC_BAD_REQUEST, errorContainer);
+        JsonAtomicExtensionException failure =
+                new JsonAtomicExtensionException(HttpStatus.SC_BAD_REQUEST, errorContainer);
 
         // attach error causes to exception
-        for (PatchAction action : actions) {
+        for (OperationAction action : actions) {
             if (action.cause != null) {
                 failure.addSuppressed(action.cause);
             }
@@ -335,7 +380,7 @@ public class JsonApiPatch {
         return JsonNodeFactory.instance.arrayNode();
     }
 
-    private boolean processAction(ArrayNode errorList, boolean failed, PatchAction action) {
+    private boolean processAction(ArrayNode errorList, boolean failed, OperationAction action) {
         ObjectNode container = JsonNodeFactory.instance.objectNode();
         ArrayNode errors = JsonNodeFactory.instance.arrayNode();
         container.set("errors", errors);
@@ -363,7 +408,7 @@ public class JsonApiPatch {
         if (data == null || data.get() == null) {
             return;
         }
-        data.get().forEach(JsonApiPatch::clearAllExceptRelationships);
+        data.get().forEach(JsonApiAtomicOperations::clearAllExceptRelationships);
     }
 
     /**
@@ -393,39 +438,34 @@ public class JsonApiPatch {
      */
     private static JsonNode mergeResponse(
             List<Supplier<Pair<Integer, JsonApiDocument>>> results,
-            JsonApiMapper mapper
+            JsonApiMapper mapper,
+            Function<Result, Result> customizer
     ) {
-        ArrayNode list = JsonNodeFactory.instance.arrayNode();
+        List<Result> list = new ArrayList<>();
         for (Supplier<Pair<Integer, JsonApiDocument>> result : results) {
-            JsonNode node;
             JsonApiDocument document = result.get().getRight();
-            if (document == null) {
-                node = JsonNodeFactory.instance.objectNode().set("data", null);
-            } else {
-                node = mapper.toJsonObject(document);
-            }
-
-            list.add(node);
+            document.getData().get().stream().map(Result::new).map(customizer).forEach(list::add);
         }
-        return list;
+        return mapper.getObjectMapper().valueToTree(new Results(list));
     }
 
     /**
-     * Determine whether or not ext = jsonpatch is present in header.
+     * Determine whether or not ext = "https://jsonapi.org/ext/atomic" is present in header.
      *
      * @param header the header
-     * @return True if Json patch, false otherwise
+     * @return true if it is Atomic Operations
      */
-    public static boolean isPatchExtension(String header) {
+    public static boolean isAtomicOperationsExtension(String header) {
         if (header == null) {
             return false;
         }
 
-        // Find ext=jsonpatch
+        // Find ext="https://jsonapi.org/ext/atomic"
         return Arrays.stream(header.split(";"))
             .map(key -> key.split("="))
             .filter(value -> value.length == 2)
-            .anyMatch(value -> value[0].trim().equals("ext") && value[1].trim().equals(EXTENSION));
+                .anyMatch(value -> value[0].trim().equals("ext")
+                        && value[1].trim().equals(EXTENSION));
     }
 
     private static Resource getSingleResource(Collection<Resource> resources) {

@@ -29,7 +29,10 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.extensions.AtomicOperationsRequestScope;
+import com.yahoo.elide.jsonapi.extensions.JsonApiAtomicOperations;
 import com.yahoo.elide.jsonapi.extensions.JsonApiPatch;
 import com.yahoo.elide.jsonapi.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -73,9 +76,9 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class Elide {
-    public static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
+    public static final String JSONAPI_CONTENT_TYPE = JsonApi.MEDIA_TYPE;
     public static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
-            "application/vnd.api+json; ext=jsonpatch";
+            JsonApi.Extensions.JsonPatch.MEDIA_TYPE;
 
     @Getter private final ElideSettings elideSettings;
     @Getter private final AuditLogger auditLogger;
@@ -413,6 +416,31 @@ public class Elide {
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 return visit(path, requestScope, visitor);
             };
+        }
+
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, handler);
+    }
+
+    public ElideResponse operations(String baseUrlEndPoint, String contentType, String accept, String path,
+            String jsonApiDocument, MultivaluedMap<String, String> queryParams,
+            Map<String, List<String>> requestHeaders, User opaqueUser, String apiVersion, UUID requestId) {
+
+        Handler<DataStoreTransaction, User, HandlerResult> handler;
+        if (JsonApiAtomicOperations.isAtomicOperationsExtension(contentType)
+                && JsonApiAtomicOperations.isAtomicOperationsExtension(accept)) {
+            handler = (tx, user) -> {
+                AtomicOperationsRequestScope requestScope = new AtomicOperationsRequestScope(baseUrlEndPoint, path,
+                        apiVersion, tx, user, requestId, queryParams, requestHeaders, elideSettings);
+                try {
+                    Supplier<Pair<Integer, JsonNode>> responder = JsonApiAtomicOperations
+                            .processAtomicOperations(dataStore, path, jsonApiDocument, requestScope);
+                    return new HandlerResult(requestScope, responder);
+                } catch (RuntimeException e) {
+                    return new HandlerResult(requestScope, e);
+                }
+            };
+        } else {
+            return new ElideResponse(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type");
         }
 
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, handler);

@@ -5,28 +5,28 @@
  */
 package com.yahoo.elide.jsonapi;
 
+import com.yahoo.elide.jsonapi.extensions.JsonApiAtomicOperationsMapper;
+import com.yahoo.elide.jsonapi.extensions.JsonApiPatchMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.jsonapi.models.Patch;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Serializer/Deserializer for JSON API.
  */
 public class JsonApiMapper {
     private final ObjectMapper mapper;
+    private final JsonApiPatchMapper jsonPatchMapper;
+    private final JsonApiAtomicOperationsMapper atomicOperationsMapper;
 
     /**
      * Instantiates a new Json Api Mapper.
      */
     public JsonApiMapper() {
-        this.mapper = new ObjectMapper();
-        mapper.registerModule(JsonApiSerializer.getModule());
+        this(new ObjectMapper());
     }
 
     /**
@@ -36,7 +36,9 @@ public class JsonApiMapper {
      */
     public JsonApiMapper(ObjectMapper mapper) {
         this.mapper = mapper;
-        mapper.registerModule(JsonApiSerializer.getModule());
+        this.mapper.registerModule(JsonApiSerializer.getModule());
+        this.jsonPatchMapper = new JsonApiPatchMapper(this.mapper);
+        this.atomicOperationsMapper = new JsonApiAtomicOperationsMapper(this.mapper);
     }
 
     /**
@@ -85,34 +87,29 @@ public class JsonApiMapper {
     }
 
     /**
-     * Read json api patch ext value.
+     * Gets the Jackson ObjectMapper.
      *
-     * @param value the value
-     * @return the json api document
-     * @throws JsonProcessingException the json processing exception
-     */
-    public JsonApiDocument readJsonApiPatchExtValue(JsonNode value) throws JsonProcessingException {
-        JsonNode data = JsonNodeFactory.instance.objectNode().set("data", value);
-        return mapper.treeToValue(data, JsonApiDocument.class);
-    }
-
-    /**
-     * Read json api patch ext doc.
-     *
-     * @param doc the doc
-     * @return the list
-     * @throws IOException the iO exception
-     */
-    public List<Patch> readJsonApiPatchExtDoc(String doc) throws IOException {
-        return mapper.readValue(doc, mapper.getTypeFactory().constructCollectionType(List.class, Patch.class));
-    }
-
-    /**
-     * Gets object OBJECT_MAPPER.
-     *
-     * @return the object OBJECT_MAPPER
+     * @return the Jackson ObjectMapper
      */
     public ObjectMapper getObjectMapper() {
         return mapper;
+    }
+
+    /**
+     * Gets the mapper for the JSON Patch extension.
+     *
+     * @return the mapper for the JSON Patch extension.
+     */
+    public JsonApiPatchMapper forJsonPatch() {
+        return this.jsonPatchMapper;
+    }
+
+    /**
+     * Gets the mapper for the Atomic Operations extension.
+     *
+     * @return the mapper for the Atomic Operations extension.
+     */
+    public JsonApiAtomicOperationsMapper forAtomicOperations() {
+        return this.atomicOperationsMapper;
     }
 }
