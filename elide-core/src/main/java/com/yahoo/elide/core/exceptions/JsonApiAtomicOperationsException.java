@@ -11,11 +11,11 @@ import org.apache.commons.lang3.tuple.Pair;
 /**
  * Exception describing error caused from JSON API Atomic Extension request.
  */
-public class JsonAtomicExtensionException extends HttpStatusException {
+public class JsonApiAtomicOperationsException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
     private final Pair<Integer, JsonNode> response;
 
-    public JsonAtomicExtensionException(int status, final JsonNode errorNode) {
+    public JsonApiAtomicOperationsException(int status, final JsonNode errorNode) {
         super(status, "");
         response = Pair.of(status, errorNode);
     }

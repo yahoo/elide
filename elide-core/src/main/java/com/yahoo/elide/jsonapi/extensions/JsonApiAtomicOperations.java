@@ -10,7 +10,7 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.exceptions.JsonAtomicExtensionException;
+import com.yahoo.elide.core.exceptions.JsonApiAtomicOperationsException;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -393,8 +393,8 @@ public class JsonApiAtomicOperations {
             failed = processAction(errorContainer, failed, action);
         }
 
-        JsonAtomicExtensionException failure =
-                new JsonAtomicExtensionException(HttpStatus.SC_BAD_REQUEST, errorContainer);
+        JsonApiAtomicOperationsException failure =
+                new JsonApiAtomicOperationsException(HttpStatus.SC_BAD_REQUEST, errorContainer);
 
         // attach error causes to exception
         for (OperationAction action : actions) {

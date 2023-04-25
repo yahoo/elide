@@ -53,8 +53,8 @@ public class JsonApiController {
     private final HeaderUtils.HeaderProcessor headerProcessor;
 
     public static final String JSON_API_CONTENT_TYPE = JsonApi.MEDIA_TYPE;
-    public static final String JSON_API_PATCH_CONTENT_TYPE = JsonApi.Extensions.JsonPatch.MEDIA_TYPE;
-    public static final String JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE = JsonApi.Extensions.AtomicOperations.MEDIA_TYPE;
+    public static final String JSON_API_PATCH_CONTENT_TYPE = JsonApi.JsonPatch.MEDIA_TYPE;
+    public static final String JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE = JsonApi.AtomicOperations.MEDIA_TYPE;
 
     public JsonApiController(RefreshableElide refreshableElide, ElideConfigProperties settings) {
         log.debug("Started ~~");
@@ -111,36 +111,9 @@ public class JsonApiController {
         };
     }
 
-    @PostMapping(
-            value = "/operations",
-            consumes = { JsonApi.Extensions.AtomicOperations.MEDIA_TYPE},
-            produces = JsonApi.Extensions.AtomicOperations.MEDIA_TYPE
-    )
-    public Callable<ResponseEntity<String>> elideOperations(@RequestHeader HttpHeaders requestHeaders,
-                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
-                                                       @RequestBody String body,
-                                                       HttpServletRequest request, Authentication authentication) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
-        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-        final User user = new AuthenticationUser(authentication);
-        final String baseUrl = getBaseUrlEndpoint();
-
-        return new Callable<ResponseEntity<String>>() {
-            @Override
-            public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide
-                        .operations(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
-                               convert(allRequestParams), requestHeadersCleaned, user, apiVersion,
-                               UUID.randomUUID());
-                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
-            }
-        };
-    }
-
     @PatchMapping(
             value = "/**",
-            consumes = { JsonApi.MEDIA_TYPE, JsonApi.Extensions.JsonPatch.MEDIA_TYPE },
+            consumes = { JsonApi.MEDIA_TYPE, JsonApi.JsonPatch.MEDIA_TYPE },
             produces = JsonApi.MEDIA_TYPE
     )
     public Callable<ResponseEntity<String>> elidePatch(@RequestHeader HttpHeaders requestHeaders,
@@ -206,6 +179,33 @@ public class JsonApiController {
                 ElideResponse response = elide
                         .delete(baseUrl, pathname, body, convert(allRequestParams),
                                 requestHeadersCleaned, user, apiVersion, UUID.randomUUID());
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
+    }
+
+    @PostMapping(
+            value = "/operations",
+            consumes = JsonApi.AtomicOperations.MEDIA_TYPE,
+            produces = JsonApi.AtomicOperations.MEDIA_TYPE
+    )
+    public Callable<ResponseEntity<String>> elideOperations(@RequestHeader HttpHeaders requestHeaders,
+                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
+                                                       @RequestBody String body,
+                                                       HttpServletRequest request, Authentication authentication) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
+
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide
+                        .operations(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
+                               convert(allRequestParams), requestHeadersCleaned, user, apiVersion,
+                               UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };

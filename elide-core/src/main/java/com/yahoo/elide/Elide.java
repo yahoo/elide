@@ -21,6 +21,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
+import com.yahoo.elide.core.exceptions.JsonApiAtomicOperationsException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.security.User;
@@ -78,7 +79,7 @@ import java.util.stream.Collectors;
 public class Elide {
     public static final String JSONAPI_CONTENT_TYPE = JsonApi.MEDIA_TYPE;
     public static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
-            JsonApi.Extensions.JsonPatch.MEDIA_TYPE;
+            JsonApi.JsonPatch.MEDIA_TYPE;
 
     @Getter private final ElideSettings elideSettings;
     @Getter private final AuditLogger auditLogger;
@@ -421,31 +422,6 @@ public class Elide {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, handler);
     }
 
-    public ElideResponse operations(String baseUrlEndPoint, String contentType, String accept, String path,
-            String jsonApiDocument, MultivaluedMap<String, String> queryParams,
-            Map<String, List<String>> requestHeaders, User opaqueUser, String apiVersion, UUID requestId) {
-
-        Handler<DataStoreTransaction, User, HandlerResult> handler;
-        if (JsonApiAtomicOperations.isAtomicOperationsExtension(contentType)
-                && JsonApiAtomicOperations.isAtomicOperationsExtension(accept)) {
-            handler = (tx, user) -> {
-                AtomicOperationsRequestScope requestScope = new AtomicOperationsRequestScope(baseUrlEndPoint, path,
-                        apiVersion, tx, user, requestId, queryParams, requestHeaders, elideSettings);
-                try {
-                    Supplier<Pair<Integer, JsonNode>> responder = JsonApiAtomicOperations
-                            .processAtomicOperations(dataStore, path, jsonApiDocument, requestScope);
-                    return new HandlerResult(requestScope, responder);
-                } catch (RuntimeException e) {
-                    return new HandlerResult(requestScope, e);
-                }
-            };
-        } else {
-            return new ElideResponse(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type");
-        }
-
-        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, handler);
-    }
-
     /**
      * Handle DELETE.
      *
@@ -508,6 +484,46 @@ public class Elide {
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
+    }
+
+    /**
+     * Handle operations for the Atomic Operations extension.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param contentType the content type
+     * @param accept the accept
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     * @return
+     */
+    public ElideResponse operations(String baseUrlEndPoint, String contentType, String accept, String path,
+            String jsonApiDocument, MultivaluedMap<String, String> queryParams,
+            Map<String, List<String>> requestHeaders, User opaqueUser, String apiVersion, UUID requestId) {
+
+        Handler<DataStoreTransaction, User, HandlerResult> handler;
+        if (JsonApiAtomicOperations.isAtomicOperationsExtension(contentType)
+                && JsonApiAtomicOperations.isAtomicOperationsExtension(accept)) {
+            handler = (tx, user) -> {
+                AtomicOperationsRequestScope requestScope = new AtomicOperationsRequestScope(baseUrlEndPoint, path,
+                        apiVersion, tx, user, requestId, queryParams, requestHeaders, elideSettings);
+                try {
+                    Supplier<Pair<Integer, JsonNode>> responder = JsonApiAtomicOperations
+                            .processAtomicOperations(dataStore, path, jsonApiDocument, requestScope);
+                    return new HandlerResult(requestScope, responder);
+                } catch (RuntimeException e) {
+                    return new HandlerResult(requestScope, e);
+                }
+            };
+        } else {
+            return new ElideResponse(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type");
+        }
+
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, handler);
     }
 
     public HandlerResult visit(String path, RequestScope requestScope, BaseVisitor visitor) {
@@ -587,8 +603,7 @@ public class Elide {
             return buildErrorResponse(mappedException, isVerbose);
         }
 
-        if (error instanceof JacksonException) {
-            JacksonException jacksonException = (JacksonException) error;
+        if (error instanceof JacksonException jacksonException) {
             String message = (jacksonException.getLocation() != null
                     && jacksonException.getLocation().getSourceRef() != null)
                     ? error.getMessage() //This will leak Java class info if the location isn't known.
@@ -617,34 +632,34 @@ public class Elide {
             throw error;
         }
 
-        if (error instanceof ForbiddenAccessException) {
-            ForbiddenAccessException e = (ForbiddenAccessException) error;
+        if (error instanceof ForbiddenAccessException e) {
             if (log.isDebugEnabled()) {
                 log.debug("{}", e.getLoggedMessage());
             }
             return buildErrorResponse(e, isVerbose);
         }
 
-        if (error instanceof JsonPatchExtensionException) {
-            JsonPatchExtensionException e = (JsonPatchExtensionException) error;
-            log.debug("JSON patch extension exception caught", e);
+        if (error instanceof JsonPatchExtensionException e) {
+            log.debug("JSON API Json Patch extension exception caught", e);
             return buildErrorResponse(e, isVerbose);
         }
 
-        if (error instanceof HttpStatusException) {
-            HttpStatusException e = (HttpStatusException) error;
+        if (error instanceof JsonApiAtomicOperationsException e) {
+            log.debug("JSON API Atomic Operations extension exception caught", e);
+            return buildErrorResponse(e, isVerbose);
+        }
+
+        if (error instanceof HttpStatusException e) {
             log.debug("Caught HTTP status exception", e);
             return buildErrorResponse(e, isVerbose);
         }
 
-        if (error instanceof ParseCancellationException) {
-            ParseCancellationException e = (ParseCancellationException) error;
+        if (error instanceof ParseCancellationException e) {
             log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
         }
 
-        if (error instanceof ConstraintViolationException) {
-            ConstraintViolationException e = (ConstraintViolationException) error;
+        if (error instanceof ConstraintViolationException e) {
             log.debug("Constraint violation exception caught", e);
             String message = "Constraint violation";
             final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
@@ -665,7 +680,7 @@ public class Elide {
         }
 
         log.error("Error or exception uncaught by Elide", error);
-        throw new RuntimeException(error);
+        throw error;
     }
 
     public CustomErrorException mapError(Exception error) {

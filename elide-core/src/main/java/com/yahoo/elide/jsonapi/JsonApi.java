@@ -13,19 +13,17 @@ public class JsonApi {
     }
     public static final String MEDIA_TYPE = "application/vnd.api+json";
 
-    public static class Extensions {
-        private Extensions() {
-        }
-        public static class JsonPatch {
-            private JsonPatch() {
-            }
-            public static final String MEDIA_TYPE = "application/vnd.api+json; ext=jsonpatch";
+    public static class JsonPatch {
+        private JsonPatch() {
         }
 
-        public static class AtomicOperations {
-            private AtomicOperations() {
-            }
-            public static final String MEDIA_TYPE = "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\"";
+        public static final String MEDIA_TYPE = "application/vnd.api+json; ext=jsonpatch";
+    }
+
+    public static class AtomicOperations {
+        private AtomicOperations() {
         }
+
+        public static final String MEDIA_TYPE = "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\"";
     }
 }
