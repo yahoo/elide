@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -163,24 +164,25 @@ public class JsonApiAtomicOperations {
         }
     }
 
-    protected String getFullPath(Ref ref) {
+    protected String getFullPath(Ref ref, Operation operation) {
         if (ref != null) {
             StringBuilder fullPathBuilder = new StringBuilder();
             if (ref.getType() == null) {
                 throw new InvalidEntityBodyException(
                         "Atomic Operations extension requires ref type to be specified.");
-            } else if (ref.getId() == null && ref.getLid() == null) {
-                throw new InvalidEntityBodyException(
-                        "Atomic Operations extension requires either ref id or ref lid to be specified.");
             }
             fullPathBuilder.append(ref.getType());
-            if (ref.getId() != null) {
-                fullPathBuilder.append("/");
-                fullPathBuilder.append(ref.getId());
-            }
-            if (ref.getLid() != null) {
-                fullPathBuilder.append("/");
-                fullPathBuilder.append(ref.getLid());
+
+            // Only relationship operations or resource update operation should have the id
+            if (ref.getRelationship() != null || OperationCode.UPDATE.equals(operation.getOperationCode())) {
+                if (ref.getId() != null) {
+                    fullPathBuilder.append("/");
+                    fullPathBuilder.append(ref.getId());
+                }
+                if (ref.getLid() != null) {
+                    fullPathBuilder.append("/");
+                    fullPathBuilder.append(ref.getLid());
+                }
             }
             if (ref.getRelationship() != null) {
                 fullPathBuilder.append("/");
@@ -204,6 +206,7 @@ public class JsonApiAtomicOperations {
         return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonApiDocument>> result;
             try {
+                JsonNode data = action.operation.getData();
                 Operation operation = action.operation;
                 if (operation == null) {
                     throw new InvalidEntityBodyException("Atomic Operations extension operation must be specified.");
@@ -213,10 +216,18 @@ public class JsonApiAtomicOperations {
                 Ref ref = action.operation.getRef();
                 String fullPath = href;
                 if (fullPath == null) {
-                    fullPath = getFullPath(ref);
-                }
-                if (fullPath == null) {
-                    fullPath = inferFullPath(requestScope, operation);
+                    if (ref == null) {
+                        ref = inferRef(requestScope.getMapper(), operation);
+                    }
+                    fullPath = getFullPath(ref, operation);
+
+                    // If data is not provided, but it is to remove a resource the data is optional
+                    // and should be generated from the ref
+                    if ((data == null || JsonNodeType.NULL.equals(data.getNodeType()))
+                            && OperationCode.REMOVE.equals(operation.getOperationCode())) {
+                        data = requestScope.getMapper().getObjectMapper().createObjectNode().put("type", ref.getType())
+                                .put("id", ref.getId() != null ? ref.getId() : ref.getLid());
+                    }
                 }
                 if (fullPath == null) {
                     throw new InvalidEntityBodyException(
@@ -225,13 +236,13 @@ public class JsonApiAtomicOperations {
 
                 switch (operation.getOperationCode()) {
                     case ADD:
-                        result = handleAddOp(fullPath, action.operation.getData(), requestScope, action);
+                        result = handleAddOp(fullPath, data, requestScope, action);
                         break;
                     case UPDATE:
-                        result = handleUpdateOp(fullPath, action.operation.getData(), requestScope, action);
+                        result = handleUpdateOp(fullPath, data, requestScope, action);
                         break;
                     case REMOVE:
-                        result = handleRemoveOp(fullPath, action.operation.getData(), requestScope);
+                        result = handleRemoveOp(fullPath, data, requestScope);
                         break;
                     default:
                         throw new InvalidEntityBodyException(
@@ -246,24 +257,33 @@ public class JsonApiAtomicOperations {
         }).toList();
     }
 
-    private String inferFullPath(AtomicOperationsRequestScope requestScope, Operation operation) {
-        // Attempt to infer the path from the data
+    /**
+     * Infer ref using the data for operations on resources. The ref cannot be
+     * inferred for operations on relationships.
+     *
+     * @param mapper the json api mapper
+     * @param operation the operation
+     * @return the ref
+     */
+    private Ref inferRef(JsonApiMapper mapper, Operation operation) {
+        // Attempt to infer the ref from the data
         if (operation.getData() != null && !operation.getData().isArray()) {
             try {
-                Resource resource = requestScope.getMapper().forAtomicOperations()
+                Resource resource = mapper.forAtomicOperations()
                         .readResource(operation.getData());
                 if (resource.getType() != null) {
                     if (resource.getAttributes() == null || resource.getAttributes().isEmpty()) {
                         if (OperationCode.REMOVE.equals(operation.getOperationCode())
                                 && resource.getId() != null) {
-                            return resource.getType() + "/" + resource.getId();
+                            // When removing a single resource the path only contains the type and not id
+                            return new Ref(resource.getType(), null, null, null);
                         }
                     } else {
                         if (OperationCode.ADD.equals(operation.getOperationCode())) {
-                            return resource.getType();
+                            return new Ref(resource.getType(), null, null, null);
                         } else if (OperationCode.UPDATE.equals(operation.getOperationCode())
                                 && resource.getId() != null) {
-                            return resource.getType() + "/" + resource.getId();
+                            return new Ref(resource.getType(), resource.getId(), null, null);
                         }
                     }
                 }

@@ -19,6 +19,7 @@ import com.yahoo.elide.test.jsonapi.elements.Links;
 import com.yahoo.elide.test.jsonapi.elements.PatchOperation;
 import com.yahoo.elide.test.jsonapi.elements.PatchOperationType;
 import com.yahoo.elide.test.jsonapi.elements.PatchSet;
+import com.yahoo.elide.test.jsonapi.elements.Ref;
 import com.yahoo.elide.test.jsonapi.elements.Relation;
 import com.yahoo.elide.test.jsonapi.elements.Relationships;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -357,7 +358,23 @@ public class JsonApiDSL {
         return new AtomicOperations(atomicOperations);
     }
 
+    public static AtomicOperation atomicOperation(AtomicOperationCode operation, Resource value) {
+        return new AtomicOperation(operation, (String) null, value);
+    }
+
     public static AtomicOperation atomicOperation(AtomicOperationCode operation, String href, Resource value) {
         return new AtomicOperation(operation, href, value);
+    }
+
+    public static AtomicOperation atomicOperation(AtomicOperationCode operation, Ref ref, Resource value) {
+        return new AtomicOperation(operation, ref, value);
+    }
+
+    public static AtomicOperation atomicOperation(AtomicOperationCode operation, Ref ref) {
+        return new AtomicOperation(operation, ref, null);
+    }
+
+    public static Ref ref(Type type, Id id) {
+        return new Ref(type, id);
     }
 }

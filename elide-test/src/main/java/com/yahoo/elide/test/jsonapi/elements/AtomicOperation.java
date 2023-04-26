@@ -17,12 +17,25 @@ public class AtomicOperation extends LinkedHashMap<String, Object> {
     * Atomic Operation.
     *
     * @param operation the operation type
-    * @param path the operation path
-    * @param value the operation value
+    * @param href the operation path
+    * @param data the operation value
     */
    public AtomicOperation(AtomicOperationCode operation, String href, Resource data) {
       this.put("op", operation.name());
       this.put("href", href);
+      this.put("data", data);
+   }
+
+   /**
+    * Atomic Operation.
+    *
+    * @param operation the operation type
+    * @param ref the operation path
+    * @param data the operation value
+    */
+   public AtomicOperation(AtomicOperationCode operation, Ref ref, Resource data) {
+      this.put("op", operation.name());
+      this.put("ref", ref);
       this.put("data", data);
    }
 }

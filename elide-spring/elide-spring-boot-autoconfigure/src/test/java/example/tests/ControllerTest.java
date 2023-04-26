@@ -23,11 +23,13 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.links;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.patchOperation;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.patchSet;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.ref;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.add;
+import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.remove;
 import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.replace;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
@@ -268,6 +270,35 @@ public class ControllerTest extends IntegrationTest {
         Map<String, Object> attributes = response.path("[1].data.attributes");
         assertEquals("Foo2", attributes.get("commonName"));
         assertEquals("Updated Description", attributes.get("description"));
+
+        ExtractableResponse<Response> deleteResponse = given()
+                .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .body(
+                        patchSet(
+                                patchOperation(remove, "/group",
+                                        resource(
+                                                type("group"),
+                                                id("com.example.patch1")
+                                        )
+                                ),
+                                patchOperation(remove, "/group",
+                                        resource(
+                                                type("group"),
+                                                id("com.example.patch2")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/json")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String result = deleteResponse.asString();
+        String expected = """
+                [{"data":null},{"data":null}]""";
+        assertEquals(expected, result);
     }
 
     @Test
@@ -303,6 +334,24 @@ public class ControllerTest extends IntegrationTest {
                                                         attr("description", "Updated Description")
                                                 )
                                         )
+                                ),
+                                atomicOperation(AtomicOperationCode.add, "/group/com.example.operations2/products",
+                                        resource(
+                                                type("product"),
+                                                id("com.example.operations.product1"),
+                                                attributes(
+                                                        attr("commonName", "Product1")
+                                                )
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.update, "/group/com.example.operations2/products/com.example.operations.product1",
+                                        resource(
+                                                type("product"),
+                                                id("com.example.operations.product1"),
+                                                attributes(
+                                                        attr("description", "Product1 Description")
+                                                )
+                                        )
                                 )
                         )
                 )
@@ -311,9 +360,44 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        Map<String, Object> attributes = response.path("'atomic:results'[1].data.attributes");
-        assertEquals("Foo2", attributes.get("commonName"));
-        assertEquals("Updated Description", attributes.get("description"));
+        Map<String, Object> groupAttributes = response.path("'atomic:results'[1].data.attributes");
+        assertEquals("Foo2", groupAttributes.get("commonName"));
+        assertEquals("Updated Description", groupAttributes.get("description"));
+
+        Map<String, Object> productAttributes = response.path("'atomic:results'[3].data.attributes");
+        assertEquals("Product1", productAttributes.get("commonName"));
+        assertEquals("Product1 Description", productAttributes.get("description"));
+
+
+        ExtractableResponse<Response> deleteResponse = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.remove,
+                                        resource(
+                                                type("group"),
+                                                id("com.example.operations1")
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.remove,
+                                        resource(
+                                                type("group"),
+                                                id("com.example.operations2")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String result = deleteResponse.asString();
+        String expected = """
+                {"atomic:results":[{"data":null},{"data":null}]}""";
+        assertEquals(expected, result);
+
     }
 
     @Test
@@ -323,7 +407,7 @@ public class ControllerTest extends IntegrationTest {
                 .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
                 .body(
                         atomicOperations(
-                                atomicOperation(AtomicOperationCode.add, null,
+                                atomicOperation(AtomicOperationCode.add,
                                         resource(
                                                 type("group"),
                                                 id("com.example.operationsinfer1"),
@@ -332,7 +416,7 @@ public class ControllerTest extends IntegrationTest {
                                                 )
                                         )
                                 ),
-                                atomicOperation(AtomicOperationCode.add, null,
+                                atomicOperation(AtomicOperationCode.add,
                                         resource(
                                                 type("group"),
                                                 id("com.example.operationsinfer2"),
@@ -341,7 +425,7 @@ public class ControllerTest extends IntegrationTest {
                                                 )
                                         )
                                 ),
-                                atomicOperation(AtomicOperationCode.update, null,
+                                atomicOperation(AtomicOperationCode.update,
                                         resource(
                                                 type("group"),
                                                 id("com.example.operationsinfer2"),
@@ -360,6 +444,35 @@ public class ControllerTest extends IntegrationTest {
         Map<String, Object> attributes = response.path("'atomic:results'[1].data.attributes");
         assertEquals("Foo2", attributes.get("commonName"));
         assertEquals("Updated Description", attributes.get("description"));
+
+        ExtractableResponse<Response> deleteResponse = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.remove,
+                                        ref(
+                                           type("group"),
+                                           id("com.example.operationsinfer1")
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.remove,
+                                        ref(
+                                                type("group"),
+                                                id("com.example.operationsinfer2")
+                                             )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String result = deleteResponse.asString();
+        String expected = """
+                {"atomic:results":[{"data":null},{"data":null}]}""";
+        assertEquals(expected, result);
     }
 
     @Test
