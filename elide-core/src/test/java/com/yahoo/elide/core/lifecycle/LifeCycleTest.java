@@ -53,6 +53,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -701,205 +702,624 @@ public class LifeCycleTest {
         verify(tx).close();
     }
 
-  @Test
-  public void failElidePatchExtensionCreate() throws Exception {
-      DataStore store = mock(DataStore.class);
-      DataStoreTransaction tx = mock(DataStoreTransaction.class);
-      FieldTestModel mockModel = mock(FieldTestModel.class);
+    @Test
+    public void failElidePatchExtensionCreate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
 
-      Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
-      String body = "[{\"op\": \"add\",\"path\": \"/testModel\",\"value\":{"
-              + "\"type\":\"testModel\",\"attributes\": {\"field\":\"Foo\"}}}]";
+        String body = "[{\"op\": \"add\",\"path\": \"/testModel\",\"value\":{"
+                + "\"type\":\"testModel\",\"attributes\": {\"field\":\"Foo\"}}}]";
 
-      RequestScope scope = buildRequestScope(dictionary, tx);
-      when(store.beginTransaction()).thenReturn(tx);
-      when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
+        RequestScope scope = buildRequestScope(dictionary, tx);
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
 
-      String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-      ElideResponse response =
-              elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-      assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
-      assertEquals(
-              "[{\"errors\":[{\"detail\":\"Bad Request Body&#39;Patch extension requires all objects to have an assigned ID (temporary or permanent) when assigning relationships.&#39;\",\"status\":\"400\"}]}]",
-              response.getBody());
+        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        assertEquals(
+                "[{\"errors\":[{\"detail\":\"Bad Request Body&#39;Patch extension requires all objects to have an assigned ID (temporary or permanent) when assigning relationships.&#39;\",\"status\":\"400\"}]}]",
+                response.getBody());
 
-      verify(mockModel, never()).classCallback(eq(CREATE), eq(PRESECURITY));
-      verify(mockModel, never()).classCallback(eq(CREATE), eq(PREFLUSH));
-      verify(mockModel, never()).classCallback(eq(CREATE), eq(PRECOMMIT));
-      verify(mockModel, never()).classCallback(eq(CREATE), eq(POSTCOMMIT));
-      verify(mockModel, never()).classCallback(eq(UPDATE), any());
-      verify(mockModel, never()).classCallback(eq(DELETE), any());
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(PREFLUSH));
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
 
-      verify(mockModel, never()).classAllFieldsCallback(any(), any());
-      verify(mockModel, never()).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
 
-      verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PRESECURITY), any());
-      verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PREFLUSH), any());
-      verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PRECOMMIT), any());
-      verify(mockModel, never()).attributeCallback(eq(CREATE), eq(POSTCOMMIT), any());
-      verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
-      verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PRESECURITY), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PREFLUSH), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PRECOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
 
-      verify(mockModel, never()).relationCallback(eq(CREATE), eq(PRESECURITY), any());
-      verify(mockModel, never()).relationCallback(eq(CREATE), eq(PREFLUSH), any());
-      verify(mockModel, never()).relationCallback(eq(CREATE), eq(PRECOMMIT), any());
-      verify(mockModel, never()).relationCallback(eq(CREATE), eq(POSTCOMMIT), any());
-      verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
-      verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(PRESECURITY), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(PREFLUSH), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(PRECOMMIT), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 
-      verify(tx, never()).preCommit(any());
-      verify(tx, never()).createObject(eq(mockModel), isA(RequestScope.class));
-      verify(tx, never()).flush(isA(RequestScope.class));
-      verify(tx, never()).commit(isA(RequestScope.class));
-      verify(tx).close();
-  }
+        verify(tx, never()).preCommit(any());
+        verify(tx, never()).createObject(eq(mockModel), isA(RequestScope.class));
+        verify(tx, never()).flush(isA(RequestScope.class));
+        verify(tx, never()).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
 
-  @Test
-  public void testElidePatchExtensionUpdate() throws Exception {
-      DataStore store = mock(DataStore.class);
-      DataStoreTransaction tx = mock(DataStoreTransaction.class);
-      FieldTestModel mockModel = mock(FieldTestModel.class);
+    @Test
+    public void testElidePatchExtensionUpdate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
 
-      Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
-      String body = "[{\"op\": \"replace\",\"path\": \"/testModel/1\",\"value\":{"
-              + "\"type\":\"testModel\",\"id\": \"1\",\"attributes\": {\"field\":\"Foo\"}}}]";
+        String body = "[{\"op\": \"replace\",\"path\": \"/testModel/1\",\"value\":{"
+                + "\"type\":\"testModel\",\"id\": \"1\",\"attributes\": {\"field\":\"Foo\"}}}]";
 
-      dictionary.setValue(mockModel, "id", "1");
-      when(store.beginTransaction()).thenReturn(tx);
-      when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-      String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-      ElideResponse response =
-              elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-      assertEquals(HttpStatus.SC_OK, response.getResponseCode());
-      assertEquals("[{\"data\":null}]", response.getBody());
+        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        assertEquals("[{\"data\":null}]", response.getBody());
 
-      verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
-      verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PREFLUSH));
-      verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
-      verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-      verify(mockModel, never()).classCallback(eq(CREATE), any());
-      verify(mockModel, never()).classCallback(eq(DELETE), any());
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PREFLUSH));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
 
-      verify(mockModel, never()).classAllFieldsCallback(any(), any());
-      verify(mockModel, never()).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
 
-      verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY), any());
-      verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PREFLUSH), any());
-      verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRECOMMIT), any());
-      verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any());
-      verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
-      verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PREFLUSH), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRECOMMIT), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
 
-      verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
-      verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
-      verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 
-      verify(tx).preCommit(any());
+        verify(tx).preCommit(any());
 
-      //Twice because the patch extension request is broken into attributes & relationships separately.
-      verify(tx, times(2)).loadObject(any(), any(), isA(RequestScope.class));
-      verify(tx).flush(isA(RequestScope.class));
-      verify(tx).commit(isA(RequestScope.class));
-      verify(tx).close();
-}
+        // Twice because the patch extension request is broken into attributes &
+        // relationships separately.
+        verify(tx, times(2)).loadObject(any(), any(), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
 
-  @Test
-  public void testElidePatchExtensionDelete() throws Exception {
-      DataStore store = mock(DataStore.class);
-      DataStoreTransaction tx = mock(DataStoreTransaction.class);
-      FieldTestModel mockModel = mock(FieldTestModel.class);
+    @Test
+    public void testElidePatchExtensionDelete() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
 
-      Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
-      String body = "[{\"op\": \"remove\",\"path\": \"/testModel\",\"value\":{"
-              + "\"type\":\"testModel\",\"id\": \"1\"}}]";
+        String body = "[{\"op\": \"remove\",\"path\": \"/testModel\",\"value\":{"
+                + "\"type\":\"testModel\",\"id\": \"1\"}}]";
 
-      dictionary.setValue(mockModel, "id", "1");
-      when(store.beginTransaction()).thenReturn(tx);
-      when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-      String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-      ElideResponse response =
-              elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-      assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
-      verify(mockModel, never()).classAllFieldsCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
-      verify(mockModel, never()).classCallback(eq(UPDATE), any());
-      verify(mockModel, never()).classCallback(eq(CREATE), any());
-      verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRESECURITY));
-      verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PREFLUSH));
-      verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRECOMMIT));
-      verify(mockModel, times(1)).classCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PREFLUSH));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(POSTCOMMIT));
 
-      verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
-      verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
-      verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
 
-      // TODO - Read should not be called for a delete.
-      verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
-      verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
-      verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+        // TODO - Read should not be called for a delete.
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 
-      verify(tx).preCommit(any());
-      verify(tx).delete(eq(mockModel), isA(RequestScope.class));
-      verify(tx).flush(isA(RequestScope.class));
-      verify(tx).commit(isA(RequestScope.class));
-      verify(tx).close();
-  }
+        verify(tx).preCommit(any());
+        verify(tx).delete(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
 
-  public void testElidePatchFailure() throws Exception {
-      DataStore store = mock(DataStore.class);
-      DataStoreTransaction tx = mock(DataStoreTransaction.class);
-      FieldTestModel mockModel = mock(FieldTestModel.class);
+    public void testElidePatchFailure() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
 
-      Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
-      String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
+        String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
-      dictionary.setValue(mockModel, "id", "1");
-      when(store.beginTransaction()).thenReturn(tx);
-      when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
-      doThrow(ConstraintViolationException.class).when(tx).flush(any());
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
+        doThrow(ConstraintViolationException.class).when(tx).flush(any());
 
-      String contentType = JSONAPI_CONTENT_TYPE;
-      ElideResponse response =
-              elide.patch(baseUrl, contentType, contentType, "/testModel/1", body, null, NO_VERSION);
-      assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
-      assertEquals(
-              "{\"errors\":[{\"detail\":\"Constraint violation\"}]}",
-              response.getBody());
+        String contentType = JSONAPI_CONTENT_TYPE;
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/testModel/1", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        assertEquals("{\"errors\":[{\"detail\":\"Constraint violation\"}]}", response.getBody());
 
-      verify(mockModel, never()).classAllFieldsCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
-      verify(mockModel, never()).classCallback(eq(CREATE), any());
-      verify(mockModel, never()).classCallback(eq(DELETE), any());
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
 
-      verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
-      verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PREFLUSH));
-      verify(mockModel, never()).classCallback(eq(UPDATE), eq(PRECOMMIT));
-      verify(mockModel, never()).classCallback(eq(UPDATE), eq(POSTCOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PREFLUSH));
+        verify(mockModel, never()).classCallback(eq(UPDATE), eq(PRECOMMIT));
+        verify(mockModel, never()).classCallback(eq(UPDATE), eq(POSTCOMMIT));
 
-      verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
-      verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
-      verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY), any());
-      verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PREFLUSH), any());
-      verify(mockModel, never()).attributeCallback(eq(UPDATE), eq(PRECOMMIT), any());
-      verify(mockModel, never()).attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PREFLUSH), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), eq(PRECOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any());
 
-      verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
-      verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
-      verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 
-      verify(tx).preCommit(any());
-      verify(tx).save(eq(mockModel), isA(RequestScope.class));
-      verify(tx).flush(isA(RequestScope.class));
-      verify(tx, never()).commit(isA(RequestScope.class));
-      verify(tx).close();
-  }
+        verify(tx).preCommit(any());
+        verify(tx).save(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx, never()).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElideAtomicOperationsExtensionCreate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "op": "add",
+                    "href": "/testModel",
+                    "data": {
+                      "type": "testModel",
+                      "id": "1",
+                      "attributes": {
+                        "field": "Foo"
+                      }
+                    }
+                  }]
+                }
+                      """;
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
+
+        String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
+        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PREFLUSH));
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+
+        verify(mockModel, times(2)).classAllFieldsCallback(any(), any());
+        verify(mockModel, times(2)).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
+
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRESECURITY), any());
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PREFLUSH), any());
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRECOMMIT), any());
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRESECURITY), any());
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PREFLUSH), any());
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRECOMMIT), any());
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx).preCommit(any());
+        verify(tx, times(1)).createObject(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElideAtomicOperationsExtensionCreateRef() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "op": "add",
+                    "data": {
+                      "type": "testModel",
+                      "id": "1",
+                      "attributes": {
+                        "field": "Foo"
+                      }
+                    }
+                  }]
+                }
+                      """;
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
+
+        String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
+        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PREFLUSH));
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+
+        verify(mockModel, times(2)).classAllFieldsCallback(any(), any());
+        verify(mockModel, times(2)).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
+
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRESECURITY), any());
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PREFLUSH), any());
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRECOMMIT), any());
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRESECURITY), any());
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PREFLUSH), any());
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRECOMMIT), any());
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx).preCommit(any());
+        verify(tx, times(1)).createObject(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void failElideAtomicOperationsExtensionCreate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "op": "add",
+                    "href": "/testModel",
+                    "data": {
+                      "type": "testModel",
+                      "attributes": {
+                        "field": "Foo"
+                      }
+                    }
+                  }]
+                }
+                      """;
+
+        RequestScope scope = buildRequestScope(dictionary, tx);
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
+
+        String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
+        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        String expected = """
+                [{"errors":[{"detail":"Bad Request Body&#39;Atomic Operations extension requires all objects to have an assigned ID (temporary or permanent) when assigning relationships.&#39;","status":"400"}]}]""";
+        assertEquals(expected, response.getBody());
+
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(PREFLUSH));
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
+
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PRESECURITY), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PREFLUSH), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PRECOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(PRESECURITY), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(PREFLUSH), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(PRECOMMIT), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx, never()).preCommit(any());
+        verify(tx, never()).createObject(eq(mockModel), isA(RequestScope.class));
+        verify(tx, never()).flush(isA(RequestScope.class));
+        verify(tx, never()).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElideAtomicOperationsExtensionUpdate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "op": "update",
+                    "href": "/testModel/1",
+                    "data": {
+                      "type": "testModel",
+                      "id": "1",
+                      "attributes": {
+                        "field": "Foo"
+                      }
+                    }
+                  }]
+                }
+                      """;
+
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
+
+        String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
+        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        String expected = """
+                {"atomic:results":[{"data":null}]}""";
+        assertEquals(expected, response.getBody());
+
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PREFLUSH));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
+
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PREFLUSH), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRECOMMIT), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+
+        verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx).preCommit(any());
+
+        // Twice because the patch extension request is broken into attributes &
+        // relationships separately.
+        verify(tx, times(2)).loadObject(any(), any(), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElideAtomicOperationsExtensionUpdateRef() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "op": "update",
+                    "data": {
+                      "type": "testModel",
+                      "id": "1",
+                      "attributes": {
+                        "field": "Foo"
+                      }
+                    }
+                  }]
+                }
+                      """;
+
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
+
+        String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
+        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        String expected = """
+                {"atomic:results":[{"data":null}]}""";
+        assertEquals(expected, response.getBody());
+
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PREFLUSH));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
+
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PREFLUSH), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRECOMMIT), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+
+        verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx).preCommit(any());
+
+        // Twice because the patch extension request is broken into attributes &
+        // relationships separately.
+        verify(tx, times(2)).loadObject(any(), any(), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElideAtomicOperationsExtensionDelete() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "op": "remove",
+                    "href": "/testModel",
+                    "data": {
+                      "type": "testModel",
+                      "id": "1"
+                    }
+                  }]
+                }
+                      """;
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
+
+        String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
+        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
+
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PREFLUSH));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(POSTCOMMIT));
+
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+
+        // TODO - Read should not be called for a delete.
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx).preCommit(any());
+        verify(tx).delete(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElideAtomicOperationsExtensionDeleteRef() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "op": "remove",
+                    "ref": {
+                      "type": "testModel",
+                      "id": "1"
+                    }
+                  }]
+                }
+                      """;
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
+
+        String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
+        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
+
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRESECURITY));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PREFLUSH));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(POSTCOMMIT));
+
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
+
+        // TODO - Read should not be called for a delete.
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx).preCommit(any());
+        verify(tx).delete(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
 
     @Test
     public void testCreate() {

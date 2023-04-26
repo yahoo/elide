@@ -494,6 +494,46 @@ public class Elide {
      * @param accept the accept
      * @param path the path
      * @param jsonApiDocument the json api document
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @return Elide response object
+     */
+    public ElideResponse operations(String baseUrlEndPoint, String contentType, String accept,
+                               String path, String jsonApiDocument,
+                               User opaqueUser, String apiVersion) {
+        return operations(baseUrlEndPoint, contentType, accept, path, jsonApiDocument,
+                     null, opaqueUser, apiVersion, UUID.randomUUID());
+    }
+
+    /**
+     * Handle operations for the Atomic Operations extension.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param contentType the content type
+     * @param accept the accept
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse operations(String baseUrlEndPoint, String contentType, String accept, String path,
+            String jsonApiDocument, MultivaluedMap<String, String> queryParams, User opaqueUser, String apiVersion,
+            UUID requestId) {
+        return operations(baseUrlEndPoint, contentType, accept, path, jsonApiDocument, queryParams, null, opaqueUser,
+                apiVersion, requestId);
+    }
+
+    /**
+     * Handle operations for the Atomic Operations extension.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param contentType the content type
+     * @param accept the accept
+     * @param path the path
+     * @param jsonApiDocument the json api document
      * @param queryParams the query params
      * @param opaqueUser the opaque user
      * @param apiVersion the API version
