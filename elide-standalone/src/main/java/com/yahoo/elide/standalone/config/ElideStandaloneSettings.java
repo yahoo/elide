@@ -360,9 +360,10 @@ public interface ElideStandaloneSettings {
                     .title(getApiTitle())
                     .version(apiVersion);
             OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
-            String moduleBasePath = getJsonApiPathSpec().replaceAll("/\\*", "");
+            String moduleBasePath = getJsonApiPathSpec().replace("/*", "");
             OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
-            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi, getOpenApiVersion().getValue()));
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", () -> openApi, getOpenApiVersion().getValue(),
+                    apiVersion));
         });
 
         return docs;

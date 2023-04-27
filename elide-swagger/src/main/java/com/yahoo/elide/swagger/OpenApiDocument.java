@@ -13,6 +13,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * The Open API Document.
@@ -59,10 +60,14 @@ public class OpenApiDocument {
     }
 
     private final Map<String, String> documents = new ConcurrentHashMap<>(2);
-    private final OpenAPI openApi;
+    private final Supplier<OpenAPI> openApi;
     private final Version version;
 
     public OpenApiDocument(OpenAPI openApi, Version version) {
+        this(() -> openApi, version);
+    }
+
+    public OpenApiDocument(Supplier<OpenAPI> openApi, Version version) {
         this.openApi = openApi;
         this.version = version;
     }
@@ -74,7 +79,7 @@ public class OpenApiDocument {
         } else {
             key = MediaType.APPLICATION_JSON;
         }
-        return this.documents.computeIfAbsent(key, type -> of(this.openApi, this.version, type));
+        return this.documents.computeIfAbsent(key, type -> of(this.openApi.get(), this.version, type));
     }
 
     /**

@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -44,12 +45,17 @@ public class ApiDocsEndpoint {
     @AllArgsConstructor
     public static class ApiDocsRegistration {
         private String path;
-        private OpenAPI document;
+        private Supplier<OpenAPI> document;
 
         /**
          * The OpenAPI Specification Version.
          */
         private String version;
+
+        /**
+         * The API version.
+         */
+        private String apiVersion;
     }
 
     /**
@@ -62,7 +68,7 @@ public class ApiDocsEndpoint {
         documents = new HashMap<>();
 
         docs.forEach(doc -> {
-            String apiVersion = doc.document.getInfo().getVersion();
+            String apiVersion = doc.getApiVersion();
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 

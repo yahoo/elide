@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +53,7 @@ public class ApiDocsController {
     @AllArgsConstructor
     public static class ApiDocsRegistrations {
 
-        public ApiDocsRegistrations(OpenAPI doc, String version, String apiVersion) {
+        public ApiDocsRegistrations(Supplier<OpenAPI> doc, String version, String apiVersion) {
             registrations = List.of(new ApiDocsRegistration("", doc, version, apiVersion));
         }
 
@@ -63,7 +64,7 @@ public class ApiDocsController {
     @AllArgsConstructor
     public static class ApiDocsRegistration {
         private String path;
-        private OpenAPI document;
+        private Supplier<OpenAPI> document;
 
         /**
          * The OpenAPI Specification Version.

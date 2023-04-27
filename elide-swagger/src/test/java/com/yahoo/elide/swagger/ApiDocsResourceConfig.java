@@ -57,8 +57,8 @@ public class ApiDocsResourceConfig extends ResourceConfig {
                         OpenAPI openApi2 = builder2.build().info(info2);
 
                         List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
-                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi1, "3.0"));
-                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi2, "3.0"));
+                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", () -> openApi1, "3.0", info1.getVersion()));
+                        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", () -> openApi2, "3.0", info2.getVersion()));
                         return docs;
                     }
 

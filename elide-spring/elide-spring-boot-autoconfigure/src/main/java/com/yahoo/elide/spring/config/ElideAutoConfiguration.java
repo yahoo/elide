@@ -87,6 +87,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.util.function.SingletonSupplier;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -113,6 +114,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
@@ -765,22 +767,25 @@ public class ElideAutoConfiguration {
 
         List<ApiDocsRegistration> registrations = new ArrayList<>();
         dictionary.getApiVersions().stream().forEach(apiVersion -> {
-            OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
-                    .supportLegacyFilterDialect(false);
-            OpenAPI openApi = builder.build();
-            openApi.addServersItem(new Server().url(jsonApiPath));
-            customizer.customize(openApi);
-            if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
-                Info info = openApi.getInfo();
-                if (info == null) {
-                    info = new Info();
-                    openApi.setInfo(info);
+            Supplier<OpenAPI> document = () -> {
+                OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
+                        .supportLegacyFilterDialect(false);
+                OpenAPI openApi = builder.build();
+                openApi.addServersItem(new Server().url(jsonApiPath));
+                customizer.customize(openApi);
+                if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                    Info info = openApi.getInfo();
+                    if (info == null) {
+                        info = new Info();
+                        openApi.setInfo(info);
+                    }
+                    info.setVersion(apiVersion);
                 }
-                info.setVersion(apiVersion);
-            }
-            registrations.add(
-                    new ApiDocsRegistration("", openApi, settings.getApiDocs().getVersion().getValue(), apiVersion));
-        });
+                
+                return openApi;
+            };
+            registrations.add(new ApiDocsRegistration("", SingletonSupplier.of(document),
+                    settings.getApiDocs().getVersion().getValue(), apiVersion));        });
         return new ApiDocsController.ApiDocsRegistrations(registrations);
     }
 
