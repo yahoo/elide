@@ -42,12 +42,14 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
+
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import graphql.execution.DataFetcherExceptionHandler;
 
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManagerFactory;
@@ -229,6 +231,8 @@ public class ElideResourceConfig extends ResourceConfig {
                         classScanner,
                         settings.getModelPackageName(),
                         asyncProperties.enabled())).to(Set.class).named("elideAllModels");
+                bind(settings.dataFetcherExceptionHandler()).to(DataFetcherExceptionHandler.class)
+                        .named("dataFetcherExceptionHandler");
             }
         });
 
