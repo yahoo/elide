@@ -14,6 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.EntityFieldType;
+import com.yahoo.elide.core.type.EntityMethodType;
+import com.yahoo.elide.core.type.Field;
+import com.yahoo.elide.core.type.Method;
+import com.yahoo.elide.core.type.Package;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import com.yahoo.elide.swagger.models.media.Data;
@@ -42,11 +48,13 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -74,6 +82,18 @@ class OpenApiBuilderTest {
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
         openApi = builder.build().info(info);
+    }
+
+    @Test
+    void testDynamicType() {
+        EntityDictionary dynamicDictionary = EntityDictionary.builder().build();
+
+        dynamicDictionary.bindEntity(new DynamicType());
+        Info info = new Info().title("Test Service").version(NO_VERSION);
+
+        OpenApiBuilder builder = new OpenApiBuilder(dynamicDictionary).apiVersion(info.getVersion());
+        OpenAPI dynamicOpenApi = builder.build();
+        assertEquals(2, dynamicOpenApi.getPaths().size());
     }
 
     @Test
@@ -751,5 +771,129 @@ class OpenApiBuilderTest {
         Relationship relation = (Relationship) data.getItems();
         StringSchema type = (StringSchema) relation.getProperties().get("type");
         assertTrue(type.getEnum().contains(refTypeName));
+    }
+
+    public static class DynamicType implements Type<Object> {
+
+        @Include
+        public static class Entity {
+        }
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public String getCanonicalName() {
+            return null;
+        }
+
+        @Override
+        public String getSimpleName() {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return null;
+        }
+
+        @Override
+        public Method getMethod(String name, Type<?>... parameterTypes) throws NoSuchMethodException {
+            return null;
+        }
+
+        @Override
+        public Type<?> getSuperclass() {
+            return null;
+        }
+
+        @Override
+        public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
+            return Entity.class.getAnnotationsByType(annotationClass);
+        }
+
+        @Override
+        public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
+            return Entity.class.getDeclaredAnnotation(annotationClass);
+        }
+
+        @Override
+        public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+            return null;
+        }
+
+        @Override
+        public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+            return false;
+        }
+
+        @Override
+        public boolean isAssignableFrom(Type<?> cls) {
+            return false;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
+        public Package getPackage() {
+            return null;
+        }
+
+        @Override
+        public Method[] getMethods() {
+            return Arrays.stream(Entity.class.getMethods()).map(EntityMethodType::new).toArray(Method[]::new);
+        }
+
+        @Override
+        public Method[] getDeclaredMethods() {
+            return Arrays.stream(Entity.class.getDeclaredMethods()).map(EntityMethodType::new).toArray(Method[]::new);
+        }
+
+        @Override
+        public Field[] getFields() {
+            return Arrays.stream(Entity.class.getFields()).map(EntityFieldType::new).toArray(Field[]::new);
+        }
+
+        @Override
+        public Field[] getDeclaredFields() {
+            return Arrays.stream(Entity.class.getDeclaredFields()).map(EntityFieldType::new).toArray(Field[]::new);
+        }
+
+        @Override
+        public Field getDeclaredField(String name) throws NoSuchFieldException {
+            return null;
+        }
+
+        @Override
+        public Method[] getConstructors() {
+            return Arrays.stream(Entity.class.getConstructors()).map(EntityMethodType::new).toArray(Method[]::new);
+        }
+
+        @Override
+        public boolean hasSuperType() {
+            return false;
+        }
+
+        @Override
+        public Object newInstance() throws InstantiationException, IllegalAccessException {
+            return null;
+        }
+
+        @Override
+        public boolean isEnum() {
+            return false;
+        }
+
+        @Override
+        public Object[] getEnumConstants() {
+            return null;
+        }
+
+        @Override
+        public Optional<Class<Object>> getUnderlyingClass() {
+            return Optional.empty();
+        }
     }
 }
