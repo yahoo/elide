@@ -11,6 +11,7 @@ import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,6 +19,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
+
+import graphql.execution.DataFetcherExceptionHandler;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.websocket.server.ServerEndpointConfig;
@@ -36,7 +39,8 @@ public class ElideSubscriptionConfiguration {
             ElideConfigProperties config,
             SubscriptionWebSocket.UserFactory userFactory,
             ConnectionFactory connectionFactory,
-            ErrorMapper errorMapper
+            ErrorMapper errorMapper,
+            DataFetcherExceptionHandler dataFetcherExceptionHandler
     ) {
         return ServerEndpointConfig.Builder
                 .create(SubscriptionWebSocket.class, config.getSubscription().getPath())
@@ -52,6 +56,7 @@ public class ElideSubscriptionConfiguration {
                         .auditLogger(new Slf4jLogger())
                         .verboseErrors(config.isVerboseErrors())
                         .errorMapper(errorMapper)
+                        .dataFetcherExceptionHandler(dataFetcherExceptionHandler)
                         .build())
                 .build();
     }

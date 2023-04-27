@@ -15,6 +15,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,6 +53,8 @@ import org.mockito.ArgumentCaptor;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.Session;
@@ -78,6 +81,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     protected RemoteEndpoint.Async remote;
     protected Elide elide;
     protected ExecutorService executorService = MoreExecutors.newDirectExecutorService();
+    protected DataFetcherExceptionHandler dataFetcherExceptionHandler = spy(new SimpleDataFetcherExceptionHandler());
 
     public SubscriptionWebSocketTest() {
         RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
@@ -122,6 +126,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         reset(dataStore);
         reset(dataStoreTransaction);
         reset(session);
+        reset(dataFetcherExceptionHandler);
         when(session.getRequestURI()).thenReturn(new URI("http://localhost:1234/subscription"));
         when(session.getAsyncRemote()).thenReturn(remote);
         when(dataStore.beginTransaction()).thenReturn(dataStoreTransaction);
@@ -306,7 +311,9 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testErrorInStream() throws IOException {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .elide(elide).build();
+                .elide(elide)
+                .dataFetcherExceptionHandler(dataFetcherExceptionHandler)
+                .build();
 
         Book book1 = new Book();
         book1.setTitle("Book 1");
@@ -344,6 +351,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
         verify(remote, times(4)).sendText(message.capture());
         assertEquals(expected, message.getAllValues());
+        verify(dataFetcherExceptionHandler, times(2)).handleException(any());
     }
 
     @Test

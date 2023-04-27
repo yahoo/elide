@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import java.io.IOException;
@@ -74,6 +77,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected HashMapDataStore hashMapDataStore;
     protected ElideSettings settings;
 
+    protected DataFetcherExceptionHandler dataFetcherExceptionHandler = spy(new SimpleDataFetcherExceptionHandler());
+
     @BeforeAll
     public void initializeQueryRunner() {
         RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
@@ -94,7 +99,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         Elide elide = new Elide(settings);
         elide.doScans();
 
-        runner = new QueryRunner(elide, NO_VERSION, new SimpleDataFetcherExceptionHandler());
+        runner = new QueryRunner(elide, NO_VERSION, dataFetcherExceptionHandler);
     }
 
     protected void initializeMocks() {
@@ -183,6 +188,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         tx.save(publisher1, null);
         tx.save(publisher2, null);
         tx.commit(null);
+
+        reset(dataFetcherExceptionHandler);
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws Exception {
