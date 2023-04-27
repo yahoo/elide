@@ -28,6 +28,7 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -85,14 +86,18 @@ public class ApiDocsEndpoint {
     public Response list(String apiVersion, String mediaType) {
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
 
-        if (documents.size() == 1) {
-            return Response.ok(documents.values().iterator().next().ofMediaType(mediaType)).build();
+        final List<String> documentPaths = documents.keySet().stream()
+                .filter(key -> key.getLeft().equals(safeApiVersion)).map(Pair::getRight).toList();
+
+        if (documentPaths.size() == 1) {
+            Optional<Pair<String, String>> pair = documents.keySet().stream()
+                    .filter(key -> key.getLeft().equals(apiVersion)).findFirst();
+            if (pair.isPresent()) {
+                return Response.ok(documents.get(pair.get()).ofMediaType(mediaType)).build();
+            }
         }
 
-        String body = documents.keySet().stream()
-                .filter(key -> key.getLeft().equals(safeApiVersion))
-                .map(Pair::getRight)
-                .map(key -> '"' + key + '"')
+        String body = documentPaths.stream().map(key -> '"' + key + '"')
                 .collect(Collectors.joining(",", "[", "]"));
 
         return Response.ok(body).build();

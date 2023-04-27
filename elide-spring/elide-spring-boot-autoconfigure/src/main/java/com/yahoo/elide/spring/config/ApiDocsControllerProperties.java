@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.spring.config;
 
-import com.yahoo.elide.core.dictionary.EntityDictionary;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -47,9 +45,4 @@ public class ApiDocsControllerProperties extends ControllerProperties {
      * The OpenAPI Specification Version to generate. Either openapi_3_0 or openapi_3_1.
      */
     private Version version = Version.OPENAPI_3_0;
-
-    /**
-     * The API version that should correspond with the API versions in the Entity Dictionary.
-     */
-    private String apiVersion = EntityDictionary.NO_VERSION;
 }

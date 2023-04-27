@@ -22,7 +22,6 @@ The Elide spring autoconfigure package provides the core code needed to use Elid
 | elide.api-docs.path               | No         | '/'             | URL path prefix for OpenAPI document endpoint.                                    |
 | elide.api-docs.enabled            | No         | false           | Whether or not the OpenAPI document endpoint is exposed.                          |
 | elide.api-docs.version            | No         | openapi_3_0     | The OpenAPI Specification Version to generate. Either openapi_3_0 or openapi_3_1. |
-| elide.api-docs.api-version        | No         | ''              | The version of the API to document.                                               |
 | elide.query-cache-maximum-entries | No         | 1024            | Maximum number of entries in query result cache.                                  |
 
 
@@ -68,7 +67,7 @@ Override this bean if you want a different store or multiple stores.
 
 ## OpenAPI Override
 
-By default, Elide will generate the OpenAPI documentation for every model exposed into a single OpenAPI document:
+By default, Elide will generate the OpenAPI documentation for every model exposed into a single OpenAPI document. One document will be generated for each API version.
 
 ```java
     @Bean
@@ -112,7 +111,7 @@ public class App {
 
 ### SpringDoc Integration
 
-By default, Elide will create a `OpenApiCustomizer` that will add all the models into SpringDoc's OpenAPI document. You can override this by defining an instance of a `ElideOpenApiCustomizer` bean.
+By default, Elide will create a `OpenApiCustomizer` that will add all the models into SpringDoc's OpenAPI document. You can override this by defining an instance of a `ElideOpenApiCustomizer` bean. Note that this will only add models corresponding to the default API version.
 
 ## Elide Override
 

@@ -59,6 +59,7 @@ import com.yahoo.elide.spring.api.DefaultElideOpenApiCustomizer;
 import com.yahoo.elide.spring.api.ElideOpenApiCustomizer;
 import com.yahoo.elide.spring.api.OpenApiDocumentCustomizer;
 import com.yahoo.elide.spring.controllers.ApiDocsController;
+import com.yahoo.elide.spring.controllers.ApiDocsController.ApiDocsRegistration;
 import com.yahoo.elide.spring.controllers.ExportController;
 import com.yahoo.elide.spring.controllers.GraphqlController;
 import com.yahoo.elide.spring.controllers.JsonApiController;
@@ -95,6 +96,7 @@ import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -521,15 +523,15 @@ public class ElideAutoConfiguration {
     public static class SpringDocConfiguration {
         /**
          * Creates a SpringDoc OpenApiCustomizer for Elide to add all the models to.
-         * @param elide Singleton elide instance.
-         * @param settings Elide configuration settings.
+         * This can only expose the default version.
+         * @param elide    Singleton elide instance.
          * @return
          */
         @Bean
         @ConditionalOnMissingBean
         @Scope(SCOPE_PROTOTYPE)
-        public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide, ElideConfigProperties settings) {
-            return new DefaultElideOpenApiCustomizer(elide, settings.getApiDocs().getApiVersion());
+        public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide) {
+            return new DefaultElideOpenApiCustomizer(elide, EntityDictionary.NO_VERSION);
         }
     }
 
@@ -761,14 +763,25 @@ public class ElideAutoConfiguration {
 
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
 
-        String apiVersion = settings.getApiDocs().getApiVersion();
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
-                .supportLegacyFilterDialect(false);
-        OpenAPI openApi = builder.build();
-        openApi.addServersItem(new Server().url(jsonApiPath));
-        customizer.customize(openApi);
-        return new ApiDocsController.ApiDocsRegistrations(openApi, settings.getApiDocs().getVersion().getValue(),
-                apiVersion);
+        List<ApiDocsRegistration> registrations = new ArrayList<>();
+        dictionary.getApiVersions().stream().forEach(apiVersion -> {
+            OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
+                    .supportLegacyFilterDialect(false);
+            OpenAPI openApi = builder.build();
+            openApi.addServersItem(new Server().url(jsonApiPath));
+            customizer.customize(openApi);
+            if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                Info info = openApi.getInfo();
+                if (info == null) {
+                    info = new Info();
+                    openApi.setInfo(info);
+                }
+                info.setVersion(apiVersion);
+            }
+            registrations.add(
+                    new ApiDocsRegistration("", openApi, settings.getApiDocs().getVersion().getValue(), apiVersion));
+        });
+        return new ApiDocsController.ApiDocsRegistrations(registrations);
     }
 
     public static boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

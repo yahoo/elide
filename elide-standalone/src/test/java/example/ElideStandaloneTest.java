@@ -27,12 +27,15 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import io.restassured.http.ContentType;
+import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import jakarta.ws.rs.core.MediaType;
 
@@ -177,13 +180,46 @@ public class ElideStandaloneTest {
 
     @Test
     public void apiDocsDocumentTest() {
-        when()
-               .get("/api-docs/doc/test")
+        given()
+                .accept(ContentType.JSON)
+                .when()
+                .get("/api-docs/doc/test")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "postView", "namespace", "tableSource"));
+    }
+
+    @Test
+    public void apiDocsDocumentVersionTest() {
+        ExtractableResponse<Response> v0 = given()
+                .accept(ContentType.JSON)
+                .when()
+                .get("/api-docs/doc/test")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+
+        ExtractableResponse<Response> v1 = given()
+                .accept(ContentType.JSON)
+                .header("ApiVersion", "1.0")
+                .when()
+                .get("/api-docs/doc/test")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        assertNotEquals(v0.asString(), v1.asString());
+        assertEquals("", v0.path("info.version"));
+        assertEquals("1.0", v1.path("info.version"));
+
+        given()
+                .accept(ContentType.JSON)
+                .header("ApiVersion", "2.0")
+                .when()
+                .get("/api-docs/doc/test")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test

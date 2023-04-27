@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -114,8 +115,12 @@ public class ApiDocsController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 if (documentPaths.size() == 1) {
-                    return ResponseEntity.status(HttpStatus.OK)
-                            .body(documents.values().iterator().next().ofMediaType(mediaType));
+                    Optional<Pair<String, String>> pair = documents.keySet().stream()
+                            .filter(key -> key.getLeft().equals(apiVersion)).findFirst();
+                    if (pair.isPresent()) {
+                        return ResponseEntity.status(HttpStatus.OK)
+                                .body(documents.get(pair.get()).ofMediaType(mediaType));
+                    }
                 }
 
                 String body = documentPaths.stream().map(key -> '"' + key + '"')

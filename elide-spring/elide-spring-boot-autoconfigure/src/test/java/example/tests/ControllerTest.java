@@ -31,16 +31,23 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
+
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
 
 import jakarta.ws.rs.core.MediaType;
 
@@ -431,8 +438,26 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void versionedApiDocsDocumentTest() {
-        given()
+        ExtractableResponse<Response> v0 = given()
+                .when()
+                .get("/doc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+
+        ExtractableResponse<Response> v1 = given()
                 .header("ApiVersion", "1.0")
+                .when()
+                .get("/doc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        assertNotEquals(v0.asString(), v1.asString());
+        assertNull(v0.path("info.version"));
+        assertEquals("1.0", v1.path("info.version"));
+
+        given()
+                .header("ApiVersion", "2.0")
                 .when()
                 .get("/doc")
                 .then()

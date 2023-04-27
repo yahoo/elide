@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 
 import com.yahoo.elide.ElideSettings;
@@ -324,15 +323,6 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * OpenAPI documentation requires an API version.
-     * The models with the same version are included.
-     * @return the API version;
-     */
-    default String getApiVersion() {
-        return NO_VERSION;
-    }
-
-    /**
      * The OpenAPI Specification Version to generate.
      * @return the OpenAPI Specification Version to generate
      */
@@ -363,18 +353,17 @@ public interface ElideStandaloneSettings {
      * @return list of OpenAPI registration objects.
      */
     default List<ApiDocsEndpoint.ApiDocsRegistration> buildApiDocs(EntityDictionary dictionary) {
-        Info info = new Info()
-                .title(getApiTitle())
-                .version(getApiVersion());
-
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
-
-        String moduleBasePath = getJsonApiPathSpec().replaceAll("/\\*", "");
-
-        OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
-
         List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
-        docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi, getOpenApiVersion().getValue()));
+
+        dictionary.getApiVersions().stream().forEach(apiVersion -> {
+            Info info = new Info()
+                    .title(getApiTitle())
+                    .version(apiVersion);
+            OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
+            String moduleBasePath = getJsonApiPathSpec().replaceAll("/\\*", "");
+            OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", openApi, getOpenApiVersion().getValue()));
+        });
 
         return docs;
     }
