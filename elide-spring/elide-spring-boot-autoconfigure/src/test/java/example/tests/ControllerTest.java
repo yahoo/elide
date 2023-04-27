@@ -34,10 +34,16 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -437,6 +443,22 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
+    public void apiDocsDocumentTestYaml() throws JsonMappingException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        String response = given()
+                .accept("application/yaml")
+                .when()
+                .get("/doc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().asString();
+        JsonNode jsonNode = objectMapper.readTree(response);
+        JsonNode tags = jsonNode.get("tags");
+        assertTrue(tags.isArray());
+    }
+
+
+    @Test
     public void versionedApiDocsDocumentTest() {
         ExtractableResponse<Response> v0 = given()
                 .when()
@@ -468,6 +490,17 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void apiDocsXSSDocumentTest() {
         when()
+                .get("/doc/<script>")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body(equalTo("Unknown document: &lt;script&gt;"));
+    }
+
+    @Test
+    public void apiDocsXSSDocumentTestYaml() {
+        given()
+                .accept("application/yaml")
+                .when()
                 .get("/doc/<script>")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
