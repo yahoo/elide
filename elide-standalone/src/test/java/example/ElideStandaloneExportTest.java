@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import jakarta.ws.rs.core.MediaType;
 
@@ -223,7 +224,9 @@ public class ElideStandaloneExportTest {
     // TableExport should be available in OpenAPI Doc
     @Test
     public void apiDocsDocumentTest() {
-        when()
+        given()
+               .accept(ContentType.JSON)
+               .when()
                .get("/api-docs/doc/test")
                 .then()
                 .statusCode(200)

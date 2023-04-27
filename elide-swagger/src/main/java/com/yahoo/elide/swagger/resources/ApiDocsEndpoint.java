@@ -97,7 +97,7 @@ public class ApiDocsEndpoint {
 
         if (documentPaths.size() == 1) {
             Optional<Pair<String, String>> pair = documents.keySet().stream()
-                    .filter(key -> key.getLeft().equals(apiVersion)).findFirst();
+                    .filter(key -> key.getLeft().equals(safeApiVersion)).findFirst();
             if (pair.isPresent()) {
                 return Response.ok(documents.get(pair.get()).ofMediaType(mediaType)).build();
             }
