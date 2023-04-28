@@ -69,6 +69,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -146,7 +147,7 @@ public class GraphQLEndpointTest {
                 );
 
         elide.doScans();
-        endpoint = new GraphQLEndpoint(elide, dataFetcherExceptionHandler);
+        endpoint = new GraphQLEndpoint(elide, Optional.of(dataFetcherExceptionHandler));
 
         DataStoreTransaction tx = inMemoryStore.beginTransaction();
 

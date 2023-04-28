@@ -14,6 +14,7 @@ import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 
+import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.inject.Inject;
 import lombok.Data;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -59,16 +61,14 @@ public class AsyncExecutorService {
     }
 
     @Inject
-    public AsyncExecutorService(Elide elide, ExecutorService executor, ExecutorService updater,
-                                AsyncAPIDAO asyncAPIDao) {
+    public AsyncExecutorService(Elide elide, ExecutorService executor, ExecutorService updater, AsyncAPIDAO asyncAPIDao,
+            Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler) {
         this.elide = elide;
         runners = new HashMap<>();
 
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
-
-            //Because the queries are async, there is no need to override the default exception handler to customize
-            //the error response.
-            runners.put(apiVersion, new QueryRunner(elide, apiVersion, new SimpleDataFetcherExceptionHandler()));
+            runners.put(apiVersion, new QueryRunner(elide, apiVersion,
+                    optionalDataFetcherExceptionHandler.orElseGet(SimpleDataFetcherExceptionHandler::new)));
         }
 
         this.executor = executor;

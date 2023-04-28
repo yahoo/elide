@@ -160,8 +160,8 @@ public class ElideResourceConfig extends ResourceConfig {
 
             ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
             ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
-            AsyncExecutorService asyncExecutorService =
-                    new AsyncExecutorService(elide, executor, updater, asyncAPIDao);
+            AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncAPIDao,
+                    Optional.of(settings.getDataFetcherExceptionHandler()));
             bind(asyncExecutorService).to(AsyncExecutorService.class);
 
             if (asyncProperties.enableExport()) {
@@ -231,7 +231,7 @@ public class ElideResourceConfig extends ResourceConfig {
                         classScanner,
                         settings.getModelPackageName(),
                         asyncProperties.enabled())).to(Set.class).named("elideAllModels");
-                bind(settings.dataFetcherExceptionHandler()).to(DataFetcherExceptionHandler.class)
+                bind(settings.getDataFetcherExceptionHandler()).to(DataFetcherExceptionHandler.class)
                         .named("dataFetcherExceptionHandler");
             }
         });

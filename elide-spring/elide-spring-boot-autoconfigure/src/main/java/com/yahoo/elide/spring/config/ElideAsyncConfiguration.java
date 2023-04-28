@@ -29,7 +29,7 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.RequestScope;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,8 +38,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import graphql.execution.DataFetcherExceptionHandler;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,6 +61,8 @@ public class ElideAsyncConfiguration {
      * @param elide elideObject.
      * @param settings Elide settings.
      * @param asyncQueryDao AsyncDao object.
+     * @param optionalResultStorageEngine Result Storage Engine.
+     * @param optionalDataFetcherExceptionHandler GraphQL data fetcher exception handler.
      * @return a AsyncExecutorService.
      */
     @Bean
@@ -66,14 +71,15 @@ public class ElideAsyncConfiguration {
             RefreshableElide elide,
             ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDao,
-            @Autowired(required = false) ResultStorageEngine resultStorageEngine
+            Optional<ResultStorageEngine> optionalResultStorageEngine,
+            Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler
     ) {
         AsyncProperties asyncProperties = settings.getAsync();
 
         ExecutorService executor = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
         ExecutorService updater = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
         AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide.getElide(), executor,
-                updater, asyncQueryDao);
+                updater, asyncQueryDao, optionalDataFetcherExceptionHandler);
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
@@ -97,7 +103,7 @@ public class ElideAsyncConfiguration {
 
             // Binding TableExport LifeCycleHook
             TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings, supportedFormatters,
-                    resultStorageEngine);
+                    optionalResultStorageEngine.orElse(null));
             dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
             dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
             dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);

@@ -617,7 +617,7 @@ public interface ElideStandaloneSettings {
      *
      * @return the DataFetcherExceptionHandler for GraphQL
      */
-    default DataFetcherExceptionHandler dataFetcherExceptionHandler() {
+    default DataFetcherExceptionHandler getDataFetcherExceptionHandler() {
         return new SimpleDataFetcherExceptionHandler();
     }
 }

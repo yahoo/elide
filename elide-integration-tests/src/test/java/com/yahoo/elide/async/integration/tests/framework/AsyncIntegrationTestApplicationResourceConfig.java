@@ -41,9 +41,12 @@ import example.TestCheckMappings;
 import example.models.triggers.Invoice;
 import example.models.triggers.InvoiceCompletionHook;
 import example.models.triggers.services.BillingService;
+
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
@@ -55,6 +58,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfig {
@@ -113,7 +117,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
                 ExecutorService executorService = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
-                        executorService, executorService, asyncAPIDao);
+                        executorService, executorService, asyncAPIDao, Optional.of(new SimpleDataFetcherExceptionHandler()));
 
                 // Create ResultStorageEngine
                 Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
