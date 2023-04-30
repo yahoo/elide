@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.jms.ConnectionFactory;
 import jakarta.websocket.server.ServerEndpointConfig;
 import lombok.AccessLevel;
@@ -72,6 +74,9 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
     @Builder.Default
     protected boolean sendPingOnSubscribe = false;
+
+    @Builder.Default
+    protected DataFetcherExceptionHandler dataFetcherExceptionHandler = new SimpleDataFetcherExceptionHandler();
 
     @Override
     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
@@ -134,6 +139,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
                 .userFactory(userFactory)
                 .sendPingOnSubscribe(sendPingOnSubscribe)
                 .verboseErrors(verboseErrors)
+                .dataFetcherExceptionHandler(dataFetcherExceptionHandler)
                 .build();
     }
 }

@@ -20,6 +20,8 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseRe
 
 import graphql.GraphQL;
 import graphql.execution.AsyncSerialExecutionStrategy;
+import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 import graphql.execution.SubscriptionExecutionStrategy;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
@@ -70,6 +72,9 @@ public class SubscriptionWebSocket {
     @Builder.Default
     private boolean verboseErrors = false;
 
+    @Builder.Default
+    private DataFetcherExceptionHandler dataFetcherExceptionHandler = new SimpleDataFetcherExceptionHandler();
+
     private final Map<String, GraphQL> apis = new HashMap<>();
     private final ConcurrentMap<Session, SessionHandler> openSessions = new ConcurrentHashMap<>();
 
@@ -106,7 +111,8 @@ public class SubscriptionWebSocket {
             long maxIdleTimeoutMs,
             int maxMessageSize,
             boolean sendPingOnSubscribe,
-            boolean verboseErrors
+            boolean verboseErrors,
+            DataFetcherExceptionHandler dataFetcherExceptionHandler
     ) {
         this.elide = elide;
         this.executorService = executorService;
@@ -117,6 +123,7 @@ public class SubscriptionWebSocket {
         this.maxIdleTimeoutMs = maxIdleTimeoutMs;
         this.maxMessageSize = maxMessageSize;
         this.verboseErrors = verboseErrors;
+        this.dataFetcherExceptionHandler = dataFetcherExceptionHandler;
 
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
         for (String apiVersion : dictionary.getApiVersions()) {
@@ -127,8 +134,9 @@ public class SubscriptionWebSocket {
                     new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
 
             GraphQL api = GraphQL.newGraphQL(builder.build())
-                    .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
-                    .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
+                    .defaultDataFetcherExceptionHandler(this.dataFetcherExceptionHandler)
+                    .queryExecutionStrategy(new AsyncSerialExecutionStrategy(this.dataFetcherExceptionHandler))
+                    .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy(this.dataFetcherExceptionHandler))
                     .build();
 
             apis.put(apiVersion, api);

@@ -7,6 +7,8 @@
 package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.ElideResponse;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}";
 
         assertQueryFailsWith(query, "Exception while fetching data (/book) : Data model writes are only allowed in mutations");
+        verify(dataFetcherExceptionHandler).handleException(any());
     }
 
     @Test

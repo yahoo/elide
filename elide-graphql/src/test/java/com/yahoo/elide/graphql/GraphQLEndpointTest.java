@@ -20,6 +20,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -31,6 +32,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -43,6 +45,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import graphqlEndpointTestModels.Author;
 import graphqlEndpointTestModels.Book;
@@ -64,6 +69,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,6 +86,7 @@ public class GraphQLEndpointTest {
     private final AuditLogger audit = Mockito.mock(AuditLogger.class);
     private final UriInfo uriInfo = Mockito.mock(UriInfo.class);
     private final HttpHeaders requestHeaders = Mockito.mock(HttpHeaders.class);
+    private final DataFetcherExceptionHandler dataFetcherExceptionHandler = Mockito.spy(new SimpleDataFetcherExceptionHandler());
 
     private Elide elide;
 
@@ -140,7 +147,7 @@ public class GraphQLEndpointTest {
                 );
 
         elide.doScans();
-        endpoint = new GraphQLEndpoint(elide);
+        endpoint = new GraphQLEndpoint(elide, Optional.of(dataFetcherExceptionHandler));
 
         DataStoreTransaction tx = inMemoryStore.beginTransaction();
 
@@ -185,6 +192,8 @@ public class GraphQLEndpointTest {
         tx.save(noShare, null);
 
         tx.commit(null);
+
+        reset(dataFetcherExceptionHandler);
     }
 
     @Test
@@ -414,6 +423,7 @@ public class GraphQLEndpointTest {
 
         Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
+        verify(dataFetcherExceptionHandler).handleException(any());
 
         graphQLRequest = document(
                 selection(
