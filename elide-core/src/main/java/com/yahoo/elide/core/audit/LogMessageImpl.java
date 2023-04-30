@@ -11,8 +11,13 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PersistentResource;
 import com.yahoo.elide.core.security.User;
 
-import de.odysseus.el.ExpressionFactoryImpl;
-import de.odysseus.el.util.SimpleContext;
+import jakarta.el.ELContext;
+import jakarta.el.ELException;
+import jakarta.el.ExpressionFactory;
+import jakarta.el.PropertyNotFoundException;
+import jakarta.el.StandardELContext;
+import jakarta.el.ValueExpression;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -23,11 +28,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.el.ELException;
-import javax.el.ExpressionFactory;
-import javax.el.PropertyNotFoundException;
-import javax.el.ValueExpression;
-
 /**
  * An audit log message that can be logged to a logger.
  */
@@ -35,7 +35,7 @@ import javax.el.ValueExpression;
 @EqualsAndHashCode
 public class LogMessageImpl implements LogMessage {
     //Supposedly this is thread safe.
-    private static final ExpressionFactory EXPRESSION_FACTORY = new ExpressionFactoryImpl();
+    private static final ExpressionFactory EXPRESSION_FACTORY = ExpressionFactory.newInstance();
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
     private final String template;
@@ -98,8 +98,8 @@ public class LogMessageImpl implements LogMessage {
 
     @Override
     public String getMessage() {
-        final SimpleContext ctx = new SimpleContext();
-        final SimpleContext singleElementContext = new SimpleContext();
+        final ELContext ctx = new StandardELContext(EXPRESSION_FACTORY);
+        final ELContext singleElementContext = new StandardELContext(EXPRESSION_FACTORY);
 
         if (persistentResource != null) {
             /* Create a new lineage which includes the passed in record */
@@ -122,8 +122,8 @@ public class LogMessageImpl implements LogMessage {
                     singleElementExpression = EXPRESSION_FACTORY.createValueExpression(values.get(values.size() - 1)
                             .getObject(), Object.class);
                 }
-                ctx.setVariable(name, expression);
-                singleElementContext.setVariable(name, singleElementExpression);
+                ctx.getVariableMapper().setVariable(name, expression);
+                singleElementContext.getVariableMapper().setVariable(name, singleElementExpression);
             }
 
             final Principal user = getUser().getPrincipal();
@@ -132,8 +132,8 @@ public class LogMessageImpl implements LogMessage {
                     .createValueExpression(
                         user, Object.class
                     );
-                ctx.setVariable("opaqueUser", opaqueUserValueExpression);
-                singleElementContext.setVariable("opaqueUser", opaqueUserValueExpression);
+                ctx.getVariableMapper().setVariable("opaqueUser", opaqueUserValueExpression);
+                singleElementContext.getVariableMapper().setVariable("opaqueUser", opaqueUserValueExpression);
             }
         }
 
