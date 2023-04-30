@@ -51,11 +51,15 @@ import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
+
+import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
@@ -606,5 +610,14 @@ public interface ElideStandaloneSettings {
      */
     default JsonApiMapper getObjectMapper() {
         return new JsonApiMapper();
+    }
+
+    /**
+     * Gets the DataFetcherExceptionHandler for GraphQL.
+     *
+     * @return the DataFetcherExceptionHandler for GraphQL
+     */
+    default DataFetcherExceptionHandler getDataFetcherExceptionHandler() {
+        return new SimpleDataFetcherExceptionHandler();
     }
 }

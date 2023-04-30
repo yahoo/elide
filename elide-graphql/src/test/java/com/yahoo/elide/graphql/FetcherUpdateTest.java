@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.graphql;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +51,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
         // Update 1, create for id 42, create new book with title "abc"
         String expectedMessage = "Exception while fetching data (/book) : Unknown identifier [42] for book";
         runErrorComparisonTest("rootCollectionInvalidIds", expectedMessage);
+        verify(dataFetcherExceptionHandler).handleException(any());
     }
 
     @Test
@@ -55,6 +59,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
         // Update 1, create for id 42, create new book with title "abc"
         String expectedMessage = "Exception while fetching data (/book) : UPDATE data objects must include ids";
         runErrorComparisonTest("rootCollectionMissingIds", expectedMessage);
+        verify(dataFetcherExceptionHandler).handleException(any());
     }
 
     @Test

@@ -94,6 +94,8 @@
         <version.lombok>1.18.24</version.lombok>
         <version.restassured>5.3.0</version.restassured>
         <embedded-redis.version>0.11.0</embedded-redis.version>
+        <federation-graphql-java-support-api>3.0.1</federation-graphql-java-support-api>
+        <graphql-java.version>20.2</graphql-java.version>
         <hibernate6.version>6.1.5.Final</hibernate6.version>
         <jedis.version>4.3.2</jedis.version>
         <jsonpath.version>2.8.0</jsonpath.version>
@@ -111,6 +113,21 @@
     <!-- Dependency settings -->
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.apollographql.federation</groupId>
+                <artifactId>federation-graphql-java-support</artifactId>
+                <version>${federation-graphql-java-support-api}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java</artifactId>
+                <version>${graphql-java.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java-extended-scalars</artifactId>
+                <version>${graphql-java.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>

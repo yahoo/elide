@@ -57,14 +57,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.apollographql.federation</groupId>
+            <artifactId>federation-graphql-java-support</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
-            <version>19.2</version>
         </dependency>
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java-extended-scalars</artifactId>
-            <version>20.0</version>
         </dependency>
         <dependency>
             <groupId>jakarta.websocket</groupId>
@@ -130,11 +132,6 @@
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.apollographql.federation</groupId>
-            <artifactId>federation-graphql-java-support</artifactId>
-            <version>2.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>

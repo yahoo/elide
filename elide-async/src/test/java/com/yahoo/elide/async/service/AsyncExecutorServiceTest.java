@@ -9,6 +9,8 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,13 +32,19 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+
 import org.apache.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
@@ -49,6 +57,12 @@ public class AsyncExecutorServiceTest {
     private User testUser;
     private RequestScope scope;
     private ResultStorageEngine resultStorageEngine;
+    private DataFetcherExceptionHandler dataFetcherExceptionHandler = spy(new SimpleDataFetcherExceptionHandler());
+
+    @BeforeEach
+    void resetMocks() {
+        reset(dataFetcherExceptionHandler);
+    }
 
     @BeforeAll
     public void setupMockElide() {
@@ -66,7 +80,7 @@ public class AsyncExecutorServiceTest {
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
         service = new AsyncExecutorService(elide, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5),
-                        asyncAPIDao);
+                        asyncAPIDao, Optional.of(dataFetcherExceptionHandler));
 
     }
 

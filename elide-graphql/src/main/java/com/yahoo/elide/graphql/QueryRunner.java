@@ -100,6 +100,7 @@ public class QueryRunner {
                 nonEntityDictionary, elide.getElideSettings(), fetcher, apiVersion);
 
         api = GraphQL.newGraphQL(builder.build())
+                .defaultDataFetcherExceptionHandler(exceptionHandler)
                 .queryExecutionStrategy(new AsyncSerialExecutionStrategy(exceptionHandler))
                 .build();
 
