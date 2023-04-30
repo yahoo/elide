@@ -49,7 +49,7 @@ import java.util.Map;
 public class JsonApiTest {
     private JsonApiMapper mapper;
     private User user = new TestUser("0");
-    private static String BASE_URL = "http://localhost:8080";
+    private static String BASE_URL = "http://localhost:8080/json";
 
     private EntityDictionary dictionary;
     private DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);

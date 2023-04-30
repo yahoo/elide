@@ -158,6 +158,29 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
+    public void versionedJsonApiGetPathTest() {
+        given()
+                .when()
+                .get("/json/v1.0/group")
+                .then()
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("group"),
+                                        id("com.example.repository"),
+                                        attributes(
+                                                attr("title", "Example Repository")
+                                        ),
+                                        links(
+                                                attr("self", baseUrl + "v1.0/group/com.example.repository")
+                                        )
+                                )
+                        ).toJSON())
+                )
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
     public void jsonApiPatchTest() {
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
