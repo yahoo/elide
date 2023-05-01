@@ -50,7 +50,7 @@ public class DependencyBinder extends ResourceConfig {
                 EntityManagerFactory emf = Persistence.createEntityManagerFactory("searchDataStoreTest");
                 DataStore jpaStore = new JpaDataStore(
                         emf::createEntityManager,
-                        em -> new NonJtaTransaction(em, txCancel));
+                        em -> new NonJtaTransaction(em, txCancel), emf::getMetamodel);
 
                 EntityDictionary dictionary = EntityDictionary.builder().build();
 

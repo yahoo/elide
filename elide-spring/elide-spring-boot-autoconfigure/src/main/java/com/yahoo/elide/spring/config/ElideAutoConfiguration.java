@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.spring.config;
 
-import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 import com.yahoo.elide.Elide;
@@ -44,7 +43,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
-import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+import com.yahoo.elide.datastores.jpa.JpaDataStore.EntityManagerSupplier;
+import com.yahoo.elide.datastores.jpa.JpaDataStore.JpaTransactionSupplier;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
@@ -58,17 +58,21 @@ import com.yahoo.elide.spring.controllers.ExportController;
 import com.yahoo.elide.spring.controllers.GraphqlController;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.spring.controllers.SwaggerController;
+import com.yahoo.elide.spring.orm.jpa.EntityManagerProxySupplier;
+import com.yahoo.elide.spring.orm.jpa.PlatformJpaTransactionSupplier;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
@@ -76,13 +80,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 
@@ -106,14 +112,10 @@ import javax.sql.DataSource;
  * the default behavior.
  */
 @Configuration
+@AutoConfigureAfter(TransactionAutoConfiguration.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @Slf4j
 public class ElideAutoConfiguration {
-
-    @Autowired(required = false)
-    private MeterRegistry meterRegistry;
-
-    private final Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
     /**
      * Creates dynamic configuration for models, security roles, and database connections.
@@ -240,7 +242,7 @@ public class ElideAutoConfiguration {
      * Creates the entity dictionary for Elide which contains static metadata about Elide models.
      * Override to load check classes or life cycle hooks.
      * @param injector Injector to inject Elide models.
-     * @param dynamicConfig An instance of DynamicConfiguration.
+     * @param optionalDynamicConfig An instance of DynamicConfiguration.
      * @param settings Elide configuration settings.
      * @param entitiesToExclude set of Entities to exclude from binding.
      * @return a newly configured EntityDictionary.
@@ -250,7 +252,7 @@ public class ElideAutoConfiguration {
     @Scope(SCOPE_PROTOTYPE)
     public EntityDictionary buildDictionary(Injector injector,
                                             ClassScanner scanner,
-                                            @Autowired(required = false) DynamicConfiguration dynamicConfig,
+                                            Optional<DynamicConfiguration> optionalDynamicConfig,
                                             ElideConfigProperties settings,
                                             @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude) {
 
@@ -272,9 +274,11 @@ public class ElideAutoConfiguration {
                 scanner);
 
         if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
-            dynamicConfig.getRoles().forEach(role -> {
-                dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
-            });
+            optionalDynamicConfig.ifPresent(dynamicConfig ->
+                dynamicConfig.getRoles().forEach(role ->
+                    dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
+                )
+            );
         }
 
         return dictionary;
@@ -283,7 +287,7 @@ public class ElideAutoConfiguration {
     /**
      * Create a QueryEngine instance for aggregation data store to use.
      * @param defaultDataSource DataSource for JPA.
-     * @param dynamicConfig An instance of DynamicConfiguration.
+     * @param optionalDynamicConfig An instance of DynamicConfiguration.
      * @param settings Elide configuration settings.
      * @param dataSourceConfiguration DataSource Configuration
      * @param dbPasswordExtractor Password Extractor Implementation
@@ -294,7 +298,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     @Scope(SCOPE_PROTOTYPE)
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
-                                        @Autowired(required = false) DynamicConfiguration dynamicConfig,
+                                        Optional<DynamicConfiguration> optionalDynamicConfig,
                                         ElideConfigProperties settings,
                                         ClassScanner scanner,
                                         DataSourceConfiguration dataSourceConfiguration,
@@ -303,20 +307,21 @@ public class ElideAutoConfiguration {
         boolean enableMetaDataStore = settings.getAggregationStore().isEnableMetaDataStore();
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource,
                         SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
-        if (isDynamicConfigEnabled(settings)) {
+        if (isDynamicConfigEnabled(settings) && optionalDynamicConfig.isPresent()) {
+            DynamicConfiguration dynamicConfig = optionalDynamicConfig.get();
             MetaDataStore metaDataStore = new MetaDataStore(scanner, dynamicConfig.getTables(),
                     dynamicConfig.getNamespaceConfigurations(), enableMetaDataStore);
 
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-            dynamicConfig.getDatabaseConfigurations().forEach(dbConfig -> {
+            dynamicConfig.getDatabaseConfigurations().forEach(dbConfig ->
                 connectionDetailsMap.put(dbConfig.getName(),
                         new ConnectionDetails(
                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
-                                SQLDialectFactory.getDialect(dbConfig.getDialect())));
-            });
+                                SQLDialectFactory.getDialect(dbConfig.getDialect())))
+            );
 
-            Function<String, ConnectionDetails> connectionDetailsLookup = (name) -> {
+            Function<String, ConnectionDetails> connectionDetailsLookup = name -> {
                 if (StringUtils.isEmpty(name)) {
                     return defaultConnectionDetails;
                 }
@@ -331,87 +336,143 @@ public class ElideAutoConfiguration {
                     new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
         MetaDataStore metaDataStore = new MetaDataStore(scanner, enableMetaDataStore);
-        return new SQLQueryEngine(metaDataStore, (unused) -> defaultConnectionDetails);
+        return new SQLQueryEngine(metaDataStore, unused -> defaultConnectionDetails);
+    }
+
+    /**
+     * Create a JPA Transaction Supplier to use.
+     * @param transactionManager Spring Platform Transaction Manager
+     * @param entityManagerFactory An instance of EntityManagerFactory
+     * @param settings Elide configuration settings.
+     * @return the JpaTransactionSupplier
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean(PlatformTransactionManager.class)
+    @Scope(SCOPE_PROTOTYPE)
+    public JpaTransactionSupplier jpaTransactionSupplier(PlatformTransactionManager transactionManager,
+            EntityManagerFactory entityManagerFactory, ElideConfigProperties settings) {
+        return new PlatformJpaTransactionSupplier(
+                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRED), transactionManager,
+                entityManagerFactory, settings.getJpaStore().isDelegateToInMemoryStore());
+    }
+
+    /**
+     * Create an Entity Manager Supplier to use.
+     * @return the EntityManagerSupplier
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
+    public EntityManagerSupplier entityManagerSupplier() {
+        return new EntityManagerProxySupplier();
     }
 
     /**
      * Creates the DataStore Elide.  Override to use a different store.
+     * @param settings Elide configuration settings.
      * @param entityManagerFactory The JPA factory which creates entity managers.
      * @param scanner Class Scanner
-     * @param queryEngine QueryEngine instance for aggregation data store.
-     * @param settings Elide configuration settings.
-     * @param cache Analytics query cache
-     * @param querylogger Analytics query logger
+     * @param jpaTransactionSupplier JPA Transaction supplier
+     * @param entityManagerSupplier Entity Manager supplier
+     * @param optionalQueryEngine QueryEngine instance for aggregation data store.
+     * @param optionalCache Analytics query cache
+     * @param optionalQueryLogger Analytics query logger
+     * @param customizerProvider Provide customizers to add to the data store
      * @return An instance of a JPA DataStore.
      */
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
-                                    ClassScanner scanner,
-                                    @Autowired(required = false) QueryEngine queryEngine,
-                                    ElideConfigProperties settings,
-                                    @Autowired(required = false) Cache cache,
-                                    @Autowired(required = false) QueryLogger querylogger) {
+    public DataStore dataStore(ElideConfigProperties settings, EntityManagerFactory entityManagerFactory,
+            ClassScanner scanner, JpaTransactionSupplier jpaTransactionSupplier,
+            EntityManagerSupplier entityManagerSupplier, Optional<QueryEngine> optionalQueryEngine,
+            Optional<Cache> optionalCache, Optional<QueryLogger> optionalQueryLogger,
+            ObjectProvider<Consumer<List<DataStore>>> customizerProvider) {
+        return buildDataStore(settings, entityManagerFactory, scanner, jpaTransactionSupplier, jpaTransactionSupplier,
+                entityManagerSupplier, optionalQueryEngine, optionalCache, optionalQueryLogger, Optional.of(
+                        stores -> customizerProvider.orderedStream().forEach(customizer -> customizer.accept(stores))));
+    }
+
+    /**
+     * Creates the DataStore Elide.
+     * @param settings Elide configuration settings.
+     * @param entityManagerFactory The JPA factory which creates entity managers.
+     * @param scanner Class Scanner
+     * @param readJpaTransactionSupplier Read JPA Transaction supplier
+     * @param writeJpaTransactionSupplier Write JPA Transaction supplier
+     * @param entityManagerSupplier Entity Manager supplier
+     * @param optionalQueryEngine QueryEngine instance for aggregation data store.
+     * @param optionalCache Analytics query cache
+     * @param optionalQueryLogger Analytics query logger
+     * @param optionalCustomizer Provide customizers to add to the data store
+     * @return An instance of a JPA DataStore.
+     */
+    public static DataStore buildDataStore(ElideConfigProperties settings, EntityManagerFactory entityManagerFactory,
+            ClassScanner scanner, JpaTransactionSupplier readJpaTransactionSupplier,
+            JpaTransactionSupplier writeJpaTransactionSupplier, EntityManagerSupplier entityManagerSupplier,
+            Optional<QueryEngine> optionalQueryEngine, Optional<Cache> optionalCache,
+            Optional<QueryLogger> optionalQueryLogger, Optional<Consumer<List<DataStore>>> optionalCustomizer) {
         List<DataStore> stores = new ArrayList<>();
 
-        JpaDataStore jpaDataStore = new JpaDataStore(
-                entityManagerFactory::createEntityManager,
-                em -> new NonJtaTransaction(em, txCancel,
-                        DEFAULT_LOGGER,
-                        settings.getJpaStore().isDelegateToInMemoryStore(), true));
+        JpaDataStore jpaDataStore = new JpaDataStore(entityManagerSupplier, readJpaTransactionSupplier,
+                writeJpaTransactionSupplier, entityManagerFactory::getMetamodel);
 
         stores.add(jpaDataStore);
 
         if (isAggregationStoreEnabled(settings)) {
-            AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
-                            AggregationDataStore.builder().queryEngine(queryEngine);
+            AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore
+                    .builder();
+            optionalQueryEngine.ifPresent(aggregationDataStoreBuilder::queryEngine);
 
             if (isDynamicConfigEnabled(settings)) {
-                aggregationDataStoreBuilder.dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes());
-
+                optionalQueryEngine.ifPresent(queryEngine -> aggregationDataStoreBuilder
+                        .dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes()));
                 if (settings.getDynamicConfig().isConfigApiEnabled()) {
                     stores.add(new ConfigDataStore(settings.getDynamicConfig().getPath(),
                             new TemplateConfigValidator(scanner, settings.getDynamicConfig().getPath())));
                 }
             }
-            aggregationDataStoreBuilder.cache(cache);
-            aggregationDataStoreBuilder.queryLogger(querylogger);
+            optionalCache.ifPresent(aggregationDataStoreBuilder::cache);
+            optionalQueryLogger.ifPresent(aggregationDataStoreBuilder::queryLogger);
             AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
-            stores.add(queryEngine.getMetaDataStore());
-            stores.add(aggregationDataStore);
-
             // meta data store needs to be put at first to populate meta data models
-            return new MultiplexManager(stores.toArray(new DataStore[0]));
+            optionalQueryEngine.ifPresent(queryEngine -> stores.add(queryEngine.getMetaDataStore()));
+            stores.add(aggregationDataStore);
         }
+        optionalCustomizer.ifPresent(customizer -> customizer.accept(stores));
 
-        return jpaDataStore;
+        if (stores.size() == 1) {
+            return stores.get(0);
+        } else {
+            return new MultiplexManager(stores.toArray(DataStore[]::new));
+        }
     }
 
     /**
-     * Creates a query result cache to be used by {@link #buildDataStore}, or null if cache is to be disabled.
+     * Creates a query result cache to be used by {@link #dataStore}, or null if cache is to be disabled.
      * @param settings Elide configuration settings.
+     * @param optionalMeterRegistry Meter Registry.
      * @return An instance of a query cache, or null.
      */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public Cache buildQueryCache(ElideConfigProperties settings) {
-        CaffeineCache cache = null;
-
+    public Cache buildQueryCache(ElideConfigProperties settings, Optional<MeterRegistry> optionalMeterRegistry) {
         int maxCacheItems = settings.getAggregationStore().getQueryCacheMaximumEntries();
         if (maxCacheItems > 0) {
-            cache = new CaffeineCache(maxCacheItems, settings.getAggregationStore().getDefaultCacheExpirationMinutes());
-            if (meterRegistry != null) {
-                CaffeineCacheMetrics.monitor(meterRegistry, cache.getImplementation(), "elideQueryCache");
-            }
+            final CaffeineCache cache = new CaffeineCache(maxCacheItems,
+                    settings.getAggregationStore().getDefaultCacheExpirationMinutes());
+            optionalMeterRegistry.ifPresent(meterRegistry -> CaffeineCacheMetrics.monitor(meterRegistry,
+                    cache.getImplementation(), "elideQueryCache"));
+            return cache;
         }
-        return cache;
+        return null;
     }
 
     /**
-     * Creates a querylogger to be used by {@link #buildDataStore} for aggregation.
+     * Creates a querylogger to be used by {@link #dataStore} for aggregation.
      * @return The default Noop QueryLogger.
      */
     @Bean
@@ -665,7 +726,7 @@ public class ElideAutoConfiguration {
         return new SwaggerController.SwaggerRegistrations(builder.build().basePath(jsonApiPath));
     }
 
-    private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {
+    public static boolean isDynamicConfigEnabled(ElideConfigProperties settings) {
 
         boolean enabled = false;
         if (settings.getDynamicConfig() != null) {
@@ -676,7 +737,7 @@ public class ElideAutoConfiguration {
 
     }
 
-    private boolean isAggregationStoreEnabled(ElideConfigProperties settings) {
+    public static boolean isAggregationStoreEnabled(ElideConfigProperties settings) {
 
         boolean enabled = false;
         if (settings.getAggregationStore() != null) {

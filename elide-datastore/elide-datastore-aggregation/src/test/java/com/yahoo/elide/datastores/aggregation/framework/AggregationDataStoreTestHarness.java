@@ -57,7 +57,8 @@ public abstract class AggregationDataStoreTestHarness implements DataStoreTestHa
 
         return new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, txCancel)
+                em -> new NonJtaTransaction(em, txCancel),
+                entityManagerFactory::getMetamodel
         );
     }
 
