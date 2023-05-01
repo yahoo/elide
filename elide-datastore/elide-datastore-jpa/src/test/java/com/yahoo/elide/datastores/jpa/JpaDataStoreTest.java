@@ -60,7 +60,7 @@ public class JpaDataStoreTest {
         EntityManager managerMock = mock(EntityManager.class);
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
-        JpaDataStore store = new JpaDataStore(() -> managerMock, unused -> null);
+        JpaDataStore store = new JpaDataStore(() -> managerMock, unused -> null, () -> mockModel);
         EntityDictionary dictionary = EntityDictionary.builder().build();
 
 
