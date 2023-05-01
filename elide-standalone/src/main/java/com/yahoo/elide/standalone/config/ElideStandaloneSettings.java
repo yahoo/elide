@@ -62,8 +62,8 @@ import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 

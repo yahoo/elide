@@ -63,10 +63,9 @@ import com.yahoo.elide.spring.controllers.ApiDocsController.ApiDocsRegistration;
 import com.yahoo.elide.spring.controllers.ExportController;
 import com.yahoo.elide.spring.controllers.GraphqlController;
 import com.yahoo.elide.spring.controllers.JsonApiController;
-import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.spring.orm.jpa.EntityManagerProxySupplier;
 import com.yahoo.elide.spring.orm.jpa.PlatformJpaTransactionSupplier;
-import com.yahoo.elide.swagger.SwaggerBuilder;
+import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
@@ -87,10 +86,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.util.function.SingletonSupplier;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.util.function.SingletonSupplier;
 
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
@@ -781,7 +780,6 @@ public class ElideAutoConfiguration {
                     }
                     info.setVersion(apiVersion);
                 }
-                
                 return openApi;
             };
             registrations.add(new ApiDocsRegistration("", SingletonSupplier.of(document),
