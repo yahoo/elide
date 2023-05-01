@@ -1,5 +1,20 @@
 # Change Log
 
+## 7.0.0-pr4
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/a67858ed4997700aaaf37cd83c13a7690b3d388f) Add Spring PlatformTransactionManager aware transaction support (#2953) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/a3ff2d6203260523eecae8db355747d5de7097fd) Update to jakarta el (#2963) 
+ * [view commit](https://github.com/yahoo/elide/commit/fd6f86b4529245b6291cdc9f50f04972b9abae54) Fix setting `DataFetcherExceptionHandler` (#2964) 
+ * [view commit](https://github.com/yahoo/elide/commit/ed01b03ce67bc0023c62bfd6777fbc8e16118c1a) Bump jackson-bom from 2.14.2 to 2.15.0 (#2956) 
+ * [view commit](https://github.com/yahoo/elide/commit/90143c909ec92cf09687bf4c43b74752fa6255e6) Bump slf4j-api from 2.0.3 to 2.0.7 (#2957) 
+ * [view commit](https://github.com/yahoo/elide/commit/fdc7e114ffe0c0a2a1bc55fe4c4019d3a4e735fb) Bump spring.boot.version from 3.0.5 to 3.0.6 (#2958) 
+ * [view commit](https://github.com/yahoo/elide/commit/2786d5cb6d9df46c9966bb0d635707303195a474) Bump log4j-over-slf4j from 2.0.3 to 2.0.7 (#2960) 
+ * [view commit](https://github.com/yahoo/elide/commit/5adf629688c693f092a586dc00e15de5ad90a54a) Bump ant from 1.10.12 to 1.10.13 (#2961) 
+ * [view commit](https://github.com/yahoo/elide/commit/35960bd03b7b75b31c9ece75b2df2deb410c70f1) Bump native-maven-plugin from 0.9.20 to 0.9.21 (#2962) 
+ * [view commit](https://github.com/yahoo/elide/commit/42edfb4dfce9f1822a4c08642f00c1cfea413cc0) Bump jacoco-maven-plugin from 0.8.8 to 0.8.10 (#2965) 
+
 ## 7.0.0-pr3
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/a6e6995ad7b3a7571ad3120f76924e9b83009ca7) Adds Spring Boot 3 Native Image support (#2939) 
