@@ -6,28 +6,44 @@
 package com.yahoo.elide.spring.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStore;
 
 import example.models.jpa.ArtifactGroup;
+import example.models.jpa.v2.ArtifactGroupV2;
+import example.models.jpa.v3.ArtifactGroupV3;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryBuilderCustomizer;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.boot.context.annotation.UserConfigurations;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,8 +53,12 @@ import jakarta.persistence.EntityManagerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
+import javax.sql.DataSource;
 
 /**
  * Tests for ElideAutoConfiguration.
@@ -260,5 +280,104 @@ class ElideAutoConfigurationTest {
             });
 
         });
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    public static class MultipleDataSourceConfiguration {
+        @Bean
+        public DataSource dataSourceV2() {
+            return DataSourceBuilder.create().url("jdbc:h2:mem:db;DB_CLOSE_DELAY=-1").build();
+        }
+
+        @Bean
+        public DataSource dataSourceV3() {
+            return DataSourceBuilder.create().url("jdbc:h2:mem:db;DB_CLOSE_DELAY=-1").build();
+        }
+
+        @Bean
+        public EntityManagerFactoryBuilder entityManagerFactoryBuilder(
+                ObjectProvider<PersistenceUnitManager> persistenceUnitManager,
+                ObjectProvider<EntityManagerFactoryBuilderCustomizer> customizers) {
+            EntityManagerFactoryBuilder builder = new EntityManagerFactoryBuilder(new HibernateJpaVendorAdapter(),
+                    new HashMap<>(), persistenceUnitManager.getIfAvailable());
+            customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
+            return builder;
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @EnableJpaDataStore(entityManagerFactoryRef = "entityManagerFactoryV2", transactionManagerRef = "transactionManagerV2")
+    @EnableJpaDataStore(entityManagerFactoryRef = "entityManagerFactoryV3", transactionManagerRef = "transactionManagerV3")
+    public static class MultipleEntityManagerFactoryConfiguration {
+        @Bean
+        public LocalContainerEntityManagerFactoryBean entityManagerFactoryV2(EntityManagerFactoryBuilder builder,
+                DefaultListableBeanFactory beanFactory, DataSource dataSourceV2) {
+            Map<String, Object> vendorProperties = new HashMap<>();
+            vendorProperties.put("hibernate.hbm2ddl.auto", "create-drop");
+            final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSourceV2)
+                    .packages("example.models.jpa.v2").properties(vendorProperties).build();
+            return emf;
+        }
+
+        @Bean
+        public LocalContainerEntityManagerFactoryBean entityManagerFactoryV3(EntityManagerFactoryBuilder builder,
+                DefaultListableBeanFactory beanFactory, DataSource dataSourceV3) {
+            Map<String, Object> vendorProperties = new HashMap<>();
+            vendorProperties.put("hibernate.hbm2ddl.auto", "create-drop");
+            final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSourceV3)
+                    .packages("example.models.jpa.v3").properties(vendorProperties).build();
+            return emf;
+        }
+
+        @Bean
+        public PlatformTransactionManager transactionManagerV2(EntityManagerFactory entityManagerFactoryV2) {
+            return new JpaTransactionManager(entityManagerFactoryV2);
+        }
+
+        @Bean
+        public PlatformTransactionManager transactionManagerV3(EntityManagerFactory entityManagerFactoryV3) {
+            return new JpaTransactionManager(entityManagerFactoryV3);
+        }
+    }
+
+    @Test
+    void multiplexDataStoreTransaction() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false")
+                .withUserConfiguration(MultipleDataSourceConfiguration.class, MultipleEntityManagerFactoryConfiguration.class).run(context -> {
+                    DataStore dataStore = context.getBean(DataStore.class);
+                    assertThat(dataStore).isInstanceOf(MultiplexManager.class);
+
+                    // The data store will only be initialized properly by elide to populate the dictionary
+                    RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
+                    dataStore = refreshableElide.getElide().getDataStore();
+
+                    try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
+                        ArtifactGroupV2 artifactGroupV2 = new ArtifactGroupV2();
+                        artifactGroupV2.setName("Group V2");
+                        transaction.save(artifactGroupV2, null);
+                        transaction.commit(null);
+                    }
+
+                    try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
+                        ArtifactGroupV3 artifactGroupV3 = new ArtifactGroupV3();
+                        artifactGroupV3.setName("Group V3");
+                        transaction.save(artifactGroupV3, null);
+                        transaction.commit(null);
+                    }
+
+                    try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
+                        ArtifactGroupV2 artifactGroupV2 = new ArtifactGroupV2();
+                        artifactGroupV2.setName("Group V2");
+
+                        ArtifactGroupV3 artifactGroupV3 = new ArtifactGroupV3();
+                        artifactGroupV3.setName("Group V3");
+
+                        transaction.save(artifactGroupV2, null);
+                        transaction.save(artifactGroupV3, null);
+
+                        assertThatThrownBy(() -> transaction.commit(null)).isInstanceOf(TransactionException.class)
+                                .message().isEqualTo("Transaction synchronization is not active");
+                    }
+                });
     }
 }

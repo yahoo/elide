@@ -68,6 +68,11 @@ import com.yahoo.elide.spring.orm.jpa.EntityManagerProxySupplier;
 import com.yahoo.elide.spring.orm.jpa.PlatformJpaTransactionSupplier;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStore;
+import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStores;
+import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistration;
+import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilder;
+import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilderCustomizer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
@@ -83,6 +88,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -360,10 +366,6 @@ public class ElideAutoConfiguration {
      * @param settings Elide configuration settings.
      * @return the JpaTransactionSupplier
      */
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnBean(PlatformTransactionManager.class)
-    @Scope(SCOPE_PROTOTYPE)
     public JpaTransactionSupplier jpaTransactionSupplier(PlatformTransactionManager transactionManager,
             EntityManagerFactory entityManagerFactory, ElideConfigProperties settings) {
         return new PlatformJpaTransactionSupplier(
@@ -375,20 +377,86 @@ public class ElideAutoConfiguration {
      * Create an Entity Manager Supplier to use.
      * @return the EntityManagerSupplier
      */
-    @Bean
-    @ConditionalOnMissingBean
-    @Scope(SCOPE_PROTOTYPE)
     public EntityManagerSupplier entityManagerSupplier() {
         return new EntityManagerProxySupplier();
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
+    public JpaDataStoreRegistrationsBuilder jpaDataStoreRegistrationsBuilder(
+            ApplicationContext applicationContext,
+            ElideConfigProperties settings,
+            Optional<com.yahoo.elide.datastores.jpql.porting.QueryLogger> optionalQueryLogger,
+            ObjectProvider<JpaDataStoreRegistrationsBuilderCustomizer> customizerProviders) {
+        JpaDataStoreRegistrationsBuilder builder = new JpaDataStoreRegistrationsBuilder();
+        String[] entityManagerFactoryNames = applicationContext.getBeanNamesForType(EntityManagerFactory.class);
+        String[] platformTransactionManagerNames = applicationContext
+                .getBeanNamesForType(PlatformTransactionManager.class);
+
+        if (entityManagerFactoryNames.length == 1 && platformTransactionManagerNames.length == 1) {
+            // Basic scenario
+            String platformTransactionManagerName = platformTransactionManagerNames[0];
+            String entityManagerFactoryName = entityManagerFactoryNames[0];
+            builder.add(jpaDataStoreRegistration(applicationContext, entityManagerFactoryName,
+                    platformTransactionManagerName, settings, optionalQueryLogger));
+        } else {
+            // Multiple scenario
+            Map<String, Object> beans = new HashMap<>();
+            beans.putAll(applicationContext.getBeansWithAnnotation(EnableJpaDataStore.class));
+            beans.putAll(applicationContext.getBeansWithAnnotation(EnableJpaDataStores.class));
+            if (!beans.isEmpty()) {
+                beans.values().stream().forEach(bean -> {
+                    EnableJpaDataStore[] annotations = bean.getClass()
+                            .getAnnotationsByType(EnableJpaDataStore.class);
+                    for (EnableJpaDataStore annotation : annotations) {
+                        String entityManagerFactoryName = annotation.entityManagerFactoryRef();
+                        String platformTransactionManagerName = annotation.transactionManagerRef();
+                        if (!StringUtils.isBlank(entityManagerFactoryName)
+                                && !StringUtils.isBlank(platformTransactionManagerName)) {
+                            builder.add(jpaDataStoreRegistration(applicationContext, entityManagerFactoryName,
+                                    platformTransactionManagerName, settings, optionalQueryLogger));
+                        }
+                    }
+                });
+            }
+        }
+
+        customizerProviders.orderedStream().forEach(customizer -> customizer.customize(builder));
+        return builder;
+    }
+
+    /**
+     * Creates a JpaDataStore registration from inputs.
+     *
+     * @param applicationContext the application context
+     * @param entityManagerFactoryName the bean name of the entity manager factory
+     * @param platformTransactionManagerName the bean name of the platform transaction manager
+     * @param settings the settings
+     * @param optionalQueryLogger the optional query logger
+     * @return
+     */
+    private JpaDataStoreRegistration jpaDataStoreRegistration(ApplicationContext applicationContext,
+            String entityManagerFactoryName, String platformTransactionManagerName, ElideConfigProperties settings,
+            Optional<com.yahoo.elide.datastores.jpql.porting.QueryLogger> optionalQueryLogger) {
+        PlatformTransactionManager transactionManager = applicationContext
+                .getBean(platformTransactionManagerName, PlatformTransactionManager.class);
+        EntityManagerFactory entityManagerFactory = applicationContext.getBean(entityManagerFactoryName,
+                EntityManagerFactory.class);
+        JpaTransactionSupplier jpaTransactionSupplier = jpaTransactionSupplier(transactionManager,
+                entityManagerFactory, settings);
+        return JpaDataStoreRegistration.builder().name(entityManagerFactoryName)
+                .entityManagerSupplier(entityManagerSupplier()).readTransactionSupplier(jpaTransactionSupplier)
+                .writeTransactionSupplier(jpaTransactionSupplier)
+                .metamodelSupplier(entityManagerFactory::getMetamodel)
+                .logger(optionalQueryLogger.orElse(JpaDataStore.DEFAULT_LOGGER)).build();
+    }
+
     /**
      * Creates the DataStore Elide.  Override to use a different store.
+     * @param builder JpaDataStoreRegistrationsBuilder.
      * @param settings Elide configuration settings.
-     * @param entityManagerFactory The JPA factory which creates entity managers.
      * @param scanner Class Scanner
-     * @param jpaTransactionSupplier JPA Transaction supplier
-     * @param entityManagerSupplier Entity Manager supplier
      * @param optionalQueryEngine QueryEngine instance for aggregation data store.
      * @param optionalCache Analytics query cache
      * @param optionalQueryLogger Analytics query logger
@@ -398,41 +466,43 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public DataStore dataStore(ElideConfigProperties settings, EntityManagerFactory entityManagerFactory,
-            ClassScanner scanner, JpaTransactionSupplier jpaTransactionSupplier,
-            EntityManagerSupplier entityManagerSupplier, Optional<QueryEngine> optionalQueryEngine,
+    public DataStore dataStore(JpaDataStoreRegistrationsBuilder builder, ElideConfigProperties settings,
+            ClassScanner scanner, Optional<QueryEngine> optionalQueryEngine,
             Optional<Cache> optionalCache, Optional<QueryLogger> optionalQueryLogger,
             ObjectProvider<Consumer<List<DataStore>>> customizerProvider) {
-        return buildDataStore(settings, entityManagerFactory, scanner, jpaTransactionSupplier, jpaTransactionSupplier,
-                entityManagerSupplier, optionalQueryEngine, optionalCache, optionalQueryLogger, Optional.of(
+        return buildDataStore(builder, settings, scanner, optionalQueryEngine, optionalCache, optionalQueryLogger,
+                Optional.of(
                         stores -> customizerProvider.orderedStream().forEach(customizer -> customizer.accept(stores))));
     }
 
     /**
      * Creates the DataStore Elide.
+     * @param builder JpaDataStoreRegistrationsBuilder.
      * @param settings Elide configuration settings.
-     * @param entityManagerFactory The JPA factory which creates entity managers.
      * @param scanner Class Scanner
-     * @param readJpaTransactionSupplier Read JPA Transaction supplier
-     * @param writeJpaTransactionSupplier Write JPA Transaction supplier
-     * @param entityManagerSupplier Entity Manager supplier
      * @param optionalQueryEngine QueryEngine instance for aggregation data store.
      * @param optionalCache Analytics query cache
      * @param optionalQueryLogger Analytics query logger
      * @param optionalCustomizer Provide customizers to add to the data store
      * @return An instance of a JPA DataStore.
      */
-    public static DataStore buildDataStore(ElideConfigProperties settings, EntityManagerFactory entityManagerFactory,
-            ClassScanner scanner, JpaTransactionSupplier readJpaTransactionSupplier,
-            JpaTransactionSupplier writeJpaTransactionSupplier, EntityManagerSupplier entityManagerSupplier,
+    public static DataStore buildDataStore(JpaDataStoreRegistrationsBuilder builder, ElideConfigProperties settings,
+            ClassScanner scanner,
             Optional<QueryEngine> optionalQueryEngine, Optional<Cache> optionalCache,
             Optional<QueryLogger> optionalQueryLogger, Optional<Consumer<List<DataStore>>> optionalCustomizer) {
         List<DataStore> stores = new ArrayList<>();
 
-        JpaDataStore jpaDataStore = new JpaDataStore(entityManagerSupplier, readJpaTransactionSupplier,
-                writeJpaTransactionSupplier, entityManagerFactory::getMetamodel);
-
-        stores.add(jpaDataStore);
+        builder.build().forEach(registration -> {
+            if (registration.getModelsToBind() != null && !registration.getModelsToBind().isEmpty()) {
+                stores.add(new JpaDataStore(registration.getEntityManagerSupplier(),
+                        registration.getReadTransactionSupplier(), registration.getWriteTransactionSupplier(),
+                        registration.getLogger(), registration.getModelsToBind().toArray(Type<?>[]::new)));
+            } else {
+                stores.add(new JpaDataStore(registration.getEntityManagerSupplier(),
+                        registration.getReadTransactionSupplier(), registration.getWriteTransactionSupplier(),
+                        registration.getLogger(), registration.getMetamodelSupplier()));
+            }
+        });
 
         if (isAggregationStoreEnabled(settings)) {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore
@@ -442,10 +512,9 @@ public class ElideAutoConfiguration {
             if (isDynamicConfigEnabled(settings)) {
                 optionalQueryEngine.ifPresent(queryEngine -> aggregationDataStoreBuilder
                         .dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes()));
-                if (settings.getAggregationStore().getDynamicConfig().getConfigApi().isEnabled()) {
-                    stores.add(new ConfigDataStore(settings.getAggregationStore().getDynamicConfig().getPath(),
-                            new TemplateConfigValidator(scanner,
-                                    settings.getAggregationStore().getDynamicConfig().getPath())));
+                if (settings.getDynamicConfig().isConfigApiEnabled()) {
+                    stores.add(new ConfigDataStore(settings.getDynamicConfig().getPath(),
+                            new TemplateConfigValidator(scanner, settings.getDynamicConfig().getPath())));
                 }
             }
             optionalCache.ifPresent(aggregationDataStoreBuilder::cache);
