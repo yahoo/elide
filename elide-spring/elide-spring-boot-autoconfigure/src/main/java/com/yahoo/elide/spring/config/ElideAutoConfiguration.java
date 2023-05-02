@@ -519,7 +519,7 @@ public class ElideAutoConfiguration {
     }
 
     @Configuration
-    @ConditionalOnClass(OpenApiCustomizer.class)
+    @ConditionalOnClass({ OpenApiCustomizer.class, OpenApiBuilder.class })
     @ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true", matchIfMissing = true)
     public static class SpringDocConfiguration {
         /**
@@ -574,6 +574,7 @@ public class ElideAutoConfiguration {
 
         @Configuration
         @ConditionalOnProperty(name = "elide.api-docs.enabled", havingValue = "true")
+        @ConditionalOnClass(OpenApiBuilder.class)
         public static class ApiDocsConfiguration {
             /**
              * Creates a singular openapi document for JSON-API.
@@ -661,6 +662,7 @@ public class ElideAutoConfiguration {
 
         @Configuration
         @ConditionalOnProperty(name = "elide.api-docs.enabled", havingValue = "true")
+        @ConditionalOnClass(OpenApiBuilder.class)
         public static class ApiDocsConfiguration {
             /**
              * Creates a singular openapi document for JSON-API.
