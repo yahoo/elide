@@ -37,15 +37,17 @@ public class JsonApiAtomicOperationsMapper {
 
     public JsonApiDocument readData(JsonNode data) throws JsonProcessingException {
         JsonApiDocument value = new JsonApiDocument();
-        if (data.isArray()) {
-            List<Resource> dataResources = new ArrayList<>();
-            for (JsonNode item : data) {
-                dataResources.add(readResource(item));
-                value.setData(new Data<Resource>(dataResources));
+        if (data != null) {
+            if (data.isArray()) {
+                List<Resource> dataResources = new ArrayList<>();
+                for (JsonNode item : data) {
+                    dataResources.add(readResource(item));
+                    value.setData(new Data<Resource>(dataResources));
+                }
+            } else {
+                Resource resource = readResource(data);
+                value.setData(new Data<Resource>(resource));
             }
-        } else {
-            Resource resource = readResource(data);
-            value.setData(new Data<Resource>(resource));
         }
         return value;
     }

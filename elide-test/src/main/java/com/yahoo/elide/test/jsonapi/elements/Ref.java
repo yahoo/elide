@@ -23,4 +23,17 @@ public class Ref extends LinkedHashMap<String, Object> {
       this.put("type", type.value);
       this.put("id", id.value);
    }
+
+   /**
+    * Atomic Operation Reference.
+    *
+    * @param type the type
+    * @param id the id
+    * @param relationship the relationship
+    */
+   public Ref(Type type, Id id, Relationship relationship) {
+       this.put("type", type.value);
+       this.put("id", id.value);
+       this.put("relationship", relationship.value);
+    }
 }

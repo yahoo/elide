@@ -309,49 +309,49 @@ public class ControllerTest extends IntegrationTest {
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.add, "/group",
-                                        resource(
+                                        datum(resource(
                                                 type("group"),
                                                 id("com.example.operations1"),
                                                 attributes(
                                                         attr("commonName", "Foo1")
                                                 )
-                                        )
+                                        ))
                                 ),
                                 atomicOperation(AtomicOperationCode.add, "/group",
-                                        resource(
+                                        datum(resource(
                                                 type("group"),
                                                 id("com.example.operations2"),
                                                 attributes(
                                                         attr("commonName", "Foo2")
                                                 )
-                                        )
+                                        ))
                                 ),
                                 atomicOperation(AtomicOperationCode.update, "/group/com.example.operations2",
-                                        resource(
+                                        datum(resource(
                                                 type("group"),
                                                 id("com.example.operations2"),
                                                 attributes(
                                                         attr("description", "Updated Description")
                                                 )
-                                        )
+                                        ))
                                 ),
                                 atomicOperation(AtomicOperationCode.add, "/group/com.example.operations2/products",
-                                        resource(
+                                        datum(resource(
                                                 type("product"),
                                                 id("com.example.operations.product1"),
                                                 attributes(
                                                         attr("commonName", "Product1")
                                                 )
-                                        )
+                                        ))
                                 ),
                                 atomicOperation(AtomicOperationCode.update, "/group/com.example.operations2/products/com.example.operations.product1",
-                                        resource(
+                                        datum(resource(
                                                 type("product"),
                                                 id("com.example.operations.product1"),
                                                 attributes(
                                                         attr("description", "Product1 Description")
                                                 )
-                                        )
+                                        ))
                                 )
                         )
                 )
@@ -375,16 +375,16 @@ public class ControllerTest extends IntegrationTest {
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.remove,
-                                        resource(
+                                        datum(resource(
                                                 type("group"),
                                                 id("com.example.operations1")
-                                        )
+                                        ))
                                 ),
                                 atomicOperation(AtomicOperationCode.remove,
-                                        resource(
+                                        datum(resource(
                                                 type("group"),
                                                 id("com.example.operations2")
-                                        )
+                                        ))
                                 )
                         )
                 )
@@ -408,31 +408,31 @@ public class ControllerTest extends IntegrationTest {
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.add,
-                                        resource(
+                                        datum(resource(
                                                 type("group"),
                                                 id("com.example.operationsinfer1"),
                                                 attributes(
                                                         attr("commonName", "Foo1")
                                                 )
-                                        )
+                                        ))
                                 ),
                                 atomicOperation(AtomicOperationCode.add,
-                                        resource(
+                                        datum(resource(
                                                 type("group"),
                                                 id("com.example.operationsinfer2"),
                                                 attributes(
                                                         attr("commonName", "Foo2")
                                                 )
-                                        )
+                                        ))
                                 ),
                                 atomicOperation(AtomicOperationCode.update,
-                                        resource(
+                                        datum(resource(
                                                 type("group"),
                                                 id("com.example.operationsinfer2"),
                                                 attributes(
                                                         attr("description", "Updated Description")
                                                 )
-                                        )
+                                        ))
                                 )
                         )
                 )
@@ -472,6 +472,101 @@ public class ControllerTest extends IntegrationTest {
         String result = deleteResponse.asString();
         String expected = """
                 {"atomic:results":[{"data":null},{"data":null}]}""";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionRelationshipTest() {
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.add,
+                                        datum(resource(
+                                                type("group"),
+                                                id("com.example.operationsrel1"),
+                                                attributes(
+                                                        attr("commonName", "Foo1")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add,
+                                        datum(resource(
+                                                type("maintainer"),
+                                                id("com.example.person1"),
+                                                attributes(
+                                                        attr("commonName", "Person1")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add, "/group/com.example.operationsrel1/products",
+                                        datum(resource(
+                                                type("product"),
+                                                id("com.example.operations.product1"),
+                                                attributes(
+                                                        attr("commonName", "Product1")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add,
+                                        /*
+                                        ref(
+                                                type("product"),
+                                                id("com.example.operation.product1"),
+                                                relationship("maintainers")
+                                        ),*/
+                                        "/group/com.example.operationsrel1/products/com.example.operations.product1/relationships/maintainers",
+                                        data(resource(
+                                                type("maintainer"),
+                                                id("com.example.person1")
+                                        ))
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        Map<String, Object> attributes = response.path("'atomic:results'[1].data.attributes");
+        assertEquals("Person1", attributes.get("commonName"));
+
+        ExtractableResponse<Response> deleteResponse = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.remove,
+                                        "/group/com.example.operationsrel1/products/com.example.operations.product1/relationships/maintainers",
+                                        data(resource(type("maintainer"), id("com.example.person1")))
+                                ),
+                                atomicOperation(AtomicOperationCode.remove,
+                                        "/group/com.example.operationsrel1/relationships/products",
+                                        data(resource(type("product"), id("com.example.operations.product1")))
+                                ),
+                                atomicOperation(AtomicOperationCode.remove,
+                                        ref(
+                                           type("maintainer"),
+                                           id("com.example.person1")
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.remove,
+                                        ref(
+                                           type("group"),
+                                           id("com.example.operationsrel1")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String result = deleteResponse.asString();
+        String expected = """
+                {"atomic:results":[{"data":null},{"data":null},{"data":null},{"data":null}]}""";
         assertEquals(expected, result);
     }
 
@@ -671,7 +766,7 @@ public class ControllerTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats", "namespace", "tableSource"));
+                        "stats", "namespace", "tableSource", "maintainer"));
     }
 
     @Test

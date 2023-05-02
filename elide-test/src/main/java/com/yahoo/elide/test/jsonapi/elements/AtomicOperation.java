@@ -20,10 +20,12 @@ public class AtomicOperation extends LinkedHashMap<String, Object> {
     * @param href the operation path
     * @param data the operation value
     */
-   public AtomicOperation(AtomicOperationCode operation, String href, Resource data) {
+   public AtomicOperation(AtomicOperationCode operation, String href, Data data) {
       this.put("op", operation.name());
       this.put("href", href);
-      this.put("data", data);
+      if (data != null) {
+          this.put("data", data.get("data"));
+      }
    }
 
    /**
@@ -33,9 +35,11 @@ public class AtomicOperation extends LinkedHashMap<String, Object> {
     * @param ref the operation path
     * @param data the operation value
     */
-   public AtomicOperation(AtomicOperationCode operation, Ref ref, Resource data) {
+   public AtomicOperation(AtomicOperationCode operation, Ref ref, Data data) {
       this.put("op", operation.name());
       this.put("ref", ref);
-      this.put("data", data);
+      if (data != null) {
+          this.put("data", data.get("data"));
+      }
    }
 }

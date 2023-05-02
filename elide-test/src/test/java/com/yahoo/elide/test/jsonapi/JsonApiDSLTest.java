@@ -388,6 +388,7 @@ public class JsonApiDSLTest {
                 {"atomic:operations":[{"op":"add","href":"/parent","data":{"type":"parent","id":"1","relationships":{"children":{"data":[{"type":"child","id":"2"}]},"spouses":{"data":[{"type":"parent","id":"3"}]}}}},{"op":"add","href":"/parent/1/children","data":{"type":"child","id":"2"}}]}""";
         String actual = JsonApiDSL.atomicOperations(
                     JsonApiDSL.atomicOperation(AtomicOperationCode.add, "/parent",
+                            JsonApiDSL.datum(
                             JsonApiDSL.resource(
                                     JsonApiDSL.type("parent"),
                                     JsonApiDSL.id("1"),
@@ -399,13 +400,14 @@ public class JsonApiDSLTest {
                                                     JsonApiDSL.linkage(JsonApiDSL.type("parent"), JsonApiDSL.id("3"))
                                             )
                                     )
-                            )
+                            ))
                     ),
                     JsonApiDSL.atomicOperation(AtomicOperationCode.add, "/parent/1/children",
+                            JsonApiDSL.datum(
                             JsonApiDSL.resource(
                                     JsonApiDSL.type("child"),
                                     JsonApiDSL.id("2")
-                            )
+                            ))
                     )
                 ).toJSON();
         assertEquals(expected, actual);

@@ -21,6 +21,7 @@ import com.yahoo.elide.test.jsonapi.elements.PatchOperationType;
 import com.yahoo.elide.test.jsonapi.elements.PatchSet;
 import com.yahoo.elide.test.jsonapi.elements.Ref;
 import com.yahoo.elide.test.jsonapi.elements.Relation;
+import com.yahoo.elide.test.jsonapi.elements.Relationship;
 import com.yahoo.elide.test.jsonapi.elements.Relationships;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.yahoo.elide.test.jsonapi.elements.ResourceLinkage;
@@ -52,6 +53,16 @@ public class JsonApiDSL {
      * @return a data
      */
     public static Data data(Resource... resources) {
+        return new Data(resources);
+    }
+
+    /**
+     * Data data.
+     *
+     * @param resources the resources
+     * @return a data
+     */
+    public static Data datum(Resource resources) {
         return new Data(resources);
     }
 
@@ -215,6 +226,16 @@ public class JsonApiDSL {
     }
 
     /**
+     * Relationship relationship.
+     *
+     * @param value the value
+     * @return the relationship
+     */
+    public static Relationship relationship(String value) {
+        return new Relationship(value);
+    }
+
+    /**
      * Attributes attributes.
      *
      * @param attrs the attrs
@@ -358,16 +379,16 @@ public class JsonApiDSL {
         return new AtomicOperations(atomicOperations);
     }
 
-    public static AtomicOperation atomicOperation(AtomicOperationCode operation, Resource value) {
-        return new AtomicOperation(operation, (String) null, value);
+    public static AtomicOperation atomicOperation(AtomicOperationCode operation, Data data) {
+        return new AtomicOperation(operation, (String) null, data);
     }
 
-    public static AtomicOperation atomicOperation(AtomicOperationCode operation, String href, Resource value) {
-        return new AtomicOperation(operation, href, value);
+    public static AtomicOperation atomicOperation(AtomicOperationCode operation, String href, Data data) {
+        return new AtomicOperation(operation, href, data);
     }
 
-    public static AtomicOperation atomicOperation(AtomicOperationCode operation, Ref ref, Resource value) {
-        return new AtomicOperation(operation, ref, value);
+    public static AtomicOperation atomicOperation(AtomicOperationCode operation, Ref ref, Data data) {
+        return new AtomicOperation(operation, ref, data);
     }
 
     public static AtomicOperation atomicOperation(AtomicOperationCode operation, Ref ref) {
@@ -376,5 +397,9 @@ public class JsonApiDSL {
 
     public static Ref ref(Type type, Id id) {
         return new Ref(type, id);
+    }
+
+    public static Ref ref(Type type, Id id, Relationship relationship) {
+        return new Ref(type, id, relationship);
     }
 }
