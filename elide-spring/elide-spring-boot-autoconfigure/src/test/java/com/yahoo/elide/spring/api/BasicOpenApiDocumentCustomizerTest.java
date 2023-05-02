@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.tags.Tag;
 
 /**
  * BasicOpenApiDocumentCustomizerTest.
@@ -107,6 +108,19 @@ class BasicOpenApiDocumentCustomizerTest {
                     openApi.getComponents().getSecuritySchemes().get("bearerAuth");
             assertThat(securityScheme.getBearerFormat()).isEqualTo("JWT");
             assertThat(securityScheme.getScheme()).isEqualTo("bearer");
+        });
+    }
+
+    @Test
+    void shouldSortTags() {
+        contextRunner.withUserConfiguration(UserDefinitionOpenApiConfiguration.class).run(context -> {
+            OpenAPI openApi = new OpenAPI();
+            openApi.addTagsItem(new Tag().name("a-test"));
+            openApi.addTagsItem(new Tag().name("z-test"));
+            openApi.addTagsItem(new Tag().name("b-test"));
+            openApi.addTagsItem(new Tag().name("1-test"));
+            context.getBean(OpenApiDocumentCustomizer.class).customize(openApi);
+            assertThat(openApi.getTags()).extracting("name").containsExactly("1-test", "a-test", "b-test", "z-test");
         });
     }
 }

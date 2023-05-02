@@ -21,9 +21,11 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.tags.Tag;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,6 +51,20 @@ public class BasicOpenApiDocumentCustomizer implements OpenApiDocumentCustomizer
             openApi.info(new Info().title(OpenApiDocument.DEFAULT_TITLE));
         } else if (openApi.getInfo().getTitle() == null || openApi.getInfo().getTitle().isBlank()) {
             openApi.getInfo().setTitle(OpenApiDocument.DEFAULT_TITLE);
+        }
+
+        sort(openApi);
+    }
+
+    /**
+     * Sorts the OpenAPI document.
+     *
+     * @param openApi the document to sort
+     */
+    protected void sort(OpenAPI openApi) {
+        List<Tag> tags = openApi.getTags();
+        if (tags != null) {
+            tags.sort((left, right) -> left.getName().compareTo(right.getName()));
         }
     }
 
