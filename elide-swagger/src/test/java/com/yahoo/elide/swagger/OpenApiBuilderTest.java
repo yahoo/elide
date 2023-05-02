@@ -44,7 +44,7 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
-
+import io.swagger.v3.oas.models.tags.Tag;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
@@ -482,11 +482,12 @@ class OpenApiBuilderTest {
 
         assertNotNull(bookTag);
 
-        String publisherTag = openApi.getTags().stream()
+        Tag publisherTag = openApi.getTags().stream()
                 .filter((tag) -> tag.getName().equals("publisher"))
-                .findFirst().get().getName();
+                .findFirst().get();
 
         assertNotNull(publisherTag);
+        assertEquals("Publisher information.", publisherTag.getDescription());
 
         /* For each operation, ensure its tagged with the root collection name */
         openApi.getPaths().forEach((url, path) -> {
@@ -658,6 +659,20 @@ class OpenApiBuilderTest {
                 "filter[book.year][notnull]", "filter[book.year][postfix]", "filter[book.year][prefix]");
 
         assertEquals(expectedNames, paramNames);
+    }
+
+    @Test
+    void testSchemaTitleFromFriendlyName() {
+        OpenAPI openApi = new OpenApiBuilder(dictionary).build();
+        Schema<?> publisher = openApi.getComponents().getSchemas().get("publisher");
+        assertEquals("Publisher Title", publisher.getTitle());
+    }
+
+    @Test
+    void testSchemaTitleShouldOverrideFriendlyName() {
+        OpenAPI openApi = new OpenApiBuilder(dictionary).build();
+        Schema<?> book = openApi.getComponents().getSchemas().get("book");
+        assertEquals("Override Include Title", book.getTitle());
     }
 
     @Test

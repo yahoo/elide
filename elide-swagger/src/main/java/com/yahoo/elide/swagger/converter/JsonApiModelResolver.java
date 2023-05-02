@@ -7,6 +7,7 @@ package com.yahoo.elide.swagger.converter;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -112,6 +113,19 @@ public class JsonApiModelResolver extends ModelResolver {
         entitySchema.getRelationships().required(requiredRelationships);
 
         entitySchema.name(typeAlias);
+
+        Include include = getInclude(clazzType);
+        if (include != null) {
+            if (!StringUtils.isBlank(include.friendlyName())) {
+                entitySchema.setTitle(include.friendlyName());
+            }
+        }
+        io.swagger.v3.oas.annotations.media.Schema schema = getSchema(clazzType);
+        if (schema != null) {
+            if (!StringUtils.isBlank(schema.title())) {
+                entitySchema.setTitle(schema.title());
+            }
+        }
         return entitySchema;
     }
 
@@ -205,6 +219,10 @@ public class JsonApiModelResolver extends ModelResolver {
             required.add(relationshipName);
         }
         return relationship;
+    }
+
+    private Include getInclude(Type<?> clazz) {
+        return dictionary.getAnnotation(clazz, Include.class);
     }
 
     private io.swagger.v3.oas.annotations.media.Schema getSchema(Type<?> clazz) {

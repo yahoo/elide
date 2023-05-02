@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 @Entity
-@Include
+@Include(description = "Publisher information.", friendlyName = "Publisher Title")
 public class Publisher {
 
     /* Tests an inner class */

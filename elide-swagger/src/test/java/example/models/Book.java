@@ -24,11 +24,11 @@ import java.util.Date;
 import java.util.Set;
 
 @Entity
-@Include
+@Include(friendlyName = "Book")
 @ReadPermission(expression = "Principal is author OR Principal is publisher")
 @CreatePermission(expression = "Principal is author")
 @DeletePermission(expression = "Prefab.Role.None")
-@Schema(description = "A book")
+@Schema(title = "Override Include Title", description = "A book")
 public class Book {
     @OneToMany
     @Size(max = 10)

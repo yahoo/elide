@@ -15,7 +15,7 @@ import jakarta.persistence.OneToMany;
 import java.util.Set;
 
 @Entity
-@Include(rootLevel = false, description = "The Author")
+@Include(rootLevel = false, description = "The Author", friendlyName = "Author")
 public class Author {
 
     public AuthorType membershipType;
