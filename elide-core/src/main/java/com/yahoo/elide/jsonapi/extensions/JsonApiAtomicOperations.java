@@ -189,8 +189,7 @@ public class JsonApiAtomicOperations {
                 if (ref.getId() != null) {
                     fullPathBuilder.append("/");
                     fullPathBuilder.append(ref.getId());
-                }
-                if (ref.getLid() != null) {
+                } else if (ref.getLid() != null) {
                     fullPathBuilder.append("/");
                     fullPathBuilder.append(ref.getLid());
                 }

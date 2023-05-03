@@ -42,4 +42,17 @@ public class AtomicOperation extends LinkedHashMap<String, Object> {
           this.put("data", data.get("data"));
       }
    }
+
+   /**
+    * Atomic Operation.
+    *
+    * @param operation the operation type
+    * @param data the operation value
+    */
+   public AtomicOperation(AtomicOperationCode operation, Data data) {
+      this.put("op", operation.name());
+      if (data != null) {
+          this.put("data", data.get("data"));
+      }
+   }
 }

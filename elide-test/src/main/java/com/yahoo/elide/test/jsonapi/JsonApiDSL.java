@@ -15,6 +15,7 @@ import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.yahoo.elide.test.jsonapi.elements.Document;
 import com.yahoo.elide.test.jsonapi.elements.Id;
 import com.yahoo.elide.test.jsonapi.elements.Include;
+import com.yahoo.elide.test.jsonapi.elements.Lid;
 import com.yahoo.elide.test.jsonapi.elements.Links;
 import com.yahoo.elide.test.jsonapi.elements.PatchOperation;
 import com.yahoo.elide.test.jsonapi.elements.PatchOperationType;
@@ -226,6 +227,16 @@ public class JsonApiDSL {
     }
 
     /**
+     * Local Id id.
+     *
+     * @param lid the lid
+     * @return the lid
+     */
+    public static Lid lid(Object lid) {
+        return new Lid(lid);
+    }
+
+    /**
      * Relationship relationship.
      *
      * @param value the value
@@ -380,7 +391,7 @@ public class JsonApiDSL {
     }
 
     public static AtomicOperation atomicOperation(AtomicOperationCode operation, Data data) {
-        return new AtomicOperation(operation, (String) null, data);
+        return new AtomicOperation(operation, data);
     }
 
     public static AtomicOperation atomicOperation(AtomicOperationCode operation, String href, Data data) {
@@ -401,5 +412,13 @@ public class JsonApiDSL {
 
     public static Ref ref(Type type, Id id, Relationship relationship) {
         return new Ref(type, id, relationship);
+    }
+
+    public static Ref ref(Type type, Lid lid) {
+        return new Ref(type, lid);
+    }
+
+    public static Ref ref(Type type, Lid lid, Relationship relationship) {
+        return new Ref(type, lid, relationship);
     }
 }

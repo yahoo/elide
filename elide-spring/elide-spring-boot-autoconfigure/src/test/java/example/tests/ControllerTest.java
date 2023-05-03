@@ -19,6 +19,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.lid;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.links;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.patchOperation;
@@ -542,7 +543,11 @@ public class ControllerTest extends IntegrationTest {
                                         data(resource(type("maintainer"), id("com.example.person1")))
                                 ),
                                 atomicOperation(AtomicOperationCode.remove,
-                                        "/group/com.example.operationsrel1/relationships/products",
+                                        ref(
+                                                type("group"),
+                                                lid("com.example.operationsrel1"),
+                                                relationship("products")
+                                        ),
                                         data(resource(type("product"), id("com.example.operations.product1")))
                                 ),
                                 atomicOperation(AtomicOperationCode.remove,

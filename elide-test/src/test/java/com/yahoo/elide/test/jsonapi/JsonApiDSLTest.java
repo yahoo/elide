@@ -6,7 +6,14 @@
 
 package com.yahoo.elide.test.jsonapi;
 
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.atomicOperation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.add;
 import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -408,6 +415,75 @@ public class JsonApiDSLTest {
                                     JsonApiDSL.type("child"),
                                     JsonApiDSL.id("2")
                             ))
+                    )
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void verifyAtomicOperationData() {
+        String expected = """
+                {"atomic:operations":[{"op":"add","data":{"type":"article","id":"13","attributes":{"name":"article"}}}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                atomicOperation(AtomicOperationCode.add,
+                        datum(resource(
+                                type("article"),
+                                id("13"),
+                                attributes(
+                                        attr("name", "article")
+                                )
+                        ))
+                )
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
+
+
+    @Test
+    void verifyAtomicOperationRefId() {
+        String expected = """
+                {"atomic:operations":[{"op":"remove","ref":{"type":"articles","id":"13"}}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                    JsonApiDSL.atomicOperation(AtomicOperationCode.remove,
+                            JsonApiDSL.ref(JsonApiDSL.type("articles"), JsonApiDSL.id("13"))
+                    )
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void verifyAtomicOperationRefLid() {
+        String expected = """
+                {"atomic:operations":[{"op":"remove","ref":{"type":"articles","lid":"13"}}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                    JsonApiDSL.atomicOperation(AtomicOperationCode.remove,
+                            JsonApiDSL.ref(JsonApiDSL.type("articles"), JsonApiDSL.lid("13"))
+                    )
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void verifyAtomicOperationRefIdRelationship() {
+        String expected = """
+                {"atomic:operations":[{"op":"update","ref":{"type":"articles","id":"13","relationship":"author"},"data":null}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                    JsonApiDSL.atomicOperation(AtomicOperationCode.update,
+                            JsonApiDSL.ref(JsonApiDSL.type("articles"), JsonApiDSL.id("13"), JsonApiDSL.relationship("author")),
+                            JsonApiDSL.datum(null)
+                    )
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void verifyAtomicOperationRefLidRelationship() {
+        String expected = """
+                {"atomic:operations":[{"op":"update","ref":{"type":"articles","lid":"13","relationship":"author"},"data":null}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                    JsonApiDSL.atomicOperation(AtomicOperationCode.update,
+                            JsonApiDSL.ref(JsonApiDSL.type("articles"), JsonApiDSL.lid("13"), JsonApiDSL.relationship("author")),
+                            JsonApiDSL.datum(null)
                     )
                 ).toJSON();
         assertEquals(expected, actual);
