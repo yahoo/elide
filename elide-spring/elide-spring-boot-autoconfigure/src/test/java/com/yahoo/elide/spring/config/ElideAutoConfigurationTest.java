@@ -6,19 +6,22 @@
 package com.yahoo.elide.spring.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStore;
+
+import com.atomikos.spring.AtomikosAutoConfiguration;
+import com.atomikos.spring.AtomikosDataSourceBean;
 
 import example.models.jpa.ArtifactGroup;
 import example.models.jpa.v2.ArtifactGroupV2;
 import example.models.jpa.v3.ArtifactGroupV3;
 
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -35,6 +38,7 @@ import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfigu
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
+import org.springframework.boot.orm.jpa.hibernate.SpringJtaPlatform;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +49,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -59,6 +64,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.sql.DataSource;
+import javax.sql.XADataSource;
 
 /**
  * Tests for ElideAutoConfiguration.
@@ -286,12 +292,12 @@ class ElideAutoConfigurationTest {
     public static class MultipleDataSourceConfiguration {
         @Bean
         public DataSource dataSourceV2() {
-            return DataSourceBuilder.create().url("jdbc:h2:mem:db;DB_CLOSE_DELAY=-1").build();
+            return DataSourceBuilder.create().url("jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1").build();
         }
 
         @Bean
         public DataSource dataSourceV3() {
-            return DataSourceBuilder.create().url("jdbc:h2:mem:db;DB_CLOSE_DELAY=-1").build();
+            return DataSourceBuilder.create().url("jdbc:h2:mem:db2;DB_CLOSE_DELAY=-1").build();
         }
 
         @Bean
@@ -313,7 +319,8 @@ class ElideAutoConfigurationTest {
         public LocalContainerEntityManagerFactoryBean entityManagerFactoryV2(EntityManagerFactoryBuilder builder,
                 DefaultListableBeanFactory beanFactory, DataSource dataSourceV2) {
             Map<String, Object> vendorProperties = new HashMap<>();
-            vendorProperties.put("hibernate.hbm2ddl.auto", "create-drop");
+            vendorProperties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+            vendorProperties.put(AvailableSettings.JTA_PLATFORM, new NoJtaPlatform());
             final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSourceV2)
                     .packages("example.models.jpa.v2").properties(vendorProperties).build();
             return emf;
@@ -323,7 +330,8 @@ class ElideAutoConfigurationTest {
         public LocalContainerEntityManagerFactoryBean entityManagerFactoryV3(EntityManagerFactoryBuilder builder,
                 DefaultListableBeanFactory beanFactory, DataSource dataSourceV3) {
             Map<String, Object> vendorProperties = new HashMap<>();
-            vendorProperties.put("hibernate.hbm2ddl.auto", "create-drop");
+            vendorProperties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+            vendorProperties.put(AvailableSettings.JTA_PLATFORM, new NoJtaPlatform());
             final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSourceV3)
                     .packages("example.models.jpa.v3").properties(vendorProperties).build();
             return emf;
@@ -353,30 +361,130 @@ class ElideAutoConfigurationTest {
 
                     try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
                         ArtifactGroupV2 artifactGroupV2 = new ArtifactGroupV2();
-                        artifactGroupV2.setName("Group V2");
+                        artifactGroupV2.setName("JPA Group V2a");
                         transaction.save(artifactGroupV2, null);
                         transaction.commit(null);
                     }
 
                     try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
                         ArtifactGroupV3 artifactGroupV3 = new ArtifactGroupV3();
-                        artifactGroupV3.setName("Group V3");
+                        artifactGroupV3.setName("JPA Group V3a");
                         transaction.save(artifactGroupV3, null);
                         transaction.commit(null);
                     }
 
                     try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
                         ArtifactGroupV2 artifactGroupV2 = new ArtifactGroupV2();
-                        artifactGroupV2.setName("Group V2");
+                        artifactGroupV2.setName("JPA Group V2b");
 
                         ArtifactGroupV3 artifactGroupV3 = new ArtifactGroupV3();
-                        artifactGroupV3.setName("Group V3");
+                        artifactGroupV3.setName("JPA Group V3b");
 
                         transaction.save(artifactGroupV2, null);
                         transaction.save(artifactGroupV3, null);
 
-                        assertThatThrownBy(() -> transaction.commit(null)).isInstanceOf(TransactionException.class)
-                                .message().isEqualTo("Transaction synchronization is not active");
+                        transaction.commit(null);
+                    }
+                });
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    public static class MultipleDataSourceJtaConfiguration {
+        @Bean
+        public DataSource dataSourceV2() {
+            DataSource xaDataSource = DataSourceBuilder.create().url("jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1")
+                    .driverClassName("org.h2.Driver").type(org.h2.jdbcx.JdbcDataSource.class).build();
+            AtomikosDataSourceBean atomikosDataSource = new AtomikosDataSourceBean();
+            atomikosDataSource.setXaDataSource((XADataSource) xaDataSource);
+            return atomikosDataSource;
+        }
+
+        @Bean
+        public DataSource dataSourceV3() {
+            DataSource xaDataSource = DataSourceBuilder.create().url("jdbc:h2:mem:db2;DB_CLOSE_DELAY=-1")
+                    .driverClassName("org.h2.Driver").type(org.h2.jdbcx.JdbcDataSource.class).build();
+            AtomikosDataSourceBean atomikosDataSource = new AtomikosDataSourceBean();
+            atomikosDataSource.setXaDataSource((XADataSource) xaDataSource);
+            return atomikosDataSource;
+        }
+
+        @Bean
+        public EntityManagerFactoryBuilder entityManagerFactoryBuilder(
+                ObjectProvider<PersistenceUnitManager> persistenceUnitManager,
+                ObjectProvider<EntityManagerFactoryBuilderCustomizer> customizers) {
+            EntityManagerFactoryBuilder builder = new EntityManagerFactoryBuilder(new HibernateJpaVendorAdapter(),
+                    new HashMap<>(), persistenceUnitManager.getIfAvailable());
+            customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
+            return builder;
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @EnableJpaDataStore(entityManagerFactoryRef = "entityManagerFactoryV2", transactionManagerRef = "transactionManager")
+    @EnableJpaDataStore(entityManagerFactoryRef = "entityManagerFactoryV3", transactionManagerRef = "transactionManager")
+    public static class MultipleEntityManagerFactoryJtaConfiguration {
+        @Bean
+        public LocalContainerEntityManagerFactoryBean entityManagerFactoryV2(EntityManagerFactoryBuilder builder,
+                DefaultListableBeanFactory beanFactory, DataSource dataSourceV2, JtaTransactionManager transactionManager) {
+            Map<String, Object> vendorProperties = new HashMap<>();
+            vendorProperties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+            vendorProperties.put(AvailableSettings.JTA_PLATFORM, new SpringJtaPlatform(transactionManager));
+            final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSourceV2)
+                    .packages("example.models.jpa.v2").properties(vendorProperties).jta(true).build();
+            return emf;
+        }
+
+        @Bean
+        public LocalContainerEntityManagerFactoryBean entityManagerFactoryV3(EntityManagerFactoryBuilder builder,
+                DefaultListableBeanFactory beanFactory, DataSource dataSourceV3, JtaTransactionManager transactionManager) {
+            Map<String, Object> vendorProperties = new HashMap<>();
+            vendorProperties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+            vendorProperties.put(AvailableSettings.JTA_PLATFORM, new SpringJtaPlatform(transactionManager));
+            final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSourceV3)
+                    .packages("example.models.jpa.v3").properties(vendorProperties).jta(true).build();
+            return emf;
+        }
+    }
+
+    @Test
+    void multiplexDataStoreJtaTransaction() {
+        contextRunner
+                .withPropertyValues("spring.cloud.refresh.enabled=false",
+                        "atomikos.properties.max-timeout=0")
+                .withConfiguration(AutoConfigurations.of(AtomikosAutoConfiguration.class))
+                .withUserConfiguration(MultipleDataSourceJtaConfiguration.class, MultipleEntityManagerFactoryJtaConfiguration.class).run(context -> {
+                    DataStore dataStore = context.getBean(DataStore.class);
+                    assertThat(dataStore).isInstanceOf(MultiplexManager.class);
+
+                    // The data store will only be initialized properly by elide to populate the dictionary
+                    RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
+                    dataStore = refreshableElide.getElide().getDataStore();
+
+                    try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
+                        ArtifactGroupV2 artifactGroupV2 = new ArtifactGroupV2();
+                        artifactGroupV2.setName("JTA Group V2");
+                        transaction.save(artifactGroupV2, null);
+                        transaction.commit(null);
+                    }
+
+                    try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
+                        ArtifactGroupV3 artifactGroupV3 = new ArtifactGroupV3();
+                        artifactGroupV3.setName("JTA Group V3");
+                        transaction.save(artifactGroupV3, null);
+                        transaction.commit(null);
+                    }
+
+                    try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
+                        ArtifactGroupV2 artifactGroupV2 = new ArtifactGroupV2();
+                        artifactGroupV2.setName("JTA Group V2");
+
+                        ArtifactGroupV3 artifactGroupV3 = new ArtifactGroupV3();
+                        artifactGroupV3.setName("JTA Group V3");
+
+                        transaction.save(artifactGroupV2, null);
+                        transaction.save(artifactGroupV3, null);
+
+                        transaction.commit(null);
                     }
                 });
     }

@@ -19,7 +19,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -51,9 +50,14 @@ public class PlatformJpaTransaction extends AbstractJpaTransaction {
     public void begin() {
         this.status = this.transactionManager.getTransaction(this.definition);
         if (this.em instanceof SupplierEntityManager supplierEntityManager) {
-            EntityManagerHolder entityManagerHolder = (EntityManagerHolder) Objects
-                .requireNonNull(TransactionSynchronizationManager.getResource(this.entityManagerFactory));
-            supplierEntityManager.setEntityManager(entityManagerHolder.getEntityManager());
+            EntityManagerHolder entityManagerHolder = (EntityManagerHolder) TransactionSynchronizationManager
+                    .getResource(this.entityManagerFactory);
+            if (entityManagerHolder != null) {
+                // This is the JpaTransactionManager
+                supplierEntityManager.setEntityManager(entityManagerHolder.getEntityManager());
+            } else {
+                supplierEntityManager.setEntityManager(this.entityManagerFactory.createEntityManager());
+            }
         } else {
             throw new IllegalStateException("Expected entity manager to be supplied by EntityManagerProxySupplier");
         }
