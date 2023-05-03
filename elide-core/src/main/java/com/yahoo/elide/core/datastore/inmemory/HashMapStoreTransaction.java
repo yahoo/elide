@@ -14,6 +14,7 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ObjectCloner;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import jakarta.persistence.GeneratedValue;
@@ -21,9 +22,12 @@ import jakarta.persistence.GeneratedValue;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * HashMapDataStore transaction handler.
@@ -33,13 +37,27 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     private final List<Operation> operations;
     private final EntityDictionary dictionary;
     private final Map<Type<?>, AtomicLong> typeIds;
+    private final Lock lock;
+    private final boolean readOnly;
+    private final ObjectCloner objectCloner;
+    private boolean committed = false;
 
-    public HashMapStoreTransaction(Map<Type<?>, Map<String, Object>> dataStore,
-                                   EntityDictionary dictionary, Map<Type<?>, AtomicLong> typeIds) {
+    public HashMapStoreTransaction(ReadWriteLock readWriteLock, Map<Type<?>, Map<String, Object>> dataStore,
+            EntityDictionary dictionary, Map<Type<?>, AtomicLong> typeIds, ObjectCloner objectCloner,
+            boolean readOnly) {
+        this.readOnly = readOnly;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
         this.operations = new ArrayList<>();
         this.typeIds = typeIds;
+        this.objectCloner = objectCloner;
+
+        if (readWriteLock != null) {
+            this.lock = readOnly ? readWriteLock.readLock() : readWriteLock.writeLock();
+            this.lock.lock();
+        } else {
+            this.lock = null;
+        }
     }
 
     @Override
@@ -91,6 +109,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
                         }
                     });
             operations.clear();
+            committed = true;
         }
     }
 
@@ -140,6 +159,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
                                                           RequestScope scope) {
         synchronized (dataStore) {
             Map<String, Object> data = dataStore.get(projection.getType());
+            cacheForRollback(projection.getType(), data);
             return new DataStoreIterableBuilder<>(data.values()).allInMemory().build();
         }
     }
@@ -151,6 +171,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
 
         synchronized (dataStore) {
             Map<String, Object> data = dataStore.get(projection.getType());
+            cacheForRollback(projection.getType(), data);
             if (data == null) {
                 return null;
             }
@@ -161,9 +182,49 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
         }
     }
 
+    /**
+     * Contains a copy of the objects loaded from the hash map store as they may be
+     * updated like a persistent object. Since what is returned is a reference to
+     * the object in the underlying store when updated it immediately reflects in
+     * the store. As such a copy of the original objects need to made in order to
+     * rollback.
+     */
+    private Map<Type<?>, Map<String, Object>> rollbackCache = new HashMap<>();
+
+    protected void cacheForRollback(Type<?> type, Map<String, Object> data) {
+        if (!readOnly) {
+            this.rollbackCache.computeIfAbsent(type, key -> {
+                if (data != null) {
+                    Map<String, Object> copy = new HashMap<>();
+                    data.entrySet().stream().forEach(entry -> {
+                        Object value = this.objectCloner.clone(entry.getValue(), type);
+                        copy.put(entry.getKey(), value);
+                    });
+                    return copy;
+                }
+                return null;
+            });
+        }
+    }
+
     @Override
     public void close() throws IOException {
-        operations.clear();
+        try {
+            if (!committed && !readOnly) {
+                rollback();
+            }
+            operations.clear();
+        } finally {
+            if (this.lock != null) {
+                this.lock.unlock();
+            }
+        }
+    }
+
+    public void rollback() {
+        // Rollback data
+        dataStore.putAll(this.rollbackCache);
+        this.rollbackCache.clear();
     }
 
     private boolean containsObject(Object obj) {

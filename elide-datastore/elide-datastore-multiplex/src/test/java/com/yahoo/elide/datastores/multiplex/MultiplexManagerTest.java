@@ -33,6 +33,7 @@ import org.junit.jupiter.api.TestInstance;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 /**
@@ -90,8 +91,23 @@ public class MultiplexManagerTest {
         }
     }
 
+    /**
+     * Tests the case where there is no commit to the hash map data store occurs and
+     * a rollback occurs subsequently.
+     *
+     * It is expected that the update to the FirstBean from the hash map data store
+     * to set the name to update does not update the underlying store if there is no
+     * commit to the hash map data store.
+     *
+     * @throws IOException               the exception
+     * @throws IllegalArgumentException  the exception
+     * @throws InvocationTargetException the exception
+     * @throws NoSuchMethodException     the exception
+     * @throws SecurityException         the exception
+     */
     @Test
-    public void partialCommitFailure() throws IOException {
+    public void partialCommitFailureNoCommit() throws IOException, IllegalArgumentException, InvocationTargetException,
+            NoSuchMethodException, SecurityException {
         final EntityDictionary entityDictionary = EntityDictionary.builder().build();
         final HashMapDataStore ds1 = new HashMapDataStore(DefaultClassScanner.getInstance(),
                 FirstBean.class.getPackage());
@@ -107,7 +123,7 @@ public class MultiplexManagerTest {
                     .type(FirstBean.class)
                     .build(), null).iterator().hasNext());
 
-            FirstBean firstBean = FirstBean.class.newInstance();
+            FirstBean firstBean = FirstBean.class.getDeclaredConstructor().newInstance();
             firstBean.setName("name");
             t.createObject(firstBean, null);
             //t.save(firstBean);
@@ -124,7 +140,7 @@ public class MultiplexManagerTest {
                     .build(), null).iterator().next();
             firstBean.setName("update");
             t.save(firstBean, null);
-            OtherBean otherBean = OtherBean.class.newInstance();
+            OtherBean otherBean = OtherBean.class.getDeclaredConstructor().newInstance();
             t.createObject(otherBean, null);
             //t.save(firstBean);
 
@@ -139,8 +155,75 @@ public class MultiplexManagerTest {
                     .build(), null);
             assertNotNull(beans);
             ArrayList<Object> list = Lists.newArrayList(beans.iterator());
-            assertEquals(list.size(), 1);
-            assertEquals(((FirstBean) list.get(0)).getName(), "name");
+            assertEquals(1, list.size());
+            assertEquals("name", ((FirstBean) list.get(0)).getName());
+        }
+    }
+
+    /**
+     * Tests the case where the commit to the hash map data store occurs and a
+     * rollback occurs subsequently which the multiplex manager will attempt to
+     * reverse.
+     *
+     * @throws IOException               the exception
+     * @throws IllegalArgumentException  the exception
+     * @throws InvocationTargetException the exception
+     * @throws NoSuchMethodException     the exception
+     * @throws SecurityException         the exception
+     */
+    @Test
+    public void partialCommitFailureReverseTransactions() throws IOException, IllegalArgumentException,
+            InvocationTargetException, NoSuchMethodException, SecurityException {
+        final EntityDictionary entityDictionary = EntityDictionary.builder().build();
+        final HashMapDataStore ds1 = new HashMapDataStore(DefaultClassScanner.getInstance(),
+                FirstBean.class.getPackage());
+        final DataStore ds2 = new TestDataStore(OtherBean.class.getPackage());
+        final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);
+        multiplexManager.populateEntityDictionary(entityDictionary);
+
+        assertEquals(ds1, multiplexManager.getSubManager(ClassType.of(FirstBean.class)));
+        assertEquals(ds2, multiplexManager.getSubManager(ClassType.of(OtherBean.class)));
+
+        try (DataStoreTransaction t = ds1.beginTransaction()) {
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().hasNext());
+
+            FirstBean firstBean = FirstBean.class.getDeclaredConstructor().newInstance();
+            firstBean.setName("name");
+            t.createObject(firstBean, null);
+            //t.save(firstBean);
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().hasNext());
+            t.commit(null);
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("", e);
+        }
+        try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
+            OtherBean otherBean = OtherBean.class.getDeclaredConstructor().newInstance();
+            t.createObject(otherBean, null);
+
+            FirstBean firstBean = (FirstBean) t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().next();
+            firstBean.setName("update");
+            //t.save(firstBean, null);
+            t.save(firstBean, null);
+
+            assertThrows(TransactionException.class, () -> t.commit(null));
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("", e);
+        }
+        // verify state
+        try (DataStoreTransaction t = ds1.beginTransaction()) {
+            Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null);
+            assertNotNull(beans);
+            ArrayList<Object> list = Lists.newArrayList(beans.iterator());
+            assertEquals(1, list.size());
+            assertEquals("name", ((FirstBean) list.get(0)).getName());
         }
     }
 

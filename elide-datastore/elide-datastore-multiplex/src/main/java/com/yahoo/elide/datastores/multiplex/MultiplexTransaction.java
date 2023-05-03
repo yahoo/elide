@@ -23,9 +23,12 @@ import com.yahoo.elide.core.type.Type;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.ListIterator;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
@@ -66,42 +69,60 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void flush(RequestScope requestScope) {
-        transactions.values().stream()
-                .filter(dataStoreTransaction -> dataStoreTransaction != null)
-                .forEach(dataStoreTransaction -> dataStoreTransaction.flush(requestScope));
+    public void flush(RequestScope scope) {
+        processTransactions(dataStoreTransaction -> dataStoreTransaction.flush(scope));
     }
 
     @Override
     public void preCommit(RequestScope scope) {
-        transactions.values().stream()
-                .filter(dataStoreTransaction -> dataStoreTransaction != null)
-                .forEach(tx -> tx.preCommit(scope));
+        processTransactions(dataStoreTransaction -> dataStoreTransaction.preCommit(scope));
     }
 
     @Override
     public void commit(RequestScope scope) {
         // flush all before commit
         flush(scope);
-        transactions.values().stream()
-               .filter(dataStoreTransaction -> dataStoreTransaction != null)
-               .forEach(dataStoreTransaction -> dataStoreTransaction.commit(scope));
+        processTransactions(dataStoreTransaction -> dataStoreTransaction.commit(scope));
+    }
+
+    /**
+     * Processes the transactions in reverse order and is non null.
+     *
+     * @param processor process the transaction
+     */
+    protected void processTransactions(Consumer<DataStoreTransaction> processor) {
+        // Transactions must be processed in reverse order
+        ListIterator<DataStoreTransaction> iterator = new ArrayList<>(transactions.values())
+                .listIterator(transactions.size());
+        while (iterator.hasPrevious()) {
+            DataStoreTransaction dataStoreTransaction = iterator.previous();
+            if (dataStoreTransaction != null) {
+                processor.accept(dataStoreTransaction);
+            }
+        }
     }
 
     @Override
     public void close() throws IOException {
 
         IOException cause = null;
-        for (DataStoreTransaction transaction : transactions.values()) {
-            try {
-                transaction.close();
-            } catch (IOException | Error | RuntimeException e) {
-                if (cause != null) {
-                    cause.addSuppressed(e);
-                } else if (e instanceof IOException) {
-                    cause = (IOException) e;
-                } else {
-                    cause = new IOException(e);
+
+        // Transactions must be processed in reverse order
+        ListIterator<DataStoreTransaction> iterator = new ArrayList<>(transactions.values())
+                .listIterator(transactions.size());
+        while (iterator.hasPrevious()) {
+            DataStoreTransaction dataStoreTransaction = iterator.previous();
+            if (dataStoreTransaction != null) {
+                try {
+                    dataStoreTransaction.close();
+                } catch (IOException | Error | RuntimeException e) {
+                    if (cause != null) {
+                        cause.addSuppressed(e);
+                    } else if (e instanceof IOException ioException) {
+                        cause = ioException;
+                    } else {
+                        cause = new IOException(e);
+                    }
                 }
             }
         }

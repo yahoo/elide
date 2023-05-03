@@ -14,7 +14,8 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.google.common.collect.Sets;
+import com.yahoo.elide.core.utils.ObjectCloner;
+import com.yahoo.elide.core.utils.ObjectCloners;
 
 import lombok.Getter;
 
@@ -27,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Simple in-memory only database.
@@ -35,29 +38,42 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     protected final Map<Type<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
     @Getter protected EntityDictionary dictionary;
     @Getter private final ConcurrentHashMap<Type<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final ObjectCloner objectCloner;
 
     public HashMapDataStore(ClassScanner scanner, Package beanPackage) {
-        this(scanner, Sets.newHashSet(beanPackage));
+        this(scanner, beanPackage, ObjectCloners::clone);
+    }
+
+    public HashMapDataStore(ClassScanner scanner, Package beanPackage, ObjectCloner objectCloner) {
+        this(scanner, Collections.singleton(beanPackage), objectCloner);
     }
 
     public HashMapDataStore(ClassScanner scanner, Set<Package> beanPackages) {
+        this(scanner, beanPackages, ObjectCloners::clone);
+    }
+
+    public HashMapDataStore(ClassScanner scanner, Set<Package> beanPackages, ObjectCloner objectCloner) {
+        this.objectCloner = objectCloner;
         for (Package beanPackage : beanPackages) {
-            scanner.getAllClasses(beanPackage.getName()).stream()
-                .map(ClassType::new)
-                .filter(modelType -> EntityDictionary.getFirstAnnotation(modelType,
-                        Arrays.asList(Include.class, Exclude.class)) instanceof Include)
-                .forEach(modelType -> dataStore.put(modelType,
-                        Collections.synchronizedMap(new LinkedHashMap<>())));
+            process(scanner.getAllClasses(beanPackage.getName()));
         }
     }
 
     public HashMapDataStore(Collection<Class<?>> beanClasses) {
-        beanClasses.stream()
-                .map(ClassType::new)
+        this(beanClasses, ObjectCloners::clone);
+    }
+
+    public HashMapDataStore(Collection<Class<?>> beanClasses, ObjectCloner objectCloner) {
+        this.objectCloner = objectCloner;
+        process(beanClasses);
+    }
+
+    protected void process(Collection<Class<?>> beanClasses) {
+        beanClasses.stream().map(ClassType::of)
                 .filter(modelType -> EntityDictionary.getFirstAnnotation(modelType,
                         Arrays.asList(Include.class, Exclude.class)) instanceof Include)
-                .forEach(modelType -> dataStore.put(modelType,
-                        Collections.synchronizedMap(new LinkedHashMap<>())));
+                .forEach(modelType -> dataStore.put(modelType, Collections.synchronizedMap(new LinkedHashMap<>())));
     }
 
     @Override
@@ -71,7 +87,14 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new HashMapStoreTransaction(dataStore, dictionary, typeIds);
+        return new HashMapStoreTransaction(this.readWriteLock, this.dataStore, this.dictionary,
+                this.typeIds, this.objectCloner, false);
+    }
+
+    @Override
+    public DataStoreTransaction beginReadTransaction() {
+        return new HashMapStoreTransaction(this.readWriteLock, this.dataStore, this.dictionary,
+                this.typeIds, this.objectCloner, true);
     }
 
     @Override
