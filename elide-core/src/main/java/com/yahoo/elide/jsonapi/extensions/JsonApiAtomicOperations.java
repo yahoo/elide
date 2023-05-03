@@ -27,6 +27,7 @@ import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
@@ -114,6 +115,16 @@ public class JsonApiAtomicOperations {
         try {
             Operations operations = requestScope.getMapper().forAtomicOperations().readDoc(operationsDoc);
             actions = operations.getOperations();
+        } catch (InvalidFormatException e) {
+            if (e.getMessage() != null
+                    && e.getMessage().contains("$OperationCode")) {
+                // Invalid op code results in a format error as it is an enum
+                throw new InvalidEntityBodyException(
+                        "Invalid Atomic Operations extension operation code:"
+                                + e.getValue());
+            } else {
+                throw new InvalidEntityBodyException(operationsDoc);
+            }
         } catch (IOException e) {
             throw new InvalidEntityBodyException(operationsDoc);
         }
@@ -206,14 +217,17 @@ public class JsonApiAtomicOperations {
         return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonApiDocument>> result;
             try {
-                JsonNode data = action.operation.getData();
                 Operation operation = action.operation;
                 if (operation == null) {
                     throw new InvalidEntityBodyException("Atomic Operations extension operation must be specified.");
                 }
-
-                String href = action.operation.getHref();
-                Ref ref = action.operation.getRef();
+                if (operation.getOperationCode() == null) {
+                    throw new InvalidEntityBodyException(
+                            "Atomic Operations extension operation code must be specified.");
+                }
+                JsonNode data = operation.getData();
+                String href = operation.getHref();
+                Ref ref = operation.getRef();
                 String fullPath = href;
                 if (fullPath == null) {
                     if (ref == null) {
@@ -247,7 +261,7 @@ public class JsonApiAtomicOperations {
                     default:
                         throw new InvalidEntityBodyException(
                             "Invalid Atomic Operations extension operation code:"
-                                    + action.operation.getOperationCode());
+                                    + operation.getOperationCode());
                 }
                 return result;
             } catch (HttpStatusException e) {
@@ -448,6 +462,10 @@ public class JsonApiAtomicOperations {
             errors.add(ERR_NODE_OPERATION_NOT_RUN);
         }
         return failed;
+    }
+
+    protected String getRootUri() {
+        return this.rootUri;
     }
 
     /**

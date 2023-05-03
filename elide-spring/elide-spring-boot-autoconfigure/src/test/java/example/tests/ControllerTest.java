@@ -25,6 +25,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.patchOperation;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.patchSet;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.ref;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationship;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
@@ -33,6 +34,7 @@ import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.remove;
 import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.replace;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -510,13 +512,11 @@ public class ControllerTest extends IntegrationTest {
                                         ))
                                 ),
                                 atomicOperation(AtomicOperationCode.add,
-                                        /*
                                         ref(
-                                                type("product"),
-                                                id("com.example.operation.product1"),
+                                                type("group/com.example.operationsrel1/products"),
+                                                id("com.example.operations.product1"),
                                                 relationship("maintainers")
-                                        ),*/
-                                        "/group/com.example.operationsrel1/products/com.example.operations.product1/relationships/maintainers",
+                                        ),
                                         data(resource(
                                                 type("maintainer"),
                                                 id("com.example.person1")
@@ -568,6 +568,157 @@ public class ControllerTest extends IntegrationTest {
         String expected = """
                 {"atomic:results":[{"data":null},{"data":null},{"data":null},{"data":null}]}""";
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionMissingRefTypeTest() {
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.add,
+                                        ref(
+                                                type(null),
+                                                id("com.example.operations.product1"),
+                                                relationship("maintainers")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .extract();
+        Map<String, Object> attributes = response.path("[0].errors[0]");
+        assertThat(attributes).extractingByKeys("detail", "status").contains(
+                "Bad Request Body&#39;Atomic Operations extension requires ref type to be specified.&#39;", "400");
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionMissingHrefAndRefTest() {
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.add,
+                                        (String) null, null
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .extract();
+        Map<String, Object> attributes = response.path("[0].errors[0]");
+        assertThat(attributes).extractingByKeys("detail", "status").contains(
+                "Bad Request Body&#39;Atomic Operations extension requires either href or ref to be specified.&#39;", "400");
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionUnsupportedOpTest() {
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "op": "<script src=''></script>",
+                    "ref": {
+                      "type": "articles",
+                      "id": "1",
+                      "relationship": "comments"
+                    },
+                    "data": [
+                      { "type": "comments", "id": "123" }
+                    ]
+                  }]
+                }
+                            """;
+
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(body)
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .extract();
+        Map<String, Object> attributes = response.path("errors[0]");
+        assertThat(attributes).extractingByKeys("detail").contains(
+                "Bad Request Body&#39;Invalid Atomic Operations extension operation code:&lt;script src=&#39;&#39;&gt;&lt;/script&gt;&#39;");
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionMissingOpTest() {
+        String body = """
+                {
+                  "atomic:operations": [{
+                    "ref": {
+                      "type": "articles",
+                      "id": "1",
+                      "relationship": "comments"
+                    },
+                    "data": [
+                      { "type": "comments", "id": "123" }
+                    ]
+                  }]
+                }
+                      """;
+
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(body)
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .extract();
+        Map<String, Object> attributes = response.path("[0].errors[0]");
+        assertThat(attributes).extractingByKeys("detail", "status").contains(
+                "Bad Request Body&#39;Atomic Operations extension operation code must be specified.&#39;", "400");
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionMissingOperationsTest() {
+        String body = """
+                {
+                  "atomic:operations": [null]
+                }
+                      """;
+
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(body)
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .extract();
+        Map<String, Object> attributes = response.path("[0].errors[0]");
+        assertThat(attributes).extractingByKeys("detail", "status").contains(
+                "Bad Request Body&#39;Atomic Operations extension operation must be specified.&#39;", "400");
+    }
+
+    @Test
+    public void jsonApiAtomicOperationsExtensionInvalidFormatTest() {
+        String body = """
+                {"<script src=''></script>"}""";
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(body)
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .extract();
+        Map<String, Object> attributes = response.path("errors[0]");
+        assertThat(attributes).extractingByKeys("detail").contains(
+                "Bad Request Body&#39;{&#34;&lt;script src=&#39;&#39;&gt;&lt;/script&gt;&#34;}&#39;");
     }
 
     @Test
