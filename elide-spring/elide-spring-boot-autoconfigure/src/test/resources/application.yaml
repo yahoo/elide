@@ -38,6 +38,9 @@ elide:
       config-api:
         enabled: false
 spring:
+  autoconfigure:
+    exclude:
+      - com.atomikos.spring.AtomikosAutoConfiguration
   jpa:
     show-sql: true
     properties:

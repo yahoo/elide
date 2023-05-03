@@ -33,4 +33,12 @@ public @interface EnableJpaDataStore {
      * @return the platform transaction manager bean name.
      */
     String transactionManagerRef() default "transactionManager";
+
+    /**
+     * The entity classes to manage. Otherwise all entities in the entity manager
+     * factory will be managed.
+     *
+     * @return the entity classes to manage
+     */
+    Class<?>[] managedClasses() default {};
 }

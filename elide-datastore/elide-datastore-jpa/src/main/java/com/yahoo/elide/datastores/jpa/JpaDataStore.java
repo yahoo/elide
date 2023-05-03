@@ -35,19 +35,19 @@ public class JpaDataStore implements JPQLDataStore {
     protected final JpaTransactionSupplier writeTransactionSupplier;
     protected final MetamodelSupplier metamodelSupplier;
     protected final Set<Type<?>> modelsToBind;
-    protected final QueryLogger logger;
+    protected final QueryLogger queryLogger;
 
     private JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
-                        QueryLogger logger,
+                        QueryLogger queryLogger,
                         MetamodelSupplier metamodelSupplier,
                         Type<?>[] models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
         this.writeTransactionSupplier = writeTransactionSupplier;
         this.metamodelSupplier = metamodelSupplier;
-        this.logger = logger;
+        this.queryLogger = queryLogger;
         this.modelsToBind = new HashSet<>();
         if (models != null) {
             Collections.addAll(this.modelsToBind, models);
@@ -61,18 +61,18 @@ public class JpaDataStore implements JPQLDataStore {
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
-                        QueryLogger logger,
+                        QueryLogger queryLogger,
                         MetamodelSupplier metamodelSupplier) {
-        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, logger,
+        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, queryLogger,
                 metamodelSupplier, null);
     }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
             JpaTransactionSupplier readTransactionSupplier,
             JpaTransactionSupplier writeTransactionSupplier,
-            QueryLogger logger,
+            QueryLogger queryLogger,
             Type<?> ... models) {
-        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, logger, null, models);
+        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, queryLogger, null, models);
     }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,

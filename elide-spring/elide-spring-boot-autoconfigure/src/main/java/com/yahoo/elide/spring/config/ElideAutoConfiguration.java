@@ -71,6 +71,7 @@ import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStore;
 import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStores;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistration;
+import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrations;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilder;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilderCustomizer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -360,27 +361,25 @@ public class ElideAutoConfiguration {
     }
 
     /**
-     * Create a JPA Transaction Supplier to use.
-     * @param transactionManager Spring Platform Transaction Manager
-     * @param entityManagerFactory An instance of EntityManagerFactory
-     * @param settings Elide configuration settings.
-     * @return the JpaTransactionSupplier
+     * Creates the default JpaDataStoreRegistrationsBuilder and applies
+     * customizations.
+     *
+     * <p>
+     * If this bean is already defined Elide will not attempt to discover
+     * JpaDataStore registrations and the JpaDataStores to create can be fully
+     * configured.
+     *
+     * <p>
+     * If only minor customizations are required a
+     * {@link JpaDataStoreRegistrationsBuilderCustomizer} can be defined to customize the
+     * builder.
+     *
+     * @param applicationContext  the application context.
+     * @param settings            Elide configuration settings.
+     * @param optionalQueryLogger the optional query logger.
+     * @param customizerProviders the customizer providers.
+     * @return the default JpaDataStoreRegistrationsBuilder.
      */
-    public JpaTransactionSupplier jpaTransactionSupplier(PlatformTransactionManager transactionManager,
-            EntityManagerFactory entityManagerFactory, ElideConfigProperties settings) {
-        return new PlatformJpaTransactionSupplier(
-                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRED), transactionManager,
-                entityManagerFactory, settings.getJpaStore().isDelegateToInMemoryStore());
-    }
-
-    /**
-     * Create an Entity Manager Supplier to use.
-     * @return the EntityManagerSupplier
-     */
-    public EntityManagerSupplier entityManagerSupplier() {
-        return new EntityManagerProxySupplier();
-    }
-
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
@@ -394,32 +393,32 @@ public class ElideAutoConfiguration {
         String[] platformTransactionManagerNames = applicationContext
                 .getBeanNamesForType(PlatformTransactionManager.class);
 
-        if (entityManagerFactoryNames.length == 1 && platformTransactionManagerNames.length == 1) {
-            // Basic scenario
+        Map<String, Object> beans = new HashMap<>();
+        beans.putAll(applicationContext.getBeansWithAnnotation(EnableJpaDataStore.class));
+        beans.putAll(applicationContext.getBeansWithAnnotation(EnableJpaDataStores.class));
+        if (!beans.isEmpty()) {
+            // If there is explicit configuration
+            beans.values().stream().forEach(bean -> {
+                EnableJpaDataStore[] annotations = bean.getClass()
+                        .getAnnotationsByType(EnableJpaDataStore.class);
+                for (EnableJpaDataStore annotation : annotations) {
+                    String entityManagerFactoryName = annotation.entityManagerFactoryRef();
+                    String platformTransactionManagerName = annotation.transactionManagerRef();
+                    if (!StringUtils.isBlank(entityManagerFactoryName)
+                            && !StringUtils.isBlank(platformTransactionManagerName)) {
+                        builder.add(buildJpaDataStoreRegistration(applicationContext, entityManagerFactoryName,
+                                platformTransactionManagerName, settings, optionalQueryLogger,
+                                annotation.managedClasses()));
+                    }
+                }
+            });
+        } else if (entityManagerFactoryNames.length == 1 && platformTransactionManagerNames.length == 1) {
+            // If there is no explicit configuration but just one entity manager factory and
+            // transaction manager configure it
             String platformTransactionManagerName = platformTransactionManagerNames[0];
             String entityManagerFactoryName = entityManagerFactoryNames[0];
-            builder.add(jpaDataStoreRegistration(applicationContext, entityManagerFactoryName,
-                    platformTransactionManagerName, settings, optionalQueryLogger));
-        } else {
-            // Multiple scenario
-            Map<String, Object> beans = new HashMap<>();
-            beans.putAll(applicationContext.getBeansWithAnnotation(EnableJpaDataStore.class));
-            beans.putAll(applicationContext.getBeansWithAnnotation(EnableJpaDataStores.class));
-            if (!beans.isEmpty()) {
-                beans.values().stream().forEach(bean -> {
-                    EnableJpaDataStore[] annotations = bean.getClass()
-                            .getAnnotationsByType(EnableJpaDataStore.class);
-                    for (EnableJpaDataStore annotation : annotations) {
-                        String entityManagerFactoryName = annotation.entityManagerFactoryRef();
-                        String platformTransactionManagerName = annotation.transactionManagerRef();
-                        if (!StringUtils.isBlank(entityManagerFactoryName)
-                                && !StringUtils.isBlank(platformTransactionManagerName)) {
-                            builder.add(jpaDataStoreRegistration(applicationContext, entityManagerFactoryName,
-                                    platformTransactionManagerName, settings, optionalQueryLogger));
-                        }
-                    }
-                });
-            }
+            builder.add(buildJpaDataStoreRegistration(applicationContext, entityManagerFactoryName,
+                    platformTransactionManagerName, settings, optionalQueryLogger, new Class[] {}));
         }
 
         customizerProviders.orderedStream().forEach(customizer -> customizer.customize(builder));
@@ -434,22 +433,19 @@ public class ElideAutoConfiguration {
      * @param platformTransactionManagerName the bean name of the platform transaction manager
      * @param settings the settings
      * @param optionalQueryLogger the optional query logger
-     * @return
+     * @return the JpaDataStoreRegistration read from the application context.
      */
-    private JpaDataStoreRegistration jpaDataStoreRegistration(ApplicationContext applicationContext,
+    private JpaDataStoreRegistration buildJpaDataStoreRegistration(ApplicationContext applicationContext,
             String entityManagerFactoryName, String platformTransactionManagerName, ElideConfigProperties settings,
-            Optional<com.yahoo.elide.datastores.jpql.porting.QueryLogger> optionalQueryLogger) {
-        PlatformTransactionManager transactionManager = applicationContext
+            Optional<com.yahoo.elide.datastores.jpql.porting.QueryLogger> optionalQueryLogger,
+            Class<?>[] managedClasses) {
+        PlatformTransactionManager platformTransactionManager = applicationContext
                 .getBean(platformTransactionManagerName, PlatformTransactionManager.class);
         EntityManagerFactory entityManagerFactory = applicationContext.getBean(entityManagerFactoryName,
                 EntityManagerFactory.class);
-        JpaTransactionSupplier jpaTransactionSupplier = jpaTransactionSupplier(transactionManager,
-                entityManagerFactory, settings);
-        return JpaDataStoreRegistration.builder().name(entityManagerFactoryName)
-                .entityManagerSupplier(entityManagerSupplier()).readTransactionSupplier(jpaTransactionSupplier)
-                .writeTransactionSupplier(jpaTransactionSupplier)
-                .metamodelSupplier(entityManagerFactory::getMetamodel)
-                .logger(optionalQueryLogger.orElse(JpaDataStore.DEFAULT_LOGGER)).build();
+        return JpaDataStoreRegistrations.buildJpaDataStoreRegistration(entityManagerFactoryName, entityManagerFactory,
+                platformTransactionManagerName, platformTransactionManager, settings, optionalQueryLogger,
+                managedClasses);
     }
 
     /**
@@ -493,14 +489,14 @@ public class ElideAutoConfiguration {
         List<DataStore> stores = new ArrayList<>();
 
         builder.build().forEach(registration -> {
-            if (registration.getModelsToBind() != null && !registration.getModelsToBind().isEmpty()) {
+            if (registration.getManagedClasses() != null && !registration.getManagedClasses().isEmpty()) {
                 stores.add(new JpaDataStore(registration.getEntityManagerSupplier(),
                         registration.getReadTransactionSupplier(), registration.getWriteTransactionSupplier(),
-                        registration.getLogger(), registration.getModelsToBind().toArray(Type<?>[]::new)));
+                        registration.getQueryLogger(), registration.getManagedClasses().toArray(Type<?>[]::new)));
             } else {
                 stores.add(new JpaDataStore(registration.getEntityManagerSupplier(),
                         registration.getReadTransactionSupplier(), registration.getWriteTransactionSupplier(),
-                        registration.getLogger(), registration.getMetamodelSupplier()));
+                        registration.getQueryLogger(), registration.getMetamodelSupplier()));
             }
         });
 

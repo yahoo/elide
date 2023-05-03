@@ -53,9 +53,10 @@ public class PlatformJpaTransaction extends AbstractJpaTransaction {
             EntityManagerHolder entityManagerHolder = (EntityManagerHolder) TransactionSynchronizationManager
                     .getResource(this.entityManagerFactory);
             if (entityManagerHolder != null) {
-                // This is the JpaTransactionManager
+                // This is for the JpaTransactionManager
                 supplierEntityManager.setEntityManager(entityManagerHolder.getEntityManager());
             } else {
+                // This is for the JtaTransactionManager
                 supplierEntityManager.setEntityManager(this.entityManagerFactory.createEntityManager());
             }
         } else {

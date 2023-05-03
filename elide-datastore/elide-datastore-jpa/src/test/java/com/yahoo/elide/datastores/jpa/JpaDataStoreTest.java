@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jpa;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -96,5 +97,11 @@ public class JpaDataStoreTest {
         store.populateEntityDictionary(dictionary);
 
         assertNotNull(dictionary.lookupBoundClass(ClassType.of(Test.class)));
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionIfNoMetamodelSupplier() {
+        EntityManager managerMock = mock(EntityManager.class);
+        assertThrows(IllegalArgumentException.class, () -> new JpaDataStore(() -> managerMock, unused -> null));
     }
 }

@@ -36,7 +36,13 @@ public class JpaDataStoreRegistration {
     @Getter
     private final MetamodelSupplier metamodelSupplier;
     @Getter
-    private final Set<Type<?>> modelsToBind;
+    private final Set<Type<?>> managedClasses;
     @Getter
-    private final QueryLogger logger;
+    private final QueryLogger queryLogger;
+
+    /**
+     * Used to build a JpaDataStore registration.
+     */
+    public static class JpaDataStoreRegistrationBuilder {
+    }
 }
