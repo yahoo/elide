@@ -18,6 +18,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
@@ -648,5 +649,14 @@ public interface ElideStandaloneSettings {
      */
     default DataFetcherExceptionHandler getDataFetcherExceptionHandler() {
         return new SimpleDataFetcherExceptionHandler();
+    }
+
+    /**
+     * Gets the route resolver to determine the API version.
+     *
+     * @return the route resolver
+     */
+    default RouteResolver getRouteResolver() {
+        return null;
     }
 }

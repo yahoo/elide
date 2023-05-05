@@ -26,10 +26,13 @@ public class MediaTypeParameterRouteResolver implements RouteResolver {
     public Route resolve(String mediaType, String baseUrl, String path,
             Map<String, List<String>> headers, Map<String, List<String>> parameters) {
 
-        for (String accept : headers.get("Accept")) {
-            String apiVersion = fromHeader(accept, mediaType);
-            if (apiVersion != null) {
-                return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).build();
+        List<String> acceptHeader = headers.get("accept");
+        if (acceptHeader != null) {
+            for (String accept : acceptHeader) {
+                String apiVersion = fromHeader(accept, mediaType);
+                if (apiVersion != null) {
+                    return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).build();
+                }
             }
         }
         return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).build();

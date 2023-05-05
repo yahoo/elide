@@ -8,6 +8,7 @@ package com.yahoo.elide.core.request.route;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -19,6 +20,9 @@ public class HeaderRouteResolver implements RouteResolver {
 
     public HeaderRouteResolver(String... apiVersionHeaderNames) {
         this.apiVersionHeaderNames = apiVersionHeaderNames;
+        for (int x = 0; x < apiVersionHeaderNames.length; x++) {
+            this.apiVersionHeaderNames[x] = this.apiVersionHeaderNames[x].toLowerCase(Locale.ENGLISH);
+        }
     }
 
     @Override
