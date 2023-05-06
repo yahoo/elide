@@ -44,8 +44,8 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = elide.get("", getPath(uri), queryParams, scope.getRequestHeaders(), user, apiVersion,
-                requestUUID);
+        ElideResponse response = elide.get(scope.getBaseUrlEndPoint(), getPath(uri), queryParams,
+                scope.getRequestHeaders(), user, apiVersion, requestUUID);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;
