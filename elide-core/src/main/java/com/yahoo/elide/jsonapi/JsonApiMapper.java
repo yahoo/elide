@@ -6,7 +6,7 @@
 package com.yahoo.elide.jsonapi;
 
 import com.yahoo.elide.jsonapi.extensions.JsonApiAtomicOperationsMapper;
-import com.yahoo.elide.jsonapi.extensions.JsonApiPatchMapper;
+import com.yahoo.elide.jsonapi.extensions.JsonApiJsonPatchMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 public class JsonApiMapper {
     protected final ObjectMapper mapper;
-    protected final JsonApiPatchMapper jsonPatchMapper;
+    protected final JsonApiJsonPatchMapper jsonPatchMapper;
     protected final JsonApiAtomicOperationsMapper atomicOperationsMapper;
 
     /**
@@ -35,10 +35,22 @@ public class JsonApiMapper {
      * @param mapper Custom object mapper to use internally for serializing/deserializing
      */
     public JsonApiMapper(ObjectMapper mapper) {
+        this(mapper, new JsonApiJsonPatchMapper(mapper), new JsonApiAtomicOperationsMapper(mapper));
+    }
+
+    /**
+     * Instantiates a new Json Api Mapper.
+     *
+     * @param mapper Custom object mapper to use internally for serializing/deserializing
+     * @param jsonPatchMapper the mapper for the JSON Patch extension
+     * @param atomicOperationsMapper the mapper for the Atomic Operations extension
+     */
+    public JsonApiMapper(ObjectMapper mapper, JsonApiJsonPatchMapper jsonPatchMapper,
+            JsonApiAtomicOperationsMapper atomicOperationsMapper) {
         this.mapper = mapper;
         this.mapper.registerModule(JsonApiSerializer.getModule());
-        this.jsonPatchMapper = new JsonApiPatchMapper(this.mapper);
-        this.atomicOperationsMapper = new JsonApiAtomicOperationsMapper(this.mapper);
+        this.jsonPatchMapper = jsonPatchMapper;
+        this.atomicOperationsMapper = atomicOperationsMapper;
     }
 
     /**
@@ -100,7 +112,7 @@ public class JsonApiMapper {
      *
      * @return the mapper for the JSON Patch extension.
      */
-    public JsonApiPatchMapper forJsonPatch() {
+    public JsonApiJsonPatchMapper forJsonPatch() {
         return this.jsonPatchMapper;
     }
 

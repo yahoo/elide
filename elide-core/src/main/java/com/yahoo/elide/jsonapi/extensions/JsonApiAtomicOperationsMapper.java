@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JsonApiAtomicOperationsMapper.
+ * The mapper for the JSON API Atomic Operations extension.
  */
 public class JsonApiAtomicOperationsMapper {
     protected final ObjectMapper objectMapper;
@@ -42,11 +42,11 @@ public class JsonApiAtomicOperationsMapper {
                 List<Resource> dataResources = new ArrayList<>();
                 for (JsonNode item : data) {
                     dataResources.add(readResource(item));
-                    value.setData(new Data<Resource>(dataResources));
+                    value.setData(new Data<>(dataResources));
                 }
             } else {
                 Resource resource = readResource(data);
-                value.setData(new Data<Resource>(resource));
+                value.setData(new Data<>(resource));
             }
         }
         return value;

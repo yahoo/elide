@@ -67,12 +67,13 @@ public class JsonApiAtomicOperations {
             this.cause = null;
         }
 
-        public void postProcess(AtomicOperationsRequestScope requestScope) {
+        public void postProcess(JsonApiAtomicOperationsRequestScope requestScope) {
             if (isPostProcessing) {
                 try {
                     // Only update relationships
                     clearAllExceptRelationships(doc);
-                    PatchVisitor visitor = new PatchVisitor(new AtomicOperationsRequestScope(path, doc, requestScope));
+                    PatchVisitor visitor = new PatchVisitor(
+                            new JsonApiAtomicOperationsRequestScope(path, doc, requestScope));
                     visitor.visit(JsonApiParser.parse(path));
                 } catch (HttpStatusException e) {
                     cause = e;
@@ -110,7 +111,7 @@ public class JsonApiAtomicOperations {
     public static Supplier<Pair<Integer, JsonNode>> processAtomicOperations(DataStore dataStore,
             String uri,
             String operationsDoc,
-            AtomicOperationsRequestScope requestScope) {
+            JsonApiAtomicOperationsRequestScope requestScope) {
         List<Operation> actions;
         try {
             Operations operations = requestScope.getMapper().forAtomicOperations().readDoc(operationsDoc);
@@ -152,7 +153,7 @@ public class JsonApiAtomicOperations {
      *
      * @return Pair (return code, JsonNode)
      */
-    private Supplier<Pair<Integer, JsonNode>> processActions(AtomicOperationsRequestScope requestScope) {
+    private Supplier<Pair<Integer, JsonNode>> processActions(JsonApiAtomicOperationsRequestScope requestScope) {
         try {
             List<Supplier<Pair<Integer, JsonApiDocument>>> results = handleActions(requestScope);
 
@@ -212,7 +213,8 @@ public class JsonApiAtomicOperations {
      * @param requestScope outer request scope
      * @return List of responders
      */
-    private List<Supplier<Pair<Integer, JsonApiDocument>>> handleActions(AtomicOperationsRequestScope requestScope) {
+    private List<Supplier<Pair<Integer, JsonApiDocument>>> handleActions(
+            JsonApiAtomicOperationsRequestScope requestScope) {
         return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonApiDocument>> result;
             try {
@@ -311,7 +313,7 @@ public class JsonApiAtomicOperations {
      * Add a document via atomic operations extension.
      */
     private Supplier<Pair<Integer, JsonApiDocument>> handleAddOp(
-            String path, JsonNode dataValue, AtomicOperationsRequestScope requestScope, OperationAction action) {
+            String path, JsonNode dataValue, JsonApiAtomicOperationsRequestScope requestScope, OperationAction action) {
         try {
             JsonApiDocument value = requestScope.getMapper().forAtomicOperations().readData(dataValue);
             Data<Resource> data = value.getData();
@@ -336,7 +338,7 @@ public class JsonApiAtomicOperations {
                 action.path = fullPath;
                 action.isPostProcessing = true;
             }
-            PostVisitor visitor = new PostVisitor(new AtomicOperationsRequestScope(path, value, requestScope));
+            PostVisitor visitor = new PostVisitor(new JsonApiAtomicOperationsRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));
         } catch (HttpStatusException e) {
             action.cause = e;
@@ -350,7 +352,7 @@ public class JsonApiAtomicOperations {
      * Update data via atomic operations extension.
      */
     private Supplier<Pair<Integer, JsonApiDocument>> handleUpdateOp(
-            String path, JsonNode dataValue, AtomicOperationsRequestScope requestScope, OperationAction action) {
+            String path, JsonNode dataValue, JsonApiAtomicOperationsRequestScope requestScope, OperationAction action) {
         try {
             JsonApiDocument value = requestScope.getMapper().forAtomicOperations().readData(dataValue);
 
@@ -365,7 +367,7 @@ public class JsonApiAtomicOperations {
                 action.isPostProcessing = true;
             }
             // Defer relationship updating until the end
-            PatchVisitor visitor = new PatchVisitor(new AtomicOperationsRequestScope(path, value, requestScope));
+            PatchVisitor visitor = new PatchVisitor(new JsonApiAtomicOperationsRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));
         } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse Atomic Operations extension value: " + dataValue);
@@ -377,7 +379,7 @@ public class JsonApiAtomicOperations {
      */
     private Supplier<Pair<Integer, JsonApiDocument>> handleRemoveOp(String path,
                                                              JsonNode dataValue,
-                                                             AtomicOperationsRequestScope requestScope) {
+                                                             JsonApiAtomicOperationsRequestScope requestScope) {
         try {
             JsonApiDocument value = requestScope.getMapper().forAtomicOperations().readData(dataValue);
             String fullPath;
@@ -394,7 +396,7 @@ public class JsonApiAtomicOperations {
                 }
             }
             DeleteVisitor visitor = new DeleteVisitor(
-                new AtomicOperationsRequestScope(path, value, requestScope));
+                new JsonApiAtomicOperationsRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(fullPath));
         } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse Atomic Operations extension value: " + dataValue);
@@ -411,7 +413,7 @@ public class JsonApiAtomicOperations {
      *
      * @param requestScope request scope
      */
-    private void postProcessRelationships(AtomicOperationsRequestScope requestScope) {
+    private void postProcessRelationships(JsonApiAtomicOperationsRequestScope requestScope) {
         actions.forEach(action -> action.postProcess(requestScope));
     }
 

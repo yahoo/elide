@@ -38,10 +38,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * Json API patch extension.
+ * JSON API JSON patch extension.
  * @see <a href="http://jsonapi.org/extensions/jsonpatch/">JSON Patch Extension</a>
  */
-public class JsonApiPatch {
+public class JsonApiJsonPatch {
     public static final String EXTENSION = "jsonpatch";
 
     private static class PatchAction {
@@ -60,12 +60,12 @@ public class JsonApiPatch {
             this.cause = null;
         }
 
-        public void postProcess(PatchRequestScope requestScope) {
+        public void postProcess(JsonApiJsonPatchRequestScope requestScope) {
             if (isPostProcessing) {
                 try {
                     // Only update relationships
                     clearAllExceptRelationships(doc);
-                    PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, doc, requestScope));
+                    PatchVisitor visitor = new PatchVisitor(new JsonApiJsonPatchRequestScope(path, doc, requestScope));
                     visitor.visit(JsonApiParser.parse(path));
                 } catch (HttpStatusException e) {
                     cause = e;
@@ -103,14 +103,14 @@ public class JsonApiPatch {
     public static Supplier<Pair<Integer, JsonNode>> processJsonPatch(DataStore dataStore,
             String uri,
             String patchDoc,
-            PatchRequestScope requestScope) {
+            JsonApiJsonPatchRequestScope requestScope) {
         List<Patch> actions;
         try {
             actions = requestScope.getMapper().forJsonPatch().readDoc(patchDoc);
         } catch (IOException e) {
             throw new InvalidEntityBodyException(patchDoc);
         }
-        JsonApiPatch processor = new JsonApiPatch(dataStore, actions, uri, requestScope);
+        JsonApiJsonPatch processor = new JsonApiJsonPatch(dataStore, actions, uri, requestScope);
         return processor.processActions(requestScope);
     }
 
@@ -121,7 +121,7 @@ public class JsonApiPatch {
      * @param actions List of patch actions
      * @param rootUri root URI
      */
-    private JsonApiPatch(DataStore dataStore,
+    private JsonApiJsonPatch(DataStore dataStore,
             List<Patch> actions,
             String rootUri,
             RequestScope requestScope) {
@@ -134,7 +134,7 @@ public class JsonApiPatch {
      *
      * @return Pair (return code, JsonNode)
      */
-    private Supplier<Pair<Integer, JsonNode>> processActions(PatchRequestScope requestScope) {
+    private Supplier<Pair<Integer, JsonNode>> processActions(JsonApiJsonPatchRequestScope requestScope) {
         try {
             List<Supplier<Pair<Integer, JsonApiDocument>>> results = handleActions(requestScope);
 
@@ -162,7 +162,7 @@ public class JsonApiPatch {
      * @param requestScope outer request scope
      * @return List of responders
      */
-    private List<Supplier<Pair<Integer, JsonApiDocument>>> handleActions(PatchRequestScope requestScope) {
+    private List<Supplier<Pair<Integer, JsonApiDocument>>> handleActions(JsonApiJsonPatchRequestScope requestScope) {
         return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonApiDocument>> result;
             try {
@@ -204,7 +204,7 @@ public class JsonApiPatch {
      * Add a document via patch extension.
      */
     private Supplier<Pair<Integer, JsonApiDocument>> handleAddOp(
-            String path, JsonNode patchValue, PatchRequestScope requestScope, PatchAction action) {
+            String path, JsonNode patchValue, JsonApiJsonPatchRequestScope requestScope, PatchAction action) {
         try {
             JsonApiDocument value = requestScope.getMapper().forJsonPatch().readValue(patchValue);
             Data<Resource> data = value.getData();
@@ -228,7 +228,7 @@ public class JsonApiPatch {
                 action.path = fullPath;
                 action.isPostProcessing = true;
             }
-            PostVisitor visitor = new PostVisitor(new PatchRequestScope(path, value, requestScope));
+            PostVisitor visitor = new PostVisitor(new JsonApiJsonPatchRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));
         } catch (HttpStatusException e) {
             action.cause = e;
@@ -242,7 +242,7 @@ public class JsonApiPatch {
      * Replace data via patch extension.
      */
     private Supplier<Pair<Integer, JsonApiDocument>> handleReplaceOp(
-            String path, JsonNode patchVal, PatchRequestScope requestScope, PatchAction action) {
+            String path, JsonNode patchVal, JsonApiJsonPatchRequestScope requestScope, PatchAction action) {
         try {
             JsonApiDocument value = requestScope.getMapper().forJsonPatch().readValue(patchVal);
 
@@ -257,7 +257,7 @@ public class JsonApiPatch {
                 action.isPostProcessing = true;
             }
             // Defer relationship updating until the end
-            PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, value, requestScope));
+            PatchVisitor visitor = new PatchVisitor(new JsonApiJsonPatchRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));
         } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchVal);
@@ -269,7 +269,7 @@ public class JsonApiPatch {
      */
     private Supplier<Pair<Integer, JsonApiDocument>> handleRemoveOp(String path,
                                                              JsonNode patchValue,
-                                                             PatchRequestScope requestScope) {
+                                                             JsonApiJsonPatchRequestScope requestScope) {
         try {
             JsonApiDocument value = requestScope.getMapper().forJsonPatch().readValue(patchValue);
             String fullPath;
@@ -286,7 +286,7 @@ public class JsonApiPatch {
                 }
             }
             DeleteVisitor visitor = new DeleteVisitor(
-                new PatchRequestScope(path, value, requestScope));
+                new JsonApiJsonPatchRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(fullPath));
         } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchValue);
@@ -303,7 +303,7 @@ public class JsonApiPatch {
      *
      * @param requestScope request scope
      */
-    private void postProcessRelationships(PatchRequestScope requestScope) {
+    private void postProcessRelationships(JsonApiJsonPatchRequestScope requestScope) {
         actions.forEach(action -> action.postProcess(requestScope));
     }
 
@@ -363,7 +363,7 @@ public class JsonApiPatch {
         if (data == null || data.get() == null) {
             return;
         }
-        data.get().forEach(JsonApiPatch::clearAllExceptRelationships);
+        data.get().forEach(JsonApiJsonPatch::clearAllExceptRelationships);
     }
 
     /**

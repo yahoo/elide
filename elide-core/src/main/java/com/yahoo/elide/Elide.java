@@ -32,10 +32,10 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.extensions.AtomicOperationsRequestScope;
 import com.yahoo.elide.jsonapi.extensions.JsonApiAtomicOperations;
-import com.yahoo.elide.jsonapi.extensions.JsonApiPatch;
-import com.yahoo.elide.jsonapi.extensions.PatchRequestScope;
+import com.yahoo.elide.jsonapi.extensions.JsonApiAtomicOperationsRequestScope;
+import com.yahoo.elide.jsonapi.extensions.JsonApiJsonPatch;
+import com.yahoo.elide.jsonapi.extensions.JsonApiJsonPatchRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.parser.BaseVisitor;
 import com.yahoo.elide.jsonapi.parser.DeleteVisitor;
@@ -394,13 +394,13 @@ public class Elide {
                                String apiVersion, UUID requestId) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
-        if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
+        if (JsonApiJsonPatch.isPatchExtension(contentType) && JsonApiJsonPatch.isPatchExtension(accept)) {
             handler = (tx, user) -> {
-                PatchRequestScope requestScope = new PatchRequestScope(baseUrlEndPoint, path, apiVersion, tx,
-                        user, requestId, queryParams, requestHeaders, elideSettings);
+                JsonApiJsonPatchRequestScope requestScope = new JsonApiJsonPatchRequestScope(baseUrlEndPoint, path,
+                        apiVersion, tx, user, requestId, queryParams, requestHeaders, elideSettings);
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
-                            JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
+                            JsonApiJsonPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
                     return new HandlerResult(requestScope, responder);
                 } catch (RuntimeException e) {
                     return new HandlerResult(requestScope, e);
@@ -549,7 +549,8 @@ public class Elide {
         if (JsonApiAtomicOperations.isAtomicOperationsExtension(contentType)
                 && JsonApiAtomicOperations.isAtomicOperationsExtension(accept)) {
             handler = (tx, user) -> {
-                AtomicOperationsRequestScope requestScope = new AtomicOperationsRequestScope(baseUrlEndPoint, path,
+                JsonApiAtomicOperationsRequestScope requestScope = new JsonApiAtomicOperationsRequestScope(
+                        baseUrlEndPoint, path,
                         apiVersion, tx, user, requestId, queryParams, requestHeaders, elideSettings);
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder = JsonApiAtomicOperations

@@ -19,12 +19,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Special request scope for Patch Extension.
+ * The request scope for the JSON API Atomic Operations extension.
  */
-public class PatchRequestScope extends RequestScope {
+public class JsonApiAtomicOperationsRequestScope extends RequestScope {
 
     /**
-     * Outer RequestScope constructor for use by Patch Extension.
+     * Outer RequestScope constructor for use by Atomic Extension.
      *
      * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the URL path
@@ -36,7 +36,7 @@ public class PatchRequestScope extends RequestScope {
      * @param requestHeaders request headers
      * @param elideSettings Elide settings object
      */
-    public PatchRequestScope(
+    public JsonApiAtomicOperationsRequestScope(
             String baseUrlEndPoint,
             String path,
             String apiVersion,
@@ -61,13 +61,14 @@ public class PatchRequestScope extends RequestScope {
     }
 
     /**
-     * Inner RequestScope copy constructor for use by Patch Extension actions.
+     * Inner RequestScope copy constructor for use by Atomic Extension actions.
      *
      * @param path the URL path
      * @param jsonApiDocument document
      * @param scope           outer request scope
      */
-    public PatchRequestScope(String path, JsonApiDocument jsonApiDocument, PatchRequestScope scope) {
+    public JsonApiAtomicOperationsRequestScope(String path, JsonApiDocument jsonApiDocument,
+            JsonApiAtomicOperationsRequestScope scope) {
         super(path, scope.getApiVersion(), jsonApiDocument, scope);
         this.setEntityProjection(new EntityProjectionMaker(dictionary, this).parsePath(path));
     }

@@ -17,12 +17,12 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * JsonApiPatchMapper.
+ * The mapper for the JSON API JSON Patch extension.
  */
-public class JsonApiPatchMapper {
+public class JsonApiJsonPatchMapper {
     protected final ObjectMapper objectMapper;
 
-    public JsonApiPatchMapper(ObjectMapper objectMapper) {
+    public JsonApiJsonPatchMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
