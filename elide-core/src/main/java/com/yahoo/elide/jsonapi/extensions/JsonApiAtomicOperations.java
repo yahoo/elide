@@ -149,7 +149,7 @@ public class JsonApiAtomicOperations {
     }
 
     /**
-     * Process json patch actions.
+     * Process atomic operations actions.
      *
      * @return Pair (return code, JsonNode)
      */
@@ -208,7 +208,7 @@ public class JsonApiAtomicOperations {
     }
 
     /**
-     * Handle a patch action.
+     * Handle a atomic operations action.
      *
      * @param requestScope outer request scope
      * @return List of responders
