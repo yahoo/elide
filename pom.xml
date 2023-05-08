@@ -88,7 +88,7 @@
         <version.antlr4>4.12.0</version.antlr4>
         <version.jackson>2.15.0</version.jackson>
         <version.jersey>3.1.1</version.jersey>
-        <version.jetty>11.0.13</version.jetty>
+        <version.jetty>11.0.15</version.jetty>
         <version.junit>5.9.3</version.junit>
         <version.logback>1.4.5</version.logback>
         <version.lombok>1.18.24</version.lombok>
