@@ -7,15 +7,16 @@ package example.models;
 
 import com.yahoo.elide.annotation.Include;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 @Entity
-@Include
+@Include(description = "Publisher information.", friendlyName = "Publisher Title")
 public class Publisher {
 
     /* Tests an inner class */
@@ -46,6 +47,10 @@ public class Publisher {
 
     public Map<String, Integer> billingCodes;
 
-    @ApiModelProperty(value = "Phone number", example = "555-000-1111")
+    @Schema(description = "Phone number", example = "555-000-1111")
     public String phone;
+
+    /* Test for custom serde */
+    @Schema(description = "Time Zone")
+    public TimeZone timeZone;
 }

@@ -146,9 +146,9 @@ public class ElideStandalone {
             context.addServlet(AdminServlet.class, "/stats/*");
         }
 
-        if (elideStandaloneSettings.enableSwagger()) {
+        if (elideStandaloneSettings.enableApiDocs()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
-                    elideStandaloneSettings.getSwaggerPathSpec());
+                    elideStandaloneSettings.getApiDocsPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
                     "com.yahoo.elide.swagger.resources");

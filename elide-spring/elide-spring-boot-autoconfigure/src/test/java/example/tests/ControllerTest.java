@@ -31,16 +31,29 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
+
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
 
 import jakarta.ws.rs.core.MediaType;
 
@@ -418,7 +431,7 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void swaggerDocumentTest() {
+    public void apiDocsDocumentTest() {
         when()
                 .get("/doc")
                 .then()
@@ -430,9 +443,43 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void versionedSwaggerDocumentTest() {
-        given()
+    public void apiDocsDocumentTestYaml() throws JsonMappingException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        String response = given()
+                .accept("application/yaml")
+                .when()
+                .get("/doc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().asString();
+        JsonNode jsonNode = objectMapper.readTree(response);
+        JsonNode tags = jsonNode.get("tags");
+        assertTrue(tags.isArray());
+    }
+
+
+    @Test
+    public void versionedApiDocsDocumentTest() {
+        ExtractableResponse<Response> v0 = given()
+                .when()
+                .get("/doc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+
+        ExtractableResponse<Response> v1 = given()
                 .header("ApiVersion", "1.0")
+                .when()
+                .get("/doc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        assertNotEquals(v0.asString(), v1.asString());
+        assertNull(v0.path("info.version"));
+        assertEquals("1.0", v1.path("info.version"));
+
+        given()
+                .header("ApiVersion", "2.0")
                 .when()
                 .get("/doc")
                 .then()
@@ -441,8 +488,19 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void swaggerXSSDocumentTest() {
+    public void apiDocsXSSDocumentTest() {
         when()
+                .get("/doc/<script>")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body(equalTo("Unknown document: &lt;script&gt;"));
+    }
+
+    @Test
+    public void apiDocsXSSDocumentTestYaml() {
+        given()
+                .accept("application/yaml")
+                .when()
                 .get("/doc/<script>")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)

@@ -100,6 +100,7 @@
         <jedis.version>4.3.2</jedis.version>
         <jsonpath.version>2.8.0</jsonpath.version>
         <slf4j-api.version>2.0.7</slf4j-api.version>
+        <swagger-api.version>2.2.9</swagger-api.version>
         <maven-site-plugin-version>3.12.1</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
 
@@ -177,6 +178,12 @@
                 <artifactId>json-path</artifactId>
                 <version>${jsonpath.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-core-jakarta</artifactId>
+                <version>${swagger-api.version}</version>
+           </dependency>
+
 
             <!-- Test dependencies -->
             <dependency>

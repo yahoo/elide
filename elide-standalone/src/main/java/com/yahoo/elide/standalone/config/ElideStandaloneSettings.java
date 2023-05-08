@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 
 import com.yahoo.elide.ElideSettings;
@@ -49,8 +48,8 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
-import com.yahoo.elide.swagger.SwaggerBuilder;
-import com.yahoo.elide.swagger.resources.DocEndpoint;
+import com.yahoo.elide.swagger.OpenApiBuilder;
+import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -58,11 +57,13 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
 
+
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 
-import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
@@ -85,6 +86,33 @@ import java.util.function.Function;
  * Interface for configuring an ElideStandalone application.
  */
 public interface ElideStandaloneSettings {
+    /**
+     * The OpenAPI Specification Version.
+     */
+    public enum OpenApiVersion {
+        OPENAPI_3_0("3.0"),
+        OPENAPI_3_1("3.1");
+
+        private final String value;
+
+        OpenApiVersion(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return this.value;
+        }
+
+        public static OpenApiVersion from(String version) {
+            if (version.startsWith(OPENAPI_3_1.getValue())) {
+                return OPENAPI_3_1;
+            } else if (version.startsWith(OPENAPI_3_0.getValue())) {
+                return OPENAPI_3_0;
+            }
+            throw new IllegalArgumentException("Invalid OpenAPI version. Only versions 3.0 and 3.1 are supported.");
+        }
+    }
+
     /* Elide settings */
 
      public final Consumer<EntityManager> TXCANCEL = em -> em.unwrap(Session.class).cancelQuery();
@@ -205,12 +233,12 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
+     * API root path specification for the OpenAPI endpoint. Namely, this is the root uri for OpenAPI docs.
      *
-     * @return Default: /swagger/*
+     * @return Default: /api-docs/*
      */
-    default String getSwaggerPathSpec() {
-        return "/swagger/*";
+    default String getApiDocsPathSpec() {
+        return "/api-docs/*";
     }
 
     /**
@@ -287,20 +315,19 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Enable swagger documentation.
-     * @return whether Swagger is enabled;
+     * Enable OpenAPI documentation.
+     * @return whether OpenAPI is enabled;
      */
-    default boolean enableSwagger() {
+    default boolean enableApiDocs() {
         return false;
     }
 
     /**
-     * Swagger documentation requires an API version.
-     * The models with the same version are included.
-     * @return swagger version;
+     * The OpenAPI Specification Version to generate.
+     * @return the OpenAPI Specification Version to generate
      */
-    default String getSwaggerVersion() {
-        return NO_VERSION;
+    default OpenApiVersion getOpenApiVersion() {
+        return OpenApiVersion.OPENAPI_3_0;
     }
 
     /**
@@ -313,31 +340,31 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Swagger documentation requires an API name.
-     * @return swagger service name;
+     * OpenAPI documentation requires an API name.
+     * @return open api service name;
      */
-    default String getSwaggerName() {
+    default String getApiTitle() {
         return "Elide Service";
     }
 
     /**
-     * Creates a singular swagger document for JSON-API.
+     * Creates a singular OpenAPI document for JSON-API.
      * @param dictionary Contains the static metadata about Elide models. .
-     * @return list of swagger registration objects.
+     * @return list of OpenAPI registration objects.
      */
-    default List<DocEndpoint.SwaggerRegistration> buildSwagger(EntityDictionary dictionary) {
-        Info info = new Info()
-                .title(getSwaggerName())
-                .version(getSwaggerVersion());
+    default List<ApiDocsEndpoint.ApiDocsRegistration> buildApiDocs(EntityDictionary dictionary) {
+        List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
-
-        String moduleBasePath = getJsonApiPathSpec().replaceAll("/\\*", "");
-
-        Swagger swagger = builder.build().basePath(moduleBasePath);
-
-        List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
-        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger));
+        dictionary.getApiVersions().stream().forEach(apiVersion -> {
+            Info info = new Info()
+                    .title(getApiTitle())
+                    .version(apiVersion);
+            OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
+            String moduleBasePath = getJsonApiPathSpec().replace("/*", "");
+            OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", () -> openApi, getOpenApiVersion().getValue(),
+                    apiVersion));
+        });
 
         return docs;
     }

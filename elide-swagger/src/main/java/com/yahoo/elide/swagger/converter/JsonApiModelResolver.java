@@ -3,31 +3,36 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.swagger;
+package com.yahoo.elide.swagger.converter;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.swagger.model.Resource;
-import com.yahoo.elide.swagger.property.Relationship;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.swagger.models.media.Relationship;
+import com.yahoo.elide.swagger.models.media.Resource;
 import com.fasterxml.jackson.databind.type.SimpleType;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.converter.ModelConverter;
-import io.swagger.converter.ModelConverterContext;
-import io.swagger.jackson.ModelResolver;
-import io.swagger.models.Model;
-import io.swagger.models.properties.Property;
-import io.swagger.util.Json;
+import io.swagger.v3.core.converter.AnnotatedType;
+import io.swagger.v3.core.converter.ModelConverter;
+import io.swagger.v3.core.converter.ModelConverterContext;
+import io.swagger.v3.core.jackson.ModelResolver;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import io.swagger.v3.oas.models.media.Schema;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,10 +50,11 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     @Override
-    public Model resolve(java.lang.reflect.Type type, ModelConverterContext context, Iterator<ModelConverter> next) {
-
+    public Schema<?> resolve(AnnotatedType annotatedType, ModelConverterContext context,
+            Iterator<ModelConverter> next) {
+        java.lang.reflect.Type type = annotatedType.getType();
         if (!(type instanceof Class || type instanceof SimpleType || type instanceof Type)) {
-            return super.resolve(type, context, next);
+            return super.resolve(annotatedType, context, next);
         }
 
         Type<?> clazzType = null;
@@ -71,59 +77,126 @@ public class JsonApiModelResolver extends ModelResolver {
         try {
             typeAlias = dictionary.getJsonAliasFor(clazzType);
         } catch (IllegalArgumentException e) {
-            return super.resolve(type, context, next);
+            return super.resolve(annotatedType, context, next);
         }
 
         Resource entitySchema = new Resource();
-        entitySchema.description(getModelDescription(clazzType));
+        entitySchema.description(getSchemaDescription(clazzType));
         entitySchema.setSecurityDescription(getClassPermissions(clazzType));
 
         /* Populate the attributes */
+        List<String> requiredAttributes = new ArrayList<>();
         List<String> attributeNames = dictionary.getAttributes(clazzType);
         for (String attributeName : attributeNames) {
             Type<?> attributeType = dictionary.getType(clazzType, attributeName);
 
-            Property attribute = processAttribute(clazzType, attributeName, attributeType,
-                            context, next);
+            Schema<?> attribute = processAttribute(clazzType, attributeName, attributeType,
+                            context, next, requiredAttributes);
             entitySchema.addAttribute(attributeName, attribute);
         }
+        entitySchema.getAttributes().required(requiredAttributes);
 
         /* Populate the relationships */
+        List<String> requiredRelationships = new ArrayList<>();
         List<String> relationshipNames = dictionary.getRelationships(clazzType);
         for (String relationshipName : relationshipNames) {
 
             Type<?> relationshipType = dictionary.getParameterizedType(clazzType, relationshipName);
 
-            Relationship relationship = processRelationship(clazzType, relationshipName, relationshipType);
+            Relationship relationship = processRelationship(clazzType, relationshipName, relationshipType,
+                    requiredRelationships);
 
             if (relationship != null) {
                 entitySchema.addRelationship(relationshipName, relationship);
             }
-
         }
+        entitySchema.getRelationships().required(requiredRelationships);
 
         entitySchema.name(typeAlias);
+
+        Include include = getInclude(clazzType);
+        if (include != null) {
+            if (!StringUtils.isBlank(include.friendlyName())) {
+                entitySchema.setTitle(include.friendlyName());
+            }
+        }
+        io.swagger.v3.oas.annotations.media.Schema schema = getSchema(clazzType);
+        if (schema != null) {
+            if (!StringUtils.isBlank(schema.title())) {
+                entitySchema.setTitle(schema.title());
+            }
+        }
         return entitySchema;
     }
 
-    private Property processAttribute(Type<?> clazzType, String attributeName, Type<?> attributeType,
-        ModelConverterContext context, Iterator<ModelConverter> next) {
+    @SuppressWarnings("rawtypes")
+    private Class<?> getSerdeSerializedClass(Serde serde) {
+        // Gets the serde interface type argument
+        Class<?> attributeTypeClass = Object.class;
+
+        try {
+            for (java.lang.reflect.Type type : serde.getClass().getGenericInterfaces()) {
+                if (type instanceof java.lang.reflect.ParameterizedType parameterizedType) {
+                    if (Serde.class.equals(parameterizedType.getRawType())) {
+                        attributeTypeClass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            // Do nothing
+        }
+
+        // Using Object.class as the type argument isn't very helpful so try to get the return type
+        try {
+            if (Object.class.equals(attributeTypeClass)) {
+                for (Method method : serde.getClass().getDeclaredMethods()) {
+                    if ("serialize".equals(method.getName())) {
+                        Class<?> returnType = method.getReturnType();
+                        if (!Object.class.equals(returnType)) {
+                           return returnType;
+                        }
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            // Do nothing
+        }
+        return attributeTypeClass;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Schema<?> processAttribute(Type<?> clazzType, String attributeName, Type<?> attributeType,
+        ModelConverterContext context, Iterator<ModelConverter> next, List<String> required) {
 
         Preconditions.checkState(attributeType instanceof ClassType);
-        Property attribute = super.resolveProperty(((ClassType) attributeType).getCls(), context, null, next);
+        Class<?> attributeTypeClass = ((ClassType) attributeType).getCls();
 
-        String permissions = getFieldPermissions(clazzType, attributeName);
+        Serde serde = dictionary.getSerdeLookup().apply(attributeTypeClass);
+        if (serde != null) {
+            attributeTypeClass = getSerdeSerializedClass(serde);
+        }
+
+        Schema<?> attribute = super.resolve(new AnnotatedType().type(attributeTypeClass), context, next);
+        if (attribute == null) {
+            attribute = super.resolve(new AnnotatedType().resolveAsRef(true).type(attributeTypeClass), context, next);
+        }
         String description = getFieldDescription(clazzType, attributeName);
+        String permissions = getFieldPermissions(clazzType, attributeName);
 
         attribute.setDescription(StringUtils.defaultIfEmpty(joinNonEmpty("\n", description, permissions), null));
-        attribute.setExample((Object) StringUtils.defaultIfEmpty(getFieldExample(clazzType, attributeName), null));
+        attribute.setExample(StringUtils.defaultIfEmpty(getFieldExample(clazzType, attributeName), null));
         attribute.setReadOnly(getFieldReadOnly(clazzType, attributeName));
-        attribute.setRequired(getFieldRequired(clazzType, attributeName));
+        attribute.setWriteOnly(getFieldWriteOnly(clazzType, attributeName));
+        attribute.setRequired(getFieldRequiredProperties(clazzType, attributeName));
 
+        if (getFieldRequired(clazzType, attributeName)) {
+            required.add(attributeName);
+        }
         return attribute;
     }
 
-    private Relationship processRelationship(Type<?> clazz, String relationshipName, Type<?> relationshipClazz) {
+    private Relationship processRelationship(Type<?> clazz, String relationshipName, Type<?> relationshipClazz,
+            List<String> required) {
         Relationship relationship = null;
         try {
             relationship = new Relationship(dictionary.getJsonAliasFor(relationshipClazz));
@@ -137,20 +210,28 @@ public class JsonApiModelResolver extends ModelResolver {
         String permissions = getFieldPermissions(clazz, relationshipName);
 
         relationship.setDescription(StringUtils.defaultIfEmpty(joinNonEmpty("\n", description, permissions), null));
-        relationship.setExample((Object) StringUtils.defaultIfEmpty(getFieldExample(clazz, relationshipName), null));
+        relationship.setExample(StringUtils.defaultIfEmpty(getFieldExample(clazz, relationshipName), null));
         relationship.setReadOnly(getFieldReadOnly(clazz, relationshipName));
-        relationship.setRequired(getFieldRequired(clazz, relationshipName));
+        relationship.setWriteOnly(getFieldWriteOnly(clazz, relationshipName));
+        relationship.setRequired(getFieldRequiredProperties(clazz, relationshipName));
 
+        if (getFieldRequired(clazz, relationshipName)) {
+            required.add(relationshipName);
+        }
         return relationship;
     }
 
-    private ApiModel getApiModel(Type<?> clazz) {
-        return dictionary.getAnnotation(clazz, ApiModel.class);
+    private Include getInclude(Type<?> clazz) {
+        return dictionary.getAnnotation(clazz, Include.class);
     }
 
-    private String getModelDescription(Type<?> clazz) {
-        ApiModel model = getApiModel(clazz);
-        if (model == null) {
+    private io.swagger.v3.oas.annotations.media.Schema getSchema(Type<?> clazz) {
+        return dictionary.getAnnotation(clazz, io.swagger.v3.oas.annotations.media.Schema.class);
+    }
+
+    private String getSchemaDescription(Type<?> clazz) {
+        io.swagger.v3.oas.annotations.media.Schema schema = getSchema(clazz);
+        if (schema == null) {
 
             String description = EntityDictionary.getEntityDescription(clazz);
 
@@ -160,31 +241,45 @@ public class JsonApiModelResolver extends ModelResolver {
 
             return description;
         }
-        return model.description();
+        return schema.description();
     }
 
-    private ApiModelProperty getApiModelProperty(Type<?> clazz, String fieldName) {
-        return dictionary.getAttributeOrRelationAnnotation(clazz, ApiModelProperty.class, fieldName);
+    private io.swagger.v3.oas.annotations.media.Schema getSchema(Type<?> clazz, String fieldName) {
+        return dictionary.getAttributeOrRelationAnnotation(clazz, io.swagger.v3.oas.annotations.media.Schema.class,
+                fieldName);
     }
 
+    private List<String> getFieldRequiredProperties(Type<?> clazz, String fieldName) {
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
+        return property != null ? Arrays.asList(property.requiredProperties()) : Collections.emptyList();
+    }
+
+    @SuppressWarnings("deprecation")
     private boolean getFieldRequired(Type<?> clazz, String fieldName) {
-        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
-        return property != null && property.required();
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
+        return property != null && (RequiredMode.REQUIRED.equals(property.requiredMode()) || property.required());
     }
 
+    @SuppressWarnings("deprecation")
     private boolean getFieldReadOnly(Type<?> clazz, String fieldName) {
-        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
-        return property != null && property.readOnly();
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
+        return property != null && (AccessMode.READ_ONLY.equals(property.accessMode()) || property.readOnly());
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean getFieldWriteOnly(Type<?> clazz, String fieldName) {
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
+        return property != null && (AccessMode.WRITE_ONLY.equals(property.accessMode()) || property.writeOnly());
     }
 
     private String getFieldExample(Type<?> clazz, String fieldName) {
-        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
         return property == null ? "" : property.example();
     }
 
     private String getFieldDescription(Type<?> clazz, String fieldName) {
-        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
-        return property == null ? "" : property.value();
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
+        return property == null ? "" : property.description();
     }
 
     /**

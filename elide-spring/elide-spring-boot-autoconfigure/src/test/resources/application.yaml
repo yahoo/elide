@@ -9,7 +9,7 @@ elide:
   graphql:
     path: /graphql
     enabled: true
-  swagger:
+  api-docs:
     path: /doc
     enabled: true
   subscription:

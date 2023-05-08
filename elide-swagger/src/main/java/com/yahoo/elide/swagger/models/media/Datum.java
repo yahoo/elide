@@ -3,22 +3,21 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.swagger.property;
+package com.yahoo.elide.swagger.models.media;
 
-import io.swagger.models.properties.ArrayProperty;
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.RefProperty;
+import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 
 /**
  * Represents a JSON-API single resource or resource identifier.
- * It is used when a schema is required for swagger.
+ * It is used when a schema is required for OpenAPI.
  */
-public class Datum extends ObjectProperty {
+public class Datum extends ObjectSchema {
 
     /**
      * Constructs a singular resource (referenced by type).
      *
-     * @param definitionName The swagger model to reference in 'data'.
+     * @param definitionName The OpenAPI model to reference in 'data'.
      */
     public Datum(String definitionName) {
         this(definitionName, true);
@@ -26,17 +25,18 @@ public class Datum extends ObjectProperty {
 
     /**
      * Constructs a singular resource (referenced by type).
-     * @param definitionName The swagger model to reference in 'data'.
+     * @param definitionName The OpenAPI model to reference in 'data'.
      * @param included Whether or not to add the 'included' property to the schema.
      */
+    @SuppressWarnings("unchecked")
     public Datum(String definitionName, boolean included) {
         super();
-        property("data", new RefProperty(definitionName));
+        addProperty("data", new ObjectSchema().$ref(definitionName));
 
         if (included) {
-            property("included", new ArrayProperty()
+            addProperty("included", new ArraySchema()
                             .description("Included resources")
-                            .uniqueItems()
+                            .uniqueItems(true)
                             .items(new IncludedResource())
             );
         }
@@ -49,6 +49,6 @@ public class Datum extends ObjectProperty {
      */
     public Datum(Relationship relationship) {
         super();
-        property("data", relationship);
+        addProperty("data", relationship);
     }
 }

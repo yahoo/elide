@@ -3,17 +3,16 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.swagger.property;
+package com.yahoo.elide.swagger.models.media;
 
-import io.swagger.models.properties.ArrayProperty;
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.RefProperty;
+import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 
 /**
  * Represents a JSON-API collection of resources or resource identifiers.
- * It is used when a property is required for swagger.
+ * It is used when a property is required for OpenAPI.
  */
-public class Data extends ObjectProperty {
+public class Data extends ObjectSchema {
 
     /**
      * Used to construct a collection of resources (referenced by the resource type).
@@ -28,14 +27,15 @@ public class Data extends ObjectProperty {
      * @param definitionName The swagger model to reference in 'data'
      * @param included Whether or not to add the 'included' property to the schema.
      */
+    @SuppressWarnings("unchecked")
     public Data(String definitionName, boolean included) {
         super();
-        property("data", new ArrayProperty().items(new RefProperty(definitionName)));
+        addProperty("data", new ArraySchema().items(new ObjectSchema().$ref(definitionName)));
 
         if (included) {
-            property("included", new ArrayProperty()
+            addProperty("included", new ArraySchema()
                             .description("Included resources")
-                            .uniqueItems()
+                            .uniqueItems(true)
                             .items(new IncludedResource())
             );
         }
@@ -47,6 +47,6 @@ public class Data extends ObjectProperty {
      */
     public Data(Relationship relationship) {
         super();
-        property("data", new ArrayProperty().items(relationship));
+        addProperty("data", new ArraySchema().items(relationship));
     }
 }

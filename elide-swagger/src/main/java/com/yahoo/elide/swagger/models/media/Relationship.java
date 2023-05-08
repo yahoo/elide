@@ -3,15 +3,15 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.swagger.property;
+package com.yahoo.elide.swagger.models.media;
 
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.StringProperty;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.StringSchema;
 
 /**
  * Represents a JSON-API resource identifier.
  */
-public class Relationship extends ObjectProperty {
+public class Relationship extends ObjectSchema {
 
     /**
      * Constructs a singular resource identifier.
@@ -19,7 +19,7 @@ public class Relationship extends ObjectProperty {
      */
     public Relationship(String relationshipType) {
         super();
-        property("type", new StringProperty()._enum(relationshipType));
-        property("id", new StringProperty());
+        addProperty("type", new StringSchema().addEnumItem(relationshipType));
+        addProperty("id", new StringSchema());
     }
 }

@@ -11,27 +11,29 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.Date;
 import java.util.Set;
 
 @Entity
-@Include
+@Include(friendlyName = "Book")
 @ReadPermission(expression = "Principal is author OR Principal is publisher")
 @CreatePermission(expression = "Principal is author")
 @DeletePermission(expression = "Prefab.Role.None")
-@ApiModel(description = "A book")
+@Schema(title = "Override Include Title", description = "A book")
 public class Book {
     @OneToMany
     @Size(max = 10)
     @UpdatePermission(expression = "Principal is author")
-    @ApiModelProperty(value = "Writers", required = false, readOnly = true,
+    @Schema(description = "Writers", requiredMode = RequiredMode.REQUIRED, accessMode = AccessMode.READ_ONLY,
         example = "[\"author1\", \"author2\", \"author3\"]")
     public Set<Author> getAuthors() {
         return null;
@@ -44,9 +46,11 @@ public class Book {
     }
 
     @NotNull
-    @ApiModelProperty(required = true)
+    @Schema(requiredMode = RequiredMode.REQUIRED)
     public String title;
 
-    @ApiModelProperty(value = "Year published", example = "1999", readOnly = true)
+    @Schema(description = "Year published", example = "1999", accessMode = AccessMode.READ_ONLY)
     public String year;
+
+    public Date publishedOn;
 }

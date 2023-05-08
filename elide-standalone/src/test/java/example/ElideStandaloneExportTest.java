@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import jakarta.ws.rs.core.MediaType;
 
@@ -220,11 +221,13 @@ public class ElideStandaloneExportTest {
                 .statusCode(HttpStatus.SC_OK);
     }
 
-    // TableExport should be available in Swagger Doc
+    // TableExport should be available in OpenAPI Doc
     @Test
-    public void swaggerDocumentTest() {
-        when()
-               .get("/swagger/doc/test")
+    public void apiDocsDocumentTest() {
+        given()
+               .accept(ContentType.JSON)
+               .when()
+               .get("/api-docs/doc/test")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "argument", "metric",

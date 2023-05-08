@@ -281,7 +281,7 @@ public class AsyncTest extends IntegrationTest {
     }
 
     @Test
-    public void swaggerDocumentTest() {
+    public void apiDocsDocumentTest() {
         when()
                 .get("/doc")
                 .then()

@@ -1,0 +1,1160 @@
+[
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.ApiResponsesSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.CallbackSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.ExampleSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.MediaTypeSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.PathsSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.Schema31Serializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.SchemaSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.Components31Mixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.ComponentsMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.DateSchemaMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.Discriminator31SchemaMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.DiscriminatorSchemaMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.ExampleSchemaMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.ExtensionsMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.Info31Mixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.InfoMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.LicenseMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.MediaTypeMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.OpenAPI31Mixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.OpenAPIMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.OperationMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.Schema31Mixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.SchemaConverterMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.jackson.mixin.SchemaMixin",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.ApiResponses31Deserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.ApiResponsesDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.Callback31Deserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.CallbackDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.DeserializationModule",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.DeserializationModule31",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.EnocingPropertyStyleEnumDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.EncodingStyleEnumDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.HeaderStyleEnumDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.Model31Deserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.ModelDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.OpenAPI31Deserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.Parameter31Deserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.ParameterDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.Paths31Deserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.PathsDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.SecurityScheme31Deserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.core.util.SecuritySchemeDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.ExternalDocumentation",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.Hidden",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.OpenAPIDefinition",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.Operation",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.Parameter",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.Parameters",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.callbacks.Callback",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.callbacks.Callbacks",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.extensions.Extension",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.extensions.ExtensionProperty",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.extensions.Extensions",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.headers.header",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.info.Contact",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.info.Info",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.info.License",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.links.Link",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.links.LinkParameter",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.ArraySchema",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.Content",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.DiscriminatorMapping",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.Encoding",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.ExampleObject",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.PatternProperties",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.PatternProperty",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.Schema",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.SchemaProperties",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.media.SchemaProperty",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.parameters.RequestBody",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.responses.ApiResponse",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.responses.ApiResponses",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.security.OAuthFlow",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.security.OAuthFlows",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.security.OAuthScope",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.security.SecurityRequirement",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.security.SecurityRequirements",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.security.SecurityScheme",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.security.SecuritySchemes",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.servers.Server",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.servers.Servers",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.servers.ServerVariable",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.tags.Tag",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.annotations.tags.Tags",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.Components",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.ExternalDocumentation",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.OpenAPI",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.Operation",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.PathItem",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.Paths",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.annotations.OpenAPI",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.annotations.OpenAPI31",
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.callbacks.Callback",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.examples.Example",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.headers.Header",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.info.Contact",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.info.Info",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.info.License",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.links.Link",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.links.LinkParameter",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.ArraySchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.BinarySchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.BooleanSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.ByteArraySchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.ComposedSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.Content",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.DateSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.DateTimeSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.Discriminator",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.EmailSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.Encoding",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.EncodingProperty",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.FileSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.IntegerSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.JsonSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.MapSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.MediaType",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.NumberSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.ObjectSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.PasswordSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.Schema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.StringSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.UUIDSchema",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.media.XML",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.parameters.CookieParameter",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.parameters.HeaderParameter",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.parameters.Parameter",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.parameters.Parameter$StyleEnum",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.parameters.PathParameter",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.parameters.QueryParameter",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.parameters.RequestBody",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.responses.ApiResponse",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.responses.ApiResponses",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.security.OAuthFlow",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.security.OAuthFlows",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.security.Scopes",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.security.SecurityRequirement",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.security.SecurityScheme",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.security.SecurityScheme$In",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.security.SecurityScheme$Type",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.servers.Server",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.servers.ServerVariable",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.servers.ServerVariables",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  },
+  {
+    "condition": {
+      "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
+    },
+    "name":"io.swagger.v3.oas.models.tags.Tag",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true,
+    "allDeclaredConstructors":true
+  }
+]

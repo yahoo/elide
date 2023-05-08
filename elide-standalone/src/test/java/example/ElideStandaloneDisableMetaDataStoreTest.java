@@ -6,15 +6,17 @@
 package example;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
+
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
+import io.restassured.http.ContentType;
 
 /**
  * Tests ElideStandalone starts and works.
@@ -57,9 +59,11 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
 
     @Override
     @Test
-    public void swaggerDocumentTest() {
-        when()
-                .get("/swagger/doc/test")
+    public void apiDocsDocumentTest() {
+        given()
+                .accept(ContentType.JSON)
+                .when()
+                .get("/api-docs/doc/test")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView"));
