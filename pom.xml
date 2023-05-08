@@ -91,7 +91,7 @@
         <version.jetty>11.0.13</version.jetty>
         <version.junit>5.9.3</version.junit>
         <version.logback>1.4.5</version.logback>
-        <version.lombok>1.18.24</version.lombok>
+        <version.lombok>1.18.26</version.lombok>
         <version.restassured>5.3.0</version.restassured>
         <embedded-redis.version>0.11.0</embedded-redis.version>
         <federation-graphql-java-support-api>3.0.1</federation-graphql-java-support-api>
