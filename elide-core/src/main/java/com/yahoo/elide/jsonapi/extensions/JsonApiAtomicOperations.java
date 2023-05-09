@@ -41,7 +41,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -49,7 +52,7 @@ import java.util.function.Supplier;
  * @see <a href="https://jsonapi.org/ext/atomic/">Atomic Operations</a>
  */
 public class JsonApiAtomicOperations {
-    public static final String EXTENSION = "\"https://jsonapi.org/ext/atomic\"";
+    public static final String EXTENSION = "https://jsonapi.org/ext/atomic";
 
     private static class OperationAction {
         public final Operation operation;
@@ -537,7 +540,18 @@ public class JsonApiAtomicOperations {
             .map(key -> key.split("="))
             .filter(value -> value.length == 2)
                 .anyMatch(value -> value[0].trim().equals("ext")
-                        && value[1].trim().equals(EXTENSION));
+                        && parameterValues(value[1]).contains(EXTENSION));
+    }
+
+    private static Set<String> parameterValues(String value) {
+        String trimmed = value.trim();
+        if (trimmed.length() > 1 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+            String unquoted = trimmed.substring(1, trimmed.length() - 1);
+            Set<String> result = new HashSet<>();
+            Collections.addAll(result, unquoted.split(" "));
+            return result;
+        }
+        return Collections.singleton(trimmed);
     }
 
     private static Resource getSingleResource(Collection<Resource> resources) {

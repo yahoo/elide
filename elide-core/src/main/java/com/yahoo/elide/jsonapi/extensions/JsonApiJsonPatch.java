@@ -33,7 +33,10 @@ import org.owasp.encoder.Encode;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -425,7 +428,18 @@ public class JsonApiJsonPatch {
         return Arrays.stream(header.split(";"))
             .map(key -> key.split("="))
             .filter(value -> value.length == 2)
-            .anyMatch(value -> value[0].trim().equals("ext") && value[1].trim().equals(EXTENSION));
+            .anyMatch(value -> value[0].trim().equals("ext") && parameterValues(value[1]).contains(EXTENSION));
+    }
+
+    private static Set<String> parameterValues(String value) {
+        String trimmed = value.trim();
+        if (trimmed.length() > 1 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+            String unquoted = trimmed.substring(1, trimmed.length() - 1);
+            Set<String> result = new HashSet<>();
+            Collections.addAll(result, unquoted.split(" "));
+            return result;
+        }
+        return Collections.singleton(trimmed);
     }
 
     private static Resource getSingleResource(Collection<Resource> resources) {

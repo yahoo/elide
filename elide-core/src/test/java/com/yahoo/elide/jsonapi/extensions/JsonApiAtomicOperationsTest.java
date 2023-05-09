@@ -283,4 +283,35 @@ public class JsonApiAtomicOperationsTest {
         assertTrue(JsonApiAtomicOperations
                 .isAtomicOperationsExtension("application/vnd.api+json;ext=\"https://jsonapi.org/ext/atomic\""));
     }
+
+    @Test
+    void atomicOperationsHeaderNoQuotes() {
+        assertTrue(JsonApiAtomicOperations
+                .isAtomicOperationsExtension("application/vnd.api+json;ext=https://jsonapi.org/ext/atomic"));
+    }
+
+    @Test
+    void atomicOperationsHeaderNoQuotesSpaces() {
+        assertTrue(JsonApiAtomicOperations
+                .isAtomicOperationsExtension("application/vnd.api+json; ext = https://jsonapi.org/ext/atomic"));
+    }
+
+    @Test
+    void atomicOperationsHeaderNoValue() {
+        assertFalse(JsonApiAtomicOperations
+                .isAtomicOperationsExtension("application/vnd.api+json;ext="));
+    }
+
+    @Test
+    void atomicOperationsHeaderSingleQuote() {
+        assertFalse(JsonApiAtomicOperations
+                .isAtomicOperationsExtension("application/vnd.api+json;ext=\""));
+    }
+
+    @Test
+    void atomicOperationsHeaderMultiple() {
+        assertTrue(JsonApiAtomicOperations
+                .isAtomicOperationsExtension(
+                        "application/vnd.api+json;ext=\"jsonpatch https://jsonapi.org/ext/atomic\""));
+    }
 }
