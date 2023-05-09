@@ -43,9 +43,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
-import com.yahoo.elide.datastores.jpa.JpaDataStore.EntityManagerSupplier;
-import com.yahoo.elide.datastores.jpa.JpaDataStore.JpaTransactionSupplier;
-import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
@@ -63,17 +60,17 @@ import com.yahoo.elide.spring.controllers.ApiDocsController.ApiDocsRegistration;
 import com.yahoo.elide.spring.controllers.ExportController;
 import com.yahoo.elide.spring.controllers.GraphqlController;
 import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.spring.datastore.config.DataStoreBuilder;
+import com.yahoo.elide.spring.datastore.config.DataStoreBuilderCustomizer;
 import com.yahoo.elide.spring.jackson.ObjectMapperBuilder;
-import com.yahoo.elide.spring.orm.jpa.EntityManagerProxySupplier;
-import com.yahoo.elide.spring.orm.jpa.PlatformJpaTransactionSupplier;
-import com.yahoo.elide.swagger.OpenApiBuilder;
-import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStore;
 import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStores;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistration;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrations;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilder;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilderCustomizer;
+import com.yahoo.elide.swagger.OpenApiBuilder;
+import com.yahoo.elide.utils.HeaderUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
@@ -81,7 +78,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -97,8 +93,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.function.SingletonSupplier;
 
 import graphql.execution.DataFetcherExceptionHandler;
@@ -121,7 +115,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -449,30 +442,53 @@ public class ElideAutoConfiguration {
     }
 
     /**
-     * Creates the DataStore Elide.  Override to use a different store.
-     * @param builder JpaDataStoreRegistrationsBuilder.
-     * @param settings Elide configuration settings.
-     * @param scanner Class Scanner
+     * Creates the default DataStoreBuilder to build the DataStore and applies
+     * customizations.
+     * <p>
+     * Override this if the default auto configured DataStores are not desirable.
+     *
+     * <p>
+     * If only minor customizations are required a
+     * {@link DataStoreBuilderCustomizer} can be defined to customize the builder.
+     *
+     * @param builder             JpaDataStoreRegistrationsBuilder.
+     * @param settings            Elide configuration settings.
+     * @param scanner             Class Scanner
      * @param optionalQueryEngine QueryEngine instance for aggregation data store.
-     * @param optionalCache Analytics query cache
+     * @param optionalCache       Analytics query cache
      * @param optionalQueryLogger Analytics query logger
-     * @param customizerProvider Provide customizers to add to the data store
-     * @return An instance of a JPA DataStore.
+     * @param customizerProvider  Provide customizers to add to the data store
+     * @return the DataStoreBuilder.
      */
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public DataStore dataStore(JpaDataStoreRegistrationsBuilder builder, ElideConfigProperties settings,
+    public DataStoreBuilder dataStoreBuilder(JpaDataStoreRegistrationsBuilder builder, ElideConfigProperties settings,
             ClassScanner scanner, Optional<QueryEngine> optionalQueryEngine,
             Optional<Cache> optionalCache, Optional<QueryLogger> optionalQueryLogger,
-            ObjectProvider<Consumer<List<DataStore>>> customizerProvider) {
-        return buildDataStore(builder, settings, scanner, optionalQueryEngine, optionalCache, optionalQueryLogger,
+            ObjectProvider<DataStoreBuilderCustomizer> customizerProvider) {
+        return buildDataStoreBuilder(builder, settings, scanner, optionalQueryEngine, optionalCache,
+                optionalQueryLogger,
                 Optional.of(
-                        stores -> customizerProvider.orderedStream().forEach(customizer -> customizer.accept(stores))));
+                        dataStoreBuilder -> customizerProvider.orderedStream()
+                                .forEach(customizer -> customizer.customize(dataStoreBuilder))));
     }
 
     /**
-     * Creates the DataStore Elide.
+     * Creates the DataStore. Override to use a different store.
+     *
+     * @param dataStoreBuilder
+     * @return the DataStore to be used by Elide.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
+    public DataStore dataStore(DataStoreBuilder dataStoreBuilder) {
+        return dataStoreBuilder.build();
+    }
+
+    /**
+     * Creates the default DataStoreBuilder to build the DataStore.
      * @param builder JpaDataStoreRegistrationsBuilder.
      * @param settings Elide configuration settings.
      * @param scanner Class Scanner
@@ -480,21 +496,23 @@ public class ElideAutoConfiguration {
      * @param optionalCache Analytics query cache
      * @param optionalQueryLogger Analytics query logger
      * @param optionalCustomizer Provide customizers to add to the data store
-     * @return An instance of a JPA DataStore.
+     * @return the DataStoreBuilder.
      */
-    public static DataStore buildDataStore(JpaDataStoreRegistrationsBuilder builder, ElideConfigProperties settings,
+    public static DataStoreBuilder buildDataStoreBuilder(JpaDataStoreRegistrationsBuilder builder,
+            ElideConfigProperties settings,
             ClassScanner scanner,
             Optional<QueryEngine> optionalQueryEngine, Optional<Cache> optionalCache,
-            Optional<QueryLogger> optionalQueryLogger, Optional<Consumer<List<DataStore>>> optionalCustomizer) {
-        List<DataStore> stores = new ArrayList<>();
+            Optional<QueryLogger> optionalQueryLogger,
+            Optional<DataStoreBuilderCustomizer> optionalCustomizer) {
+        DataStoreBuilder dataStoreBuilder = new DataStoreBuilder();
 
         builder.build().forEach(registration -> {
             if (registration.getManagedClasses() != null && !registration.getManagedClasses().isEmpty()) {
-                stores.add(new JpaDataStore(registration.getEntityManagerSupplier(),
+                dataStoreBuilder.dataStore(new JpaDataStore(registration.getEntityManagerSupplier(),
                         registration.getReadTransactionSupplier(), registration.getWriteTransactionSupplier(),
                         registration.getQueryLogger(), registration.getManagedClasses().toArray(Type<?>[]::new)));
             } else {
-                stores.add(new JpaDataStore(registration.getEntityManagerSupplier(),
+                dataStoreBuilder.dataStore(new JpaDataStore(registration.getEntityManagerSupplier(),
                         registration.getReadTransactionSupplier(), registration.getWriteTransactionSupplier(),
                         registration.getQueryLogger(), registration.getMetamodelSupplier()));
             }
@@ -508,9 +526,11 @@ public class ElideAutoConfiguration {
             if (isDynamicConfigEnabled(settings)) {
                 optionalQueryEngine.ifPresent(queryEngine -> aggregationDataStoreBuilder
                         .dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes()));
-                if (settings.getDynamicConfig().isConfigApiEnabled()) {
-                    stores.add(new ConfigDataStore(settings.getDynamicConfig().getPath(),
-                            new TemplateConfigValidator(scanner, settings.getDynamicConfig().getPath())));
+                if (settings.getAggregationStore().getDynamicConfig().getConfigApi().isEnabled()) {
+                    dataStoreBuilder
+                            .dataStore(new ConfigDataStore(settings.getAggregationStore().getDynamicConfig().getPath(),
+                                    new TemplateConfigValidator(scanner,
+                                            settings.getAggregationStore().getDynamicConfig().getPath())));
                 }
             }
             optionalCache.ifPresent(aggregationDataStoreBuilder::cache);
@@ -518,16 +538,11 @@ public class ElideAutoConfiguration {
             AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
             // meta data store needs to be put at first to populate meta data models
-            optionalQueryEngine.ifPresent(queryEngine -> stores.add(queryEngine.getMetaDataStore()));
-            stores.add(aggregationDataStore);
+            optionalQueryEngine.ifPresent(queryEngine -> dataStoreBuilder.dataStore(queryEngine.getMetaDataStore()));
+            dataStoreBuilder.dataStore(aggregationDataStore);
         }
-        optionalCustomizer.ifPresent(customizer -> customizer.accept(stores));
-
-        if (stores.size() == 1) {
-            return stores.get(0);
-        } else {
-            return new MultiplexManager(stores.toArray(DataStore[]::new));
-        }
+        optionalCustomizer.ifPresent(customizer -> customizer.customize(dataStoreBuilder));
+        return dataStoreBuilder;
     }
 
     /**
