@@ -26,44 +26,80 @@ public class PathRouteResolver implements RouteResolver {
     @Override
     public Route resolve(String mediaType, String baseUrl, String path,
             Map<String, List<String>> headers, Map<String, List<String>> parameters) {
-        String baseRoute = baseUrl;
+        String baseRoute = baseUrl == null ? "" : baseUrl;
         String route = path;
         String apiVersion = NO_VERSION;
-        int length = 0;
+
+        String apiVersionString = "";
+        int versionStart = -1;
+        int versionEnd = -1;
+        int pathStart = -1;
+        int pathEnd = -1;
+
         int find = path.indexOf('/', 0);
         if (find != -1) {
             if (find == 0) {
-                route = path.substring(1); // trim leading /
-                int endIndex = route.indexOf('/', 1);
-                if (endIndex == -1) {
-                    apiVersion = route;
+                // "/.."
+                versionStart = 1;
+                int findEnd = path.indexOf('/', 1);
+                if (findEnd != -1) {
+                    // "/v2/.."
+                    versionEnd = findEnd;
+                    pathStart = findEnd;
+                    pathEnd = path.length();
                 } else {
-                    apiVersion = route.substring(0, endIndex);
+                    // "/v2"
+                    versionEnd = path.length();
                 }
             } else {
-                apiVersion = route.substring(0, find);
+                // "v2/.."
+                versionStart = 0;
+                versionEnd = find;
+                pathStart = find;
+                pathEnd = path.length();
             }
-            if (!apiVersion.isEmpty() && !this.versionPrefix.isEmpty()) {
-                if (apiVersion.startsWith(this.versionPrefix)) {
-                    apiVersion = apiVersion.substring(this.versionPrefix.length());
-                    length += this.versionPrefix.length();
-                } else {
-                    apiVersion = NO_VERSION;
-                }
-            }
-            if (!apiVersion.isEmpty()) {
-                if (!apiVersionValidator.isValidApiVersion(apiVersion)) { // sanity check version
-                    apiVersion = NO_VERSION;
-                } else {
-                    if (route.length() > length + apiVersion.length()) {
-                        route = route.substring(length + apiVersion.length() + 1);
-                    } else {
-                        route = "";
-                    }
-                    baseRoute = baseRoute + "/" + this.versionPrefix + apiVersion;
-                }
+        } else {
+            // "v2"
+            versionStart = 0;
+            versionEnd = path.length();
+        }
+
+        if (versionStart != -1 && versionEnd != -1) {
+            apiVersion = path.substring(versionStart, versionEnd);
+            apiVersionString = apiVersion;
+        }
+
+        if (!apiVersion.isEmpty() && !this.versionPrefix.isEmpty()) {
+            if (apiVersion.startsWith(this.versionPrefix)) {
+                apiVersion = apiVersion.substring(this.versionPrefix.length());
             }
         }
+
+        if (!apiVersion.isEmpty()) {
+            if (!apiVersionValidator.isValidApiVersion(apiVersion)) { // sanity check version
+                apiVersion = NO_VERSION;
+                pathStart = 0;
+                pathEnd = path.length();
+                apiVersionString = "";
+            }
+        }
+
+        if (pathStart != -1 && pathEnd != -1) {
+            route = path.substring(pathStart, pathEnd);
+        } else {
+            route = "";
+        }
+
+        if (route.length() > 0 && route.charAt(0) == '/') {
+            route = route.substring(1);
+        }
+
+        if (baseRoute.length() > 0 && baseRoute.charAt(baseRoute.length() - 1) == '/') {
+            baseRoute = baseRoute + apiVersionString;
+        } else {
+            baseRoute = baseRoute + "/" + apiVersionString;
+        }
+
         return Route.builder().apiVersion(apiVersion).baseUrl(baseRoute).path(route).build();
     }
 }
