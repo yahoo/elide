@@ -54,6 +54,12 @@ public class ElideConfigProperties {
     private JpaStoreProperties jpaStore = new JpaStoreProperties();
 
     /**
+     * Settings for the API Versioning Strategy.
+     */
+    @NestedConfigurationProperty
+    private ApiVersioningStrategyProperties apiVersioningStrategy = new ApiVersioningStrategyProperties();
+
+    /**
      * Default pagination size for collections if the client doesn't paginate.
      */
     private int pageSize = 500;

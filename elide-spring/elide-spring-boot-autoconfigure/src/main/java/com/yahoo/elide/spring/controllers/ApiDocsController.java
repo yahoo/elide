@@ -7,25 +7,36 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
+import com.yahoo.elide.core.request.route.Route;
+import com.yahoo.elide.core.request.route.RouteResolver;
+import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.swagger.OpenApiDocument;
 import com.yahoo.elide.swagger.OpenApiDocument.MediaType;
-import com.yahoo.elide.utils.HeaderUtils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import io.swagger.v3.oas.models.OpenAPI;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +55,10 @@ public class ApiDocsController {
 
     // Maps api version & path to OpenAPI document.
     protected Map<Pair<String, String>, OpenApiDocument> documents;
+
+    protected RouteResolver routeResolver;
+
+    protected ElideConfigProperties elideConfigProperties;
 
     /**
      * Wraps a list of open api registrations so that they can be wrapped with an
@@ -82,30 +97,59 @@ public class ApiDocsController {
      *
      * @param docs A list of documents to register.
      */
-    public ApiDocsController(ApiDocsRegistrations docs) {
+    public ApiDocsController(ApiDocsRegistrations docs, RouteResolver routeResolver,
+            ElideConfigProperties elideConfigProperties) {
         log.debug("Started ~~");
-        documents = new HashMap<>();
+        this.documents = new HashMap<>();
+        this.routeResolver = routeResolver;
+        this.elideConfigProperties = elideConfigProperties;
 
         docs.getRegistrations().forEach(doc -> {
             String apiVersion = doc.getApiVersion();
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
-            documents.put(Pair.of(apiVersion, apiPath),
+            this.documents.put(Pair.of(apiVersion, apiPath),
                     new OpenApiDocument(doc.document, OpenApiDocument.Version.from(doc.version)));
         });
     }
 
-    @GetMapping(value = { "/", "" }, produces = MediaType.APPLICATION_JSON)
-    public Callable<ResponseEntity<String>> listJson(@RequestHeader HttpHeaders requestHeaders) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        return list(apiVersion, MediaType.APPLICATION_JSON);
+    @GetMapping(value = { "/**", "" }, produces = MediaType.APPLICATION_JSON)
+    public Callable<ResponseEntity<String>> listJson(@RequestHeader HttpHeaders requestHeaders,
+            @RequestParam MultiValueMap<String, String> allRequestParams, HttpServletRequest request) {
+        String prefix = elideConfigProperties.getApiDocs().getPath();
+        String pathname = getPath(request, prefix);
+        final String baseUrl = getBaseUrl(prefix);
+        Route route = routeResolver.resolve(MediaType.APPLICATION_JSON, baseUrl, pathname, requestHeaders,
+                allRequestParams);
+        String path = route.getPath();
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (path.isBlank()) {
+            return list(route.getApiVersion(), MediaType.APPLICATION_JSON);
+        } else {
+            return list(route.getApiVersion(), path, MediaType.APPLICATION_JSON);
+        }
     }
 
-    @GetMapping(value = { "/", "" }, produces = MediaType.APPLICATION_YAML)
-    public Callable<ResponseEntity<String>> listYaml(@RequestHeader HttpHeaders requestHeaders) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        return list(apiVersion, MediaType.APPLICATION_YAML);
+    @GetMapping(value = { "/**", "" }, produces = MediaType.APPLICATION_YAML)
+    public Callable<ResponseEntity<String>> listYaml(@RequestHeader HttpHeaders requestHeaders,
+            @RequestParam MultiValueMap<String, String> allRequestParams, HttpServletRequest request) {
+        String prefix = elideConfigProperties.getApiDocs().getPath();
+        String pathname = getPath(request, prefix);
+        final String baseUrl = getBaseUrl(prefix);
+        Route route = routeResolver.resolve(MediaType.APPLICATION_YAML, baseUrl, pathname, requestHeaders,
+                allRequestParams);
+        String path = route.getPath();
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (path.isBlank()) {
+            return list(route.getApiVersion(), MediaType.APPLICATION_YAML);
+        } else {
+            return list(route.getApiVersion(), path, MediaType.APPLICATION_YAML);
+        }
     }
 
     public Callable<ResponseEntity<String>> list(String apiVersion, String mediaType) {
@@ -132,36 +176,6 @@ public class ApiDocsController {
         };
     }
 
-    /**
-     * Read handler.
-     *
-     * @param requestHeaders request headers
-     * @param name           document name
-     * @return response The OpenAPI JSON document
-     */
-    @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_JSON)
-    public Callable<ResponseEntity<String>> listJson(@RequestHeader HttpHeaders requestHeaders,
-            @PathVariable("name") String name) {
-
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        return list(apiVersion, name, MediaType.APPLICATION_JSON);
-    }
-
-    /**
-     * Read handler.
-     *
-     * @param requestHeaders request headers
-     * @param name           document name
-     * @return response The OpenAPI YAML document
-     */
-    @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_YAML)
-    public Callable<ResponseEntity<String>> listYaml(@RequestHeader HttpHeaders requestHeaders,
-            @PathVariable("name") String name) {
-
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        return list(apiVersion, name, MediaType.APPLICATION_YAML);
-    }
-
     public Callable<ResponseEntity<String>> list(String apiVersion, String name, String mediaType) {
         final String encodedName = Encode.forHtml(name);
 
@@ -175,5 +189,35 @@ public class ApiDocsController {
                 return ResponseEntity.status(404).body("Unknown document: " + encodedName);
             }
         };
+    }
+
+    private String getPath(HttpServletRequest request, String prefix) {
+        String pathname = (String) request
+                .getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+
+        pathname = pathname.replaceFirst(prefix, "");
+        try {
+            return URLDecoder.decode(pathname, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            return pathname;
+        }
+    }
+
+    protected String getBaseUrl(String prefix) {
+        String baseUrl = elideConfigProperties.getBaseUrl();
+
+        if (StringUtils.isEmpty(baseUrl)) {
+            baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        }
+
+        if (prefix.length() > 1) {
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
+            } else {
+                baseUrl = baseUrl + prefix;
+            }
+        }
+
+        return baseUrl;
     }
 }

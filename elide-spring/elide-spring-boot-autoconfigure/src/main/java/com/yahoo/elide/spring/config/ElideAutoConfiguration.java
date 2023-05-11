@@ -723,8 +723,9 @@ public class ElideAutoConfiguration {
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean(name = "apiDocsController")
-            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs) {
-                return new ApiDocsController(docs);
+            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs,
+                    RouteResolver routeResolver, ElideConfigProperties elideConfigProperties) {
+                return new ApiDocsController(docs, routeResolver, elideConfigProperties);
             }
 
             @Bean
@@ -810,8 +811,9 @@ public class ElideAutoConfiguration {
 
             @Bean
             @ConditionalOnMissingBean(name = "apiDocsController")
-            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs) {
-                return new ApiDocsController(docs);
+            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs,
+                    RouteResolver routeResolver, ElideConfigProperties elideConfigProperties) {
+                return new ApiDocsController(docs, routeResolver, elideConfigProperties);
             }
 
             @Bean

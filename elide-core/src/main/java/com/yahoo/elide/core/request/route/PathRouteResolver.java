@@ -36,7 +36,7 @@ public class PathRouteResolver implements RouteResolver {
                 route = path.substring(1); // trim leading /
                 int endIndex = route.indexOf('/', 1);
                 if (endIndex == -1) {
-                    apiVersion = NO_VERSION;
+                    apiVersion = route;
                 } else {
                     apiVersion = route.substring(0, endIndex);
                 }
@@ -45,7 +45,7 @@ public class PathRouteResolver implements RouteResolver {
             }
             if (!apiVersion.isEmpty() && !this.versionPrefix.isEmpty()) {
                 if (apiVersion.startsWith(this.versionPrefix)) {
-                    apiVersion = apiVersion.substring(1);
+                    apiVersion = apiVersion.substring(this.versionPrefix.length());
                     length += this.versionPrefix.length();
                 } else {
                     apiVersion = NO_VERSION;
@@ -55,7 +55,11 @@ public class PathRouteResolver implements RouteResolver {
                 if (!apiVersionValidator.isValidApiVersion(apiVersion)) { // sanity check version
                     apiVersion = NO_VERSION;
                 } else {
-                    route = route.substring(length + apiVersion.length() + 1);
+                    if (route.length() > length + apiVersion.length()) {
+                        route = route.substring(length + apiVersion.length() + 1);
+                    } else {
+                        route = "";
+                    }
                     baseRoute = baseRoute + "/" + this.versionPrefix + apiVersion;
                 }
             }
