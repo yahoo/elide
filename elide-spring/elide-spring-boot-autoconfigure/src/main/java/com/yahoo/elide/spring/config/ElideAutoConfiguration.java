@@ -20,9 +20,14 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.request.route.ApiVersionValidator;
 import com.yahoo.elide.core.request.route.BasicApiVersionValidator;
-import com.yahoo.elide.core.request.route.FlexibleRouteResolver;
+import com.yahoo.elide.core.request.route.DelegatingRouteResolver;
+import com.yahoo.elide.core.request.route.HeaderRouteResolver;
+import com.yahoo.elide.core.request.route.MediaTypeProfileRouteResolver;
 import com.yahoo.elide.core.request.route.NullRouteResolver;
+import com.yahoo.elide.core.request.route.ParameterRouteResolver;
+import com.yahoo.elide.core.request.route.PathRouteResolver;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
@@ -156,29 +161,58 @@ public class ElideAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RouteResolver routeResolver(RefreshableElide refreshableElide) {
+    public RouteResolver routeResolver(RefreshableElide refreshableElide, ElideConfigProperties config) {
         Set<String> apiVersions = refreshableElide.getElide().getElideSettings().getDictionary().getApiVersions();
         if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
             return new NullRouteResolver();
         } else {
-            return new FlexibleRouteResolver(new BasicApiVersionValidator(), () -> {
-                String baseUrl = refreshableElide.getElide().getElideSettings().getBaseUrl();
-                String prefix = refreshableElide.getElide().getElideSettings().getJsonApiPath();
+            List<RouteResolver> routeResolvers = new ArrayList<>();
+            ApiVersionValidator apiVersionValidator = new BasicApiVersionValidator();
+            if (config.getApiVersioningStrategy().getPath().isEnabled()) {
+                routeResolvers.add(new PathRouteResolver(config.getApiVersioningStrategy().getPath().getVersionPrefix(),
+                        apiVersionValidator));
+            }
+            if (config.getApiVersioningStrategy().getHeader().isEnabled()) {
+                routeResolvers
+                        .add(new HeaderRouteResolver(config.getApiVersioningStrategy().getHeader().getHeaderName()));
+            }
+            if (config.getApiVersioningStrategy().getParameter().isEnabled()) {
+                routeResolvers
+                        .add(new ParameterRouteResolver(
+                                config.getApiVersioningStrategy().getParameter().getParameterName(),
+                                apiVersionValidator));
+            }
+            if (config.getApiVersioningStrategy().getMediaTypeProfile().isEnabled()) {
+                routeResolvers.add(new MediaTypeProfileRouteResolver(
+                        config.getApiVersioningStrategy().getMediaTypeProfile().getVersionPrefix(), apiVersionValidator,
+                        () -> {
+                            if (!config.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix().isBlank()) {
+                                return config.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix();
+                            }
 
-                if (StringUtils.isEmpty(baseUrl)) {
-                    baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                }
+                            String baseUrl = refreshableElide.getElide().getElideSettings().getBaseUrl();
+                            String prefix = refreshableElide.getElide().getElideSettings().getJsonApiPath();
 
-                if (prefix.length() > 1) {
-                    if (baseUrl.endsWith("/")) {
-                        baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
-                    } else {
-                        baseUrl = baseUrl + prefix;
-                    }
-                }
+                            if (StringUtils.isEmpty(baseUrl)) {
+                                baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                            }
 
-                return baseUrl;
-            });
+                            if (prefix.length() > 1) {
+                                if (baseUrl.endsWith("/")) {
+                                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
+                                } else {
+                                    baseUrl = baseUrl + prefix;
+                                }
+                            }
+
+                            return baseUrl;
+                        }));
+            }
+            if (!routeResolvers.isEmpty()) {
+                return new DelegatingRouteResolver(routeResolvers);
+            } else {
+                return new NullRouteResolver();
+            }
         }
     }
 

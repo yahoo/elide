@@ -33,7 +33,7 @@ public class ApiVersioningStrategyProperties {
     @Data
     public static class MediaTypeProfile {
         private boolean enabled = false;
-        private String versionPrefix = "";
+        private String versionPrefix = "v";
         private String uriPrefix = "";
     }
 
