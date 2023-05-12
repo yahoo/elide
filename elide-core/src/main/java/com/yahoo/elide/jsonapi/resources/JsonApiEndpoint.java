@@ -244,11 +244,6 @@ public class JsonApiEndpoint {
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-
-        if (uriInfo.getRequestUri().getPath().contains("/tableExport")) {
-            return baseUrl;
-        }
-
         return baseUrl + path;
     }
 }
