@@ -124,6 +124,7 @@ public class GraphQLEndpointTest {
         Mockito.when(user2.getUserPrincipal()).thenReturn(new User().withName("2"));
         Mockito.when(user3.getUserPrincipal()).thenReturn(new User().withName("3"));
         Mockito.when(uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080/graphql"));
+        Mockito.when(uriInfo.getQueryParameters()).thenReturn(new MultivaluedHashMap<>());
         Mockito.when(requestHeaders.getRequestHeaders()).thenReturn(new MultivaluedHashMap<>());
     }
 

@@ -35,6 +35,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
@@ -91,7 +92,7 @@ public class JsonApiEndpoint {
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
@@ -120,7 +121,7 @@ public class JsonApiEndpoint {
         @Context UriInfo uriInfo,
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext) {
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
@@ -156,7 +157,7 @@ public class JsonApiEndpoint {
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
@@ -188,7 +189,7 @@ public class JsonApiEndpoint {
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
