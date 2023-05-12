@@ -66,7 +66,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
         given()
                 .accept(ContentType.JSON)
                 .when()
-                .get("/api-docs/doc/test")
+                .get("/api-docs")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "asyncQuery"));
@@ -90,7 +90,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
                         )
                     )
                 )
-                .post("/api/v1/post")
+                .post("/api/post")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
     }
@@ -100,7 +100,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
     public void metaDataTest() {
         given()
                 .accept("application/vnd.api+json")
-                .get("/api/v1/namespace/default") //"default" namespace added by Agg Store.
+                .get("/api/namespace/default") //"default" namespace added by Agg Store.
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND); // Metadatastore is disabled, so not found.
     }

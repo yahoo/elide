@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  * A convenience endpoint to expose a openapi document.
  */
 
-@Path("/doc")
+@Path("/")
 public class ApiDocsEndpoint {
     //Maps api version & path to a openapi document.
     protected Map<Pair<String, String>, OpenApiDocument> documents;
