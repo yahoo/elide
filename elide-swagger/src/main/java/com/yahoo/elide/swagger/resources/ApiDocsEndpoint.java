@@ -29,7 +29,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import lombok.AllArgsConstructor;
@@ -107,7 +106,7 @@ public class ApiDocsEndpoint {
             @Context UriInfo uriInfo,
             @Context HttpHeaders headers
             ) {
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        Map<String, List<String>> queryParams = new HashMap<>(uriInfo.getQueryParameters());
         Route route = routeResolver.resolve(MediaType.APPLICATION_JSON, "", path, headers.getRequestHeaders(),
                 queryParams);
         String name = route.getPath();
@@ -129,7 +128,7 @@ public class ApiDocsEndpoint {
             @Context UriInfo uriInfo,
             @Context HttpHeaders headers
     ) {
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        Map<String, List<String>> queryParams = new HashMap<>(uriInfo.getQueryParameters());
         Route route = routeResolver.resolve(MediaType.APPLICATION_YAML, "", path, headers.getRequestHeaders(),
                 queryParams);
         String name = route.getPath();
