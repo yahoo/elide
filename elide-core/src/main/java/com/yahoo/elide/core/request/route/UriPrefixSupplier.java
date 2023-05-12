@@ -7,7 +7,7 @@ package com.yahoo.elide.core.request.route;
 
 @FunctionalInterface
 /**
- * UriPrefixSupplier.
+ * Used to determine the URI prefix for the MediaType Profile URI.
  */
 public interface UriPrefixSupplier {
     String getUriPrefix();

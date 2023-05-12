@@ -20,7 +20,7 @@ public interface RouteResolver {
      * @param path the path
      * @param headers the request headers
      * @param parameters the request parameters
-     * @return
+     * @return the route information
      */
     Route resolve(String mediaType, String baseUrl, String path,
             Map<String, List<String>> headers, Map<String, List<String>> parameters);

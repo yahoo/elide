@@ -9,12 +9,23 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * Represents a route with the api version.
+ * Represents a route with the API Version.
  */
 @Data
 @Builder
 public class Route {
+    /**
+     * The baseUrl of the resolved route.
+     */
     private final String baseUrl;
+
+    /**
+     * The path of the resolved route.
+     */
     private final String path;
+
+    /**
+     * The API Version of the resolved route.
+     */
     private final String apiVersion;
 }

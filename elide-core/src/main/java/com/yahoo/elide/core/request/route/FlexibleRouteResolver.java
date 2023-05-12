@@ -21,7 +21,7 @@ public class FlexibleRouteResolver implements RouteResolver {
     private final DelegatingRouteResolver routeResolver;
 
     public FlexibleRouteResolver(ApiVersionValidator apiVersionValidator, UriPrefixSupplier uriPrefixSupplier) {
-        this.routeResolver = new DelegatingRouteResolver(new HeaderRouteResolver("ApiVersion", "Accept-Version"),
+        this.routeResolver = new DelegatingRouteResolver(new HeaderRouteResolver("Accept-Version", "ApiVersion"),
                 new PathRouteResolver("v", apiVersionValidator), new ParameterRouteResolver("v", apiVersionValidator),
                 new MediaTypeProfileRouteResolver("v", apiVersionValidator, uriPrefixSupplier));
     }
