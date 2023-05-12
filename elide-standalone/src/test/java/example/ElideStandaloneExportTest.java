@@ -151,7 +151,7 @@ public class ElideStandaloneExportTest {
                 )
             )
         )
-        .post("/api/v1/post")
+        .post("/api/post")
         .then()
 
         .statusCode(HttpStatus.SC_CREATED);
@@ -174,7 +174,7 @@ public class ElideStandaloneExportTest {
                                 )
                         ).toJSON())
                 .when()
-                .post("/api/v1/tableExport")
+                .post("/api/tableExport")
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
@@ -183,7 +183,7 @@ public class ElideStandaloneExportTest {
             Thread.sleep(10);
             Response response = given()
                     .accept("application/vnd.api+json")
-                    .get("/api/v1/tableExport/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d");
+                    .get("/api/tableExport/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d");
             String outputResponse = response.jsonPath().getString("data.attributes.status");
              //If Async Query is created and completed then validate results
             if (outputResponse.equals("COMPLETE")) {
@@ -207,7 +207,7 @@ public class ElideStandaloneExportTest {
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
                                 + "\"variables\":null }")
-                        .post("/graphql/api/v1")
+                        .post("/graphql/api")
                         .asString();
                 String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9265d\","
                         + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"CSV\","
@@ -229,7 +229,7 @@ public class ElideStandaloneExportTest {
         given()
                .accept(ContentType.JSON)
                .when()
-               .get("/api-docs/doc/test")
+               .get("/api-docs")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "argument", "metric",

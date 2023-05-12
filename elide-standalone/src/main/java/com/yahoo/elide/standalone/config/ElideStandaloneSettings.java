@@ -168,8 +168,8 @@ public interface ElideStandaloneSettings {
                 .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .withBaseUrl(getBaseUrl())
-                .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
-                .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
+                .withJsonApiPath(getJsonApiPathSpec().replace("/*", ""))
+                .withGraphQLApiPath(getGraphQLApiPathSpec().replace("/*", ""))
                 .withJsonApiMapper(mapper)
                 .withAuditLogger(getAuditLogger());
 
@@ -216,21 +216,21 @@ public interface ElideStandaloneSettings {
     /**
      * API root path specification for JSON-API. Namely, this is the mount point of your API.
      * By default it will look something like:
-     *   <strong>yourcompany.com/api/v1/YOUR_ENTITY</strong>
+     *   <strong>yourcompany.com/api/YOUR_ENTITY</strong>
      *
-     * @return Default: /api/v1/*
+     * @return Default: /api/*
      */
     default String getJsonApiPathSpec() {
-        return "/api/v1/*";
+        return "/api/*";
     }
 
     /**
      * API root path specification for the GraphQL endpoint. Namely, this is the root uri for GraphQL.
      *
-     * @return Default: /graphql/api/v1
+     * @return Default: /graphql/api
      */
     default String getGraphQLApiPathSpec() {
-        return "/graphql/api/v1/*";
+        return "/graphql/api/*";
     }
 
     /**
@@ -361,9 +361,13 @@ public interface ElideStandaloneSettings {
                     .title(getApiTitle())
                     .version(apiVersion);
             OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
+            if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                // Path needs to be set
+                builder.basePath("/" + "v" + apiVersion);
+            }
             String moduleBasePath = getJsonApiPathSpec().replace("/*", "");
             OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
-            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", () -> openApi, getOpenApiVersion().getValue(),
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("", () -> openApi, getOpenApiVersion().getValue(),
                     apiVersion));
         });
 

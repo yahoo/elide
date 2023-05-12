@@ -82,14 +82,14 @@ public class ElideStandaloneTest {
                     )
                 )
             )
-            .post("/api/v1/post")
+            .post("/api/post")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
         // Test the Dynamic Generated Analytical Model is accessible
         given()
             .when()
-            .get("/api/v1/postView")
+            .get("/api/postView")
             .then()
             .statusCode(200)
             .body(equalTo(
@@ -101,7 +101,7 @@ public class ElideStandaloneTest {
                                             attr("content", "This is my first post. woot.")
                                     ),
                                     links(
-                                            attr("self", "https://elide.io/api/v1/postView/0")
+                                            attr("self", "https://elide.io/api/postView/0")
                                     )
                             )
                     ).toJSON()
@@ -193,7 +193,7 @@ public class ElideStandaloneTest {
                                 )
                         )
                 )
-                .post("/api/v1/post")
+                .post("/api/post")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
     }
@@ -216,7 +216,7 @@ public class ElideStandaloneTest {
                     )
                 )
             )
-            .post("/api/v1/post")
+            .post("/api/post")
             .then()
             .statusCode(HttpStatus.SC_FORBIDDEN);
     }
@@ -244,7 +244,7 @@ public class ElideStandaloneTest {
     public void testApiDocsEndpoint() throws Exception {
         given()
                 .when()
-                .get("/api-docs/doc/test")
+                .get("/api-docs")
                 .then()
                 .statusCode(200);
     }
@@ -254,7 +254,7 @@ public class ElideStandaloneTest {
         given()
                 .accept(ContentType.JSON)
                 .when()
-                .get("/api-docs/doc/test")
+                .get("/api-docs")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "argument", "metric",
@@ -267,7 +267,7 @@ public class ElideStandaloneTest {
         ExtractableResponse<Response> v0 = given()
                 .accept(ContentType.JSON)
                 .when()
-                .get("/api-docs/doc/test")
+                .get("/api-docs")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
@@ -276,7 +276,7 @@ public class ElideStandaloneTest {
                 .accept(ContentType.JSON)
                 .header("ApiVersion", "1.0")
                 .when()
-                .get("/api-docs/doc/test")
+                .get("/api-docs")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
@@ -311,14 +311,14 @@ public class ElideStandaloneTest {
                                 )
                         ).toJSON())
                 .when()
-                .post("/api/v1/asyncQuery").asString();
+                .post("/api/asyncQuery").asString();
 
         int i = 0;
         while (i < 1000) {
             Thread.sleep(10);
             Response response = given()
                     .accept("application/vnd.api+json")
-                    .get("/api/v1/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");
+                    .get("/api/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");
 
             String outputResponse = response.jsonPath().getString("data.attributes.status");
 
@@ -345,7 +345,7 @@ public class ElideStandaloneTest {
                                         attr("date", "2019-01-01T00:00Z")
                                     ),
                                     links(
-                                        attr("self", "https://elide.io/api/v1/post/2")
+                                        attr("self", "https://elide.io/api/post/2")
                                     )
                                 )
                             ).toJSON()
@@ -359,10 +359,10 @@ public class ElideStandaloneTest {
                                 + "{ edges { node { id queryType status result "
                                 + "{ responseBody httpStatus  contentLength } } } } }\","
                                 + "\"variables\":null}")
-                        .post("/graphql/api/v1/")
+                        .post("/graphql/api/")
                         .asString();
 
-                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"},\\\"links\\\":{\\\"self\\\":\\\"https://elide.io/api/v1/post/2\\\"}}]}\",\"httpStatus\":200,\"contentLength\":191}}}]}}}";
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"},\\\"links\\\":{\\\"self\\\":\\\"https://elide.io/api/post/2\\\"}}]}\",\"httpStatus\":200,\"contentLength\":188}}}]}}}";
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             }
@@ -394,7 +394,7 @@ public class ElideStandaloneTest {
     public void metaDataTest() {
         given()
                 .accept("application/vnd.api+json")
-                .get("/api/v1/namespace/default") //"default" namespace added by Agg Store
+                .get("/api/namespace/default") //"default" namespace added by Agg Store
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("default"))
@@ -418,7 +418,7 @@ public class ElideStandaloneTest {
                                 )
                         )
                 )
-                .post("/api/v1/post")
+                .post("/api/post")
                 .then()
                 .body("errors.detail[0]", equalTo("Invalid value: Invalid\nDate strings must be formatted as yyyy-MM-dd&#39;T&#39;HH:mm&#39;Z&#39;"))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);

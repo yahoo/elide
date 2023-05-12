@@ -116,7 +116,7 @@ public class ElideStandaloneSubscriptionTest extends ElideStandaloneTest {
                                     )
                             )
                     )
-                    .post("/api/v1/post")
+                    .post("/api/post")
                     .then()
                     .statusCode(HttpStatus.SC_CREATED);
 
