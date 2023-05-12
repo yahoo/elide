@@ -7,7 +7,6 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
 
-import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.request.route.Route;
@@ -91,7 +90,7 @@ public class GraphqlController {
                                                  Authentication principal) {
         final User user = new AuthenticationUser(principal);
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
-        final String prefix = settings.getJsonApi().getPath();
+        final String prefix = settings.getGraphql().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
         Route route = routeResolver.resolve(JSON_CONTENT_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
@@ -106,7 +105,6 @@ public class GraphqlController {
                 if (runner == null) {
                     response = buildErrorResponse(mapper, new InvalidOperationException("Invalid API Version"), false);
                 } else {
-                    Elide elide = runner.getElide();
                     response = runner.run(route.getBaseUrl(), graphQLDocument, user, UUID.randomUUID(),
                             requestHeadersCleaned);
                 }

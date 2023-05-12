@@ -7,6 +7,13 @@ package com.yahoo.elide.swagger.resources;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.BasicApiVersionValidator;
+import com.yahoo.elide.core.request.route.FlexibleRouteResolver;
+import com.yahoo.elide.core.request.route.NullRouteResolver;
+import com.yahoo.elide.core.request.route.Route;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.swagger.OpenApiDocument;
 import com.yahoo.elide.swagger.OpenApiDocument.MediaType;
 
@@ -17,11 +24,14 @@ import io.swagger.v3.oas.models.OpenAPI;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -29,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -40,6 +51,7 @@ import java.util.stream.Collectors;
 public class ApiDocsEndpoint {
     //Maps api version & path to a openapi document.
     protected Map<Pair<String, String>, OpenApiDocument> documents;
+    protected final RouteResolver routeResolver;
 
     @Data
     @AllArgsConstructor
@@ -64,29 +76,71 @@ public class ApiDocsEndpoint {
      * @param docs Map of path parameter name to openapi document.
      */
     @Inject
-    public ApiDocsEndpoint(@Named("apiDocs") List<ApiDocsRegistration> docs) {
+    public ApiDocsEndpoint(@Named("apiDocs") List<ApiDocsRegistration> docs,
+            @Named("elide") Elide elide, Optional<RouteResolver> optionalRouteResolver
+            ) {
         documents = new HashMap<>();
 
         docs.forEach(doc -> {
             String apiVersion = doc.getApiVersion();
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
-
             documents.put(Pair.of(apiVersion, apiPath),
                     new OpenApiDocument(doc.document, OpenApiDocument.Version.from(doc.version)));
+        });
+
+        this.routeResolver = optionalRouteResolver.orElseGet(() -> {
+            Set<String> apiVersions = elide.getElideSettings().getDictionary().getApiVersions();
+            if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
+                return new NullRouteResolver();
+            } else {
+                return new FlexibleRouteResolver(new BasicApiVersionValidator(), elide.getElideSettings()::getBaseUrl);
+            }
         });
     }
 
     @GET
+    @Path("{path:.*}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listJson(@HeaderParam("ApiVersion") String apiVersion) {
-        return list(apiVersion, MediaType.APPLICATION_JSON);
+    public Response listJson(
+            @PathParam("path") String path,
+            @Context UriInfo uriInfo,
+            @Context HttpHeaders headers
+            ) {
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        Route route = routeResolver.resolve(MediaType.APPLICATION_JSON, "", path, headers.getRequestHeaders(),
+                queryParams);
+        String name = route.getPath();
+        if (name.startsWith("/")) {
+            name = name.substring(1);
+        }
+        if (name.isBlank()) {
+            return list(route.getApiVersion(), MediaType.APPLICATION_JSON);
+        } else {
+            return get(route.getApiVersion(), name, MediaType.APPLICATION_JSON);
+        }
     }
 
     @GET
+    @Path("{path:.*}")
     @Produces(MediaType.APPLICATION_YAML)
-    public Response listYaml(@HeaderParam("ApiVersion") String apiVersion) {
-        return list(apiVersion, MediaType.APPLICATION_YAML);
+    public Response listYaml(
+            @PathParam("path") String path,
+            @Context UriInfo uriInfo,
+            @Context HttpHeaders headers
+    ) {
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        Route route = routeResolver.resolve(MediaType.APPLICATION_YAML, "", path, headers.getRequestHeaders(),
+                queryParams);
+        String name = route.getPath();
+        if (name.startsWith("/")) {
+            name = name.substring(1);
+        }
+        if (name.isBlank()) {
+            return list(route.getApiVersion(), MediaType.APPLICATION_YAML);
+        } else {
+            return get(route.getApiVersion(), name, MediaType.APPLICATION_YAML);
+        }
     }
 
     public Response list(String apiVersion, String mediaType) {
@@ -107,34 +161,6 @@ public class ApiDocsEndpoint {
                 .collect(Collectors.joining(",", "[", "]"));
 
         return Response.ok(body).build();
-    }
-
-    /**
-     * Read handler.
-     *
-     * @param apiVersion the API Version
-     * @param name document name
-     * @return response The OpenAPI JSON document
-     */
-    @GET
-    @Path("/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getJson(@HeaderParam("ApiVersion") String apiVersion, @PathParam("name") String name) {
-        return get(apiVersion, name, MediaType.APPLICATION_JSON);
-    }
-
-    /**
-     * Read handler.
-     *
-     * @param apiVersion the API Version
-     * @param name document name
-     * @return response The OpenAPI YAML document
-     */
-    @GET
-    @Path("/{name}")
-    @Produces(MediaType.APPLICATION_YAML)
-    public Response getYaml(@HeaderParam("ApiVersion") String apiVersion, @PathParam("name") String name) {
-        return get(apiVersion, name, MediaType.APPLICATION_YAML);
     }
 
     public Response get(String apiVersion, String name, String mediaType) {

@@ -5,11 +5,18 @@
  */
 package com.yahoo.elide.graphql;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.request.route.BasicApiVersionValidator;
+import com.yahoo.elide.core.request.route.FlexibleRouteResolver;
+import com.yahoo.elide.core.request.route.NullRouteResolver;
+import com.yahoo.elide.core.request.route.Route;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.utils.HeaderUtils;
@@ -24,6 +31,7 @@ import jakarta.inject.Singleton;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -37,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -50,10 +59,13 @@ public class GraphQLEndpoint {
     private final Map<String, QueryRunner> runners;
     private final Elide elide;
     private final HeaderUtils.HeaderProcessor headerProcessor;
+    protected final RouteResolver routeResolver;
 
     @Inject
     public GraphQLEndpoint(@Named("elide") Elide elide,
-            Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler) {
+            Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler,
+            Optional<RouteResolver> optionalRouteResolver
+            ) {
         log.debug("Started ~~");
         this.elide = elide;
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
@@ -62,6 +74,14 @@ public class GraphQLEndpoint {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion,
                     optionalDataFetcherExceptionHandler.orElseGet(SimpleDataFetcherExceptionHandler::new)));
         }
+        this.routeResolver = optionalRouteResolver.orElseGet(() -> {
+            Set<String> apiVersions = elide.getElideSettings().getDictionary().getApiVersions();
+            if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
+                return new NullRouteResolver();
+            } else {
+                return new FlexibleRouteResolver(new BasicApiVersionValidator(), elide.getElideSettings()::getBaseUrl);
+            }
+        });
     }
 
     /**
@@ -73,23 +93,30 @@ public class GraphQLEndpoint {
      * @return response
      */
     @POST
+    @Path("{path:.*}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response post(
+            @PathParam("path") String path,
             @Context UriInfo uriInfo,
             @Context HttpHeaders headers,
             @Context SecurityContext securityContext,
             String graphQLDocument) {
-        String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
-        QueryRunner runner = runners.getOrDefault(apiVersion, null);
+
+        String baseUrl = getBaseUrlEndpoint(uriInfo);
+        String pathname = path;
+        Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
+                uriInfo.getQueryParameters());
+
+        QueryRunner runner = runners.getOrDefault(route.getApiVersion(), null);
 
         ElideResponse response;
         if (runner == null) {
             response = buildErrorResponse(elide.getMapper().getObjectMapper(),
                     new InvalidOperationException("Invalid API Version"), false);
         } else {
-            response = runner.run(getBaseUrlEndpoint(uriInfo),
+            response = runner.run(route.getBaseUrl(),
                                   graphQLDocument, user, UUID.randomUUID(), requestHeaders);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
@@ -97,12 +124,14 @@ public class GraphQLEndpoint {
 
     protected String getBaseUrlEndpoint(UriInfo uriInfo) {
         String baseUrl = elide.getElideSettings().getBaseUrl();
-
         if (StringUtils.isEmpty(baseUrl)) {
             //UriInfo has full path appended here already.
             baseUrl = ResourceUtils.resolveBaseUrl(uriInfo);
         }
-
-        return baseUrl;
+        String path = uriInfo.getBaseUri().getPath();
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        return baseUrl + path;
     }
 }

@@ -97,11 +97,8 @@ public class JsonApiController {
                                                       HttpServletRequest request, Authentication authentication) {
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         String prefix = settings.getJsonApi().getPath();
-        final String pathname = getPath(request, prefix);
-        if (request.getRequestURI().startsWith(prefix + "/tableExport")) {
-            prefix = "";
-        }
         final String baseUrl = getBaseUrl(prefix);
+        final String pathname = getPath(request, prefix);
         Route route = routeResolver.resolve(JSON_API_CONTENT_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
         final User user = new AuthenticationUser(authentication);
 
