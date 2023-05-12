@@ -16,6 +16,11 @@ elide:
   api-docs:
     path: /doc
     enabled: true
+  api-versioning-strategy:
+    header:
+      enabled: true
+      header-name:
+      - ApiVersion
   async:
     enabled: true
     thread-pool-size: 7
