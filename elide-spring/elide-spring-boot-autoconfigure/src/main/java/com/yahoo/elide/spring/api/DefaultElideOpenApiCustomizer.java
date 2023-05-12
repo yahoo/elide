@@ -6,6 +6,8 @@
 package com.yahoo.elide.spring.api;
 
 import com.yahoo.elide.RefreshableElide;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 
 import io.swagger.v3.oas.models.OpenAPI;
@@ -21,19 +23,29 @@ import java.util.Set;
 public class DefaultElideOpenApiCustomizer implements ElideOpenApiCustomizer {
 
     private final RefreshableElide elide;
-    private final String apiVersion;
+    private final ElideConfigProperties settings;
 
-    public DefaultElideOpenApiCustomizer(RefreshableElide elide, String apiVersion) {
+    public DefaultElideOpenApiCustomizer(RefreshableElide elide, ElideConfigProperties settings) {
         this.elide = elide;
-        this.apiVersion = apiVersion;
+        this.settings = settings;
     }
 
     @Override
     public void customise(OpenAPI openApi) {
         removePaths(openApi);
-        new OpenApiBuilder(this.elide.getElide().getElideSettings().getDictionary())
-                .apiVersion(this.apiVersion)
-                .basePath(this.elide.getElide().getElideSettings().getJsonApiPath()).applyTo(openApi);
+        for (String apiVersion : this.elide.getElide().getElideSettings().getDictionary().getApiVersions()) {
+            OpenApiBuilder builder = new OpenApiBuilder(this.elide.getElide().getElideSettings().getDictionary())
+                    .apiVersion(apiVersion).basePath(this.elide.getElide().getElideSettings().getJsonApiPath());
+            if (this.settings.getApiVersioningStrategy().getPath().isEnabled()) {
+                if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                    builder.basePath(this.elide.getElide().getElideSettings().getJsonApiPath() + "/"
+                            + this.settings.getApiVersioningStrategy().getPath().getVersionPrefix() + apiVersion);
+                }
+            } else if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                continue;
+            }
+            builder.applyTo(openApi);
+        }
     }
 
     /**

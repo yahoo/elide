@@ -111,6 +111,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -694,8 +696,8 @@ public class ElideAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         @Scope(SCOPE_PROTOTYPE)
-        public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide) {
-            return new DefaultElideOpenApiCustomizer(elide, EntityDictionary.NO_VERSION);
+        public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide, ElideConfigProperties properties) {
+            return new DefaultElideOpenApiCustomizer(elide, properties);
         }
     }
 
@@ -938,9 +940,26 @@ public class ElideAutoConfiguration {
             Supplier<OpenAPI> document = () -> {
                 OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
                         .supportLegacyFilterDialect(false);
+                if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                    if (settings.getApiVersioningStrategy().getPath().isEnabled()) {
+                        // Path needs to be set
+                        builder.basePath(
+                                "/" + settings.getApiVersioningStrategy().getPath().getVersionPrefix() + apiVersion);
+                    } else if (settings.getApiVersioningStrategy().getHeader().isEnabled()) {
+                        // Header needs to be set
+                        builder.globalParameter(new Parameter().in("header")
+                                .name(settings.getApiVersioningStrategy().getHeader().getHeaderName()[0]).required(true)
+                                .schema(new StringSchema().addEnumItem(apiVersion)));
+                    } else if (settings.getApiVersioningStrategy().getParameter().isEnabled()) {
+                        // Header needs to be set
+                        builder.globalParameter(new Parameter().in("query")
+                                .name(settings.getApiVersioningStrategy().getParameter().getParameterName())
+                                .required(true).schema(new StringSchema().addEnumItem(apiVersion)));
+                    }
+                }
+
                 OpenAPI openApi = builder.build();
                 openApi.addServersItem(new Server().url(jsonApiPath));
-                customizer.customize(openApi);
                 if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
                     Info info = openApi.getInfo();
                     if (info == null) {
@@ -949,10 +968,12 @@ public class ElideAutoConfiguration {
                     }
                     info.setVersion(apiVersion);
                 }
+                customizer.customize(openApi);
                 return openApi;
             };
             registrations.add(new ApiDocsRegistration("", SingletonSupplier.of(document),
-                    settings.getApiDocs().getVersion().getValue(), apiVersion));        });
+                    settings.getApiDocs().getVersion().getValue(), apiVersion));
+        });
         return new ApiDocsController.ApiDocsRegistrations(registrations);
     }
 

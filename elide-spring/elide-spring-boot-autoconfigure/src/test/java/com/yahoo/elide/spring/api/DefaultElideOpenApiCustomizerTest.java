@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
@@ -14,6 +15,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.spring.config.ElideConfigProperties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,8 @@ import org.mockito.Mockito;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+
+import java.util.Collections;
 
 /**
  * Test for DefaultElideOpenApiCustomizer.
@@ -35,10 +39,12 @@ class DefaultElideOpenApiCustomizerTest {
         EntityDictionary entityDictionary = Mockito.mock(EntityDictionary.class);
         DataStore dataStore = Mockito.mock(DataStore.class);
         ElideSettings settings = new ElideSettingsBuilder(dataStore).withEntityDictionary(entityDictionary).build();
+        when(entityDictionary.getApiVersions()).thenReturn(Collections.singleton(EntityDictionary.NO_VERSION));
         Elide elide = new Elide(settings);
         RefreshableElide refreshableElide = new RefreshableElide(elide);
+        ElideConfigProperties properties = new ElideConfigProperties();
 
-        customizer = new DefaultElideOpenApiCustomizer(refreshableElide, EntityDictionary.NO_VERSION);
+        customizer = new DefaultElideOpenApiCustomizer(refreshableElide, properties);
     }
 
     @Test

@@ -29,6 +29,7 @@ public class ParameterRouteResolver implements RouteResolver {
         if (parameters != null && parameters.get(apiVersionParameterName) != null) {
             String apiVersion = parameters.get(apiVersionParameterName).get(0);
             if (this.apiVersionValidator.isValidApiVersion(apiVersion)) {
+                parameters.remove(apiVersionParameterName);
                 return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).build();
             }
         }
