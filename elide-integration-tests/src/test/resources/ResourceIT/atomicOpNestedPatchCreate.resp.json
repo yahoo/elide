@@ -1,0 +1,77 @@
+{
+    "atomic:results": [
+        {
+            "data": {
+                "type": "parent",
+                "id": "5",
+                "attributes": {
+                    "firstName": "Parent1"
+                },
+                "relationships": {
+                    "children": {
+                        "data": [
+                            {
+                                "type": "child",
+                                "id": "6"
+                            }
+                        ]
+                    },
+                    "spouses": {
+                        "data": [
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "data": {
+                "type": "child",
+                "id": "6",
+                "attributes": {
+                    "name": null
+                },
+                "relationships": {
+                    "friends": {
+                        "data": [
+                        ]
+                    },
+                    "parents": {
+                        "data": [
+                            {
+                                "type": "parent",
+                                "id": "5"
+                            },
+                            {
+                                "type": "parent",
+                                "id": "6"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "data": {
+                "type": "parent",
+                "id": "6",
+                "attributes": {
+                    "firstName": "Parent2"
+                },
+                "relationships": {
+                    "children": {
+                        "data": [
+                            {
+                                "type": "child",
+                                "id": "6"
+                            }
+                        ]
+                    },
+                    "spouses": {
+                        "data": [
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}

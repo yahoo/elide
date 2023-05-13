@@ -1,0 +1,17 @@
+{
+    "data":{
+        "type":"parent",
+        "id":"1",
+        "attributes":{
+            "firstName":"I've been modified =-o"
+        },
+        "relationships":{
+            "spouses":{
+                "data":[]
+            },
+            "children":{
+                "data":[]
+            }
+        }
+    }
+}

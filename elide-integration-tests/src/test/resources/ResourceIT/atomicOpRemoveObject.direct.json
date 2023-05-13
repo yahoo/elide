@@ -1,0 +1,17 @@
+{
+    "data":{
+        "type":"parent",
+        "id":"5",
+        "attributes":{
+            "firstName":"Im going to be immediately deleted"
+        },
+        "relationships":{
+            "children":{
+                "data":[]
+            },
+            "spouses":{
+                "data":[]
+            }
+        }
+    }
+}

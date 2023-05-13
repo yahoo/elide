@@ -1,0 +1,29 @@
+{
+    "atomic:operations": [
+        {
+            "op": "add",
+            "data": {
+                "type": "book",
+                "id": "bookId",
+                "relationships": {
+                    "authors": {
+                        "data": [
+                            {
+                                "type": "author",
+                                "id": "authorId"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "op": "add",
+            "href": "/author",
+            "data": {
+                "id": "authorId",
+                "type": "author"
+            }
+        }
+    ]
+}
