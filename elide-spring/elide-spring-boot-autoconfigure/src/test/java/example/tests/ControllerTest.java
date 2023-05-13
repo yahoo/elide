@@ -270,9 +270,10 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        Map<String, Object> attributes = response.path("[1].data.attributes");
-        assertEquals("Foo2", attributes.get("commonName"));
-        assertEquals("Updated Description", attributes.get("description"));
+        String result = response.asString();
+        String expected = """
+                [{"data":{"type":"group","id":"com.example.patch1","attributes":{"commonName":"Foo","deprecated":false,"description":""},"relationships":{"products":{"links":{"self":"https://elide.io/json/group/com.example.patch1/relationships/products","related":"https://elide.io/json/group/com.example.patch1/products"},"data":[]}},"links":{"self":"https://elide.io/json/group/com.example.patch1"}}},{"data":{"type":"group","id":"com.example.patch2","attributes":{"commonName":"Foo2","deprecated":false,"description":"Updated Description"},"relationships":{"products":{"links":{"self":"https://elide.io/json/group/com.example.patch2/relationships/products","related":"https://elide.io/json/group/com.example.patch2/products"},"data":[]}},"links":{"self":"https://elide.io/json/group/com.example.patch2"}}},{"data":null}]""";
+        assertEquals(expected, result);
 
         ExtractableResponse<Response> deleteResponse = given()
                 .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
@@ -298,10 +299,10 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        String result = deleteResponse.asString();
-        String expected = """
+        String deleteResult = deleteResponse.asString();
+        String deleteExpected = """
                 [{"data":null},{"data":null}]""";
-        assertEquals(expected, result);
+        assertEquals(deleteExpected, deleteResult);
     }
 
     @Test
@@ -363,14 +364,11 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        Map<String, Object> groupAttributes = response.path("'atomic:results'[1].data.attributes");
-        assertEquals("Foo2", groupAttributes.get("commonName"));
-        assertEquals("Updated Description", groupAttributes.get("description"));
 
-        Map<String, Object> productAttributes = response.path("'atomic:results'[3].data.attributes");
-        assertEquals("Product1", productAttributes.get("commonName"));
-        assertEquals("Product1 Description", productAttributes.get("description"));
-
+        String result = response.asString();
+        String expected = """
+                {"atomic:results":[{"data":{"type":"group","id":"com.example.operations1","attributes":{"commonName":"Foo1","deprecated":false,"description":""},"relationships":{"products":{"links":{"self":"https://elide.io/json/group/com.example.operations1/relationships/products","related":"https://elide.io/json/group/com.example.operations1/products"},"data":[]}},"links":{"self":"https://elide.io/json/group/com.example.operations1"}}},{"data":{"type":"group","id":"com.example.operations2","attributes":{"commonName":"Foo2","deprecated":false,"description":"Updated Description"},"relationships":{"products":{"links":{"self":"https://elide.io/json/group/com.example.operations2/relationships/products","related":"https://elide.io/json/group/com.example.operations2/products"},"data":[{"type":"product","id":"com.example.operations.product1"}]}},"links":{"self":"https://elide.io/json/group/com.example.operations2"}}},{"data":null},{"data":{"type":"product","id":"com.example.operations.product1","attributes":{"commonName":"Product1","description":"Product1 Description"},"relationships":{"group":{"links":{"self":"https://elide.io/json/group/com.example.operations2/products/com.example.operations.product1/relationships/group","related":"https://elide.io/json/group/com.example.operations2/products/com.example.operations.product1/group"},"data":{"type":"group","id":"com.example.operations2"}},"maintainers":{"links":{"self":"https://elide.io/json/group/com.example.operations2/products/com.example.operations.product1/relationships/maintainers","related":"https://elide.io/json/group/com.example.operations2/products/com.example.operations.product1/maintainers"},"data":[]},"versions":{"links":{"self":"https://elide.io/json/group/com.example.operations2/products/com.example.operations.product1/relationships/versions","related":"https://elide.io/json/group/com.example.operations2/products/com.example.operations.product1/versions"},"data":[]}},"links":{"self":"https://elide.io/json/group/com.example.operations2/products/com.example.operations.product1"}}},{"data":null}]}""";
+        assertEquals(expected, result);
 
         ExtractableResponse<Response> deleteResponse = given()
                 .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
@@ -396,10 +394,10 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        String result = deleteResponse.asString();
-        String expected = """
+        String deleteResult = deleteResponse.asString();
+        String deleteExpected = """
                 {"atomic:results":[{"data":null},{"data":null}]}""";
-        assertEquals(expected, result);
+        assertEquals(deleteExpected, deleteResult);
 
     }
 
@@ -444,9 +442,10 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        Map<String, Object> attributes = response.path("'atomic:results'[1].data.attributes");
-        assertEquals("Foo2", attributes.get("commonName"));
-        assertEquals("Updated Description", attributes.get("description"));
+        String result = response.asString();
+        String expected = """
+                {"atomic:results":[{"data":{"type":"group","id":"com.example.operationsinfer1","attributes":{"commonName":"Foo1","deprecated":false,"description":""},"relationships":{"products":{"links":{"self":"https://elide.io/json/group/com.example.operationsinfer1/relationships/products","related":"https://elide.io/json/group/com.example.operationsinfer1/products"},"data":[]}},"links":{"self":"https://elide.io/json/group/com.example.operationsinfer1"}}},{"data":{"type":"group","id":"com.example.operationsinfer2","attributes":{"commonName":"Foo2","deprecated":false,"description":"Updated Description"},"relationships":{"products":{"links":{"self":"https://elide.io/json/group/com.example.operationsinfer2/relationships/products","related":"https://elide.io/json/group/com.example.operationsinfer2/products"},"data":[]}},"links":{"self":"https://elide.io/json/group/com.example.operationsinfer2"}}},{"data":null}]}""";
+        assertEquals(expected, result);
 
         ExtractableResponse<Response> deleteResponse = given()
                 .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
@@ -472,10 +471,10 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        String result = deleteResponse.asString();
-        String expected = """
+        String deleteResult = deleteResponse.asString();
+        String deleteExpected = """
                 {"atomic:results":[{"data":null},{"data":null}]}""";
-        assertEquals(expected, result);
+        assertEquals(deleteExpected, deleteResult);
     }
 
     @Test
@@ -530,8 +529,10 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        Map<String, Object> attributes = response.path("'atomic:results'[1].data.attributes");
-        assertEquals("Person1", attributes.get("commonName"));
+        String result = response.asString();
+        String expected = """
+                {"atomic:results":[{"data":{"type":"group","id":"com.example.operationsrel1","attributes":{"commonName":"Foo1","deprecated":false,"description":""},"relationships":{"products":{"links":{"self":"https://elide.io/json/group/com.example.operationsrel1/relationships/products","related":"https://elide.io/json/group/com.example.operationsrel1/products"},"data":[{"type":"product","id":"com.example.operations.product1"}]}},"links":{"self":"https://elide.io/json/group/com.example.operationsrel1"}}},{"data":{"type":"maintainer","id":"com.example.person1","attributes":{"commonName":"Person1","description":""},"relationships":{"products":{"links":{"self":"https://elide.io/json/maintainer/com.example.person1/relationships/products","related":"https://elide.io/json/maintainer/com.example.person1/products"},"data":[]}},"links":{"self":"https://elide.io/json/maintainer/com.example.person1"}}},{"data":{"type":"product","id":"com.example.operations.product1","attributes":{"commonName":"Product1","description":""},"relationships":{"group":{"links":{"self":"https://elide.io/json/group/com.example.operationsrel1/products/com.example.operations.product1/relationships/group","related":"https://elide.io/json/group/com.example.operationsrel1/products/com.example.operations.product1/group"},"data":{"type":"group","id":"com.example.operationsrel1"}},"maintainers":{"links":{"self":"https://elide.io/json/group/com.example.operationsrel1/products/com.example.operations.product1/relationships/maintainers","related":"https://elide.io/json/group/com.example.operationsrel1/products/com.example.operations.product1/maintainers"},"data":[{"type":"maintainer","id":"com.example.person1"}]},"versions":{"links":{"self":"https://elide.io/json/group/com.example.operationsrel1/products/com.example.operations.product1/relationships/versions","related":"https://elide.io/json/group/com.example.operationsrel1/products/com.example.operations.product1/versions"},"data":[]}},"links":{"self":"https://elide.io/json/group/com.example.operationsrel1/products/com.example.operations.product1"}}},{"data":null}]}""";
+        assertEquals(expected, result);
 
         ExtractableResponse<Response> deleteResponse = given()
                 .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
@@ -569,10 +570,10 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
-        String result = deleteResponse.asString();
-        String expected = """
+        String deleteResult = deleteResponse.asString();
+        String deleteExpected = """
                 {"atomic:results":[{"data":null},{"data":null},{"data":null},{"data":null}]}""";
-        assertEquals(expected, result);
+        assertEquals(deleteExpected, deleteResult);
     }
 
     @Test
