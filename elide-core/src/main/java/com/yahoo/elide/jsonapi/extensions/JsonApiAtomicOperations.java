@@ -276,8 +276,8 @@ public class JsonApiAtomicOperations {
     }
 
     /**
-     * Infer ref using the data for operations on resources. The ref cannot be
-     * inferred for operations on relationships.
+     * Infer ref using the data for operations on add and update resources. The ref cannot be
+     * inferred for remove resource and for operations on relationships.
      *
      * @param mapper the json api mapper
      * @param operation the operation
@@ -289,20 +289,11 @@ public class JsonApiAtomicOperations {
             try {
                 Resource resource = mapper.forAtomicOperations()
                         .readResource(operation.getData());
-                if (resource.getType() != null) {
-                    if (resource.getAttributes() == null || resource.getAttributes().isEmpty()) {
-                        if (OperationCode.REMOVE.equals(operation.getOperationCode())
-                                && resource.getId() != null) {
-                            // When removing a single resource the path only contains the type and not id
-                            return new Ref(resource.getType(), null, null, null);
-                        }
-                    } else {
-                        if (OperationCode.ADD.equals(operation.getOperationCode())) {
-                            return new Ref(resource.getType(), null, null, null);
-                        } else if (OperationCode.UPDATE.equals(operation.getOperationCode())
-                                && resource.getId() != null) {
-                            return new Ref(resource.getType(), resource.getId(), null, null);
-                        }
+                if (resource.getType() != null && isResourceOperation(resource)) {
+                    if (OperationCode.ADD.equals(operation.getOperationCode())) {
+                        return new Ref(resource.getType(), null, null, null);
+                    } else if (OperationCode.UPDATE.equals(operation.getOperationCode()) && resource.getId() != null) {
+                        return new Ref(resource.getType(), resource.getId(), null, null);
                     }
                 }
             } catch (JsonProcessingException e) {
@@ -310,6 +301,19 @@ public class JsonApiAtomicOperations {
             }
         }
         return null;
+    }
+
+    /**
+     * Determines if the operation is on a resource.
+     * <p>
+     * If there are attributes present then it is an operation on a resource and not
+     * a relationship.
+     *
+     * @param resource the resource
+     * @return true if it is a resource operation and not a relationship operation
+     */
+    private boolean isResourceOperation(Resource resource) {
+        return resource.getAttributes() != null && !resource.getAttributes().isEmpty();
     }
 
     /**
