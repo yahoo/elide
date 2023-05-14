@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -188,8 +187,9 @@ public class JsonApiAtomicOperations {
             }
             fullPathBuilder.append(ref.getType());
 
-            // Only relationship operations or resource update operation should have the id
-            if (ref.getRelationship() != null || OperationCode.UPDATE.equals(operation.getOperationCode())) {
+            // Only relationship operations or resource update or remove operation should have the id
+            if (ref.getRelationship() != null || OperationCode.UPDATE.equals(operation.getOperationCode())
+                    || OperationCode.REMOVE.equals(operation.getOperationCode())) {
                 if (ref.getId() != null) {
                     fullPathBuilder.append("/");
                     fullPathBuilder.append(ref.getId());
@@ -238,14 +238,6 @@ public class JsonApiAtomicOperations {
                         ref = inferRef(requestScope.getMapper(), operation);
                     }
                     fullPath = getFullPath(ref, operation);
-
-                    // If data is not provided, but it is to remove a resource the data is optional
-                    // and should be generated from the ref
-                    if ((data == null || JsonNodeType.NULL.equals(data.getNodeType()))
-                            && OperationCode.REMOVE.equals(operation.getOperationCode())) {
-                        data = requestScope.getMapper().getObjectMapper().createObjectNode().put("type", ref.getType())
-                                .put("id", ref.getId() != null ? ref.getId() : ref.getLid());
-                    }
                 }
                 if (fullPath == null) {
                     throw new InvalidEntityBodyException(

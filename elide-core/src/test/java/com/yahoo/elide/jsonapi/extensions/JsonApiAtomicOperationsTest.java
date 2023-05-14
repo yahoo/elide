@@ -269,6 +269,91 @@ public class JsonApiAtomicOperationsTest {
     }
 
     @Test
+    void addUpdateRemoveHref() throws IOException {
+        // Add
+        doInTransaction(scope -> {
+            String operationsDoc = """
+                    {
+                      "atomic:operations": [{
+                        "op": "add",
+                        "href": "company",
+                        "data": {
+                          "type": "company",
+                          "id": "1",
+                          "attributes": {
+                            "description": "Company Description"
+                          }
+                        }
+                      }]
+                    }""";
+            Pair<Integer, JsonNode> result = JsonApiAtomicOperations
+                    .processAtomicOperations(this.dataStore, null, operationsDoc, scope).get();
+            assertEquals(200, result.getKey());
+            JsonNode data = result.getValue().get("atomic:results").get(0).get("data");
+            assertEquals("company", data.get("type").asText());
+            assertEquals("1", data.get("id").asText());
+        });
+
+        doInTransaction(scope -> {
+            Company company = scope.getTransaction().loadObject(EntityProjection.builder().type(Company.class).build(),
+                    "1", scope);
+            assertEquals("Company Description", company.getDescription());
+        });
+
+        // Update
+        doInTransaction(scope -> {
+            String operationsDoc = """
+                    {
+                      "atomic:operations": [{
+                        "op": "update",
+                        "href": "company/1",
+                        "data": {
+                          "type": "company",
+                          "id": "1",
+                          "attributes": {
+                            "description": "Updated Company Description"
+                          }
+                        }
+                      }]
+                    }""";
+            Pair<Integer, JsonNode> result = JsonApiAtomicOperations
+                    .processAtomicOperations(this.dataStore, null, operationsDoc, scope).get();
+            assertEquals(200, result.getKey());
+            JsonNode data = result.getValue().get("atomic:results").get(0).get("data");
+            assertTrue(data.isNull());
+        });
+
+        doInTransaction(scope -> {
+            Company company = scope.getTransaction().loadObject(EntityProjection.builder().type(Company.class).build(),
+                    "1", scope);
+            assertEquals("Updated Company Description", company.getDescription());
+        });
+
+        // Remove
+        doInTransaction(scope -> {
+            String operationsDoc = """
+                    {
+                      "atomic:operations": [{
+                        "op": "remove",
+                        "href" : "company/1"
+                      }]
+                    }""";
+            Pair<Integer, JsonNode> result = JsonApiAtomicOperations
+                    .processAtomicOperations(this.dataStore, null, operationsDoc, scope).get();
+            assertEquals(200, result.getKey());
+            JsonNode data = result.getValue().get("atomic:results").get(0).get("data");
+            assertTrue(data.isNull());
+        });
+
+        doInTransaction(scope -> {
+            Company company = scope.getTransaction().loadObject(EntityProjection.builder().type(Company.class).build(),
+                    "1", scope);
+            assertNull(company);
+        });
+
+    }
+
+    @Test
     void nullHeader() {
         assertFalse(JsonApiAtomicOperations.isAtomicOperationsExtension(null));
     }

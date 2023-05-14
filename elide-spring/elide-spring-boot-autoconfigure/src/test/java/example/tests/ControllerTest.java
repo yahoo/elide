@@ -376,16 +376,16 @@ public class ControllerTest extends IntegrationTest {
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.remove,
-                                        datum(resource(
+                                        ref(
                                                 type("group"),
                                                 id("com.example.operations1")
-                                        ))
+                                        )
                                 ),
                                 atomicOperation(AtomicOperationCode.remove,
-                                        datum(resource(
+                                        ref(
                                                 type("group"),
                                                 id("com.example.operations2")
-                                        ))
+                                        )
                                 )
                         )
                 )
