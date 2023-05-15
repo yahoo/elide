@@ -164,6 +164,18 @@ public class JsonApiDSL {
      * Resource resource.
      *
      * @param type       the type
+     * @param lid        the lid
+     * @param attributes the attributes
+     * @return the resource
+     */
+    public static Resource resource(Type type, Lid lid, Attributes attributes) {
+        return new Resource(lid, type, attributes, null, null);
+    }
+
+    /**
+     * Resource resource.
+     *
+     * @param type       the type
      * @param id         the id
      * @param relationships the attributes
      * @return the resource
@@ -181,6 +193,17 @@ public class JsonApiDSL {
      */
     public static Resource resource(Type type, Id id) {
         return new Resource(id, type, null, null, null);
+    }
+
+    /**
+     * Resource resource.
+     *
+     * @param type the type
+     * @param lid   the lid
+     * @return the resource
+     */
+    public static Resource resource(Type type, Lid lid) {
+        return new Resource(lid, type, null, null, null);
     }
 
     /**

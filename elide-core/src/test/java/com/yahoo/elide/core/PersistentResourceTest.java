@@ -645,7 +645,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource<Left> leftResource = new PersistentResource<>(left, "2", goodScope);
 
-        Relationship ids = new Relationship(null, new Data<>(new Resource("right", null, null, null, null, null)));
+        Relationship ids = new Relationship(null, new Data<>(new Resource("right", null, null, null, null, null, null)));
 
         InvalidObjectIdentifierException thrown = assertThrows(
                 InvalidObjectIdentifierException.class,

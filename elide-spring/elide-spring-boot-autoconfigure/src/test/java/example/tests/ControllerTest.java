@@ -478,6 +478,112 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
+    public void jsonApiAtomicOperationsExtensionLidTest() {
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.add,
+                                        datum(resource(
+                                                type("book"),
+                                                lid("f950e6f7-d392-4671-bacd-80966fa3ed5c"),
+                                                attributes(
+                                                        attr("title", "Book 1")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add,
+                                        datum(resource(
+                                                type("book"),
+                                                lid("d4fd57f0-3127-4bb6-b4c9-13bc78341737"),
+                                                attributes(
+                                                        attr("title", "Book 2")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add,
+                                        datum(resource(
+                                                type("publisher"),
+                                                lid("ed615b7a-b551-4a2d-aa12-56154c1c44aa"),
+                                                attributes(
+                                                        attr("name", "Publisher")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.update,
+                                        ref(type("book"), lid("d4fd57f0-3127-4bb6-b4c9-13bc78341737")),
+                                        datum(resource(
+                                                type("book"),
+                                                lid("d4fd57f0-3127-4bb6-b4c9-13bc78341737"),
+                                                attributes(
+                                                        attr("title", "Book 2 Updated")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add,
+                                        ref(type("publisher"), lid("ed615b7a-b551-4a2d-aa12-56154c1c44aa"), relationship("books")),
+                                        data(resource(
+                                                type("book"),
+                                                lid("f950e6f7-d392-4671-bacd-80966fa3ed5c")
+                                        ), resource(
+                                                type("book"),
+                                                lid("d4fd57f0-3127-4bb6-b4c9-13bc78341737")
+                                        ))
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String result = response.asString();
+        String expected = """
+                {"atomic:results":[{"data":{"type":"book","id":"1","attributes":{"title":"Book 1"},"relationships":{"publisher":{"links":{"self":"https://elide.io/json/book/1/relationships/publisher","related":"https://elide.io/json/book/1/publisher"},"data":{"type":"publisher","id":"1"}}},"links":{"self":"https://elide.io/json/book/1"}}},{"data":{"type":"book","id":"2","attributes":{"title":"Book 2 Updated"},"relationships":{"publisher":{"links":{"self":"https://elide.io/json/book/2/relationships/publisher","related":"https://elide.io/json/book/2/publisher"},"data":{"type":"publisher","id":"1"}}},"links":{"self":"https://elide.io/json/book/2"}}},{"data":{"type":"publisher","id":"1","attributes":{"name":"Publisher"},"relationships":{"books":{"links":{"self":"https://elide.io/json/publisher/1/relationships/books","related":"https://elide.io/json/publisher/1/books"},"data":[{"type":"book","id":"1"},{"type":"book","id":"2"}]}},"links":{"self":"https://elide.io/json/publisher/1"}}},{"data":null},{"data":null}]}""";
+        assertEquals(expected, result);
+        String bookId1 = response.path("'atomic:results'[0].data.id");
+        String bookId2 = response.path("'atomic:results'[1].data.id");
+        String publisherId = response.path("'atomic:results'[2].data.id");
+
+        ExtractableResponse<Response> deleteResponse = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.remove,
+                                        ref(
+                                           type("book"),
+                                           id(bookId1)
+                                        )
+                                ),
+                                atomicOperation(AtomicOperationCode.remove,
+                                        ref(
+                                                type("book"),
+                                                id(bookId2)
+                                             )
+                                ),
+                                atomicOperation(AtomicOperationCode.remove,
+                                        ref(
+                                                type("publisher"),
+                                                id(publisherId)
+                                             )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String deleteResult = deleteResponse.asString();
+        String deleteExpected = """
+                {"atomic:results":[{"data":null},{"data":null},{"data":null}]}""";
+        assertEquals(deleteExpected, deleteResult);
+    }
+
+
+    @Test
     public void jsonApiAtomicOperationsExtensionRelationshipTest() {
         ExtractableResponse<Response> response = given()
                 .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
@@ -923,7 +1029,7 @@ public class ControllerTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats", "namespace", "tableSource", "maintainer"));
+                        "stats", "namespace", "tableSource", "maintainer", "book", "publisher"));
     }
 
     @Test

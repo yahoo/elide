@@ -32,7 +32,12 @@ public class JsonApiAtomicOperationsMapper {
     }
 
     public Resource readResource(JsonNode resource) throws JsonProcessingException {
-        return objectMapper.treeToValue(resource, Resource.class);
+        Resource result = objectMapper.treeToValue(resource, Resource.class);
+        if (result != null && result.getId() == null && result.getLid() != null) {
+            result.setId(result.getLid());
+            result.setLid(null);
+        }
+        return result;
     }
 
     public JsonApiDocument readData(JsonNode data) throws JsonProcessingException {

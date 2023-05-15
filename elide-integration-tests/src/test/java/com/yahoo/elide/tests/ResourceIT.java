@@ -3314,6 +3314,20 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void atomicOpAddUpdateLid() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpAddUpdateLid.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpAddUpdateLid.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
     public void atomicOpBadDelete() {
         String request = jsonParser.getJson("/ResourceIT/atomicOpBadDelete.req.json");
         String expected = jsonParser.getJson("/ResourceIT/atomicOpBadDelete.json");

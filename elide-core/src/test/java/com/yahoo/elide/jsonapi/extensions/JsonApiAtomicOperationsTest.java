@@ -158,6 +158,33 @@ public class JsonApiAtomicOperationsTest {
     }
 
     @Test
+    void removeNoRefAndHrefShouldThrow() {
+        String operationsDoc = """
+                {
+                  "atomic:operations": [{
+                    "op": "remove",
+                    "data": {
+                      "type": "book",
+                      "id": "13"
+                    }
+                  }]
+                }""";
+        doInTransaction(scope -> {
+            assertThrows(JsonApiAtomicOperationsException.class,
+                    () -> JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope));
+            try {
+                JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
+            } catch (JsonApiAtomicOperationsException e) {
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                assertEquals("400", error.get("status").asText());
+                assertEquals(
+                        "Bad Request Body&#39;Atomic Operations extension requires either href or ref to be specified.&#39;",
+                        error.get("detail").asText());
+            }
+        });
+    }
+
+    @Test
     void oneToOneDeleteUnknownCollectionShouldThrow() {
         String operationsDoc = """
                 {
@@ -265,7 +292,6 @@ public class JsonApiAtomicOperationsTest {
                     "1", scope);
             assertNull(company);
         });
-
     }
 
     @Test

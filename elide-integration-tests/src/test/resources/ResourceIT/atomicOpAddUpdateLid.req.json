@@ -1,0 +1,57 @@
+{
+    "atomic:operations": [
+        {
+            "op": "add",
+            "ref": {
+                "type": "parent",
+                "lid": "5d57b6ee-f538-4e49-8f35-edc00f6272d2"
+            },
+            "data": {
+                "type": "parent",
+                "lid": "5d57b6ee-f538-4e49-8f35-edc00f6272d2",
+                "relationships": {
+                    "spouses": {
+                        "data": {
+                            "type": "parent",
+                            "id": "2"
+                        }
+                    },
+                    "children": {
+                        "data": [
+                            {
+                                "type": "child",
+                                "lid": "2d1b70cb-5821-4229-ba14-4dd7d3bd9b97"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "op": "add",
+            "href": "/parent/5d57b6ee-f538-4e49-8f35-edc00f6272d2/children",
+            "data": {
+                "type": "child",
+                "lid": "2d1b70cb-5821-4229-ba14-4dd7d3bd9b97",
+                "relationships": {
+                    "parents": {
+                        "data": [
+                            {
+                                "type": "parent",
+                                "id": "2"
+                            }
+                        ]
+                    },
+                    "friends": {
+                        "data": [
+                            {
+                                "type": "child",
+                                "id": "1"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}

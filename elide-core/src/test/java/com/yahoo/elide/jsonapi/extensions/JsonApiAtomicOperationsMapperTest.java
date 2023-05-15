@@ -46,7 +46,7 @@ class JsonApiAtomicOperationsMapperTest {
     }
 
     @Test
-    void readDataSingle() throws JsonProcessingException {
+    void readDataSingleId() throws JsonProcessingException {
         JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ObjectMapper());
         String operationsDoc = """
                 {
@@ -60,6 +60,33 @@ class JsonApiAtomicOperationsMapperTest {
                     "data": {
                       "type": "people",
                       "id": "9"
+                    }
+                  }]
+                }
+                               """;
+        Operations operations = mapper.readDoc(operationsDoc);
+        JsonApiDocument document = mapper.readData(operations.getOperations().get(0).getData());
+        assertEquals(1, document.getData().get().size());
+        Resource resource = document.getData().get().iterator().next();
+        assertEquals("people", resource.getType());
+        assertEquals("9", resource.getId());
+    }
+
+    @Test
+    void readDataSingleLid() throws JsonProcessingException {
+        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ObjectMapper());
+        String operationsDoc = """
+                {
+                  "atomic:operations": [{
+                    "op": "update",
+                    "ref": {
+                      "type": "articles",
+                      "lid": "13",
+                      "relationship": "author"
+                    },
+                    "data": {
+                      "type": "people",
+                      "lid": "9"
                     }
                   }]
                 }

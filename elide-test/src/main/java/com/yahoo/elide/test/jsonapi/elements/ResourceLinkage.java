@@ -22,4 +22,15 @@ public class ResourceLinkage extends LinkedHashMap<String, Object> {
        this.put("type", type.value);
        this.put("id", id.value);
     }
+
+    /**
+     * Instantiates a new Resource linkage.
+     *
+     * @param lid   the lid
+     * @param type the type
+     */
+    public ResourceLinkage(Lid lid, Type type) {
+       this.put("type", type.value);
+       this.put("lid", lid.value);
+    }
 }
