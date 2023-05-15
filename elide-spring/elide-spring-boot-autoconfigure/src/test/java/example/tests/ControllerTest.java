@@ -618,11 +618,7 @@ public class ControllerTest extends IntegrationTest {
                                         ))
                                 ),
                                 atomicOperation(AtomicOperationCode.add,
-                                        ref(
-                                                type("group/com.example.operationsrel1/products"),
-                                                id("com.example.operations.product1"),
-                                                relationship("maintainers")
-                                        ),
+                                        "/group/com.example.operationsrel1/products/com.example.operations.product1/relationships/maintainers",
                                         data(resource(
                                                 type("maintainer"),
                                                 id("com.example.person1")
