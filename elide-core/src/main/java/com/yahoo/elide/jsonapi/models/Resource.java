@@ -67,6 +67,9 @@ public class Resource {
         this.relationships = relationships;
         this.links = links;
         this.meta = meta;
+        if (this.id == null) {
+            this.id = lid;
+        }
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
