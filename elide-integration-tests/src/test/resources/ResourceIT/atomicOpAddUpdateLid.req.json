@@ -2,10 +2,6 @@
     "atomic:operations": [
         {
             "op": "add",
-            "ref": {
-                "type": "parent",
-                "lid": "5d57b6ee-f538-4e49-8f35-edc00f6272d2"
-            },
             "data": {
                 "type": "parent",
                 "lid": "5d57b6ee-f538-4e49-8f35-edc00f6272d2",

@@ -1,7 +1,7 @@
 {
     "atomic:operations": [
         {
-            "op": "add",
+            "op": "remove",
             "data": {
                 "type": "book",
                 "id": "bookId",

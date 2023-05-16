@@ -113,7 +113,7 @@ public class JsonApiAtomicOperationsTest {
         String operationsDoc = """
                 {
                   "atomic:operations": [{
-                    "op": "add",
+                    "op": "remove",
                     "ref": {
                       "id": "13"
                     }
@@ -129,6 +129,33 @@ public class JsonApiAtomicOperationsTest {
                 ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals("Bad Request Body&#39;Atomic Operations extension requires ref type to be specified.&#39;",
+                        error.get("detail").asText());
+            }
+        });
+    }
+
+    @Test
+    void createResourceShouldNotSpecifyRefShouldThrow() {
+        String operationsDoc = """
+                {
+                  "atomic:operations": [{
+                    "op": "add",
+                    "ref": {
+                      "id": "13",
+                      "type": "group"
+                    }
+                  }]
+                }""";
+
+        doInTransaction(scope -> {
+            assertThrows(JsonApiAtomicOperationsException.class,
+                    () -> JsonApiAtomicOperations.processAtomicOperations(null, null, operationsDoc, scope));
+            try {
+                JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
+            } catch (JsonApiAtomicOperationsException e) {
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                assertEquals("400", error.get("status").asText());
+                assertEquals("Bad Request Body&#39;Atomic Operations extension create resource may only specify href.&#39;",
                         error.get("detail").asText());
             }
         });

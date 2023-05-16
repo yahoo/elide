@@ -233,6 +233,7 @@ public class JsonApiAtomicOperations {
                 String href = operation.getHref();
                 Ref ref = operation.getRef();
                 String fullPath = href;
+                boolean refSpecified = ref != null;
                 if (fullPath == null) {
                     if (ref == null) {
                         ref = inferRef(requestScope.getMapper(), operation);
@@ -242,6 +243,10 @@ public class JsonApiAtomicOperations {
                 if (fullPath == null) {
                     throw new InvalidEntityBodyException(
                             "Atomic Operations extension requires either href or ref to be specified.");
+                } else if (refSpecified && Operation.OperationCode.ADD.equals(operation.getOperationCode())
+                        && isResourceOperation(fullPath)) {
+                    throw new InvalidEntityBodyException(
+                            "Atomic Operations extension create resource may only specify href.");
                 }
 
                 switch (operation.getOperationCode()) {
@@ -302,14 +307,27 @@ public class JsonApiAtomicOperations {
     /**
      * Determines if the operation is on a resource.
      * <p>
-     * If there are attributes present then it is an operation on a resource and not
-     * a relationship.
+     * If there are attributes or relationships present then it is an operation on a
+     * resource and not a relationship.
      *
      * @param resource the resource
      * @return true if it is a resource operation and not a relationship operation
      */
     private boolean isResourceOperation(Resource resource) {
-        return resource.getAttributes() != null && !resource.getAttributes().isEmpty();
+        return (resource.getAttributes() != null && !resource.getAttributes().isEmpty())
+                || (resource.getRelationships() != null && !resource.getRelationships().isEmpty());
+    }
+
+    /**
+     * Determines if the operation is on a resource.
+     * <p>
+     * If the href contains /relationships/ then it is not an operation on a resource.
+     *
+     * @param href the path
+     * @return true if it is a resource operation and not a relationship operation
+     */
+    private boolean isResourceOperation(String href) {
+        return !href.contains("/relationships/");
     }
 
     /**
