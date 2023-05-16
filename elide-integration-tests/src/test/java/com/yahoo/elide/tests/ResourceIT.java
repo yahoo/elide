@@ -3063,7 +3063,7 @@ public class ResourceIT extends IntegrationTest {
     public void atomicOpInvalidMissingPath() {
         String request = jsonParser.getJson("/ResourceIT/atomicOpInvalidMissingPath.req.json");
 
-        String detail = "Bad Request Body'Atomic Operations extension requires either href or ref to be specified.'";
+        String detail = "Bad Request Body'Atomic Operations extension requires either ref or href to be specified.'";
 
         given()
                 .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)

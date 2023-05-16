@@ -765,7 +765,7 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void jsonApiAtomicOperationsExtensionMissingHrefAndRefTest() {
+    public void jsonApiAtomicOperationsExtensionMissingRefAndHrefTest() {
         ExtractableResponse<Response> response = given()
                 .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
                 .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
@@ -783,7 +783,7 @@ public class ControllerTest extends IntegrationTest {
                 .extract();
         Map<String, Object> attributes = response.path("[0].errors[0]");
         assertThat(attributes).extractingByKeys("detail", "status").contains(
-                "Bad Request Body&#39;Atomic Operations extension requires either href or ref to be specified.&#39;", "400");
+                "Bad Request Body&#39;Atomic Operations extension requires either ref or href to be specified.&#39;", "400");
     }
 
     @Test

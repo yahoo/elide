@@ -162,6 +162,34 @@ public class JsonApiAtomicOperationsTest {
     }
 
     @Test
+    void bothRefAndHrefShouldThrow() {
+        String operationsDoc = """
+                {
+                  "atomic:operations": [{
+                    "op": "remove",
+                    "href": "/group/13",
+                    "ref": {
+                      "id": "13",
+                      "type": "group"
+                    }
+                  }]
+                }""";
+
+        doInTransaction(scope -> {
+            assertThrows(JsonApiAtomicOperationsException.class,
+                    () -> JsonApiAtomicOperations.processAtomicOperations(null, null, operationsDoc, scope));
+            try {
+                JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
+            } catch (JsonApiAtomicOperationsException e) {
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                assertEquals("400", error.get("status").asText());
+                assertEquals("Bad Request Body&#39;Atomic Operations extension ref and href cannot both be specified together.&#39;",
+                        error.get("detail").asText());
+            }
+        });
+    }
+
+    @Test
     void noRefAndHrefShouldThrow() {
         String operationsDoc = """
                 {
@@ -178,7 +206,7 @@ public class JsonApiAtomicOperationsTest {
                 ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals(
-                        "Bad Request Body&#39;Atomic Operations extension requires either href or ref to be specified.&#39;",
+                        "Bad Request Body&#39;Atomic Operations extension requires either ref or href to be specified.&#39;",
                         error.get("detail").asText());
             }
         });
@@ -205,7 +233,7 @@ public class JsonApiAtomicOperationsTest {
                 ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals(
-                        "Bad Request Body&#39;Atomic Operations extension requires either href or ref to be specified.&#39;",
+                        "Bad Request Body&#39;Atomic Operations extension requires either ref or href to be specified.&#39;",
                         error.get("detail").asText());
             }
         });

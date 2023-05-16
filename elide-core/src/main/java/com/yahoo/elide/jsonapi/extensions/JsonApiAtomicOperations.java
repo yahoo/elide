@@ -234,6 +234,11 @@ public class JsonApiAtomicOperations {
                 Ref ref = operation.getRef();
                 String fullPath = href;
                 boolean refSpecified = ref != null;
+                if (fullPath != null && ref != null) {
+                    throw new InvalidEntityBodyException(
+                            "Atomic Operations extension ref and href cannot both be specified together.");
+                }
+
                 if (fullPath == null) {
                     if (ref == null) {
                         ref = inferRef(requestScope.getMapper(), operation);
@@ -242,7 +247,7 @@ public class JsonApiAtomicOperations {
                 }
                 if (fullPath == null) {
                     throw new InvalidEntityBodyException(
-                            "Atomic Operations extension requires either href or ref to be specified.");
+                            "Atomic Operations extension requires either ref or href to be specified.");
                 } else if (refSpecified && Operation.OperationCode.ADD.equals(operation.getOperationCode())
                         && isResourceOperation(fullPath)) {
                     throw new InvalidEntityBodyException(
