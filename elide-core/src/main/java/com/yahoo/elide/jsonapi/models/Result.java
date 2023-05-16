@@ -6,6 +6,7 @@
 package com.yahoo.elide.jsonapi.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -13,13 +14,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class Result {
     private final Resource data;
+    private final Meta meta;
 
     public Resource getData() {
         return this.data;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Meta getMeta() {
+        return this.meta;
+    }
+
     @JsonCreator
-    public Result(@JsonProperty("data") Resource data) {
+    public Result(@JsonProperty("data") Resource data, @JsonProperty("meta") Meta meta) {
         this.data = data;
+        this.meta = meta;
+    }
+
+    public Result(Resource data) {
+        this.data = data;
+        this.meta = null;
     }
 }

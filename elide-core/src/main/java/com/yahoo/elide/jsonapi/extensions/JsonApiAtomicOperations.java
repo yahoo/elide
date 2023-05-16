@@ -539,7 +539,8 @@ public class JsonApiAtomicOperations {
         for (Supplier<Pair<Integer, JsonApiDocument>> result : results) {
             JsonApiDocument document = result.get().getRight();
             if (document != null) {
-                document.getData().get().stream().map(Result::new).forEach(list::add);
+                document.getData().get().stream().map(resource -> new Result(resource, document.getMeta()))
+                        .forEach(list::add);
             } else {
                 list.add(new Result(null));
             }
