@@ -55,7 +55,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -84,6 +86,7 @@ import java.util.Map;
         }
 )
 @ActiveProfiles("default")
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class ControllerTest extends IntegrationTest {
     private String baseUrl;
 
@@ -205,6 +208,63 @@ public class ControllerTest extends IntegrationTest {
                         ).toJSON())
                 )
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void jsonApiPostLidTest() {
+        String personId = "1";
+        given()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("person"),
+                                        lid("0eeabd1d-70a9-4e9a-8734-9f2d6b43b2ea"),
+                                        attributes(
+                                                attr("firstName", "John"),
+                                                attr("lastName", "Doe")
+                                        ),
+                                        relationships(
+                                                relation("bestFriend",
+                                                        true,
+                                                        resource(
+                                                                type("person"),
+                                                                lid("0eeabd1d-70a9-4e9a-8734-9f2d6b43b2ea")))
+                                                )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/person")
+                .then()
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("person"),
+                                        id(personId),
+                                        attributes(
+                                                attr("firstName", "John"),
+                                                attr("lastName", "Doe")
+                                        ),
+                                        links(
+                                                attr("self", baseUrl + "person/" + personId)
+                                        ),
+                                        relationships(
+                                                relation(
+                                                        "bestFriend",
+                                                        true,
+                                                        links(
+                                                                attr("self", baseUrl + "person/" + personId + "/relationships/bestFriend"),
+                                                                attr("related", baseUrl + "person/" + personId + "/bestFriend")
+                                                        ),
+                                                        resource(type("person"), id(personId))
+
+                                                )
+                                        )
+                                )
+                        ).toJSON())
+                )
+                .statusCode(HttpStatus.SC_CREATED);
     }
 
     @Test
@@ -1025,7 +1085,7 @@ public class ControllerTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats", "namespace", "tableSource", "maintainer", "book", "publisher"));
+                        "stats", "namespace", "tableSource", "maintainer", "book", "publisher", "person"));
     }
 
     @Test

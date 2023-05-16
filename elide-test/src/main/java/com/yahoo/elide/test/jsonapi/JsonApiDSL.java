@@ -125,6 +125,19 @@ public class JsonApiDSL {
      * Resource resource.
      *
      * @param type          the type
+     * @param lid           the lid
+     * @param attributes    the attributes
+     * @param relationships the relationships
+     * @return the resource
+     */
+    public static Resource resource(Type type, Lid lid, Attributes attributes, Relationships relationships) {
+        return new Resource(lid, type, attributes, null, relationships);
+    }
+
+    /**
+     * Resource resource.
+     *
+     * @param type          the type
      * @param id            the id
      * @param attributes    the attributes
      * @param link          the link
@@ -352,6 +365,31 @@ public class JsonApiDSL {
      */
     public static Relation relation(String field, Links links) {
         return new Relation(field, links);
+    }
+
+    /**
+     * Relation relation.
+     *
+     * @param field           the field
+     * @param toOne           whether or not this is a toOne or toMany relationship
+     * @param links           the links
+     * @return the relation
+     */
+    public static Relation relation(String field, boolean toOne, Links links) {
+        return new Relation(field, toOne, links);
+    }
+
+    /**
+     * Relation relation.
+     *
+     * @param field           the field
+     * @param toOne           whether or not this is a toOne or toMany relationship
+     * @param links           the links
+     * @param resourceLinkage the resource linkage
+     * @return the relation
+     */
+    public static Relation relation(String field, boolean toOne, Links links, ResourceLinkage... resourceLinkage) {
+        return new Relation(field, toOne, links, resourceLinkage);
     }
 
     /**
