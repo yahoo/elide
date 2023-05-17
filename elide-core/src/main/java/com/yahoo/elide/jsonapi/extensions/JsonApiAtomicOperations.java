@@ -211,6 +211,32 @@ public class JsonApiAtomicOperations {
     }
 
     /**
+     * Performs basic validation that the Operation is specified correctly.
+     *
+     * @param operation the operation to validate
+     */
+    private void validateOperation(Operation operation) {
+        if (operation == null) {
+            throw new InvalidEntityBodyException("Atomic Operations extension operation must be specified.");
+        }
+        if (operation.getOperationCode() == null) {
+            throw new InvalidEntityBodyException(
+                    "Atomic Operations extension operation code must be specified.");
+        }
+        String href = operation.getHref();
+        Ref ref = operation.getRef();
+
+        if (href != null && ref != null) {
+            throw new InvalidEntityBodyException(
+                    "Atomic Operations extension ref and href cannot both be specified together.");
+        }
+        if (ref != null && ref.getLid() != null && ref.getId() != null) {
+            throw new InvalidEntityBodyException(
+                    "Atomic Operations extension ref cannot contain both id and lid members.");
+        }
+    }
+
+    /**
      * Handle a atomic operations action.
      *
      * @param requestScope outer request scope
@@ -222,22 +248,12 @@ public class JsonApiAtomicOperations {
             Supplier<Pair<Integer, JsonApiDocument>> result;
             try {
                 Operation operation = action.operation;
-                if (operation == null) {
-                    throw new InvalidEntityBodyException("Atomic Operations extension operation must be specified.");
-                }
-                if (operation.getOperationCode() == null) {
-                    throw new InvalidEntityBodyException(
-                            "Atomic Operations extension operation code must be specified.");
-                }
+                validateOperation(operation);
                 JsonNode data = operation.getData();
                 String href = operation.getHref();
                 Ref ref = operation.getRef();
                 String fullPath = href;
                 boolean refSpecified = ref != null;
-                if (fullPath != null && ref != null) {
-                    throw new InvalidEntityBodyException(
-                            "Atomic Operations extension ref and href cannot both be specified together.");
-                }
 
                 if (fullPath == null) {
                     if (ref == null) {
