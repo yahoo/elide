@@ -295,10 +295,10 @@ public class JsonApiAtomicOperations {
                     if (OperationCode.ADD.equals(operation.getOperationCode())) {
                         return new Ref(resource.getType(), null, null, null);
                     } else if (OperationCode.UPDATE.equals(operation.getOperationCode())) {
-                        if (resource.getId() != null) {
-                            return new Ref(resource.getType(), resource.getId(), null, null);
-                        } else if (resource.getLid() != null) {
+                        if (resource.getLid() != null) {
                             return new Ref(resource.getType(), null, resource.getLid(), null);
+                        } else if (resource.getId() != null) {
+                            return new Ref(resource.getType(), resource.getId(), null, null);
                         }
                     }
                 }
