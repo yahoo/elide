@@ -165,7 +165,7 @@ public class JsonApiAtomicOperationsTest {
             } catch (JsonApiAtomicOperationsException e) {
                 ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
-                assertEquals("Bad Request Body&#39;Atomic Operations extension create resource may only specify href.&#39;",
+                assertEquals("Bad Request Body&#39;Atomic Operations extension add resource operation may only specify the href member.&#39;",
                         error.get("detail").asText());
                 return null;
             }
@@ -194,7 +194,7 @@ public class JsonApiAtomicOperationsTest {
             } catch (JsonApiAtomicOperationsException e) {
                 ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
-                assertEquals("Bad Request Body&#39;Atomic Operations extension ref and href cannot both be specified together.&#39;",
+                assertEquals("Bad Request Body&#39;Atomic Operations extension operation cannot contain both ref and href members.&#39;",
                         error.get("detail").asText());
                 return null;
             }
@@ -247,7 +247,7 @@ public class JsonApiAtomicOperationsTest {
                 ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals(
-                        "Bad Request Body&#39;Atomic Operations extension requires either ref or href to be specified.&#39;",
+                        "Bad Request Body&#39;Atomic Operations extension operation requires either ref or href members to be specified.&#39;",
                         error.get("detail").asText());
                 return null;
             }
@@ -275,7 +275,7 @@ public class JsonApiAtomicOperationsTest {
                 ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals(
-                        "Bad Request Body&#39;Atomic Operations extension requires either ref or href to be specified.&#39;",
+                        "Bad Request Body&#39;Atomic Operations extension operation requires either ref or href members to be specified.&#39;",
                         error.get("detail").asText());
                 return null;
             }

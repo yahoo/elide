@@ -228,7 +228,7 @@ public class JsonApiAtomicOperations {
 
         if (href != null && ref != null) {
             throw new InvalidEntityBodyException(
-                    "Atomic Operations extension ref and href cannot both be specified together.");
+                    "Atomic Operations extension operation cannot contain both ref and href members.");
         }
         if (ref != null && ref.getLid() != null && ref.getId() != null) {
             throw new InvalidEntityBodyException(
@@ -263,11 +263,12 @@ public class JsonApiAtomicOperations {
                 }
                 if (fullPath == null) {
                     throw new InvalidEntityBodyException(
-                            "Atomic Operations extension requires either ref or href to be specified.");
+                            "Atomic Operations extension operation requires either ref or href members to be specified."
+                            );
                 } else if (refSpecified && Operation.OperationCode.ADD.equals(operation.getOperationCode())
                         && isResourceOperation(fullPath)) {
                     throw new InvalidEntityBodyException(
-                            "Atomic Operations extension create resource may only specify href.");
+                            "Atomic Operations extension add resource operation may only specify the href member.");
                 }
 
                 switch (operation.getOperationCode()) {
