@@ -11,7 +11,11 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.lid;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.links;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.test.jsonapi.elements.PatchOperationType.add;
@@ -438,6 +442,87 @@ public class JsonApiDSLTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    void verifyAtomicOperationDataLid() {
+        String expected = """
+                {"atomic:operations":[{"op":"add","data":{"type":"article","lid":"13"}}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                atomicOperation(AtomicOperationCode.add,
+                        datum(resource(
+                                type("article"),
+                                lid("13")
+                        ))
+                )
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void verifyAtomicOperationDataAttributesLid() {
+        String expected = """
+                {"atomic:operations":[{"op":"add","data":{"type":"article","lid":"13","attributes":{"name":"article"}}}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                atomicOperation(AtomicOperationCode.add,
+                        datum(resource(
+                                type("article"),
+                                lid("13"),
+                                attributes(
+                                        attr("name", "article")
+                                )
+                        ))
+                )
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void verifyAtomicOperationDataAttributesRelationshipsLinksLid() {
+        String expected = """
+                {"atomic:operations":[{"op":"add","data":{"type":"article","lid":"13","attributes":{"name":"article"},"relationships":{"post":{"links":{"self":"https://elide.io/group/com.example.repository2/relationships/products","related":"https://elide.io/group/com.example.repository2/products"},"data":null}}}}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                atomicOperation(AtomicOperationCode.add,
+                        datum(resource(
+                                type("article"),
+                                lid("13"),
+                                attributes(
+                                        attr("name", "article")
+                                ),
+                                relationships(relation("post", true,
+                                        links(
+                                        attr("self",
+                                                "https://elide.io/"
+                                                        + "group/com.example.repository2/relationships/products"),
+                                        attr("related", "https://elide.io/" + "group/com.example.repository2/products"))
+
+                                )))))
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void verifyAtomicOperationDataAttributesRelationshipsLinksResourceLinkageLid() {
+        String expected = """
+                {"atomic:operations":[{"op":"add","data":{"type":"article","lid":"13","attributes":{"name":"article"},"relationships":{"post":{"links":{"self":"https://elide.io/group/com.example.repository2/relationships/products","related":"https://elide.io/group/com.example.repository2/products"},"data":{"type":"group","id":"2"}}}}}]}""";
+        String actual = JsonApiDSL.atomicOperations(
+                atomicOperation(AtomicOperationCode.add,
+                        datum(resource(
+                                type("article"),
+                                lid("13"),
+                                attributes(
+                                        attr("name", "article")
+                                ),
+                                relationships(relation("post", true,
+                                        links(
+                                        attr("self",
+                                                "https://elide.io/"
+                                                        + "group/com.example.repository2/relationships/products"),
+                                        attr("related", "https://elide.io/" + "group/com.example.repository2/products")),
+                                        linkage(type("group"), id("2"))
+
+                                )))))
+                ).toJSON();
+        assertEquals(expected, actual);
+    }
 
     @Test
     void verifyAtomicOperationRefId() {
