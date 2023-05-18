@@ -53,7 +53,7 @@ import java.util.TimeZone;
 @Import(ConfigStoreIntegrationTestSetup.class)
 @TestPropertySource(
         properties = {
-                "elide.dynamic-config.configApiEnabled=true"
+                "elide.aggregation-store.dynamic-config.config-api.enabled=true"
         }
 )
 public class ConfigStoreTest {
@@ -78,14 +78,14 @@ public class ConfigStoreTest {
         tempDir = testDirectory;
         Path configPath = Paths.get(testDirectory.toFile().getAbsolutePath(), "1", "2", "3", "4", "5"); // for path traversal attempt
         Files.createDirectories(configPath);
-        System.setProperty("elide.dynamic-config.path", configPath.toFile().getAbsolutePath());
+        System.setProperty("elide.aggregation-store.dynamic-config.path", configPath.toFile().getAbsolutePath());
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
     @AfterAll
     public static void cleanup() {
-        System.clearProperty("elide.dynamic-config.path");
+        System.clearProperty("elide.aggregation-store.dynamic-config.path");
         try {
             FileSystemUtils.deleteRecursively(tempDir);
         } catch (IOException e) {

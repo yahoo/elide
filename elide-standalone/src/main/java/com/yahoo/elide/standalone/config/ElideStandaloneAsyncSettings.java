@@ -8,6 +8,7 @@ package com.yahoo.elide.standalone.config;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,38 +48,38 @@ public interface ElideStandaloneAsyncSettings {
     /**
      * Maximum Query Run time for Async Queries to mark as TIMEDOUT.
      *
-     * @return Default: 3600
+     * @return Default: 3600s
      */
-    default Integer getMaxRunTimeSeconds() {
-        return 3600;
+    default Duration getQueryMaxRunTime() {
+        return Duration.ofSeconds(3600L);
     }
 
     /**
      * Maximum permissible AsyncAfterSeconds value.
      * The Async requests can be configured to execute synchronously before switching to asynchronous mode.
      *
-     * @return Default: 10
+     * @return Default: 10s
      */
-    default Integer getMaxAsyncAfterSeconds() {
-        return 10;
+    default Duration getMaxAsyncAfter() {
+        return Duration.ofSeconds(10L);
     }
 
     /**
      * Number of days history to retain for async query executions and results.
      *
-     * @return Default: 7
+     * @return Default: 7d
      */
-    default Integer getQueryCleanupDays() {
-        return 7;
+    default Duration getQueryRetentionDuration() {
+        return Duration.ofDays(7L);
     }
 
     /**
      * Polling interval to identify async queries that should be canceled.
      *
-     * @return Default: 300
+     * @return Default: 300s
      */
-    default Integer getQueryCancelCheckIntervalSeconds() {
-        return 300;
+    default Duration getQueryCancellationCheckInterval() {
+        return Duration.ofSeconds(300L);
     }
 
     /**
@@ -123,17 +124,17 @@ public interface ElideStandaloneAsyncSettings {
      *
      * @return Default: False
      */
-    default boolean enableExtension() {
+    default boolean appendFileExtension() {
         return false;
     }
 
     /**
-     * Skip generating Header when exporting in CSV format.
+     * Generating Header when exporting in CSV format. Set to false to skip.
      *
-     * @return Default: False
+     * @return Default: True
      */
-    default boolean skipCSVHeader() {
-        return false;
+    default boolean csvWriteHeader() {
+        return true;
     }
 
     /**
@@ -146,12 +147,12 @@ public interface ElideStandaloneAsyncSettings {
     }
 
     /**
-     * Storage engine destination.
+     * Export async response timeout.
      *
-     * @return Default: 30
+     * @return Default: 30s
      */
-    default Integer getExportAsyncResponseTimeoutSeconds() {
-        return 30;
+    default Duration getExportAsyncResponseTimeout() {
+        return Duration.ofSeconds(30L);
     }
 
     /**

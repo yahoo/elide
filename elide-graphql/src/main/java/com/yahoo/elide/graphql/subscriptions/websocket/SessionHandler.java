@@ -33,6 +33,7 @@ import jakarta.websocket.Session;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -54,7 +55,7 @@ public class SessionHandler {
     protected Map<String, RequestHandler> activeRequests;
     protected ConnectionInfo connectionInfo;
     protected ObjectMapper mapper;
-    protected int connectionTimeoutMs;
+    protected long connectionTimeoutMs;
     protected int maxSubscriptions;
     protected Thread timeoutThread;
     protected boolean initialized = false;
@@ -69,7 +70,7 @@ public class SessionHandler {
      * @param topicStore The JMS data store.
      * @param elide Elide instance.
      * @param api GraphQL api.
-     * @param connectionTimeoutMs Connection timeout in milliseconds.
+     * @param connectionTimeout Connection timeout in milliseconds.
      * @param maxSubscriptions Max number of outstanding subscriptions per web socket.
      * @param connectionInfo Connection metadata.
      * @param sendPingOnSubscribe Sends a ping on subscribe message (to aid with testing).
@@ -81,7 +82,7 @@ public class SessionHandler {
             DataStore topicStore,
             Elide elide,
             GraphQL api,
-            int connectionTimeoutMs,
+            Duration connectionTimeout,
             int maxSubscriptions,
             ConnectionInfo connectionInfo,
             boolean sendPingOnSubscribe,
@@ -95,7 +96,7 @@ public class SessionHandler {
         this.connectionInfo = connectionInfo;
         this.mapper = elide.getMapper().getObjectMapper();
         this.activeRequests = new ConcurrentHashMap<>();
-        this.connectionTimeoutMs = connectionTimeoutMs;
+        this.connectionTimeoutMs = connectionTimeout.toMillis();
         this.maxSubscriptions = maxSubscriptions;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
         this.verboseErrors = verboseErrors;

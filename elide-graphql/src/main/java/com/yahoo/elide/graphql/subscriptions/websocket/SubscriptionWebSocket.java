@@ -33,6 +33,7 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class SubscriptionWebSocket {
     private ExecutorService executorService;
 
     @Builder.Default
-    private int connectTimeoutMs = 5000;
+    private Duration connectionTimeout = Duration.ofMillis(5000);
 
     @Builder.Default
     private int maxSubscriptions = 30;
@@ -61,7 +62,7 @@ public class SubscriptionWebSocket {
     private UserFactory userFactory = DEFAULT_USER_FACTORY;
 
     @Builder.Default
-    private long maxIdleTimeoutMs = 300000;
+    private Duration maxIdleTimeout = Duration.ofMillis(300000);
 
     @Builder.Default
     private int maxMessageSize = 10000;
@@ -94,10 +95,10 @@ public class SubscriptionWebSocket {
      * Constructor.
      * @param elide Elide instance.
      * @param executorService Thread pool for all websockets. If null each session will make its own.
-     * @param connectTimeoutMs Connection timeout.
+     * @param connectionTimeout Connection timeout.
      * @param maxSubscriptions The maximum number of concurrent subscriptions per socket.
      * @param userFactory A function which creates an Elide user given a session object.
-     * @param maxIdleTimeoutMs Max idle time on the websocket before disconnect.
+     * @param maxIdleTimeout Max idle time on the websocket before disconnect.
      * @param maxMessageSize Maximum message size allowed on this websocket.
      * @param sendPingOnSubscribe testing option to ping the client when subscribe is ready.
      * @param verboseErrors whether or not to send verbose errors.
@@ -105,10 +106,10 @@ public class SubscriptionWebSocket {
     protected SubscriptionWebSocket(
             Elide elide,
             ExecutorService executorService,
-            int connectTimeoutMs,
+            Duration connectionTimeout,
             int maxSubscriptions,
             UserFactory userFactory,
-            long maxIdleTimeoutMs,
+            Duration maxIdleTimeout,
             int maxMessageSize,
             boolean sendPingOnSubscribe,
             boolean verboseErrors,
@@ -116,11 +117,11 @@ public class SubscriptionWebSocket {
     ) {
         this.elide = elide;
         this.executorService = executorService;
-        this.connectTimeoutMs = connectTimeoutMs;
+        this.connectionTimeout = connectionTimeout;
         this.maxSubscriptions = maxSubscriptions;
         this.userFactory = userFactory;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
-        this.maxIdleTimeoutMs = maxIdleTimeoutMs;
+        this.maxIdleTimeout = maxIdleTimeout;
         this.maxMessageSize = maxMessageSize;
         this.verboseErrors = verboseErrors;
         this.dataFetcherExceptionHandler = dataFetcherExceptionHandler;
@@ -153,7 +154,7 @@ public class SubscriptionWebSocket {
         log.debug("Session Opening: {}", session.getId());
         SessionHandler subscriptionSession = createSessionHandler(session);
 
-        session.setMaxIdleTimeout(maxIdleTimeoutMs);
+        session.setMaxIdleTimeout(this.maxIdleTimeout.toMillis());
         session.setMaxTextMessageBufferSize(maxMessageSize);
         session.setMaxBinaryMessageBufferSize(maxMessageSize);
 
@@ -227,7 +228,7 @@ public class SubscriptionWebSocket {
         User user = userFactory.create(session);
 
         return new SessionHandler(session, elide.getDataStore(), elide, apis.get(apiVersion),
-                connectTimeoutMs, maxSubscriptions,
+                connectionTimeout, maxSubscriptions,
                 ConnectionInfo.builder()
                         .user(user)
                         .baseUrl(session.getRequestURI().getPath())

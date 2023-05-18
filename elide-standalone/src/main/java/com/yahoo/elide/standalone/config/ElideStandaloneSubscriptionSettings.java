@@ -16,6 +16,8 @@ import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Message;
 import jakarta.websocket.server.ServerEndpointConfig;
 
+import java.time.Duration;
+
 /**
  * interface for configuring the GraphQL Subscriptions in the standalone application.
  */
@@ -61,10 +63,10 @@ public interface ElideStandaloneSubscriptionSettings {
     /**
      * Time allowed in milliseconds from web socket creation to successfully receiving a CONNECTION_INIT message.
      *
-     * @return Default 5000.
+     * @return Default 5000ms.
      */
-    default Integer getConnectionTimeoutMs() {
-        return 5000;
+    default Duration getConnectionTimeout() {
+        return Duration.ofMillis(5000L);
     }
 
     /**
@@ -88,10 +90,10 @@ public interface ElideStandaloneSubscriptionSettings {
     /**
      * Maximum idle timeout in milliseconds with no websocket activity.
      *
-     * @return default 300000
+     * @return default 300000ms
      */
-    default Long getIdleTimeoutMs() {
-        return 300000L;
+    default Duration getIdleTimeout() {
+        return Duration.ofMillis(300000L);
     }
 
     /**
@@ -151,10 +153,10 @@ public interface ElideStandaloneSubscriptionSettings {
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl(getPath())
                         .sendPingOnSubscribe(shouldSendPingOnSubscribe())
-                        .connectionTimeoutMs(getConnectionTimeoutMs())
+                        .connectionTimeout(getConnectionTimeout())
                         .maxSubscriptions(getMaxSubscriptions())
                         .maxMessageSize(getMaxMessageSize())
-                        .maxIdleTimeoutMs(getIdleTimeoutMs())
+                        .maxIdleTimeout(getIdleTimeout())
                         .connectionFactory(getConnectionFactory())
                         .userFactory(getUserFactory())
                         .auditLogger(settings.getAuditLogger())

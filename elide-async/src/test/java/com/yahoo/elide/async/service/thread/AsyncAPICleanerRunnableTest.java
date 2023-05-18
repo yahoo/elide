@@ -10,13 +10,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.service.DateUtil;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
@@ -28,19 +26,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.Calendar;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-public class AsyncAPICleanerRunnableTest {
+class AsyncAPICleanerRunnableTest {
 
     private AsyncAPICleanerRunnable cleanerThread;
     private Elide elide;
     private AsyncAPIDAO asyncAPIDao;
-    private DateUtil dateUtil;
-    private Date testDate = new Date(1577883661000L);
+    private Clock clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("Z"));
 
     @BeforeEach
     public void setupMocks() {
@@ -54,21 +54,20 @@ public class AsyncAPICleanerRunnableTest {
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
         asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
-        dateUtil = mock(DateUtil.class);
-        cleanerThread = new AsyncAPICleanerRunnable(7, elide, 7, asyncAPIDao, dateUtil);
+        cleanerThread = new AsyncAPICleanerRunnable(Duration.ofMinutes(7), elide, Duration.ofDays(7), asyncAPIDao, clock);
     }
 
     @Test
-    public void testAsyncQueryCleanerThreadSet() {
+    void testAsyncQueryCleanerThreadSet() {
         assertEquals(elide, cleanerThread.getElide());
         assertEquals(asyncAPIDao, cleanerThread.getAsyncAPIDao());
-        assertEquals(7, cleanerThread.getMaxRunTimeMinutes());
-        assertEquals(7, cleanerThread.getQueryCleanupDays());
+        assertEquals(7, cleanerThread.getQueryMaxRunTime().toMinutes());
+        assertEquals(7, cleanerThread.getQueryRetentionDuration().toDays());
     }
 
     @Test
-    public void testDeleteAsyncQuery() {
-        when(dateUtil.calculateFilterDate(Calendar.DATE, cleanerThread.getQueryCleanupDays())).thenReturn(testDate);
+    void testDeleteAsyncQuery() {
+        Date testDate = Date.from(Instant.now(clock).plus(Duration.ofDays(7)));
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.deleteAsyncAPI(AsyncQuery.class);
         verify(asyncAPIDao, times(1)).deleteAsyncAPIAndResultByFilter(filterCaptor.capture(), any());
@@ -76,8 +75,8 @@ public class AsyncAPICleanerRunnableTest {
     }
 
     @Test
-    public void testTimeoutAsyncQuery() {
-        when(dateUtil.calculateFilterDate(Calendar.MINUTE, cleanerThread.getMaxRunTimeMinutes())).thenReturn(testDate);
+    void testTimeoutAsyncQuery() {
+        Date testDate = Date.from(Instant.now(clock).plus(Duration.ofMinutes(7)));
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.timeoutAsyncAPI(AsyncQuery.class);
         verify(asyncAPIDao, times(1)).updateStatusAsyncAPIByFilter(filterCaptor.capture(), any(QueryStatus.class), any());

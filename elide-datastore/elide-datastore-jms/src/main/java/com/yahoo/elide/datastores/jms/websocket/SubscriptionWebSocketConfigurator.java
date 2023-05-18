@@ -34,6 +34,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
+import java.time.Duration;
 import java.util.Calendar;
 
 /**
@@ -58,13 +59,13 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     protected boolean verboseErrors = false;
 
     @Builder.Default
-    protected int connectionTimeoutMs = 5000;
+    protected Duration connectionTimeout = Duration.ofMillis(5000L);
 
     @Builder.Default
     protected int maxSubscriptions = 30;
 
     @Builder.Default
-    private long maxIdleTimeoutMs = 300000;
+    private Duration maxIdleTimeout = Duration.ofMillis(300000L);
 
     @Builder.Default
     private int maxMessageSize = 10000;
@@ -120,7 +121,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     protected DataStore buildDataStore(EntityDictionary dictionary) {
         return new JMSDataStore(
                 dictionary.getScanner(),
-                connectionFactory, dictionary, -1);
+                connectionFactory, dictionary, null);
     }
 
     protected SubscriptionWebSocket buildWebSocket(Elide elide) {
@@ -132,10 +133,10 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
         return SubscriptionWebSocket.builder()
                 .elide(elide)
-                .connectTimeoutMs(connectionTimeoutMs)
+                .connectionTimeout(connectionTimeout)
                 .maxSubscriptions(maxSubscriptions)
                 .maxMessageSize(maxMessageSize)
-                .maxIdleTimeoutMs(maxIdleTimeoutMs)
+                .maxIdleTimeout(maxIdleTimeout)
                 .userFactory(userFactory)
                 .sendPingOnSubscribe(sendPingOnSubscribe)
                 .verboseErrors(verboseErrors)

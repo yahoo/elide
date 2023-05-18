@@ -83,7 +83,7 @@ public class ElideAsyncConfiguration {
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
-                asyncProperties.getMaxAsyncAfterSeconds());
+                asyncProperties.getMaxAsyncAfter());
 
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
 
@@ -95,10 +95,10 @@ public class ElideAsyncConfiguration {
 
         if (exportEnabled) {
             // Initialize the Formatters.
-            boolean skipCSVHeader = asyncProperties.getExport() != null
-                    && asyncProperties.getExport().isSkipCSVHeader();
+            boolean writeCSVHeader = asyncProperties.getExport() != null
+                    && asyncProperties.getExport().getFormat().getCsv().isWriteHeader();
             Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-            supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide.getElide(), skipCSVHeader));
+            supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide.getElide(), writeCSVHeader));
             supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide.getElide()));
 
             // Binding TableExport LifeCycleHook
@@ -123,11 +123,11 @@ public class ElideAsyncConfiguration {
 
         TableExportHook tableExportHook = null;
         if (exportEnabled) {
-            tableExportHook = new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfterSeconds(),
-                    supportedFormatters, resultStorageEngine);
+            tableExportHook = new TableExportHook(asyncExecutorService,
+                    settings.getAsync().getMaxAsyncAfter(), supportedFormatters, resultStorageEngine);
         } else {
-            tableExportHook = new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfterSeconds(),
-                    supportedFormatters, resultStorageEngine) {
+            tableExportHook = new TableExportHook(asyncExecutorService,
+                    settings.getAsync().getMaxAsyncAfter(), supportedFormatters, resultStorageEngine) {
                 @Override
                 public void validateOptions(AsyncAPI export, RequestScope requestScope) {
                     throw new InvalidOperationException("TableExport is not supported.");
@@ -146,13 +146,13 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
+    @ConditionalOnProperty(prefix = "elide.async.cleanup", name = "enabled", matchIfMissing = false)
     public AsyncCleanerService buildAsyncCleanerService(RefreshableElide elide,
                                                         ElideConfigProperties settings,
                                                         AsyncAPIDAO asyncQueryDao) {
-        AsyncCleanerService.init(elide.getElide(), settings.getAsync().getMaxRunTimeSeconds(),
-                settings.getAsync().getQueryCleanupDays(),
-                settings.getAsync().getQueryCancellationIntervalSeconds(), asyncQueryDao);
+        AsyncCleanerService.init(elide.getElide(), settings.getAsync().getCleanup().getQueryMaxRunTime(),
+                settings.getAsync().getCleanup().getQueryRetentionDuration(),
+                settings.getAsync().getCleanup().getQueryCancellationCheckInterval(), asyncQueryDao);
         return AsyncCleanerService.getInstance();
     }
 
@@ -163,7 +163,6 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncAPIDAO", matchIfMissing = true)
     public AsyncAPIDAO buildAsyncAPIDAO(RefreshableElide elide) {
         return new DefaultAsyncAPIDAO(elide.getElide().getElideSettings(), elide.getElide().getDataStore());
     }
@@ -178,7 +177,7 @@ public class ElideAsyncConfiguration {
     @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
     public ResultStorageEngine buildResultStorageEngine(ElideConfigProperties settings) {
         FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(settings.getAsync().getExport()
-                .getStorageDestination(), settings.getAsync().getExport().isExtensionEnabled());
+                .getStorageDestination(), settings.getAsync().getExport().isAppendFileExtension());
         return resultStorageEngine;
     }
 }

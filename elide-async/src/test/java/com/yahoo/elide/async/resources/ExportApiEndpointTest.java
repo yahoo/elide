@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.core.Response;
 
+import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -55,7 +56,7 @@ public class ExportApiEndpointTest {
         int maxDownloadTimeMilliSeconds = (int) TimeUnit.SECONDS.toMillis(maxDownloadTimeSeconds);
         when(engine.getResultsByID(queryId)).thenReturn(Observable.just("result"));
 
-        exportApiProperties = new ExportApiProperties(Executors.newFixedThreadPool(1), maxDownloadTimeSeconds);
+        exportApiProperties = new ExportApiProperties(Executors.newFixedThreadPool(1), Duration.ofSeconds(maxDownloadTimeSeconds));
         endpoint = new ExportApiEndpoint(engine, exportApiProperties);
         endpoint.get(queryId, response, asyncResponse);
 

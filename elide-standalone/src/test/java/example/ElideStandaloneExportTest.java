@@ -34,6 +34,8 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import jakarta.ws.rs.core.MediaType;
 
+import java.time.Duration;
+
 /**
  * Tests ElideStandalone starts and works.
  */
@@ -64,13 +66,13 @@ public class ElideStandaloneExportTest {
                     }
 
                     @Override
-                    public Integer getMaxRunTimeSeconds() {
-                        return 1800;
+                    public Duration getQueryMaxRunTime() {
+                        return Duration.ofSeconds(1800L);
                     }
 
                     @Override
-                    public Integer getQueryCleanupDays() {
-                        return 3;
+                    public Duration getQueryRetentionDuration() {
+                        return Duration.ofDays(3L);
                     }
 
                     @Override

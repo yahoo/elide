@@ -53,6 +53,7 @@ import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.core.Context;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -126,17 +127,17 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                     bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
                     Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, false));
+                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, true));
                     supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 
                     // Binding TableExport LifeCycleHook
-                    TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, 10, supportedFormatters,
-                            resultStorageEngine);
+                    TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, Duration.ofSeconds(10L),
+                            supportedFormatters, resultStorageEngine);
                     dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
 
-                    ExportApiProperties exportApiProperties = new ExportApiProperties(executorService, 10);
+                    ExportApiProperties exportApiProperties = new ExportApiProperties(executorService, Duration.ofSeconds(10L));
                     bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
                 }
 
@@ -150,7 +151,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(billingService).to(BillingService.class);
 
                 // Binding AsyncQuery LifeCycleHook
-                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService, 10);
+                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService, Duration.ofSeconds(10L));
 
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 
@@ -160,7 +161,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 dictionary.bindTrigger(Invoice.class, "complete", CREATE, PRECOMMIT, invoiceCompletionHook);
                 dictionary.bindTrigger(Invoice.class, "complete", UPDATE, PRECOMMIT, invoiceCompletionHook);
 
-                AsyncCleanerService.init(elide, 30, 5, 150, asyncAPIDao);
+                AsyncCleanerService.init(elide, Duration.ofSeconds(30L), Duration.ofDays(5L), Duration.ofSeconds(150L),
+                        asyncAPIDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         });

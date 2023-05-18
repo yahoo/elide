@@ -13,12 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 /**
- * Executes Controller tests with Aggregation Store disabled.
+ * Executes Controller tests with MetaData Store disabled.
  */
 @TestPropertySource(
         properties = {
                 "elide.aggregation-store.enabled=true",
-                "elide.aggregation-store.enableMetaDataStore=false"
+                "elide.aggregation-store.metadata-store.enabled=false"
         }
 )
 public class DisableMetaDataStoreControllerTest extends ControllerTest {

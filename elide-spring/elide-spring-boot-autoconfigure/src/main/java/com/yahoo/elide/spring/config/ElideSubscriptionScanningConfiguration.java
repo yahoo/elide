@@ -10,6 +10,7 @@ import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +24,9 @@ import jakarta.jms.Message;
  * Scans for GraphQL subscriptions and registers lifecycle hooks.
  */
 @Configuration
-@ConditionalOnExpression("${elide.subscription.enabled:false}")
+@ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
+@ConditionalOnExpression(
+    "${elide.graphql.subscription.enabled:false} && ${elide.graphql.subscription.publishing.enabled:true}")
 public class ElideSubscriptionScanningConfiguration {
     private RefreshableElide refreshableElide;
     private ConnectionFactory connectionFactory;

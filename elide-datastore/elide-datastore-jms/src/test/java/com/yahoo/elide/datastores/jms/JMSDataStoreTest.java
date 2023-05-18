@@ -41,6 +41,7 @@ import jakarta.jms.Destination;
 import jakarta.jms.JMSContext;
 import jakarta.jms.JMSProducer;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
@@ -71,7 +72,7 @@ public class JMSDataStoreTest {
 
         store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class),
                 ClassType.of(Chat.class)),
-                connectionFactory, dictionary, 2500);
+                connectionFactory, dictionary, Duration.ofMillis(2500L));
         store.populateEntityDictionary(dictionary);
     }
 

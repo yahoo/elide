@@ -26,6 +26,7 @@ import com.google.gson.GsonBuilder;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSContext;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,17 +51,17 @@ public class JMSDataStore implements DataStore {
      * @param models The set of models to manage.
      * @param connectionFactory The JMS connection factory.
      * @param dictionary The entity dictionary.
-     * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
+     * @param timeout request timeout in milliseconds. 0 means immediate. null means no timeout.
      */
     public JMSDataStore(
             Set<Type<?>> models,
             ConnectionFactory connectionFactory,
             EntityDictionary dictionary,
-            long timeoutInMs
+            Duration timeout
     ) {
         this.models = models.stream().collect(Collectors.toMap(
-                (model) -> model,
-                (model) -> {
+                model -> model,
+                model -> {
                     Subscription subscription = model.getAnnotation(Subscription.class);
                     return subscription != null
                             && subscription.operations() != null
@@ -70,7 +71,7 @@ public class JMSDataStore implements DataStore {
 
         this.connectionFactory = connectionFactory;
         this.dictionary = dictionary;
-        this.timeoutInMs = timeoutInMs;
+        this.timeoutInMs = timeout != null ? timeout.toMillis() : -1;
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         CoerceUtil.getSerdes().forEach((cls, serde) -> {
@@ -84,19 +85,19 @@ public class JMSDataStore implements DataStore {
      * @param scanner to scan for subscription annotations.
      * @param connectionFactory The JMS connection factory.
      * @param dictionary The entity dictionary.
-     * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
+     * @param timeout request timeout in milliseconds. 0 means immediate. null means no timeout.
      */
     public JMSDataStore(
             ClassScanner scanner,
             ConnectionFactory connectionFactory,
             EntityDictionary dictionary,
-            long timeoutInMs
+            Duration timeout
     ) {
         this(
                 scanner.getAnnotatedClasses(Subscription.class, Include.class).stream()
                         .map(ClassType::of)
                         .collect(Collectors.toSet()),
-                connectionFactory, dictionary, timeoutInMs);
+                connectionFactory, dictionary, timeout);
     }
 
     @Override
@@ -107,7 +108,7 @@ public class JMSDataStore implements DataStore {
 
             dictionary.bindEntity(model);
 
-            if (supportsTopics) {
+            if (Boolean.TRUE.equals(supportsTopics)) {
                 //Add topic type argument to each model.
                 dictionary.addArgumentToEntity(model, ArgumentType
                         .builder()
@@ -127,7 +128,6 @@ public class JMSDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginReadTransaction() {
-        JMSContext context = connectionFactory.createContext();
-        return new JMSDataStoreTransaction(context, dictionary, gson, timeoutInMs);
+        return beginTransaction();
     }
 }

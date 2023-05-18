@@ -69,7 +69,7 @@ import jakarta.ws.rs.core.MediaType;
 )
 @TestPropertySource(
         properties = {
-                "elide.json-api.enableLinks=true",
+                "elide.json-api.links.enabled=true",
                 "elide.async.export.enabled=false",
         }
 )

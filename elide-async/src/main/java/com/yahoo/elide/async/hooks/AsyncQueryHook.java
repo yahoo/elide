@@ -19,6 +19,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
@@ -27,8 +28,8 @@ import java.util.concurrent.Callable;
  */
 public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
 
-    public AsyncQueryHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds) {
-        super(asyncExecutorService, maxAsyncAfterSeconds);
+    public AsyncQueryHook (AsyncExecutorService asyncExecutorService, Duration maxAsyncAfter) {
+        super(asyncExecutorService, maxAsyncAfter);
     }
 
     @Override

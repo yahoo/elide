@@ -21,13 +21,13 @@ public class ElideConfigProperties {
      * Settings for the JSON-API controller.
      */
     @NestedConfigurationProperty
-    private JsonApiControllerProperties jsonApi;
+    private JsonApiControllerProperties jsonApi = new JsonApiControllerProperties();
 
     /**
      * Settings for the GraphQL controller.
      */
     @NestedConfigurationProperty
-    private GraphQLControllerProperties graphql;
+    private GraphQLControllerProperties graphql = new GraphQLControllerProperties();
 
     /**
      * Settings for the OpenAPI document controller.
@@ -40,18 +40,6 @@ public class ElideConfigProperties {
      */
     @NestedConfigurationProperty
     private AsyncProperties async = new AsyncProperties();
-
-    /**
-     * Settings for subscriptions.
-     */
-    @NestedConfigurationProperty
-    private SubscriptionProperties subscription = new SubscriptionProperties();
-
-    /**
-     * Settings for the Dynamic Configuration.
-     */
-    @NestedConfigurationProperty
-    private DynamicConfigProperties dynamicConfig = new DynamicConfigProperties();
 
     /**
      * Settings for the Aggregation Store.
@@ -89,5 +77,5 @@ public class ElideConfigProperties {
     /**
      * Remove Authorization headers from RequestScope to prevent accidental logging of security credentials.
      */
-    private boolean stripAuthorizatonHeaders = true;
+    private boolean stripAuthorizationHeaders = true;
 }
