@@ -761,7 +761,7 @@ public class ControllerTest extends IntegrationTest {
                 .extract();
         Map<String, Object> attributes = response.path("[0].errors[0]");
         assertThat(attributes).extractingByKeys("detail", "status").contains(
-                "Bad Request Body&#39;Atomic Operations extension requires ref type to be specified.&#39;", "400");
+                "Bad Request Body&#39;Atomic Operations extension ref must specify the type member.&#39;", "400");
     }
 
     @Test

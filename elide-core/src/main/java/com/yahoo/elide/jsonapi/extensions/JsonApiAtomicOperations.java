@@ -183,7 +183,7 @@ public class JsonApiAtomicOperations {
             StringBuilder fullPathBuilder = new StringBuilder();
             if (ref.getType() == null) {
                 throw new InvalidEntityBodyException(
-                        "Atomic Operations extension requires ref type to be specified.");
+                        "Atomic Operations extension ref must specify the type member.");
             }
             fullPathBuilder.append(ref.getType());
 

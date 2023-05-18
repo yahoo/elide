@@ -137,7 +137,7 @@ public class JsonApiAtomicOperationsTest {
             } catch (JsonApiAtomicOperationsException e) {
                 ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
-                assertEquals("Bad Request Body&#39;Atomic Operations extension requires ref type to be specified.&#39;",
+                assertEquals("Bad Request Body&#39;Atomic Operations extension ref must specify the type member.&#39;",
                         error.get("detail").asText());
                 return null;
             }
