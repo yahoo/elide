@@ -39,8 +39,6 @@
     </scm>
 
     <properties>
-        <!-- Requires Java 11 -->
-        <hikari.version>5.0.1</hikari.version>
     </properties>
 
     <dependencies>
@@ -90,56 +88,29 @@
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
-            <version>1.34.0</version>
-            <exclusions>
-                <!-- Excluded for CVE errors -->
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <!-- Excluded for conflict with elide-async's version -->
-            </exclusions>
-        </dependency>
-        <!-- Avoid CVE-2020-13956 -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>4.4.15</version>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Caffeine cache -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
-            <!-- Requires Java 11 -->
-            <version>3.1.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>${hikari.version}</version>
         </dependency>
 
         <!--  Redis cache -->
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>${jedis.version}</version>
         </dependency>
 
         <!-- Test -->
         <dependency>
             <groupId>com.github.codemonstur</groupId>
             <artifactId>embedded-redis</artifactId>
-            <version>${embedded-redis.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- JUnit -->
@@ -176,7 +147,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.3.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -221,9 +191,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>${hibernate6.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

@@ -48,17 +48,22 @@
             <artifactId>jakarta.persistence-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <!-- This override is for hibernate-search-mapper-orm-orm6 6.1 fails with 6.2.2.Final -->
+            <version>6.1.7.Final</version>
+        </dependency> 
 
         <dependency>
             <groupId>org.hibernate.search</groupId>
             <artifactId>hibernate-search-mapper-orm-orm6</artifactId>
-            <version>6.1.8.Final</version>
         </dependency>
 
         <dependency>
             <groupId>org.hibernate.search</groupId>
             <artifactId>hibernate-search-backend-lucene</artifactId>
-            <version>6.1.8.Final</version>
         </dependency>
 
         <dependency>
