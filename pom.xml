@@ -85,26 +85,60 @@
         <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
-        <version.antlr4>4.12.0</version.antlr4>
-        <version.jackson>2.15.0</version.jackson>
-        <version.jersey>3.1.1</version.jersey>
-        <version.jetty>11.0.13</version.jetty>
-        <version.junit>5.9.3</version.junit>
-        <version.logback>1.4.5</version.logback>
-        <version.lombok>1.18.24</version.lombok>
-        <version.restassured>5.3.0</version.restassured>
+        <antlr4.version>4.12.0</antlr4.version>
+        <artemis.version>2.28.0</artemis.version>
+        <calcite.version>1.34.0</calcite.version>
+        <caffeine.version>3.1.6</caffeine.version>
+        <classgraph.version>4.8.158</classgraph.version>
+        <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <commons-cli.version>1.5.0</commons-cli.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
+        <commons-compress.version>1.23.0</commons-compress.version>
+        <commons-io.version>2.12.0</commons-io.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
         <federation-graphql-java-support-api>3.0.1</federation-graphql-java-support-api>
         <graphql-java.version>20.2</graphql-java.version>
-        <hibernate6.version>6.1.5.Final</hibernate6.version>
+        <graal-sdk.version>22.3.2</graal-sdk.version>
+        <handlebars.version>4.3.1</handlebars.version>
+        <hibernate.version>6.2.3.Final</hibernate.version>
+        <hibernate-validator.version>8.0.0.Final</hibernate-validator.version>
+        <hibernate-search.version>6.1.8.Final</hibernate-search.version>
+        <hjson.version>3.0.0</hjson.version>
+        <gson.version>2.10.1</gson.version>
+        <h2.version>2.1.214</h2.version>
+        <hikaricp.version>5.0.1</hikaricp.version>
+        <jackson-bom.version>2.15.1</jackson-bom.version>
+        <jakarta-inject.version>2.0.1</jakarta-inject.version>
+        <jakarta-jms.version>3.1.0</jakarta-jms.version>
+        <jakarta-persistence.version>3.1.0</jakarta-persistence.version>
+        <jakarta-transaction.version>2.0.1</jakarta-transaction.version>
+        <jakarta-websocket.version>2.0.0</jakarta-websocket.version>
+        <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
+        <jakarta-validation.version>3.0.2</jakarta-validation.version>
+        <jersey.version>3.1.2</jersey.version>
+        <jetty.version>11.0.15</jetty.version>
         <jedis.version>4.3.2</jedis.version>
-        <jsonpath.version>2.8.0</jsonpath.version>
-        <slf4j-api.version>2.0.7</slf4j-api.version>
-        <swagger-api.version>2.2.9</swagger-api.version>
-        <maven-site-plugin-version>3.12.1</maven-site-plugin-version>
+        <json-path.version>2.8.0</json-path.version>
+        <json-schema-validator.version>2.2.14</json-schema-validator.version>
+        <junit.version>5.9.3</junit.version>
+        <logback.version>1.4.7</logback.version>
+        <lombok.version>1.18.26</lombok.version>
+        <rest-assured.version>5.3.0</rest-assured.version>
+        <slf4j.version>2.0.7</slf4j.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
+        <spring-framework.version>6.0.9</spring-framework.version>
+        <spring-boot.version>3.1.0</spring-boot.version>
+        <spring-cloud-commons.version>4.0.2</spring-cloud-commons.version>
+        <springdoc.version>2.1.0</springdoc.version>
+        <swagger-api.version>2.2.10</swagger-api.version>
+        <tomcat.version>10.1.8</tomcat.version>
+        <mockito.version>5.3.1</mockito.version>
+        
+        <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
+        <native-maven-plugin.version>0.9.21</native-maven-plugin.version>
         <mpir.skip>true</mpir.skip>
 
-        <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
 
         <dependency.locations.enabled>false</dependency.locations.enabled>
@@ -114,6 +148,66 @@
     <!-- Dependency settings -->
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-runtime</artifactId>
+                <version>${antlr4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>artemis-jakarta-server</artifactId>
+                <version>${artemis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>artemis-jakarta-client-all</artifactId>
+                <version>${artemis.version}</version>
+            </dependency>        
+            <dependency>
+                <groupId>org.apache.calcite</groupId>
+                <artifactId>calcite-core</artifactId>
+                <version>${calcite.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons-collections4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-cli</groupId>
+                <artifactId>commons-cli</artifactId>
+                <version>${commons-cli.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.codemonstur</groupId>
+                <artifactId>embedded-redis</artifactId>
+                <version>${embedded-redis.version}</version>
+            </dependency>        
             <dependency>
                 <groupId>com.apollographql.federation</groupId>
                 <artifactId>federation-graphql-java-support</artifactId>
@@ -130,20 +224,125 @@
                 <version>${graphql-java.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.inject</groupId>
+                <artifactId>jakarta.inject-api</artifactId>
+                <version>${jakarta-inject.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.jms</groupId>
+                <artifactId>jakarta.jms-api</artifactId>
+                <version>${jakarta-jms.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.transaction</groupId>
+                <artifactId>jakarta.transaction-api</artifactId>
+                <version>${jakarta-transaction.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.websocket</groupId>
+                <artifactId>jakarta.websocket-api</artifactId>
+                <version>${jakarta-websocket.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.ws.rs</groupId>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <version>${jakarta-ws-rs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.validation</groupId>
+                <artifactId>jakarta.validation-api</artifactId>
+                <version>${jakarta-validation.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${jedis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.search</groupId>
+                <artifactId>hibernate-search-mapper-orm-orm6</artifactId>
+                <version>${hibernate-search.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.search</groupId>
+                <artifactId>hibernate-search-backend-lucene</artifactId>
+                <version>${hibernate-search.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graal-sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.classgraph</groupId>
+                <artifactId>classgraph</artifactId>
+                <version>${classgraph.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate-validator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-ant</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-envers</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-hikaricp</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-el</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-websocket</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>${version.lombok}</version>
+                <version>${lombok.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>${slf4j-api.version}</version>
+                <version>${slf4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
-                <version>2.0.7</version>
+                <version>${slf4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -151,24 +350,35 @@
                 <version>31.1-jre</version>
             </dependency>
             <dependency>
-                <groupId>jakarta.inject</groupId>
-                <artifactId>jakarta.inject-api</artifactId>
-                <version>2.0.1</version>
+                <groupId>cz.jirutka.rsql</groupId>
+                <artifactId>rsql-parser</artifactId>
+                <version>2.1.0</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>4.4</version>
+                <groupId>io.reactivex.rxjava2</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>2.2.21</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>3.12.0</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring-framework.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.owasp.encoder</groupId>
+                <artifactId>encoder</artifactId>
+                <version>1.2.3</version>
+            </dependency>            
+            <dependency>
+                <groupId>org.fusesource.jansi</groupId>
+                <artifactId>jansi</artifactId>
+                <version>2.4.0</version>
+            </dependency>
+            
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
-                <version>${version.jetty}</version>
+                <version>${jetty.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -176,32 +386,76 @@
             <dependency>
                 <groupId>com.jayway.jsonpath</groupId>
                 <artifactId>json-path</artifactId>
-                <version>${jsonpath.version}</version>
+                <version>${json-path.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.java-json-tools</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${json-schema-validator.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-core-jakarta</artifactId>
                 <version>${swagger-api.version}</version>
-           </dependency>
-
+            </dependency>
+            <dependency>
+                <groupId>com.github.jknack</groupId>
+                <artifactId>handlebars-helpers</artifactId>
+                <version>${handlebars.version}</version>
+            </dependency>
+            <dependency>
+               <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.13</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.opendevl</groupId>
+                <artifactId>json2flat</artifactId>
+                <version>1.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>${hikaricp.version}</version>
+            </dependency>
 
             <!-- Test dependencies -->
+             <dependency>
+                <groupId>org.apache.ant</groupId>
+                <artifactId>ant</artifactId>
+                <version>1.10.13</version>
+            </dependency>
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>3.29.2-GA</version>
+            </dependency>            
+            <dependency>
+                <groupId>org.skyscreamer</groupId>
+                <artifactId>jsonassert</artifactId>
+                <version>1.5.1</version>
+            </dependency>            
+            <dependency>
+                <groupId>com.github.stefanbirkner</groupId>
+                <artifactId>system-lambda</artifactId>
+                <version>1.2.1</version>
+            </dependency>            
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>${version.logback}</version>
+                <version>${logback.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
-                <version>${version.logback}</version>
+                <version>${logback.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey</groupId>
                 <artifactId>jersey-bom</artifactId>
-                <version>${version.jersey}</version>
+                <version>${jersey.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -210,7 +464,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>${version.junit}</version>
+                <version>${junit.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -218,26 +472,32 @@
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>2.1.214</version>
+                <version>${h2.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>5.3.0</version>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
-                <version>${version.jackson}</version>
+                <version>${jackson-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>
                 <artifactId>rest-assured-bom</artifactId>
-                <version>${version.restassured}</version>
+                <version>${rest-assured.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -245,7 +505,7 @@
             <dependency>
                 <groupId>jakarta.persistence</groupId>
                 <artifactId>jakarta.persistence-api</artifactId>
-                <version>3.1.0</version>
+                <version>${jakarta-persistence.version}</version>
                 <scope>provided</scope>
             </dependency>
         </dependencies>
@@ -377,7 +637,7 @@
                 <plugin>
                     <artifactId>maven-site-plugin</artifactId>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <version>${maven-site-plugin-version}</version>
+                    <version>${maven-site-plugin.version}</version>
                     <configuration>
                         <skipDeploy>true</skipDeploy>
                     </configuration>
@@ -416,7 +676,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>${version.lombok}</version>
+                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

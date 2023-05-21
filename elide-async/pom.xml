@@ -60,7 +60,6 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
         </dependency>
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
@@ -71,7 +70,6 @@
         <dependency>
             <groupId>com.github.opendevl</groupId>
             <artifactId>json2flat</artifactId>
-            <version>1.0.3</version>
             <exclusions>
                 <exclusion>
                 	<groupId>com.fasterxml.jackson.core</groupId>
@@ -83,14 +81,12 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>${jedis.version}</version>
         </dependency>
 
         <!-- Test -->
         <dependency>
             <groupId>com.github.codemonstur</groupId>
             <artifactId>embedded-redis</artifactId>
-            <version>${embedded-redis.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- For Export End-Point Test -->
@@ -146,21 +142,6 @@
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>8.0.0.Final</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.el</groupId>
-            <artifactId>jakarta.el-api</artifactId>
-            <version>5.0.1</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>jakarta.el</artifactId>
-            <version>4.0.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

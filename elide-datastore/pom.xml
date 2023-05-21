@@ -71,12 +71,6 @@
                 <artifactId>elide-test-helpers</artifactId>
                 <version>7.0.0-pr5-SNAPSHOT</version>
             </dependency>
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-validator</artifactId>
-                <version>8.0.0.Final</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
