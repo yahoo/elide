@@ -86,7 +86,7 @@ public class CSVExportFormatterTest {
         resourceAttributes.put("queryType", queryObj.getQueryType());
         resourceAttributes.put("createdOn", queryObj.getCreatedOn());
 
-        Resource resource = new Resource("tableExport", "0", resourceAttributes, null, null, null);
+        Resource resource = new Resource("tableExport", "0", null, resourceAttributes, null, null, null);
 
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(queryObj);

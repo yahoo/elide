@@ -44,7 +44,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.jsonapi.extensions.PatchRequestScope;
+import com.yahoo.elide.jsonapi.extensions.JsonApiJsonPatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -645,7 +645,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource<Left> leftResource = new PersistentResource<>(left, "2", goodScope);
 
-        Relationship ids = new Relationship(null, new Data<>(new Resource("right", null, null, null, null, null)));
+        Relationship ids = new Relationship(null, new Data<>(new Resource("right", null, null, null, null, null, null)));
 
         InvalidObjectIdentifierException thrown = assertThrows(
                 InvalidObjectIdentifierException.class,
@@ -2850,7 +2850,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        PatchRequestScope parentScope = new PatchRequestScope(
+        JsonApiJsonPatchRequestScope parentScope = new JsonApiJsonPatchRequestScope(
                 null,
                 "/book",
                 NO_VERSION,
@@ -2860,7 +2860,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 null,
                 Collections.emptyMap(),
                 elideSettings);
-        PatchRequestScope scope = new PatchRequestScope(
+        JsonApiJsonPatchRequestScope scope = new JsonApiJsonPatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works
         assertEquals(parentScope.getUpdateStatusCode(), scope.getUpdateStatusCode());

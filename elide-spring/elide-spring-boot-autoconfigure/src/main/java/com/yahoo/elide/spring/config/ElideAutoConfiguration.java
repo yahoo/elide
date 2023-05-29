@@ -63,10 +63,12 @@ import com.yahoo.elide.spring.controllers.ApiDocsController.ApiDocsRegistration;
 import com.yahoo.elide.spring.controllers.ExportController;
 import com.yahoo.elide.spring.controllers.GraphqlController;
 import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.spring.jackson.ObjectMapperBuilder;
 import com.yahoo.elide.spring.orm.jpa.EntityManagerProxySupplier;
 import com.yahoo.elide.spring.orm.jpa.PlatformJpaTransactionSupplier;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
@@ -86,6 +88,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -509,8 +512,19 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public JsonApiMapper mapper() {
-        return new JsonApiMapper();
+    public ObjectMapperBuilder objectMapperBuilder(
+            Optional<Jackson2ObjectMapperBuilder> optionalJackson2ObjectMapperBuilder) {
+        if (optionalJackson2ObjectMapperBuilder.isPresent()) {
+            return optionalJackson2ObjectMapperBuilder.get()::build;
+        }
+        return ObjectMapper::new;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
+    public JsonApiMapper jsonApiMapper(ObjectMapperBuilder builder) {
+        return new JsonApiMapper(builder.build());
     }
 
     @Bean

@@ -49,6 +49,7 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -2995,5 +2996,438 @@ public class ResourceIT extends IntegrationTest {
                 .get("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void atomicOpCreateDependent() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpCreateDependent.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpCreateDependent.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void atomicOpCreateChildRelateExisting() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpCreateChildRelateExisting.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpCreateChildRelateExisting.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void atomicOpInvalidOp() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpNullOp.req.json");
+
+        String detail = "Bad Request Body'Invalid Atomic Operations extension operation code:null'";
+
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail", containsString(Encode.forHtml(detail)));
+    }
+
+    @Test
+    public void atomicOpInvalidMissingId() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpInvalidMissingId.req.json");
+
+        String detail = "Bad Request Body'Atomic Operations extension requires all objects to have an assigned "
+                + "ID (temporary or permanent) when assigning relationships.'";
+
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail[0]", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
+    public void atomicOpInvalidMissingPath() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpInvalidMissingPath.req.json");
+
+        String detail = "Bad Request Body'Atomic Operations extension operation requires either ref or href members to be specified.'";
+
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail[0]", equalTo(Encode.forHtml(detail)));
+    }
+
+    @Test
+    public void atomicOpUpdateChildRelationToExisting() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpUpdateChildRelationToExisting.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/atomicOpUpdateChildRelationToExisting.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/atomicOpUpdateChildRelationToExisting.2.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4/children/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected2));
+    }
+
+    @Test
+    public void atomicOpReplaceAttributesAndRelationship() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpReplaceAttributesAndRelationship.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/atomicOpReplaceAttributesAndRelationship.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/atomicOpReplaceAttributesAndRelationship.2.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(jsonEquals(expected2, false));
+    }
+
+    @Test
+    public void atomicOpRemoveObject() {
+        String req1 = jsonParser.getJson("/ResourceIT/atomicOpRemoveObject.1.req.json");
+        String req2 = jsonParser.getJson("/ResourceIT/atomicOpRemoveObject.2.req.json");
+        String expectedDirect = jsonParser.getJson("/ResourceIT/atomicOpRemoveObject.direct.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/atomicOpRemoveObject.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/atomicOpRemoveObject.2.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(req1)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/5")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expectedDirect));
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(req2)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected2));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/5")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void atomicOpCreateAndRemoveParent() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpCreateAndRemoveParent.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpCreateAndRemoveParent.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void atomicOpAddRoot() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpTestAddRoot.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/atomicOpTestAddRoot.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/atomicOpTestAddRoot.2.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/5")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected2));
+    }
+
+    @Test
+    public void atomicOpUpdateRelationshipDirect() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpUpdateRelationshipDirect.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/atomicOpUpdateRelationshipDirect.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/atomicOpUpdateRelationshipDirect.2.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(jsonEquals(expected2, true));
+    }
+
+    @Test
+    public void atomicOpRemoveSingleRelationship() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpRemoveSingleRelationship.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/atomicOpRemoveSingleRelationship.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/atomicOpRemoveSingleRelationship.2.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(jsonEquals(expected2, false));
+    }
+
+    @Test
+    public void atomicOpAddRelationships() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpAddRelationships.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/atomicOpAddRelationships.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/atomicOpAddRelationships.2.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(jsonEquals(expected2, false));
+    }
+
+    @Test
+    public void atomicOpCheckWithError() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpCheckWithError.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpCheckWithError.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void atomicOpBadId() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpBadId.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpBadId.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void atomicOpAddUpdate() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpAddUpdate.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpAddUpdate.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void atomicOpAddUpdateLid() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpAddUpdateLid.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpAddUpdateLid.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void atomicOpBadDelete() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpBadDelete.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpBadDelete.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(jsonEquals(expected, false));
+    }
+
+    @Test
+    public void atomicOpIssue608() {
+        String req = jsonParser.getJson("/ResourceIT/atomicOpIssue608.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpIssue608.resp.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(req)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void atomicOpNestedPatch() {
+        String req = jsonParser.getJson("/ResourceIT/atomicOpNestedPatchCreate.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpNestedPatchCreate.resp.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(req)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void atomicOpCreatedRootNoReadPermRequired() {
+        String req = jsonParser.getJson("/ResourceIT/atomicOpNoReadPermForNew.req.json");
+        String badReq = """
+                {
+                    "atomic:operations": [
+                        {
+                            "op": "add",
+                            "href": "/specialread/1/child",
+                            "data": {
+                                "type": "child",
+                                "id": "12345678-1234-1234-1234-123456789ab2"
+                            }
+                        }
+                    ]
+                }""";
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpNoReadPermForNew.resp.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(req)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(badReq)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo("[{\"errors\":[{\"detail\":\"UpdatePermission Denied\",\"status\":\"403\"}]}]"));
+    }
+
+    @Test
+    public void atomicOpNoCommit() {
+        String req = jsonParser.getJson("/ResourceIT/atomicOpNoCommit.req.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(req)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body(equalTo("{\"errors\":[{\"detail\":\"CreatePermission Denied\"}]}"));
+    }
+
+    @Test
+    public void atomicOpDeferredOnCreate() {
+        String request = jsonParser.getJson("/ResourceIT/atomicOpDeferredOnCreate.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/atomicOpDeferredOnCreate.json");
+        given()
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .body(request)
+                .post("/operations")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body(equalTo(expected));
     }
 }

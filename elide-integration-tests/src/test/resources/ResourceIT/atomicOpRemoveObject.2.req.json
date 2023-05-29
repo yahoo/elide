@@ -1,0 +1,12 @@
+{
+    "atomic:operations": [
+        {
+            "op": "remove",
+            "href": "/parent",
+            "data": {
+                "type": "parent",
+                "id": "5"
+            }
+        }
+    ]
+}

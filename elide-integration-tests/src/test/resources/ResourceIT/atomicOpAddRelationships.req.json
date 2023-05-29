@@ -1,0 +1,18 @@
+{
+    "atomic:operations": [
+        {
+            "op": "add",
+            "href": "/parent/1/relationships/children",
+            "data": [
+                {
+                    "type": "child",
+                    "id": "5"
+                },
+                {
+                    "type": "child",
+                    "id": "4"
+                }
+            ]
+        }
+    ]
+}

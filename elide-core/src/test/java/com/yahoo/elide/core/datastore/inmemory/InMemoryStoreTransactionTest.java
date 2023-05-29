@@ -600,6 +600,7 @@ public class InMemoryStoreTransactionTest {
             "example.NoShareEntity",
             "example.NoUpdateEntity",
             "example.Parent",
+            "example.Person",
             "example.Post",
             "example.PrimitiveId",
             "example.Publisher",

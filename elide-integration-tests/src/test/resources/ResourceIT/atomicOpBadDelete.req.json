@@ -1,0 +1,8 @@
+{
+    "atomic:operations": [
+        {
+            "op": "remove",
+            "href": "/parent/10"
+        }
+    ]
+}

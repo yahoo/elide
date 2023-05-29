@@ -1,0 +1,21 @@
+{
+    "atomic:results": [
+        {
+            "data": {
+                "type": "parent",
+                "id": "5",
+                "attributes": {
+                    "firstName": "bart"
+                },
+                "relationships": {
+                    "children": {
+                        "data": []
+                    },
+                    "spouses": {
+                        "data": []
+                    }
+                }
+            }
+        }
+    ]
+}

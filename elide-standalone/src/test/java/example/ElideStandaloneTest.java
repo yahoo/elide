@@ -6,12 +6,15 @@
 package example;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.atomicOperation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.atomicOperations;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.links;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.ref;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
@@ -25,8 +28,10 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+import com.yahoo.elide.test.jsonapi.elements.AtomicOperationCode;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
@@ -102,6 +107,72 @@ public class ElideStandaloneTest {
                     ).toJSON()
                 )
             );
+
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .delete("/api/v1/post/1")
+            .then()
+            .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
+    public void testJsonAPIAtomicOperations() {
+        given()
+            .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+            .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+            .body(
+                    atomicOperations(
+                            atomicOperation(AtomicOperationCode.add, "/post",
+                                    datum(resource(
+                                            type("post"),
+                                            id("10"),
+                                            attributes(
+                                                    attr("content", "This is my second post. woot.")
+                                            )
+                                    ))
+                            )
+                    )
+            )
+            .post("/api/v1/operations")
+            .then()
+            .statusCode(HttpStatus.SC_OK);
+
+        given()
+            .when()
+            .get("/api/v1/post/10")
+            .then()
+            .statusCode(200)
+            .body(equalTo(
+                    datum(
+                            resource(
+                                    type("post"),
+                                    id("10"),
+                                    attributes(
+                                            attr("abusiveContent", false),
+                                            attr("content", "This is my second post. woot."),
+                                            attr("date", null)
+                                    ),
+                                    links(
+                                            attr("self", "https://elide.io/api/v1/post/10")
+                                    )
+                            )
+                    ).toJSON()
+                )
+            );
+
+        given()
+            .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+            .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
+            .body(
+                atomicOperations(
+                        atomicOperation(AtomicOperationCode.remove,
+                                ref(type("post"), id("10")))
+                        )
+                )
+            .post("/api/v1/operations")
+            .then()
+            .statusCode(HttpStatus.SC_OK);
     }
 
     @Test

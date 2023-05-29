@@ -5,13 +5,11 @@
  */
 package com.yahoo.elide.spring.controllers;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
@@ -53,8 +51,10 @@ public class JsonApiController {
     private final Elide elide;
     private final ElideConfigProperties settings;
     private final HeaderUtils.HeaderProcessor headerProcessor;
-    public static final String JSON_API_CONTENT_TYPE = JSONAPI_CONTENT_TYPE;
-    public static final String JSON_API_PATCH_CONTENT_TYPE = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+
+    public static final String JSON_API_CONTENT_TYPE = JsonApi.MEDIA_TYPE;
+    public static final String JSON_API_PATCH_CONTENT_TYPE = JsonApi.JsonPatch.MEDIA_TYPE;
+    public static final String JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE = JsonApi.AtomicOperations.MEDIA_TYPE;
 
     public JsonApiController(RefreshableElide refreshableElide, ElideConfigProperties settings) {
         log.debug("Started ~~");
@@ -69,7 +69,7 @@ public class JsonApiController {
         return convertedMap;
     }
 
-    @GetMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
+    @GetMapping(value = "/**", produces = JsonApi.MEDIA_TYPE)
     public Callable<ResponseEntity<String>> elideGet(@RequestHeader HttpHeaders requestHeaders,
                                                      @RequestParam MultiValueMap<String, String> allRequestParams,
                                                      HttpServletRequest request, Authentication authentication) {
@@ -90,7 +90,7 @@ public class JsonApiController {
         };
     }
 
-    @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
+    @PostMapping(value = "/**", consumes = JsonApi.MEDIA_TYPE, produces = JsonApi.MEDIA_TYPE)
     public Callable<ResponseEntity<String>> elidePost(@RequestHeader HttpHeaders requestHeaders,
                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
                                                       @RequestBody String body,
@@ -113,8 +113,8 @@ public class JsonApiController {
 
     @PatchMapping(
             value = "/**",
-            consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE},
-            produces = JSON_API_CONTENT_TYPE
+            consumes = { JsonApi.MEDIA_TYPE, JsonApi.JsonPatch.MEDIA_TYPE },
+            produces = JsonApi.MEDIA_TYPE
     )
     public Callable<ResponseEntity<String>> elidePatch(@RequestHeader HttpHeaders requestHeaders,
                                                        @RequestParam MultiValueMap<String, String> allRequestParams,
@@ -138,7 +138,7 @@ public class JsonApiController {
         };
     }
 
-    @DeleteMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
+    @DeleteMapping(value = "/**", produces = JsonApi.MEDIA_TYPE)
     public Callable<ResponseEntity<String>> elideDelete(@RequestHeader HttpHeaders requestHeaders,
                                                         @RequestParam MultiValueMap<String, String> allRequestParams,
                                                         HttpServletRequest request,
@@ -160,7 +160,7 @@ public class JsonApiController {
         };
     }
 
-    @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
+    @DeleteMapping(value = "/**", consumes = JsonApi.MEDIA_TYPE)
     public Callable<ResponseEntity<String>> elideDeleteRelation(
             @RequestHeader HttpHeaders requestHeaders,
             @RequestParam MultiValueMap<String, String> allRequestParams,
@@ -179,6 +179,33 @@ public class JsonApiController {
                 ElideResponse response = elide
                         .delete(baseUrl, pathname, body, convert(allRequestParams),
                                 requestHeadersCleaned, user, apiVersion, UUID.randomUUID());
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
+    }
+
+    @PostMapping(
+            value = "/operations",
+            consumes = JsonApi.AtomicOperations.MEDIA_TYPE,
+            produces = JsonApi.AtomicOperations.MEDIA_TYPE
+    )
+    public Callable<ResponseEntity<String>> elideOperations(@RequestHeader HttpHeaders requestHeaders,
+                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
+                                                       @RequestBody String body,
+                                                       HttpServletRequest request, Authentication authentication) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
+
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide
+                        .operations(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
+                               convert(allRequestParams), requestHeadersCleaned, user, apiVersion,
+                               UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };

@@ -1,0 +1,24 @@
+{
+    "atomic:results": [
+        {
+            "data": {
+                "type": "parent",
+                "id": "5",
+                "attributes": {
+                    "firstName": "ron jon"
+                },
+                "relationships": {
+                    "children": {
+                        "data": []
+                    },
+                    "spouses": {
+                        "data": []
+                    }
+                }
+            }
+        },
+        {
+            "data": null
+        }
+    ]
+}

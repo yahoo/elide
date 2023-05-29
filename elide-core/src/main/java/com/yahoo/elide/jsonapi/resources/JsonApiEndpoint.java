@@ -11,6 +11,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.utils.ResourceUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,7 +67,7 @@ public class JsonApiEndpoint {
      */
     @POST
     @Path("{path:.*}")
-    @Consumes(JSONAPI_CONTENT_TYPE)
+    @Consumes(JsonApi.MEDIA_TYPE)
     public Response post(
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
@@ -120,7 +121,7 @@ public class JsonApiEndpoint {
      */
     @PATCH
     @Path("{path:.*}")
-    @Consumes(JSONAPI_CONTENT_TYPE)
+    @Consumes(JsonApi.MEDIA_TYPE)
     public Response patch(
         @HeaderParam("Content-Type") String contentType,
         @HeaderParam("accept") String accept,
@@ -149,7 +150,7 @@ public class JsonApiEndpoint {
      */
     @DELETE
     @Path("{path:.*}")
-    @Consumes(JSONAPI_CONTENT_TYPE)
+    @Consumes(JsonApi.MEDIA_TYPE)
     public Response delete(
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
@@ -163,6 +164,35 @@ public class JsonApiEndpoint {
         User user = new SecurityContextUser(securityContext);
         return build(elide.delete(getBaseUrlEndpoint(uriInfo), path, jsonApiDocument, queryParams, requestHeaders,
                                   user, apiVersion, UUID.randomUUID()));
+    }
+
+    /**
+     * Operations handler.
+     *
+     * @param path request path
+     * @param uriInfo URI info
+     * @param headers the request headers
+     * @param securityContext security context
+     * @param jsonapiDocument post data as jsonapi document
+     * @return response
+     */
+    @POST
+    @Path("/operations")
+    @Consumes(JsonApi.AtomicOperations.MEDIA_TYPE)
+    public Response operations(
+        @HeaderParam("Content-Type") String contentType,
+        @HeaderParam("accept") String accept,
+        @PathParam("path") String path,
+        @Context UriInfo uriInfo,
+        @Context HttpHeaders headers,
+        @Context SecurityContext securityContext,
+        String jsonapiDocument) {
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
+        User user = new SecurityContextUser(securityContext);
+        return build(elide.operations(getBaseUrlEndpoint(uriInfo), contentType, accept, path, jsonapiDocument,
+                queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {
