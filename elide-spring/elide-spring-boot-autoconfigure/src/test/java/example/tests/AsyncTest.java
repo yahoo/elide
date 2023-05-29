@@ -8,6 +8,7 @@ package example.tests;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
@@ -40,6 +41,9 @@ import io.restassured.response.Response;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Basic functional tests to test Async service setup, JSONAPI and GRAPHQL endpoints.
@@ -155,8 +159,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ tableExport(ids: [\\\"011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac\\\"]) "
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
@@ -785,6 +789,144 @@ public class AsyncTest extends IntegrationTest {
     }
 
     @Test
+    public void testExportComplexStaticModelCsv() throws InterruptedException {
+        given()
+        .contentType(JsonApi.MEDIA_TYPE)
+        .body(
+                datum(
+                        resource(
+                                type("export"),
+                                id("1"),
+                                attributes(
+                                        attr("alternatives", Arrays.asList("a", "b"))
+                                )
+                        )
+                )
+        )
+        .when()
+        .post("/json/export");
+
+        Map<String, Object> address1 = new HashMap<>();
+        address1.put("street", "My Street 1");
+        address1.put("state", "My State 1");
+
+        given()
+        .contentType(JsonApi.MEDIA_TYPE)
+        .body(
+                datum(
+                        resource(
+                                type("export"),
+                                id("2"),
+                                attributes(
+                                        attr("alternatives", Arrays.asList("a", "b", "c", "d")),
+                                        attr("address", address1)
+                                )
+                        )
+                )
+        )
+        .when()
+        .post("/json/export");
+
+        Map<String, Object> zip2 = new HashMap<>();
+        zip2.put("zip", "123");
+        zip2.put("plusFour", "4444");
+        Map<String, Object> address2 = new HashMap<>();
+        address2.put("street", "My Street 2");
+        address2.put("state", "My State 2");
+        address2.put("zip", zip2);
+
+        given()
+        .contentType(JsonApi.MEDIA_TYPE)
+        .body(
+                datum(
+                        resource(
+                                type("export"),
+                                id("3"),
+                                attributes(
+                                        attr("alternatives", Arrays.asList("a")),
+                                        attr("address", address2)
+                                )
+                        )
+                )
+        )
+        .when()
+        .post("/json/export");
+
+
+        //Create Table Export
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("tableExport"),
+                                        id("e965a406-70b3-4de1-8fb7-4de4b4842da9"),
+                                        attributes(
+                                                attr("query", "{\"query\":\"{ export { edges { node { name alternatives address } } } }\",\"variables\":null}"),
+                                                attr("queryType", "GRAPHQL_V1_0"),
+                                                attr("status", "QUEUED"),
+                                                attr("asyncAfterSeconds", "10"),
+                                                attr("resultType", "CSV")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/json/tableExport")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED);
+
+        int i = 0;
+        while (i < 1000) {
+            Thread.sleep(10);
+            Response response = given()
+                    .accept("application/vnd.api+json")
+                    .get("/json/tableExport/e965a406-70b3-4de1-8fb7-4de4b4842da9");
+
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
+             //If Async Query is created and completed then validate results
+            if (outputResponse.equals("COMPLETE")) {
+
+                // Validate AsyncQuery Response
+                response
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .body("data.id", equalTo("e965a406-70b3-4de1-8fb7-4de4b4842da9"))
+                        .body("data.type", equalTo("tableExport"))
+                        .body("data.attributes.queryType", equalTo("GRAPHQL_V1_0"))
+                        .body("data.attributes.status", equalTo("COMPLETE"))
+                        .body("data.attributes.result.message", equalTo(null))
+                        .body("data.attributes.result.url",
+                                equalTo("https://elide.io" + "/export/e965a406-70b3-4de1-8fb7-4de4b4842da9.csv"));
+
+                // Validate GraphQL Response
+                String responseGraphQL = given()
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .body("{\"query\":\"{ tableExport(ids: [\\\"e965a406-70b3-4de1-8fb7-4de4b4842da9\\\"]) "
+                                + "{ edges { node { id queryType status resultType result "
+                                + "{ url httpStatus recordCount } } } } }\","
+                                + "\"variables\":null }")
+                        .post("/graphql")
+                        .asString();
+
+                String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"e965a406-70b3-4de1-8fb7-4de4b4842da9\","
+                        + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"CSV\","
+                        + "\"result\":{\"url\":\"https://elide.io/export/e965a406-70b3-4de1-8fb7-4de4b4842da9.csv\",\"httpStatus\":200,\"recordCount\":3}}}]}}}";
+
+                assertEquals(expectedResponse, responseGraphQL);
+                break;
+            }
+            assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
+        }
+        String result = when()
+                .get("/export/e965a406-70b3-4de1-8fb7-4de4b4842da9.csv")
+                .then()
+                .statusCode(HttpStatus.SC_OK).extract().asString();
+        System.out.println(result);
+    }
+
+    @Test
     public void exportControllerTest() {
         when()
                 .get("/export/asyncQueryId")
@@ -809,6 +951,7 @@ public class AsyncTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats", "tableExport", "namespace", "tableSource", "maintainer", "book", "publisher", "person"));
+                        "stats", "tableExport", "namespace", "tableSource", "maintainer", "book", "publisher", "person",
+                        "export"));
     }
 }
