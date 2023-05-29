@@ -184,7 +184,49 @@
     "allPublicClasses" : true
   },
   {
+    "name": "com.yahoo.elide.jsonapi.models.Data",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
     "name": "com.yahoo.elide.jsonapi.models.JsonApiDocument",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.KeyValMap",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Meta",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Operation",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Operations",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Patch",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Ref",
     "allDeclaredFields": true,
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true
@@ -208,7 +250,13 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.jsonapi.models.Meta",
+    "name": "com.yahoo.elide.jsonapi.models.Result",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Results",
     "allDeclaredFields": true,
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true

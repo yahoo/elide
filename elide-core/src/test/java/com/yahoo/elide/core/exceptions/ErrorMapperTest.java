@@ -80,7 +80,7 @@ public class ErrorMapperTest {
         doThrow(EXPECTED_EXCEPTION).when(tx).preCommit(any());
 
         RuntimeException result = assertThrows(RuntimeException.class, () -> elide.post(baseUrl, "/testModel", body, null, NO_VERSION));
-        assertEquals(EXPECTED_EXCEPTION, result.getCause());
+        assertEquals(EXPECTED_EXCEPTION, result);
 
         verify(tx).close();
     }
@@ -123,7 +123,7 @@ public class ErrorMapperTest {
         doThrow(EXPECTED_EXCEPTION).when(tx).preCommit(any());
 
         RuntimeException result = assertThrows(RuntimeException.class, () -> elide.post(baseUrl, "/testModel", body, null, NO_VERSION));
-        assertEquals(EXPECTED_EXCEPTION, result.getCause());
+        assertEquals(EXPECTED_EXCEPTION, result);
 
         verify(tx).close();
     }

@@ -1,0 +1,23 @@
+{
+    "atomic:operations": [
+        {
+            "op": "add",
+            "href": "/parent",
+            "data": {
+                "type": "parent",
+                "id": "woot"
+            }
+        },
+        {
+            "op": "add",
+            "href": "/parent",
+            "data": {
+                "type": "parent",
+                "id": "nice",
+                "attributes": {
+                    "badAttr": "no val"
+                }
+            }
+        }
+    ]
+}

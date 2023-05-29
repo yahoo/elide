@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.Include;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
@@ -30,4 +31,7 @@ public class ArtifactProduct {
 
     @OneToMany(mappedBy = "artifact")
     private List<ArtifactVersion> versions = new ArrayList<>();
+
+    @ManyToMany
+    private List<ArtifactMaintainer> maintainers = new ArrayList<>();
 }

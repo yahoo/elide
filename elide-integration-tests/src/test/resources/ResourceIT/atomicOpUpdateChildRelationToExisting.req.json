@@ -1,0 +1,22 @@
+{
+    "atomic:operations": [
+        {
+            "op": "update",
+            "href": "/parent/1/children/1",
+            "data": {
+                "type": "child",
+                "id": "1",
+                "relationships": {
+                    "parents": {
+                        "data": [
+                            {
+                                "type": "parent",
+                                "id": "4"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}

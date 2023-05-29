@@ -32,4 +32,26 @@ public class Resource extends ResourceLinkage {
             this.put("links", links);
         }
     }
+
+    /**
+     * Instantiates a new Resource.
+     *
+     * @param lid           the lid
+     * @param type          the type
+     * @param attributes    the attributes
+     * @param links         the links
+     * @param relationships the relationships
+     */
+    public Resource(Lid lid, Type type, Attributes attributes, Links links, Relationships relationships) {
+        super(lid, type);
+        if (attributes != null) {
+            this.put("attributes", attributes);
+        }
+        if (relationships != null) {
+            this.put("relationships", relationships);
+        }
+        if (links != null) {
+            this.put("links", links);
+        }
+    }
 }

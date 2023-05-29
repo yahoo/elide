@@ -1,0 +1,15 @@
+{
+    "atomic:operations": [
+        {
+            "op": "null",
+            "href": "/book",
+            "data": {
+                "type": "book",
+                "id": "123",
+                "attributes": {
+                    "title": "My New Book"
+                }
+            }
+        }
+    ]
+}
