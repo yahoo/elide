@@ -87,6 +87,8 @@ public class JsonApiEndpoint {
     @Path("{path:.*}")
     @Consumes(JsonApi.MEDIA_TYPE)
     public Response post(
+        @HeaderParam("Content-Type") String contentType,
+        @HeaderParam("accept") String accept,
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
         @Context HttpHeaders headers,
@@ -100,6 +102,12 @@ public class JsonApiEndpoint {
         String pathname = path;
         Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
+
+        if ("operations".equals(route.getPath())) {
+            // Atomic Operations
+            return build(elide.operations(route.getBaseUrl(), contentType, accept, route.getPath(), jsonapiDocument,
+                    queryParams, requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+        }
 
         return build(elide.post(route.getBaseUrl(), route.getPath(), jsonapiDocument,
                 queryParams, requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
@@ -200,35 +208,6 @@ public class JsonApiEndpoint {
 
         return build(elide.delete(route.getBaseUrl(), route.getPath(), jsonApiDocument, queryParams, requestHeaders,
                                   user, route.getApiVersion(), UUID.randomUUID()));
-    }
-
-    /**
-     * Operations handler.
-     *
-     * @param path request path
-     * @param uriInfo URI info
-     * @param headers the request headers
-     * @param securityContext security context
-     * @param jsonapiDocument post data as jsonapi document
-     * @return response
-     */
-    @POST
-    @Path("/operations")
-    @Consumes(JsonApi.AtomicOperations.MEDIA_TYPE)
-    public Response operations(
-        @HeaderParam("Content-Type") String contentType,
-        @HeaderParam("accept") String accept,
-        @PathParam("path") String path,
-        @Context UriInfo uriInfo,
-        @Context HttpHeaders headers,
-        @Context SecurityContext securityContext,
-        String jsonapiDocument) {
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
-        Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
-        User user = new SecurityContextUser(securityContext);
-        return build(elide.operations(getBaseUrlEndpoint(uriInfo), contentType, accept, path, jsonapiDocument,
-                queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {

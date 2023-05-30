@@ -15,7 +15,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
@@ -32,7 +32,7 @@ public class EnableVerboseErrorsTest extends IntegrationTest {
     @Test
     public void verboseErrorsEnabledTest() {
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
