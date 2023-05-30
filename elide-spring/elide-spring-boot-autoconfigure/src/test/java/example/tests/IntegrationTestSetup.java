@@ -66,7 +66,7 @@ public class IntegrationTestSetup {
 
         if (settings.getJsonApi() != null
                 && settings.getJsonApi().isEnabled()
-                && settings.getJsonApi().isEnableLinks()) {
+                && settings.getJsonApi().getLinks().isEnabled()) {
             String baseUrl = settings.getBaseUrl();
 
             if (StringUtils.isEmpty(baseUrl)) {

@@ -9,23 +9,23 @@ import static com.yahoo.elide.datastores.aggregation.cache.CaffeineCache.DEFAULT
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.boot.convert.DurationUnit;
+
 import lombok.Data;
+
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Extra properties for setting up aggregation data store.
  */
 @Data
 public class AggregationStoreProperties {
-
     /**
      * Whether or not aggregation data store is enabled.
      */
     private boolean enabled = false;
-
-    /**
-     * Whether or not meta data store is enabled.
-     */
-    private boolean enableMetaDataStore = false;
 
     /**
      * {@link SQLDialect} type for default DataSource Object.
@@ -33,12 +33,40 @@ public class AggregationStoreProperties {
     private String defaultDialect = "Hive";
 
     /**
-     * Limit on number of query cache entries. Non-positive values disable the query cache.
+     * Settings for the Dynamic Configuration.
      */
-    private int queryCacheMaximumEntries = DEFAULT_MAXIMUM_ENTRIES;
+    @NestedConfigurationProperty
+    private DynamicConfigProperties dynamicConfig = new DynamicConfigProperties();
 
-    /**
-     * Default Cache Expiration.
-     */
-    private long defaultCacheExpirationMinutes = 10;
+    @Data
+    public static class MetadataStore {
+        /**
+         * Whether or not meta data store is enabled.
+         */
+        private boolean enabled;
+    }
+
+    private MetadataStore metadataStore = new MetadataStore();
+
+    @Data
+    public static class QueryCache {
+        /**
+         * Whether or not to enable the query cache.
+         */
+        private boolean enabled = true;
+
+        /**
+         * Limit on number of query cache entries.
+         */
+        private int maxSize = DEFAULT_MAXIMUM_ENTRIES;
+
+        /**
+         * Query cache expiration after write.
+         */
+        @DurationUnit(ChronoUnit.MINUTES)
+        private Duration expiration = Duration.ofMinutes(10L);
+    }
+
+    private QueryCache queryCache = new QueryCache();
+
 }

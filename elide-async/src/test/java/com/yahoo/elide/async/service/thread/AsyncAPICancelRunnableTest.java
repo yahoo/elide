@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -58,7 +59,7 @@ public class AsyncAPICancelRunnableTest {
                         .build());
 
         asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
-        cancelThread = new AsyncAPICancelRunnable(7, elide, asyncAPIDao);
+        cancelThread = new AsyncAPICancelRunnable(Duration.ofSeconds(7), elide, asyncAPIDao);
         transactionRegistry = elide.getTransactionRegistry();
 
     }
@@ -67,7 +68,7 @@ public class AsyncAPICancelRunnableTest {
     public void testAsyncQueryCancelThreadSet() {
         assertEquals(elide, cancelThread.getElide());
         assertEquals(asyncAPIDao, cancelThread.getAsyncAPIDao());
-        assertEquals(7, cancelThread.getMaxRunTimeSeconds());
+        assertEquals(7, cancelThread.getQueryMaxRunTimeSeconds());
     }
 
     @Test

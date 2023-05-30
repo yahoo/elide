@@ -9,7 +9,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.service.DateUtil;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -22,7 +21,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Calendar;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -35,11 +36,11 @@ import java.util.Date;
 @AllArgsConstructor
 public class AsyncAPICleanerRunnable implements Runnable {
 
-    private int maxRunTimeMinutes;
+    private Duration queryMaxRunTime;
     private Elide elide;
-    private int queryCleanupDays;
+    private Duration queryRetentionDuration;
     private AsyncAPIDAO asyncAPIDao;
-    private DateUtil dateUtil = new DateUtil();
+    private Clock clock;
 
     @Override
     public void run() {
@@ -54,7 +55,7 @@ public class AsyncAPICleanerRunnable implements Runnable {
     protected <T extends AsyncAPI> void deleteAsyncAPI(Class<T> type) {
 
         try {
-            Date cleanupDate = dateUtil.calculateFilterDate(Calendar.DATE, queryCleanupDays);
+            Date cleanupDate = Date.from(Instant.now(clock).plus(queryRetentionDuration));
             PathElement createdOnPathElement = new PathElement(type, Long.class, "createdOn");
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
             asyncAPIDao.deleteAsyncAPIAndResultByFilter(fltDeleteExp, type);
@@ -71,7 +72,7 @@ public class AsyncAPICleanerRunnable implements Runnable {
     protected <T extends AsyncAPI> void timeoutAsyncAPI(Class<T> type) {
 
         try {
-            Date filterDate = dateUtil.calculateFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
+            Date filterDate = Date.from(Instant.now(clock).plus(queryMaxRunTime));
             PathElement createdOnPathElement = new PathElement(type, Long.class, "createdOn");
             PathElement statusPathElement = new PathElement(type, String.class, "status");
             FilterPredicate inPredicate = new InPredicate(statusPathElement, QueryStatus.PROCESSING,

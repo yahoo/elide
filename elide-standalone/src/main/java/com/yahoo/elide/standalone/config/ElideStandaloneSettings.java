@@ -423,9 +423,9 @@ public interface ElideStandaloneSettings {
      * @return Default: {@code new CaffeineCache(getQueryCacheSize())}
      */
     default Cache getQueryCache() {
-        return getAnalyticProperties().getQueryCacheMaximumEntries() > 0
-                ? new CaffeineCache(getAnalyticProperties().getQueryCacheMaximumEntries(),
-                                    getAnalyticProperties().getDefaultCacheExpirationMinutes())
+        return getAnalyticProperties().getQueryCacheMaxSize() > 0
+                ? new CaffeineCache(getAnalyticProperties().getQueryCacheMaxSize(),
+                                    getAnalyticProperties().getQueryCacheExpiration())
                 : null;
     }
 

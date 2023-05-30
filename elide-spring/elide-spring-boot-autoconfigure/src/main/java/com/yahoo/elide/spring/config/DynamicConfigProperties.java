@@ -12,6 +12,15 @@ import lombok.Data;
  */
 @Data
 public class DynamicConfigProperties {
+    @Data
+    public static class ConfigApi {
+        /**
+         * Enable support for reading and manipulating HJSON configuration through Elide models.
+         */
+        private boolean enabled = false;
+    }
+
+    private ConfigApi configApi = new ConfigApi();
 
     /**
      * Whether or not dynamic model config is enabled.
@@ -22,9 +31,4 @@ public class DynamicConfigProperties {
      * The path where the config hjsons are stored.
      */
     private String path = "/";
-
-    /**
-     * Enable support for reading and manipulating HJSON configuration through Elide models.
-     */
-    private boolean configApiEnabled = false;
 }

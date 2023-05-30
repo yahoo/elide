@@ -24,7 +24,7 @@ import org.springframework.test.context.TestPropertySource;
  */
 @TestPropertySource(
         properties = {
-                "elide.verboseErrors=true",
+                "elide.verbose-errors=true",
         }
 )
 public class EnableVerboseErrorsTest extends IntegrationTest {

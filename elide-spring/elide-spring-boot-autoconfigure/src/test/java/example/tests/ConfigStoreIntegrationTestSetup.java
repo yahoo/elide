@@ -36,7 +36,7 @@ public class ConfigStoreIntegrationTestSetup {
 
         Map<String, Class<? extends Check>> checks = new HashMap<>();
 
-        if (settings.getDynamicConfig().isConfigApiEnabled()) {
+        if (settings.getAggregationStore().getDynamicConfig().getConfigApi().isEnabled()) {
             checks.put(ConfigChecks.CAN_CREATE_CONFIG, ConfigChecks.CanCreate.class);
             checks.put(ConfigChecks.CAN_READ_CONFIG, ConfigChecks.CanRead.class);
             checks.put(ConfigChecks.CAN_DELETE_CONFIG, ConfigChecks.CanDelete.class);

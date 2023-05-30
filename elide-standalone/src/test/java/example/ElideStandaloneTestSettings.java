@@ -22,6 +22,7 @@ import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
 import jakarta.jms.ConnectionFactory;
 
+import java.time.Duration;
 import java.util.Properties;
 import java.util.TimeZone;
 
@@ -118,13 +119,13 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
             }
 
             @Override
-            public Integer getMaxRunTimeSeconds() {
-                return 1800;
+            public Duration getQueryMaxRunTime() {
+                return Duration.ofSeconds(1800L);
             }
 
             @Override
-            public Integer getQueryCleanupDays() {
-                return 3;
+            public Duration getQueryRetentionDuration() {
+                return Duration.ofDays(3L);
             }
 
             @Override

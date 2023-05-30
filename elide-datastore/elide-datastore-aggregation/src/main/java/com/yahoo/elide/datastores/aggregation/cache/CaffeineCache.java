@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.cache;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,10 +20,10 @@ public class CaffeineCache implements Cache {
 
     private final com.github.benmanes.caffeine.cache.Cache<Object, QueryResult> cache;
 
-    public CaffeineCache(int maximumSize, long defaultExprirationMinutes) {
+    public CaffeineCache(int maximumSize, Duration expireAfterWrite) {
         cache = Caffeine.newBuilder()
                 .maximumSize(maximumSize)
-                .expireAfterWrite(defaultExprirationMinutes, TimeUnit.MINUTES)
+                .expireAfterWrite(expireAfterWrite.toMinutes(), TimeUnit.MINUTES)
                 .recordStats()
                 .build();
     }

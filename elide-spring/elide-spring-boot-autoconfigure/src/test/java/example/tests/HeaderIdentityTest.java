@@ -56,9 +56,9 @@ import java.util.Map;
 @Import(IntegrationTestSetup.class)
 @TestPropertySource(
         properties = {
-                "elide.json-api.enableLinks=true",
+                "elide.json-api.links.enabled=true",
                 "elide.async.export.enabled=false",
-                "elide.stripAuthorizatonHeaders=false"
+                "elide.strip-authorization-headers=false"
         }
 )
 @ActiveProfiles("default")

@@ -34,7 +34,7 @@ import jakarta.websocket.server.ServerEndpointConfig;
 public class ElideSubscriptionConfiguration {
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnExpression("${elide.subscription.enabled:false}")
+    @ConditionalOnExpression("${elide.graphql.subscription.enabled:false}")
     ServerEndpointConfig serverEndpointConfig(
             ElideConfigProperties config,
             SubscriptionWebSocket.UserFactory userFactory,
@@ -43,14 +43,14 @@ public class ElideSubscriptionConfiguration {
             DataFetcherExceptionHandler dataFetcherExceptionHandler
     ) {
         return ServerEndpointConfig.Builder
-                .create(SubscriptionWebSocket.class, config.getSubscription().getPath())
+                .create(SubscriptionWebSocket.class, config.getGraphql().getSubscription().getPath())
                 .configurator(SubscriptionWebSocketConfigurator.builder()
-                        .baseUrl(config.getSubscription().getPath())
-                        .sendPingOnSubscribe(config.getSubscription().isSendPingOnSubscribe())
-                        .connectionTimeoutMs(config.getSubscription().getConnectionTimeoutMs())
-                        .maxSubscriptions(config.getSubscription().maxSubscriptions)
-                        .maxMessageSize(config.getSubscription().maxMessageSize)
-                        .maxIdleTimeoutMs(config.getSubscription().idleTimeoutMs)
+                        .baseUrl(config.getGraphql().getSubscription().getPath())
+                        .sendPingOnSubscribe(config.getGraphql().getSubscription().isSendPingOnSubscribe())
+                        .connectionTimeout(config.getGraphql().getSubscription().getConnectionTimeout())
+                        .maxSubscriptions(config.getGraphql().getSubscription().maxSubscriptions)
+                        .maxMessageSize(config.getGraphql().getSubscription().maxMessageSize)
+                        .maxIdleTimeout(config.getGraphql().getSubscription().getIdleTimeout())
                         .connectionFactory(connectionFactory)
                         .userFactory(userFactory)
                         .auditLogger(new Slf4jLogger())
@@ -63,7 +63,7 @@ public class ElideSubscriptionConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnExpression("${elide.subscription.enabled:false}")
+    @ConditionalOnExpression("${elide.graphql.subscription.enabled:false}")
     ServerEndpointExporter serverEndpointExporter() {
         ServerEndpointExporter exporter = new ServerEndpointExporter();
         return exporter;
@@ -71,7 +71,7 @@ public class ElideSubscriptionConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnExpression("${elide.subscription.enabled:false}")
+    @ConditionalOnExpression("${elide.graphql.subscription.enabled:false}")
     SubscriptionWebSocket.UserFactory getUserFactory() {
         return DEFAULT_USER_FACTORY;
     }

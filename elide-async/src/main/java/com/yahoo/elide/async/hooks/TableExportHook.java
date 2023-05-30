@@ -21,20 +21,24 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 
+import lombok.EqualsAndHashCode;
+
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
 /**
- * LifeCycle Hook for execution of TableExpoer.
+ * LifeCycle Hook for execution of TableExport.
  */
+@EqualsAndHashCode(callSuper = true)
 public class TableExportHook extends AsyncAPIHook<TableExport> {
-    Map<ResultType, TableExportFormatter> supportedFormatters;
-    ResultStorageEngine engine;
+    private final Map<ResultType, TableExportFormatter> supportedFormatters;
+    private final ResultStorageEngine engine;
 
-    public TableExportHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds,
+    public TableExportHook (AsyncExecutorService asyncExecutorService, Duration maxAsyncAfter,
             Map<ResultType, TableExportFormatter> supportedFormatters, ResultStorageEngine engine) {
-        super(asyncExecutorService, maxAsyncAfterSeconds);
+        super(asyncExecutorService, maxAsyncAfter);
         this.supportedFormatters = supportedFormatters;
         this.engine = engine;
     }

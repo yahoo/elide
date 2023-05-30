@@ -27,11 +27,11 @@ public class CSVExportFormatter implements TableExportFormatter {
     private static final String COMMA = ",";
     private static final String DOUBLE_QUOTES = "\"";
 
-    private boolean skipCSVHeader = false;
+    private boolean writeHeader = true;
     private ObjectMapper mapper;
 
-    public CSVExportFormatter(Elide elide, boolean skipCSVHeader) {
-        this.skipCSVHeader = skipCSVHeader;
+    public CSVExportFormatter(Elide elide, boolean writeHeader) {
+        this.writeHeader = writeHeader;
         this.mapper = elide.getMapper().getObjectMapper();
     }
 
@@ -91,7 +91,7 @@ public class CSVExportFormatter implements TableExportFormatter {
 
     @Override
     public String preFormat(EntityProjection projection, TableExport query) {
-        if (projection == null || skipCSVHeader) {
+        if (projection == null || !writeHeader) {
             return null;
         }
 

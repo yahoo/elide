@@ -2,39 +2,41 @@ server:
   port: 4001
 
 elide:
-  baseUrl: 'https://elide.io'
+  base-url: 'https://elide.io'
   json-api:
+    enabled: true
     path: /json
-    enabled: true
   graphql:
-    path: /graphql
     enabled: true
+    path: /graphql
+    subscription:
+      enabled: true
+      send-ping-on-subscribe: true
+      path: /subscription
   api-docs:
     path: /doc
     enabled: true
-  subscription:
-    enabled: true
-    sendPingOnSubscribe: true
-    path: /subscription
   async:
     enabled: true
-    threadPoolSize: 7
-    maxRunTimeMinutes: 65
-    cleanupEnabled: true
-    queryCleanupDays: 7
-    defaultAsyncAPIDAO: true
+    thread-pool-size: 7
+    cleanup:
+      enabled: true
+      query-max-run-time: 65m
+      query-retention-duration: 7d
     export:
       enabled: true
       path: /export
-      extensionEnabled: true
-  dynamic-config:
-    path: src/test/resources/configs
-    enabled: true
-    configApiEnabled: false
+      append-file-extension: true
   aggregation-store:
     enabled: true
     default-dialect: h2
-    enableMetaDataStore: true
+    metadata-store:
+      enabled: true
+    dynamic-config:
+      enabled: true
+      path: src/test/resources/configs
+      config-api:
+        enabled: false
 spring:
   jpa:
     show-sql: true

@@ -23,10 +23,10 @@ import com.google.common.collect.Sets;
 
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -42,12 +42,17 @@ import java.util.stream.StreamSupport;
  */
 @Slf4j
 @Data
-@AllArgsConstructor
 public class AsyncAPICancelRunnable implements Runnable {
 
-    private int maxRunTimeSeconds;
+    private long queryMaxRunTimeSeconds;
     private Elide elide;
     private AsyncAPIDAO asyncAPIDao;
+
+    public AsyncAPICancelRunnable(Duration queryMaxRunTime, Elide elide, AsyncAPIDAO asyncAPIDao) {
+        this.queryMaxRunTimeSeconds = queryMaxRunTime.toSeconds();
+        this.elide = elide;
+        this.asyncAPIDao = asyncAPIDao;
+    }
 
     @Override
     public void run() {
@@ -81,7 +86,7 @@ public class AsyncAPICancelRunnable implements Runnable {
             Set<UUID> asyncTransactionUUIDs = StreamSupport.stream(asyncAPIIterable.spliterator(), false)
                     .filter(query -> query.getStatus() == QueryStatus.CANCELLED
                     || TimeUnit.SECONDS.convert(Math.abs(new Date(System.currentTimeMillis()).getTime()
-                            - query.getCreatedOn().getTime()), TimeUnit.MILLISECONDS) > maxRunTimeSeconds)
+                            - query.getCreatedOn().getTime()), TimeUnit.MILLISECONDS) > queryMaxRunTimeSeconds)
                     .map(query -> UUID.fromString(query.getRequestId()))
             .collect(Collectors.toSet());
 

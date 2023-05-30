@@ -62,7 +62,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testResourceToCSV() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType createdOn} } } }";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
@@ -100,7 +100,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testNullResourceToCSV() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
         PersistentResource persistentResource = null;
 
         String output = formatter.format(persistentResource, 1);
@@ -109,7 +109,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testNullProjectionHeader() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -122,7 +122,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testProjectionWithEmptyAttributeSetHeader() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -136,7 +136,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testProjectionWithNullAttributesHeader() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -150,7 +150,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testHeader() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -172,7 +172,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testHeaderWithNonmatchingAlias() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -194,7 +194,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testHeaderWithArguments() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -226,7 +226,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testHeaderSkip() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";

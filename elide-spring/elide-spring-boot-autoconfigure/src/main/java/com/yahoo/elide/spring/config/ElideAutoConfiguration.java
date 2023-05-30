@@ -139,11 +139,12 @@ public class ElideAutoConfiguration {
     @Bean
     @Scope(SCOPE_PROTOTYPE)
     @ConditionalOnMissingBean
-    @ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
+    @ConditionalOnExpression(
+            "${elide.aggregation-store.enabled:false} and ${elide.aggregation-store.dynamic-config.enabled:false}")
     public DynamicConfiguration buildDynamicConfiguration(ClassScanner scanner,
                                                           ElideConfigProperties settings) throws IOException {
         DynamicConfigValidator validator = new DynamicConfigValidator(scanner,
-                settings.getDynamicConfig().getPath());
+                settings.getAggregationStore().getDynamicConfig().getPath());
         validator.readAndValidateConfigs();
         return validator;
     }
@@ -196,7 +197,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public HeaderUtils.HeaderProcessor getHeaderProcessor(ElideConfigProperties settings) {
-        if (settings.isStripAuthorizatonHeaders()) {
+        if (settings.isStripAuthorizationHeaders()) {
             return HeaderUtils::lowercaseAndRemoveAuthHeaders;
         } else {
             //Identity Function
@@ -271,7 +272,7 @@ public class ElideAutoConfiguration {
 
         Map<String, Class<? extends Check>> checks = new HashMap<>();
 
-        if (settings.getDynamicConfig().isConfigApiEnabled()) {
+        if (settings.getAggregationStore().getDynamicConfig().getConfigApi().isEnabled()) {
             checks.put(ConfigChecks.CAN_CREATE_CONFIG, ConfigChecks.CanNotCreate.class);
             checks.put(ConfigChecks.CAN_READ_CONFIG, ConfigChecks.CanNotRead.class);
             checks.put(ConfigChecks.CAN_DELETE_CONFIG, ConfigChecks.CanNotDelete.class);
@@ -317,7 +318,7 @@ public class ElideAutoConfiguration {
                                         DataSourceConfiguration dataSourceConfiguration,
                                         DBPasswordExtractor dbPasswordExtractor) {
 
-        boolean enableMetaDataStore = settings.getAggregationStore().isEnableMetaDataStore();
+        boolean enableMetaDataStore = settings.getAggregationStore().getMetadataStore().isEnabled();
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource,
                         SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
         if (isDynamicConfigEnabled(settings) && optionalDynamicConfig.isPresent()) {
@@ -441,9 +442,10 @@ public class ElideAutoConfiguration {
             if (isDynamicConfigEnabled(settings)) {
                 optionalQueryEngine.ifPresent(queryEngine -> aggregationDataStoreBuilder
                         .dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes()));
-                if (settings.getDynamicConfig().isConfigApiEnabled()) {
-                    stores.add(new ConfigDataStore(settings.getDynamicConfig().getPath(),
-                            new TemplateConfigValidator(scanner, settings.getDynamicConfig().getPath())));
+                if (settings.getAggregationStore().getDynamicConfig().getConfigApi().isEnabled()) {
+                    stores.add(new ConfigDataStore(settings.getAggregationStore().getDynamicConfig().getPath(),
+                            new TemplateConfigValidator(scanner,
+                                    settings.getAggregationStore().getDynamicConfig().getPath())));
                 }
             }
             optionalCache.ifPresent(aggregationDataStoreBuilder::cache);
@@ -473,10 +475,10 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public Cache buildQueryCache(ElideConfigProperties settings, Optional<MeterRegistry> optionalMeterRegistry) {
-        int maxCacheItems = settings.getAggregationStore().getQueryCacheMaximumEntries();
-        if (maxCacheItems > 0) {
+        int maxCacheItems = settings.getAggregationStore().getQueryCache().getMaxSize();
+        if (settings.getAggregationStore().getQueryCache().isEnabled() && maxCacheItems > 0) {
             final CaffeineCache cache = new CaffeineCache(maxCacheItems,
-                    settings.getAggregationStore().getDefaultCacheExpirationMinutes());
+                    settings.getAggregationStore().getQueryCache().getExpiration());
             optionalMeterRegistry.ifPresent(meterRegistry -> CaffeineCacheMetrics.monitor(meterRegistry,
                     cache.getImplementation(), "elideQueryCache"));
             return cache;
@@ -749,7 +751,7 @@ public class ElideAutoConfiguration {
         if (settings.getGraphql() != null && settings.getGraphql().isEnabled()) {
             builder.withGraphQLApiPath(settings.getGraphql().getPath());
 
-            if (settings.getGraphql().isEnableFederation()) {
+            if (settings.getGraphql().getFederation().isEnabled()) {
                 builder.withGraphQLFederation(true);
             }
         }
@@ -757,7 +759,7 @@ public class ElideAutoConfiguration {
         if (settings.getJsonApi() != null && settings.getJsonApi().isEnabled()) {
             builder.withJsonApiPath(settings.getJsonApi().getPath());
 
-            if (settings.getJsonApi().isEnableLinks()) {
+            if (settings.getJsonApi().getLinks().isEnabled()) {
                 String baseUrl = settings.getBaseUrl();
 
                 if (StringUtils.isEmpty(baseUrl)) {
@@ -806,8 +808,8 @@ public class ElideAutoConfiguration {
     public static boolean isDynamicConfigEnabled(ElideConfigProperties settings) {
 
         boolean enabled = false;
-        if (settings.getDynamicConfig() != null) {
-            enabled = settings.getDynamicConfig().isEnabled();
+        if (settings.getAggregationStore() != null && settings.getAggregationStore().getDynamicConfig() != null) {
+            enabled = settings.getAggregationStore().getDynamicConfig().isEnabled();
         }
 
         return enabled;

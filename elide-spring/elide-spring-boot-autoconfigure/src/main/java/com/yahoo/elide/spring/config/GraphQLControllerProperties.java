@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.spring.config;
 
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,8 +17,19 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class GraphQLControllerProperties extends ControllerProperties {
 
+    @Data
+    public static class Federation {
+        /**
+         * Turns on/off Apollo federation schema.
+         */
+        private boolean enabled = false;
+    }
+
     /**
-     * Turns on/off Apollo federation schema.
+     * Settings for subscriptions.
      */
-    boolean enableFederation = false;
+    @NestedConfigurationProperty
+    private SubscriptionProperties subscription = new SubscriptionProperties();
+
+    private Federation federation = new Federation();
 }

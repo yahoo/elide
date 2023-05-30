@@ -81,7 +81,7 @@ import java.util.Map;
 )
 @TestPropertySource(
         properties = {
-                "elide.json-api.enableLinks=true",
+                "elide.json-api.links.enabled=true",
                 "elide.async.export.enabled=false",
         }
 )

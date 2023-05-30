@@ -23,6 +23,7 @@ import com.yahoo.elide.core.security.RequestScope;
 import lombok.Data;
 
 import java.security.Principal;
+import java.time.Duration;
 import java.util.concurrent.Callable;
 
 /**
@@ -32,11 +33,11 @@ import java.util.concurrent.Callable;
 @Data
 public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<T> {
     private final AsyncExecutorService asyncExecutorService;
-    private final Integer maxAsyncAfterSeconds;
+    private final long maxAsyncAfterSeconds;
 
-    public AsyncAPIHook(AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds) {
+    protected AsyncAPIHook(AsyncExecutorService asyncExecutorService, Duration maxAsyncAfter) {
         this.asyncExecutorService = asyncExecutorService;
-        this.maxAsyncAfterSeconds = maxAsyncAfterSeconds;
+        this.maxAsyncAfterSeconds = maxAsyncAfter.toSeconds();
     }
 
     /**

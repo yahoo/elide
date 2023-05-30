@@ -27,6 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -44,7 +45,7 @@ public class ExportApiEndpoint {
     @AllArgsConstructor
     public static class ExportApiProperties {
         private ExecutorService executor;
-        private Integer maxDownloadTimeSeconds;
+        private Duration maxDownloadTime;
     }
 
     @Inject
@@ -65,7 +66,7 @@ public class ExportApiEndpoint {
     @Path("/{asyncQueryId}")
     public void get(@PathParam("asyncQueryId") String asyncQueryId, @Context HttpServletResponse httpServletResponse,
             @Suspended final AsyncResponse asyncResponse) {
-        asyncResponse.setTimeout(exportApiProperties.getMaxDownloadTimeSeconds(), TimeUnit.SECONDS);
+        asyncResponse.setTimeout(exportApiProperties.getMaxDownloadTime().toSeconds(), TimeUnit.SECONDS);
         asyncResponse.setTimeoutHandler(async -> {
             ResponseBuilder resp = Response.status(Response.Status.REQUEST_TIMEOUT).entity("Timed out.");
             async.resume(resp.build());

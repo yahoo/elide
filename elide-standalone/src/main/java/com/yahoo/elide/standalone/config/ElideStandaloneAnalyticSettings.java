@@ -11,6 +11,7 @@ import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.time.Duration;
 
 /**
  * Interface for configuring the Analytic configuration of Standalone Application.
@@ -86,16 +87,16 @@ public interface ElideStandaloneAnalyticSettings {
      *
      * @return Default: 1024
      */
-    default Integer getQueryCacheMaximumEntries() {
+    default Integer getQueryCacheMaxSize() {
         return CaffeineCache.DEFAULT_MAXIMUM_ENTRIES;
     }
 
     /**
      * Returns the default expiration in minutes of items in the AggregationDataStore query cache.
      *
-     * @return Default: 10
+     * @return Default: 10m
      */
-    default Long getDefaultCacheExpirationMinutes() {
-        return 10L;
+    default Duration getQueryCacheExpiration() {
+        return Duration.ofMinutes(10L);
     }
 }

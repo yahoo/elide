@@ -15,8 +15,13 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class JsonApiControllerProperties extends ControllerProperties {
 
-    /**
-     * Turns on/off JSON-API links in the API.
-     */
-    boolean enableLinks = false;
+    @Data
+    public static class Links {
+        /**
+         * Turns on/off JSON-API links in the API.
+         */
+        private boolean enabled = false;
+    }
+
+    private Links links = new Links();
 }

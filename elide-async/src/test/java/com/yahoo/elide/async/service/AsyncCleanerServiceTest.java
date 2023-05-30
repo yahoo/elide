@@ -15,6 +15,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import java.time.Duration;
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncCleanerServiceTest {
 
@@ -24,7 +26,7 @@ public class AsyncCleanerServiceTest {
     public void setupMocks() {
         Elide elide = mock(Elide.class);
         AsyncAPIDAO dao = mock(DefaultAsyncAPIDAO.class);
-        AsyncCleanerService.init(elide, 5, 60, 300, dao);
+        AsyncCleanerService.init(elide, Duration.ofSeconds(5), Duration.ofDays(60), Duration.ofSeconds(300), dao);
         service = AsyncCleanerService.getInstance();
     }
 

@@ -62,6 +62,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -218,7 +219,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     void testConnectionTimeout() throws Exception {
         SubscriptionWebSocket endpoint = SubscriptionWebSocket.builder()
                 .executorService(executorService)
-                .connectTimeoutMs(0).elide(elide).build();
+                .connectionTimeout(Duration.ZERO).elide(elide).build();
 
         endpoint.onOpen(session);
 

@@ -167,20 +167,20 @@ public class ElideResourceConfig extends ResourceConfig {
             if (asyncProperties.enableExport()) {
                 ExportApiProperties exportApiProperties = new ExportApiProperties(
                         asyncProperties.getExportAsyncResponseExecutor(),
-                        asyncProperties.getExportAsyncResponseTimeoutSeconds());
+                        asyncProperties.getExportAsyncResponseTimeout());
                 bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
 
                 ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                 if (resultStorageEngine == null) {
                     resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination(),
-                            asyncProperties.enableExtension());
+                            asyncProperties.appendFileExtension());
                 }
                 bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
                 // Initialize the Formatters.
                 Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
                 supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide,
-                        asyncProperties.skipCSVHeader()));
+                        asyncProperties.csvWriteHeader()));
                 supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 
                 // Binding TableExport LifeCycleHook
@@ -193,7 +193,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
             // Binding AsyncQuery LifeCycleHook
             AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
-                    asyncProperties.getMaxAsyncAfterSeconds());
+                    asyncProperties.getMaxAsyncAfter());
 
             dictionary.bindTrigger(AsyncQuery.class, CREATE, PREFLUSH, asyncQueryHook, false);
             dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
@@ -201,9 +201,9 @@ public class ElideResourceConfig extends ResourceConfig {
 
             // Binding async cleanup service
             if (asyncProperties.enableCleanup()) {
-                AsyncCleanerService.init(elide, asyncProperties.getMaxRunTimeSeconds(),
-                        asyncProperties.getQueryCleanupDays(),
-                        asyncProperties.getQueryCancelCheckIntervalSeconds(), asyncAPIDao);
+                AsyncCleanerService.init(elide, asyncProperties.getQueryMaxRunTime(),
+                        asyncProperties.getQueryRetentionDuration(),
+                        asyncProperties.getQueryCancellationCheckInterval(), asyncAPIDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         }
@@ -320,10 +320,10 @@ public class ElideResourceConfig extends ResourceConfig {
             ResultStorageEngine engine) {
         TableExportHook tableExportHook = null;
         if (asyncProperties.enableExport()) {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfterSeconds(),
+            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
                     supportedFormatters, engine);
         } else {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfterSeconds(),
+            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
                     supportedFormatters, engine) {
                 @Override
                 public void validateOptions(AsyncAPI export, RequestScope requestScope) {
