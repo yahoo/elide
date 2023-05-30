@@ -39,7 +39,6 @@
 
     <properties>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
-        <atomikos.version>6.0.0</atomikos.version>
     </properties>
 
     <dependencies>
@@ -273,7 +272,6 @@
         <dependency>
             <groupId>com.atomikos</groupId>
             <artifactId>transactions-spring-boot3-starter</artifactId>
-            <version>${atomikos.version}</version>
             <scope>test</scope>
         </dependency>
 
