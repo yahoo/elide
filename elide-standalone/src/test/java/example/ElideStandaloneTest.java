@@ -111,7 +111,7 @@ public class ElideStandaloneTest {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .delete("/api/v1/post/1")
+            .delete("/api/post/1")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT);
     }
@@ -134,13 +134,13 @@ public class ElideStandaloneTest {
                             )
                     )
             )
-            .post("/api/v1/operations")
+            .post("/api/operations")
             .then()
             .statusCode(HttpStatus.SC_OK);
 
         given()
             .when()
-            .get("/api/v1/post/10")
+            .get("/api/post/10")
             .then()
             .statusCode(200)
             .body(equalTo(
@@ -154,7 +154,7 @@ public class ElideStandaloneTest {
                                             attr("date", null)
                                     ),
                                     links(
-                                            attr("self", "https://elide.io/api/v1/post/10")
+                                            attr("self", "https://elide.io/api/post/10")
                                     )
                             )
                     ).toJSON()
@@ -170,7 +170,7 @@ public class ElideStandaloneTest {
                                 ref(type("post"), id("10")))
                         )
                 )
-            .post("/api/v1/operations")
+            .post("/api/operations")
             .then()
             .statusCode(HttpStatus.SC_OK);
     }

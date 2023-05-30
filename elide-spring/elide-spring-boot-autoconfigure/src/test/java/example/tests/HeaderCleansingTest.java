@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,7 +90,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en-US")
                 .queryParam(SORT_PARAM, "name", "description")
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -148,7 +148,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
                 .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
                 .queryParam(SORT_PARAM, "name", "description")
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -215,7 +215,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
                 .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
                 .queryParam(SORT_PARAM, "name", "description")
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(datum(
                         linkage(type("product"), id("foo"))
                 ))
