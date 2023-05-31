@@ -92,25 +92,21 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
 
     @Override
     public void commit(RequestScope scope) {
-        synchronized (dataStore) {
-            operations.stream()
-                    .filter(op -> op.getInstance() != null)
-                    .forEach(op -> {
-                        Object instance = op.getInstance();
-                        String id = op.getId();
-                        Map<String, Object> data = dataStore.get(op.getType());
-                        if (op.getOpType() == Operation.OpType.DELETE) {
-                            data.remove(id);
-                        } else {
-                            if (op.getOpType() == Operation.OpType.CREATE && data.get(id) != null) {
-                                throw new TransactionException(new IllegalStateException("Duplicate key"));
-                            }
-                            data.put(id, instance);
-                        }
-                    });
-            operations.clear();
-            committed = true;
-        }
+        operations.stream().filter(op -> op.getInstance() != null).forEach(op -> {
+            Object instance = op.getInstance();
+            String id = op.getId();
+            Map<String, Object> data = dataStore.get(op.getType());
+            if (op.getOpType() == Operation.OpType.DELETE) {
+                data.remove(id);
+            } else {
+                if (op.getOpType() == Operation.OpType.CREATE && data.get(id) != null) {
+                    throw new TransactionException(new IllegalStateException("Duplicate key"));
+                }
+                data.put(id, instance);
+            }
+        });
+        operations.clear();
+        committed = true;
     }
 
     @Override
@@ -127,10 +123,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
         //GeneratedValue means the DB needs to assign the ID.
         if (dictionary.getAttributeOrRelationAnnotation(entityClass, GeneratedValue.class, idFieldName) != null) {
             // TODO: Id's are not necessarily numeric.
-            AtomicLong nextId;
-            synchronized (dataStore) {
-                nextId = getId(entityClass);
-            }
+            AtomicLong nextId = getId(entityClass);
             id = String.valueOf(nextId.getAndIncrement());
             setId(entity, id);
         } else {
@@ -157,11 +150,9 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     @Override
     public DataStoreIterable<Object> loadObjects(EntityProjection projection,
                                                           RequestScope scope) {
-        synchronized (dataStore) {
-            Map<String, Object> data = dataStore.get(projection.getType());
-            cacheForRollback(projection.getType(), data);
-            return new DataStoreIterableBuilder<>(data.values()).allInMemory().build();
-        }
+        Map<String, Object> data = dataStore.get(projection.getType());
+        cacheForRollback(projection.getType(), data);
+        return new DataStoreIterableBuilder<>(data.values()).allInMemory().build();
     }
 
     @Override
@@ -169,17 +160,15 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
 
         EntityDictionary dictionary = scope.getDictionary();
 
-        synchronized (dataStore) {
-            Map<String, Object> data = dataStore.get(projection.getType());
-            cacheForRollback(projection.getType(), data);
-            if (data == null) {
-                return null;
-            }
-            Serde serde = dictionary.getSerdeLookup().apply(id.getClass());
-
-            String idString = (serde == null) ? id.toString() : (String) serde.serialize(id);
-            return data.get(idString);
+        Map<String, Object> data = dataStore.get(projection.getType());
+        cacheForRollback(projection.getType(), data);
+        if (data == null) {
+            return null;
         }
+        Serde serde = dictionary.getSerdeLookup().apply(id.getClass());
+
+        String idString = (serde == null) ? id.toString() : (String) serde.serialize(id);
+        return data.get(idString);
     }
 
     /**
