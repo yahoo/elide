@@ -89,8 +89,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 
 import io.reactivex.Observable;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import nocreate.NoCreateEntity;
 
 import java.math.BigDecimal;
@@ -101,6 +99,7 @@ import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +124,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @BeforeEach
     public void beforeTest() {
         reset(tx);
+    }
+
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
     }
 
     @Test
@@ -1038,8 +1041,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.getToManyRelation(eq(tx), any(), any(), any()))
                 .thenReturn(new DataStoreIterableBuilder(Sets.newHashSet(child1)).build());
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[child.name]", "paul john");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[child.name]", "paul john");
         RequestScope goodScope = buildRequestScope("/child", tx, goodUser, queryParams);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
@@ -2879,9 +2882,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testFilterExpressionByType() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
@@ -2900,9 +2903,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testFilterExpressionCollection() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book.authors.name][infix]",
                 "Hemingway"
         );
@@ -2922,9 +2925,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testSparseFields() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add("fields[author]", "name");
+        add(queryParams, "fields[author]", "name");
 
         RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class),
                 new TestUser("1"), queryParams);

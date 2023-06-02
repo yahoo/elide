@@ -34,7 +34,6 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import io.reactivex.Observable;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -71,7 +70,7 @@ public class CollectionTerminalState extends BaseState {
     public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
+        Map<String, List<String>> queryParams = requestScope.getQueryParams();
 
         LinkedHashSet<PersistentResource> collection =
                 getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();

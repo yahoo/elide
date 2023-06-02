@@ -18,13 +18,12 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,12 +43,12 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
      * @return a list of the predicates from the query params
      * @throws ParseException when a filter parameter cannot be parsed
      */
-    private List<FilterPredicate> extractPredicates(MultivaluedMap<String, String> queryParams,
+    private List<FilterPredicate> extractPredicates(Map<String, List<String>> queryParams,
                                                     String apiVersion) throws ParseException {
         List<FilterPredicate> filterPredicates = new ArrayList<>();
 
         Pattern pattern = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?");
-        for (MultivaluedMap.Entry<String, List<String>> entry : queryParams.entrySet()) {
+        for (Entry<String, List<String>> entry : queryParams.entrySet()) {
             // Match "filter[<type>.<field>]" OR "filter[<type>.<field>][<operator>]"
 
             String paramName = entry.getKey();
@@ -91,7 +90,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     }
 
     @Override
-    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams,
+    public FilterExpression parseGlobalExpression(String path, Map<String, List<String>> filterParams,
                                                   String apiVersion)
             throws ParseException {
         List<FilterPredicate> filterPredicates;
@@ -135,7 +134,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     }
 
     @Override
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams,
+    public Map<String, FilterExpression> parseTypedExpression(String path, Map<String, List<String>> filterParams,
                                                               String apiVersion)
             throws ParseException {
         Map<String, FilterExpression> expressionMap = new HashMap<>();

@@ -32,13 +32,13 @@ import example.Company;
 import example.Person;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.glassfish.jersey.internal.util.collection.ImmutableMultivaluedMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
@@ -64,7 +64,7 @@ public class JsonApiAtomicOperationsTest {
             Function<JsonApiAtomicOperationsRequestScope, Supplier<Pair<Integer, JsonNode>>> callback) {
         try (DataStoreTransaction transaction = this.dataStore.beginTransaction()) {
             JsonApiAtomicOperationsRequestScope scope = new JsonApiAtomicOperationsRequestScope("https://elide.io", "", "", transaction, null,
-                    UUID.randomUUID(), ImmutableMultivaluedMap.empty(), new HashMap<>(), settings);
+                    UUID.randomUUID(), Collections.emptyMap(), new HashMap<>(), settings);
             Supplier<Pair<Integer, JsonNode>> result = callback.apply(scope);
 
             scope.saveOrCreateObjects();

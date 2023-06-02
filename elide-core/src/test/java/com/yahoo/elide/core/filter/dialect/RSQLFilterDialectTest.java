@@ -31,12 +31,13 @@ import org.junit.jupiter.api.Test;
 
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,11 +60,15 @@ public class RSQLFilterDialectTest {
         dialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
     }
 
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
+
     @Test
     public void testTypedExpressionParsingWithComplexAttribute() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author]",
                 "homeAddress.street1==*State*"
         );
@@ -79,14 +84,14 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testTypedExpressionParsing() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book]",
                 "title==*foo*;title!=bar*;(genre=in=(sci-fi,action),publishDate>123)"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author]",
                 "books.title=in=(foo,bar,baz)"
         );
@@ -107,7 +112,7 @@ public class RSQLFilterDialectTest {
         );
 
         queryParams.clear();
-        queryParams.add(
+        add(queryParams,
                 "filter[author]",
                 "books.title=ini=(foo,bar,baz)"
         );
@@ -123,9 +128,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testGlobalExpressionParsingWithComplexAttribute() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter", "homeAddress.street1==*State*"
         );
 
@@ -136,9 +141,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testGlobalExpressionParsing() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title==*foo*;authors.name=ini=Hemingway"
         );
@@ -153,9 +158,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testEqualOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title==Hemingway"
         );
@@ -167,9 +172,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testNotEqualOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title!=Hemingway"
         );
@@ -181,9 +186,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testInOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=in=Hemingway"
         );
@@ -195,9 +200,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testInInsensitiveOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=ini=Hemingway"
         );
@@ -209,9 +214,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testOutOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=out=Hemingway"
         );
@@ -223,9 +228,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testOutInsensitiveOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=outi=Hemingway"
         );
@@ -237,9 +242,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testNumericComparisonOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "(publishDate=gt=5,publishDate=ge=5,publishDate=lt=10,publishDate=le=10);"
                         + "(publishDate>5,publishDate>=5,publishDate<10,publishDate<=10)"
@@ -259,9 +264,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testBetweenOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "(publishDate=notbetween=(5,10))"
         );
@@ -276,9 +281,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testSubstringOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title==*Hemingway*,title==*Hemingway,title==Hemingway*"
         );
@@ -295,9 +300,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testSubstringCIOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=ini=*Hemingway*,title=ini=*Hemingway,title=ini=Hemingway*"
         );
@@ -314,9 +319,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testExpressionGrouping() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=ini=foo;(title==bar;title==baz)"
         );
@@ -332,9 +337,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testIsnullOperatorBool() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isnull=true"
         );
@@ -346,9 +351,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testIsnullOperatorInt() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isnull=1"
         );
@@ -360,9 +365,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testNotnullOperatorBool() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isnull=false"
         );
@@ -374,9 +379,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testNotnullOperatorInt() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isnull=0"
         );
@@ -404,9 +409,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testFilterOnCustomizedLongIdField() throws ParseException {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "id==1"
         );
@@ -418,9 +423,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testFilterOnCustomizedStringIdField() throws ParseException {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "id==*identifier*"
         );
@@ -432,9 +437,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testInfixFilterOnPrimitiveIdField() throws ParseException {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "id==*1*"
         );
@@ -450,9 +455,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testIsemptyOperatorBool() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isempty=true"
         );
@@ -464,9 +469,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testIsemptyOperatorInt() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "authors=isempty=1"
         );
@@ -478,9 +483,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testNotemptyOperatorBool() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "authors=isempty=false"
         );
@@ -492,9 +497,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testNotemptyOperatorInt() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isempty=0"
         );
@@ -506,9 +511,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testEmptyOperatorException() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "authors.name=isempty=0"
         );
@@ -519,9 +524,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testMemberOfOperatorInt() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "awards=hasmember=title1"
         );
@@ -533,9 +538,9 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testMemberOfToManyRelationship() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "authors.name=hasmember='0'"
         );
@@ -546,10 +551,10 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testMemberOfOperatorOnNonCollectionAttributeException() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
         queryParams.clear();
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=hasmember=title11"
         );
@@ -562,10 +567,10 @@ public class RSQLFilterDialectTest {
 
     @Test
     public void testMemberOfOperatorOnRelationshipException() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
         queryParams.clear();
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "authors=hasmember=1"
         );

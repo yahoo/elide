@@ -16,10 +16,12 @@ import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.type.ClassType;
-import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.junit.jupiter.api.Test;
 
-import jakarta.ws.rs.core.MultivaluedMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Tests parsing the page params for json-api pagination.
@@ -29,12 +31,15 @@ public class PaginationImplTest {
             new ElideSettingsBuilder(null)
                     .withEntityDictionary(EntityDictionary.builder().build())
                     .build();
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
 
     @Test
     public void shouldParseQueryParamsForCurrentPageAndPageSize() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[size]", "10");
-        queryParams.add("page[number]", "2");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[size]", "10");
+        add(queryParams, "page[number]", "2");
 
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings);
@@ -46,9 +51,9 @@ public class PaginationImplTest {
 
     @Test
     public void shouldThrowExceptionForNegativePageNumber() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[size]", "10");
-        queryParams.add("page[number]", "-2");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[size]", "10");
+        add(queryParams, "page[number]", "-2");
 
         assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings));
@@ -56,9 +61,9 @@ public class PaginationImplTest {
 
     @Test
     public void shouldThrowExceptionForNegativePageSize() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[size]", "-10");
-        queryParams.add("page[number]", "2");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[size]", "-10");
+        add(queryParams, "page[number]", "2");
 
         assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings));
@@ -66,9 +71,9 @@ public class PaginationImplTest {
 
     @Test
     public void shouldParseQueryParamsForOffsetAndLimit() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[limit]", "10");
-        queryParams.add("page[offset]", "2");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[limit]", "10");
+        add(queryParams, "page[offset]", "2");
 
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings);
@@ -79,7 +84,7 @@ public class PaginationImplTest {
 
     @Test
     public void shouldUseDefaultsWhenMissingCurrentPageAndPageSize() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings);
         assertEquals(PaginationImpl.DEFAULT_OFFSET, pageData.getOffset());
@@ -141,8 +146,8 @@ public class PaginationImplTest {
 
     @Test
     public void neverExceedMaxPageSize() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[size]", "25000");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[size]", "25000");
         assertThrows(InvalidValueException.class,
                 () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                         queryParams, elideSettings));
@@ -150,9 +155,9 @@ public class PaginationImplTest {
 
     @Test
     public void invalidUsageOfPaginationParameters() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[size]", "10");
-        queryParams.add("page[offset]", "100");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[size]", "10");
+        add(queryParams, "page[offset]", "100");
         assertThrows(InvalidValueException.class,
                 () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                         queryParams, elideSettings));
@@ -160,8 +165,8 @@ public class PaginationImplTest {
 
     @Test
     public void pageBasedPaginationWithDefaultSize() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[number]", "2");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[number]", "2");
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImpl.class),
                 queryParams, elideSettings);
         assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getLimit());
@@ -170,8 +175,8 @@ public class PaginationImplTest {
 
     @Test
     public void shouldThrowExceptionForNonIntPageParamValues() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[size]", "2.5");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[size]", "2.5");
         assertThrows(InvalidValueException.class,
                 () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                         queryParams, elideSettings));
@@ -179,8 +184,8 @@ public class PaginationImplTest {
 
     @Test
     public void shouldThrowExceptionForInvalidPageParams() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[random]", "1");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[random]", "1");
         assertThrows(InvalidValueException.class,
         () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings));
@@ -188,8 +193,8 @@ public class PaginationImplTest {
 
     @Test
     public void shouldSetGenerateTotals() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        queryParams.add("page[totals]", null);
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[totals]", null);
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings);
         assertTrue(pageData.returnPageTotals());
@@ -197,7 +202,7 @@ public class PaginationImplTest {
 
     @Test
     public void shouldNotSetGenerateTotals() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings);
         assertFalse(pageData.returnPageTotals());
@@ -206,7 +211,7 @@ public class PaginationImplTest {
 
     @Test
     public void shouldUseDefaultsWhenNoParams() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings);
@@ -228,7 +233,7 @@ public class PaginationImplTest {
         @Paginate(maxLimit = 100000, defaultLimit = 10)
         class PaginationOverrideTest { }
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationOverrideTest.class),
                 queryParams,
                 new ElideSettingsBuilder(null)

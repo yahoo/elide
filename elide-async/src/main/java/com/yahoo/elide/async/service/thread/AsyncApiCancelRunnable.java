@@ -21,14 +21,14 @@ import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Sets;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -108,7 +108,7 @@ public class AsyncApiCancelRunnable implements Runnable {
                    DataStoreTransaction runningTransaction = transactionRegistry.getRunningTransaction(uuid);
                    if (runningTransaction != null) {
                        JsonApiDocument jsonApiDoc = new JsonApiDocument();
-                       MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+                       Map<String, List<String>> queryParams = new LinkedHashMap<>();
                        RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
                                runningTransaction, null, queryParams, Collections.emptyMap(),
                                uuid, elide.getElideSettings());

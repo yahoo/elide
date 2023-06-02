@@ -24,13 +24,13 @@ import example.Book;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +51,11 @@ public class FilterPredicateTest {
         strategy = new DefaultFilterDialect(entityDictionary);
     }
 
-    private Map<String, Set<FilterPredicate>> parse(MultivaluedMap<String, String> queryParams) {
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
+
+    private Map<String, Set<FilterPredicate>> parse(Map<String, List<String>> queryParams) {
         PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
 
         Map<String, FilterExpression> expressionMap;
@@ -77,8 +81,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldSingleValue() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title]", "abc");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title]", "abc");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -91,8 +95,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldMultipleValues() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title]", "abc,def");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title]", "abc,def");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -105,9 +109,9 @@ public class FilterPredicateTest {
 
     @Test
     void testMultipleFieldMultipleValues() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title]", "abc,def");
-        queryParams.add("filter[book.genre]", "def,jkl");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title]", "abc,def");
+        add(queryParams, "filter[book.genre]", "def,jkl");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -130,8 +134,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldWithInOperator() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title][in]", "abc,def");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title][in]", "abc,def");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -144,8 +148,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldWithNotOperator() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title][not]", "abc,def");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title][not]", "abc,def");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -158,8 +162,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldWithPrefixOperator() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title][prefix]", "abc");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title][prefix]", "abc");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -172,8 +176,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldWithPostfixOperator() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title][postfix]", "abc,def");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title][postfix]", "abc,def");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -186,8 +190,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldWithInfixOperator() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title][infix]", "abc,def");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title][infix]", "abc,def");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -200,8 +204,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldWithNotPrefixOperator() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title][notprefix]", "abc");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title][notprefix]", "abc");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -214,8 +218,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldWithNotPostfixOperator() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title][notpostfix]", "abc,def");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title][notpostfix]", "abc,def");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -228,8 +232,8 @@ public class FilterPredicateTest {
 
     @Test
     void testSingleFieldWithNotInfixOperator() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.title][notinfix]", "abc,def");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.title][notinfix]", "abc,def");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -242,16 +246,16 @@ public class FilterPredicateTest {
 
     @Test
     void testMissingType() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[title]", "abc,def");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[title]", "abc,def");
 
         assertThrows(BadRequestException.class, () -> parse(queryParams));
     }
 
     @Test
     void testIntegerFieldType() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.id]", "1");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.id]", "1");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));
@@ -264,8 +268,8 @@ public class FilterPredicateTest {
 
     @Test
     void testComplexAttributeFieldType() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[author.homeAddress.street1]", "foo");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[author.homeAddress.street1]", "foo");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("author"));
@@ -282,8 +286,8 @@ public class FilterPredicateTest {
 
     @Test
     void testMultipleIntegerFieldType() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book.id]", "1,2,3");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book.id]", "1,2,3");
 
         Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
         assertTrue(predicates.containsKey("book"));

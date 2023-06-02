@@ -37,9 +37,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -107,11 +105,11 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
         verify(elide.getElide()).post(any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
         assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
 
@@ -130,11 +128,11 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
         verify(elide.getElide()).get(any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
         assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
 
@@ -165,11 +163,11 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
         verify(elide.getElide()).patch(any(), any(), any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
         assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
 
@@ -188,7 +186,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
         verify(elide.getElide()).delete(
                 any(),
@@ -201,7 +199,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 any()
         );
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
         assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
 
@@ -224,7 +222,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
         verify(elide.getElide()).delete(
                 any(),
@@ -237,7 +235,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 any()
         );
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
         assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
 

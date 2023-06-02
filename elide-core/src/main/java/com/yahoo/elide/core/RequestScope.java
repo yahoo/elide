@@ -30,14 +30,13 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.collections.MapUtils;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +55,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter protected final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
-    @Getter private final MultivaluedMap<String, String> queryParams;
+    @Getter private final Map<String, List<String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final PermissionExecutor permissionExecutor;
@@ -102,7 +101,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
-                        MultivaluedMap<String, String> queryParams,
+                        Map<String, List<String>> queryParams,
                         Map<String, List<String>> requestHeaders,
                         UUID requestId,
                         ElideSettings elideSettings) {
@@ -130,7 +129,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
         this.metadata = new HashMap<>();
-        this.queryParams = queryParams == null ? new MultivaluedHashMap<>() : queryParams;
+        this.queryParams = queryParams == null ? new LinkedHashMap<>() : queryParams;
 
         this.requestHeaders = MapUtils.isEmpty(requestHeaders)
                 ? Collections.emptyMap()
@@ -141,7 +140,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         if (!this.queryParams.isEmpty()) {
 
             /* Extract any query param that starts with 'filter' */
-            MultivaluedMap<String, String> filterParams = getFilterParams(this.queryParams);
+            Map<String, List<String>> filterParams = getFilterParams(this.queryParams);
 
             String errorMessage = "";
             if (! filterParams.isEmpty()) {
@@ -204,8 +203,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.dictionary = outerRequestScope.dictionary;
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
-        this.queryParams = new MultivaluedHashMap<>();
-        this.requestHeaders = new MultivaluedHashMap<>();
+        this.queryParams = new LinkedHashMap<>();
+        this.requestHeaders = new LinkedHashMap<>();
         this.requestHeaders.putAll(outerRequestScope.requestHeaders);
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
@@ -235,7 +234,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param queryParams The request query parameters
      * @return Parsed sparseFields map
      */
-    public static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
+    public static Map<String, Set<String>> parseSparseFields(Map<String, List<String>> queryParams) {
         Map<String, Set<String>> result = new HashMap<>();
 
         for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
@@ -312,8 +311,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param queryParams request query params
      * @return extracted filter params
      */
-    private static MultivaluedMap<String, String> getFilterParams(MultivaluedMap<String, String> queryParams) {
-        MultivaluedMap<String, String> returnMap = new MultivaluedHashMap<>();
+    private static Map<String, List<String>> getFilterParams(Map<String, List<String>> queryParams) {
+        Map<String, List<String>> returnMap = new LinkedHashMap<>();
 
         queryParams.entrySet()
                 .stream()

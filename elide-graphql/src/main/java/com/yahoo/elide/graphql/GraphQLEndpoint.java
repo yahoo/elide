@@ -36,8 +36,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
@@ -104,13 +102,12 @@ public class GraphQLEndpoint {
             @Context SecurityContext securityContext,
             String graphQLDocument) {
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         User user = new SecurityContextUser(securityContext);
 
         String baseUrl = getBaseUrlEndpoint(uriInfo);
         String pathname = path;
         Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
-                queryParams);
+                uriInfo.getQueryParameters());
 
         QueryRunner runner = runners.getOrDefault(route.getApiVersion(), null);
 

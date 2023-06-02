@@ -12,8 +12,6 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,7 +41,7 @@ public class JsonApiJsonPatchRequestScope extends RequestScope {
             DataStoreTransaction transaction,
             User user,
             UUID requestId,
-            MultivaluedMap<String, String> queryParams,
+            Map<String, List<String>> queryParams,
             Map<String, List<String>> requestHeaders,
             ElideSettings elideSettings) {
         super(
