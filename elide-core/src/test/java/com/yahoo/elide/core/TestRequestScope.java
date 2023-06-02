@@ -17,6 +17,8 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -61,7 +63,7 @@ public class TestRequestScope extends RequestScope {
     }
 
     @Override
-    public MultivaluedMap<String, String> getQueryParams() {
+    public Map<String, List<String>> getQueryParams() {
         if (queryParamOverrides != null) {
             return queryParamOverrides;
         }

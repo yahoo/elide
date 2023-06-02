@@ -8,6 +8,9 @@ package com.yahoo.elide.core.request.route;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Represents a route with the API Version.
  */
@@ -28,4 +31,9 @@ public class Route {
      * The API Version of the resolved route.
      */
     private final String apiVersion;
+
+    /**
+     * The parameters of the resolved route.
+     */
+    private final Map<String, List<String>> parameters;
 }

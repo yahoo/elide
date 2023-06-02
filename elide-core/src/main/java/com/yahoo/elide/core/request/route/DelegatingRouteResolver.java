@@ -28,13 +28,13 @@ public class DelegatingRouteResolver implements RouteResolver {
 
     @Override
     public Route resolve(String mediaType, String baseUrl, String path,
-            Map<String, List<String>> headers, Map<String, List<String>> queryParameters) {
+            Map<String, List<String>> headers, Map<String, List<String>> parameters) {
         for (RouteResolver routeResolver : this.routeResolvers) {
-            Route route = routeResolver.resolve(mediaType, baseUrl, path, headers, queryParameters);
+            Route route = routeResolver.resolve(mediaType, baseUrl, path, headers, parameters);
             if (!NO_VERSION.equals(route.getApiVersion())) {
                 return route;
             }
         }
-        return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).build();
+        return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).parameters(parameters).build();
     }
 }

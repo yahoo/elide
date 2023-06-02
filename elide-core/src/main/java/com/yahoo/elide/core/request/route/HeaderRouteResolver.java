@@ -32,10 +32,11 @@ public class HeaderRouteResolver implements RouteResolver {
             if (headers != null && headers.get(apiVersionHeaderName) != null) {
                 String apiVersion = headers.get(apiVersionHeaderName).get(0);
                 if (apiVersion != null) {
-                    return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).build();
+                    return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).parameters(parameters)
+                            .build();
                 }
             }
         }
-        return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).build();
+        return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).parameters(parameters).build();
     }
 }

@@ -34,7 +34,6 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -65,12 +64,6 @@ public class JsonApiController {
         this.routeResolver = routeResolver;
     }
 
-    private <K, V> MultivaluedHashMap<K, V> convert(MultiValueMap<K, V> springMVMap) {
-        MultivaluedHashMap<K, V> convertedMap = new MultivaluedHashMap<>(springMVMap.size());
-        springMVMap.forEach(convertedMap::put);
-        return convertedMap;
-    }
-
     @GetMapping(value = "/**", produces = JsonApi.MEDIA_TYPE)
     public Callable<ResponseEntity<String>> elideGet(@RequestHeader HttpHeaders requestHeaders,
                                                      @RequestParam MultiValueMap<String, String> allRequestParams,
@@ -86,7 +79,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide.get(route.getBaseUrl(), route.getPath(),
-                        convert(allRequestParams), requestHeadersCleaned,
+                        route.getParameters(), requestHeadersCleaned,
                         user, route.getApiVersion(), UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -115,14 +108,14 @@ public class JsonApiController {
                             .operations(route.getBaseUrl(), request.getContentType(), request.getContentType(),
                                     route.getPath(),
                                     body,
-                                    convert(allRequestParams), requestHeadersCleaned, user, route.getApiVersion(),
+                                    route.getParameters(), requestHeadersCleaned, user, route.getApiVersion(),
                                    UUID.randomUUID());
                     return ResponseEntity.status(response.getResponseCode())
                             .contentType(MediaType.valueOf(JsonApi.AtomicOperations.MEDIA_TYPE))
                             .body(response.getBody());
                 } else {
                     ElideResponse response = elide.post(route.getBaseUrl(), route.getPath(), body,
-                            convert(allRequestParams), requestHeadersCleaned, user, route.getApiVersion(),
+                            route.getParameters(), requestHeadersCleaned, user, route.getApiVersion(),
                             UUID.randomUUID());
                     return ResponseEntity.status(response.getResponseCode())
                             .contentType(MediaType.valueOf(JsonApi.MEDIA_TYPE)).body(response.getBody());
@@ -151,7 +144,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide.patch(route.getBaseUrl(), request.getContentType(),
-                        request.getContentType(), route.getPath(), body, convert(allRequestParams),
+                        request.getContentType(), route.getPath(), body, route.getParameters(),
                         requestHeadersCleaned, user, route.getApiVersion(), UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -174,7 +167,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide.delete(route.getBaseUrl(), route.getPath(), null,
-                        convert(allRequestParams), requestHeadersCleaned,
+                        route.getParameters(), requestHeadersCleaned,
                         user, route.getApiVersion(), UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -199,7 +192,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .delete(route.getBaseUrl(), route.getPath(), body, convert(allRequestParams),
+                        .delete(route.getBaseUrl(), route.getPath(), body, route.getParameters(),
                                 requestHeadersCleaned, user, route.getApiVersion(), UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }

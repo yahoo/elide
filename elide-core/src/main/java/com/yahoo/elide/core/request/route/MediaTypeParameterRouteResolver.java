@@ -31,11 +31,12 @@ public class MediaTypeParameterRouteResolver implements RouteResolver {
             for (String accept : acceptHeader) {
                 String apiVersion = fromHeader(accept, mediaType);
                 if (apiVersion != null) {
-                    return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).build();
+                    return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).parameters(parameters)
+                            .build();
                 }
             }
         }
-        return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).build();
+        return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).parameters(parameters).build();
     }
 
     protected String fromHeader(String header, String mediaType) {

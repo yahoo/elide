@@ -35,8 +35,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
@@ -94,7 +92,6 @@ public class JsonApiEndpoint {
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
@@ -106,11 +103,11 @@ public class JsonApiEndpoint {
         if ("operations".equals(route.getPath())) {
             // Atomic Operations
             return build(elide.operations(route.getBaseUrl(), contentType, accept, route.getPath(), jsonapiDocument,
-                    queryParams, requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+                    route.getParameters(), requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
         }
 
         return build(elide.post(route.getBaseUrl(), route.getPath(), jsonapiDocument,
-                queryParams, requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+                route.getParameters(), requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
     }
 
     /**
@@ -129,7 +126,6 @@ public class JsonApiEndpoint {
         @Context UriInfo uriInfo,
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
@@ -138,8 +134,8 @@ public class JsonApiEndpoint {
         Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.get(route.getBaseUrl(), route.getPath(), queryParams,
-                               requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+        return build(elide.get(route.getBaseUrl(), route.getPath(), route.getParameters(), requestHeaders, user,
+                route.getApiVersion(), UUID.randomUUID()));
     }
 
     /**
@@ -165,7 +161,6 @@ public class JsonApiEndpoint {
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
@@ -174,8 +169,8 @@ public class JsonApiEndpoint {
         Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.patch(route.getBaseUrl(), contentType, accept, route.getPath(), jsonapiDocument, queryParams,
-                requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+        return build(elide.patch(route.getBaseUrl(), contentType, accept, route.getPath(), jsonapiDocument,
+                route.getParameters(), requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
     }
 
     /**
@@ -197,7 +192,6 @@ public class JsonApiEndpoint {
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
         Map<String, List<String>> requestHeaders = headerProcessor.process(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
@@ -206,8 +200,8 @@ public class JsonApiEndpoint {
         Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.delete(route.getBaseUrl(), route.getPath(), jsonApiDocument, queryParams, requestHeaders,
-                                  user, route.getApiVersion(), UUID.randomUUID()));
+        return build(elide.delete(route.getBaseUrl(), route.getPath(), jsonApiDocument, route.getParameters(),
+                requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {

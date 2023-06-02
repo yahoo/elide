@@ -56,7 +56,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter protected final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
-    @Getter private final MultivaluedMap<String, String> queryParams;
+    @Getter private final Map<String, List<String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final PermissionExecutor permissionExecutor;
@@ -102,7 +102,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
-                        MultivaluedMap<String, String> queryParams,
+                        Map<String, List<String>> queryParams,
                         Map<String, List<String>> requestHeaders,
                         UUID requestId,
                         ElideSettings elideSettings) {
@@ -235,7 +235,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param queryParams The request query parameters
      * @return Parsed sparseFields map
      */
-    public static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
+    public static Map<String, Set<String>> parseSparseFields(Map<String, List<String>> queryParams) {
         Map<String, Set<String>> result = new HashMap<>();
 
         for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
@@ -312,7 +312,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param queryParams request query params
      * @return extracted filter params
      */
-    private static MultivaluedMap<String, String> getFilterParams(MultivaluedMap<String, String> queryParams) {
+    private static MultivaluedMap<String, String> getFilterParams(Map<String, List<String>> queryParams) {
         MultivaluedMap<String, String> returnMap = new MultivaluedHashMap<>();
 
         queryParams.entrySet()

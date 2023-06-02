@@ -100,6 +100,6 @@ public class PathRouteResolver implements RouteResolver {
             baseRoute = baseRoute + "/" + apiVersionString;
         }
 
-        return Route.builder().apiVersion(apiVersion).baseUrl(baseRoute).path(route).build();
+        return Route.builder().apiVersion(apiVersion).baseUrl(baseRoute).path(route).parameters(parameters).build();
     }
 }
