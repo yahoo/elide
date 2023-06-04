@@ -1,5 +1,25 @@
 # Change Log
 
+## 7.0.0-pr5
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/855ab18b75a01ea145050f7424fbe93bec2ccb1f) Support multiple `JpaDataStore` (#2998) 
+ * [view commit](https://github.com/yahoo/elide/commit/e570df51218d29e6625a1d91c6f8d5b7f8642526) Add Atomic Operations Support (#2979) 
+ * [view commit](https://github.com/yahoo/elide/commit/addfbff81e285c6f4f106bb6e3dd93fa7e05e9fa) Upgrade to OpenAPI 3 (#2977) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/959b4173380129355891fc9d83afd0030235153d) Bump junit-bom from 5.9.1 to 5.9.3 (#2967) 
+ * [view commit](https://github.com/yahoo/elide/commit/6aee89161c41a7b6defb60288c5c3d6df3c1f7dc) Bump tomcat.version from 10.1.7 to 10.1.8 (#2968) 
+ * [view commit](https://github.com/yahoo/elide/commit/3cc306b370dbc19c09b67a9b1667354c282b22b4) Bump calcite-core from 1.32.0 to 1.34.0 (#2971) 
+ * [view commit](https://github.com/yahoo/elide/commit/a23401ffc610bcc6479e7fa8b9def2b2f744dae4) Update to Spring Boot 3.1.0 and refactor pom (#2987) 
+ * [view commit](https://github.com/yahoo/elide/commit/30816cbe1496c349c05a778b105efa87ec51a7c2) Refactor configuration (#2997) 
+ * [view commit](https://github.com/yahoo/elide/commit/f64513bfa0d18c3bf5971eff171a55ce8f5851a2) Bump jedis from 4.3.2 to 4.4.1 (#2995) 
+ * [view commit](https://github.com/yahoo/elide/commit/77801a5ed41393033d6f3b0a5cb9b5f7f8720d3f) Bump build-helper-maven-plugin from 3.3.0 to 3.4.0 (#2994) 
+ * [view commit](https://github.com/yahoo/elide/commit/6670738fe68c243c2de1c1da4da5d00341b75b88) Bump maven-source-plugin from 3.2.1 to 3.3.0 (#2993) 
+ * [view commit](https://github.com/yahoo/elide/commit/0b196a30652785d8cfa8a2cdaaae3f6f0476930c) Bump maven-scm-provider-gitexe from 1.13.0 to 2.0.1 (#2988) 
+ * [view commit](https://github.com/yahoo/elide/commit/11af038b697fbe27714f2ea5df0bdbe902c93a1d) Bump tomcat.version from 10.1.8 to 10.1.9 (#2992) 
+ * [view commit](https://github.com/yahoo/elide/commit/a33c42ff99c8429e5a27bc1b99fe6c573fcc5c07) Bump native-maven-plugin from 0.9.21 to 0.9.22 (#2991) 
+ * [view commit](https://github.com/yahoo/elide/commit/d7dad117dfa8d867c2f80899c1707127bbc9f537) Bump maven-scm-api from 1.13.0 to 2.0.1 (#2989) 
+
 ## 7.0.0-pr4
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/a67858ed4997700aaaf37cd83c13a7690b3d388f) Add Spring PlatformTransactionManager aware transaction support (#2953) 
