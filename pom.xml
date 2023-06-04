@@ -144,7 +144,7 @@
         <springdoc.version>2.1.0</springdoc.version>
         <swagger-api.version>2.2.10</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
-        <tomcat.version>10.1.8</tomcat.version>
+        <tomcat.version>10.1.9</tomcat.version>
         <mockito.version>5.3.1</mockito.version>
         
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
