@@ -35,48 +35,56 @@ public class JpaDataStore implements JPQLDataStore {
     protected final JpaTransactionSupplier writeTransactionSupplier;
     protected final MetamodelSupplier metamodelSupplier;
     protected final Set<Type<?>> modelsToBind;
-    protected final QueryLogger logger;
+    protected final QueryLogger queryLogger;
 
     private JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
-                        QueryLogger logger,
+                        QueryLogger queryLogger,
                         MetamodelSupplier metamodelSupplier,
-                        Type<?> ... models) {
+                        Type<?>[] models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
         this.writeTransactionSupplier = writeTransactionSupplier;
         this.metamodelSupplier = metamodelSupplier;
-        this.logger = logger;
+        this.queryLogger = queryLogger;
         this.modelsToBind = new HashSet<>();
-        Collections.addAll(this.modelsToBind, models);
+        if (models != null) {
+            Collections.addAll(this.modelsToBind, models);
+        }
+        if (this.metamodelSupplier == null && this.modelsToBind.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Either the metamodel supplier or the explicit models to bind needs to be provided.");
+        }
     }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
+                        QueryLogger queryLogger,
                         MetamodelSupplier metamodelSupplier) {
-        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, DEFAULT_LOGGER,
-                metamodelSupplier);
+        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, queryLogger,
+                metamodelSupplier, null);
     }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
             JpaTransactionSupplier readTransactionSupplier,
             JpaTransactionSupplier writeTransactionSupplier,
+            QueryLogger queryLogger,
             Type<?> ... models) {
-        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, DEFAULT_LOGGER, null, models);
+        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, queryLogger, null, models);
     }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier transactionSupplier,
                         MetamodelSupplier metamodelSupplier) {
-        this(entityManagerSupplier, transactionSupplier, transactionSupplier, metamodelSupplier);
+        this(entityManagerSupplier, transactionSupplier, transactionSupplier, DEFAULT_LOGGER, metamodelSupplier);
     }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
             JpaTransactionSupplier transactionSupplier,
             Type<?> ... models) {
-        this(entityManagerSupplier, transactionSupplier, transactionSupplier, models);
+        this(entityManagerSupplier, transactionSupplier, transactionSupplier, DEFAULT_LOGGER, models);
     }
 
     @Override

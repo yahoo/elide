@@ -12,6 +12,8 @@ import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ObjectCloner;
+import com.yahoo.elide.core.utils.ObjectCloners;
 
 import lombok.AccessLevel;
 import lombok.Setter;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Allows multiple database handlers to each process their own beans while keeping the main
@@ -41,6 +44,8 @@ public final class MultiplexManager implements DataStore {
 
     protected final List<DataStore> dataStores;
     protected final ConcurrentHashMap<Type<?>, DataStore> dataStoreMap = new ConcurrentHashMap<>();
+    protected final Predicate<DataStore> applyCompensatingTransactions;
+    protected final ObjectCloner objectCloner;
 
     @Setter(AccessLevel.PROTECTED)
     private EntityDictionary dictionary;
@@ -50,7 +55,41 @@ public final class MultiplexManager implements DataStore {
      * @param dataStores list of sub-managers
      */
     public MultiplexManager(DataStore... dataStores) {
+        this(ObjectCloners::clone, dataStore -> true, dataStores);
+    }
+
+    /**
+     * Create a single DataStore to handle provided managers within a single
+     * transaction.
+     *
+     * @param objectCloner to use for cloning objects to apply to compensating
+     *                     transaction
+     * @param dataStores   list of sub-managers
+     */
+    public MultiplexManager(ObjectCloner objectCloner, DataStore... dataStores) {
+        this(objectCloner, dataStore -> true, dataStores);
+    }
+
+    /**
+     * Create a single DataStore to handle provided managers within a single
+     * transaction.
+     *
+     * @param objectCloner                  to use for cloning objects to apply to
+     *                                      compensating transaction
+     * @param applyCompensatingTransactions apply compensating transactions on
+     *                                      rollback to previously committed
+     *                                      datastores
+     * @param dataStores                    list of sub-managers
+     */
+    public MultiplexManager(ObjectCloner objectCloner, Predicate<DataStore> applyCompensatingTransactions,
+            DataStore... dataStores) {
+        this.objectCloner = objectCloner;
         this.dataStores = Arrays.asList(dataStores);
+        this.applyCompensatingTransactions = applyCompensatingTransactions;
+    }
+
+    protected boolean isApplyCompensatingTransactions(DataStore dataStore) {
+        return this.applyCompensatingTransactions.test(dataStore);
     }
 
     @Override

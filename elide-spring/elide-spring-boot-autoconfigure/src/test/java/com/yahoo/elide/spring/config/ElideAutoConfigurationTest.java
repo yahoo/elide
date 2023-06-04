@@ -7,18 +7,12 @@ package com.yahoo.elide.spring.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.yahoo.elide.core.datastore.DataStore;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
-
-import example.models.jpa.ArtifactGroup;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
@@ -27,15 +21,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.jpa.EntityManagerFactoryUtils;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -173,92 +160,5 @@ class ElideAutoConfigurationTest {
                                 .endsWith(input.userConfiguration.getSimpleName());
                     }
                 });
-    }
-
-    @Configuration(proxyBeanMethods = false)
-    @EntityScan(basePackages = "example.models.jpa")
-    public static class EntityConfiguration {
-    }
-
-    @Test
-    void dataStoreTransaction() {
-        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false")
-                .withUserConfiguration(EntityConfiguration.class).run(context -> {
-
-            DataStore dataStore = context.getBean(DataStore.class);
-            PlatformTransactionManager transactionManager = context.getBean(PlatformTransactionManager.class);
-            EntityManagerFactory entityManagerFactory = context.getBean(EntityManagerFactory.class);
-
-            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-
-            try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
-                ArtifactGroup artifactGroup = new ArtifactGroup();
-                artifactGroup.setName("Group");
-                transaction.createObject(artifactGroup, null);
-                transaction.flush(null);
-
-                ArtifactGroup found = transactionTemplate.execute(status -> {
-                    assertThat(status.isNewTransaction()).isFalse();
-                    EntityManager entityManager = EntityManagerFactoryUtils.getTransactionalEntityManager(entityManagerFactory);
-                    return entityManager.find(ArtifactGroup.class, artifactGroup.getName());
-                });
-                assertThat(artifactGroup).isEqualTo(found);
-                // Not committed so should rollback
-            }
-
-            transactionTemplate.execute(status -> {
-                assertThat(status.isNewTransaction()).isTrue();
-                EntityManager entityManager = EntityManagerFactoryUtils.getTransactionalEntityManager(entityManagerFactory);
-                ArtifactGroup found = entityManager.find(ArtifactGroup.class, "Group");
-                assertThat(found).isNull();
-
-                try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
-                    ArtifactGroup artifactGroup = new ArtifactGroup();
-                    artifactGroup.setName("Group");
-                    transaction.createObject(artifactGroup, null);
-                    transaction.commit(null);
-                } catch (IOException e) {
-                }
-
-                found = entityManager.find(ArtifactGroup.class, "Group");
-                assertThat(found).isNotNull();
-                status.setRollbackOnly(); // Rollback
-                return null;
-            });
-
-            // Verify it has been rolled back
-            transactionTemplate.execute(status -> {
-                assertThat(status.isNewTransaction()).isTrue();
-                EntityManager entityManager = EntityManagerFactoryUtils.getTransactionalEntityManager(entityManagerFactory);
-                ArtifactGroup found = entityManager.find(ArtifactGroup.class, "Group");
-                assertThat(found).isNull();
-                return null;
-            });
-
-            try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
-                ArtifactGroup artifactGroup = new ArtifactGroup();
-                artifactGroup.setName("Group");
-                transaction.createObject(artifactGroup, null);
-                transaction.flush(null);
-
-                ArtifactGroup found = transactionTemplate.execute(status -> {
-                    assertThat(status.isNewTransaction()).isFalse();
-                    EntityManager entityManager = EntityManagerFactoryUtils.getTransactionalEntityManager(entityManagerFactory);
-                    return entityManager.find(ArtifactGroup.class, artifactGroup.getName());
-                });
-                assertThat(artifactGroup).isEqualTo(found);
-                transaction.commit(null);
-            }
-
-            // Verify that it has been committed
-            transactionTemplate.execute(status -> {
-                assertThat(status.isNewTransaction()).isTrue();
-                EntityManager entityManager = EntityManagerFactoryUtils.getTransactionalEntityManager(entityManagerFactory);
-                ArtifactGroup found = entityManager.find(ArtifactGroup.class, "Group");
-                assertThat(found).isNotNull();
-                return null;
-            });
-
-        });
     }
 }

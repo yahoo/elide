@@ -12,6 +12,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.google.common.collect.Sets;
 import example.Address;
 import example.Company;
@@ -29,6 +30,7 @@ import java.util.Set;
 public class InMemoryDataStoreHarness implements DataStoreTestHarness {
     private InMemoryDataStore memoryStore;
     private HashMapDataStore mapStore;
+    private HashMapDataStore asyncStore;
 
     public InMemoryDataStoreHarness() {
         Set<Package> beanPackages = Sets.newHashSet(
@@ -37,14 +39,18 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
                 Invoice.class.getPackage(),
                 Manager.class.getPackage(),
                 BookV2.class.getPackage(),
-                AsyncQuery.class.getPackage(),
                 Company.class.getPackage(),
                 Address.class.getPackage()
-
         );
 
+        Set<Package> asyncBeanPackages = Sets.newHashSet(
+                AsyncQuery.class.getPackage()
+        );
+
+
         mapStore = new HashMapDataStore(DefaultClassScanner.getInstance(), beanPackages);
-        memoryStore = new InMemoryDataStore(mapStore);
+        asyncStore = new HashMapDataStore(DefaultClassScanner.getInstance(), asyncBeanPackages);
+        memoryStore = new InMemoryDataStore(new MultiplexManager(mapStore, asyncStore));
     }
 
     @Override
@@ -55,5 +61,6 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
     @Override
     public void cleanseTestData() {
         mapStore.cleanseTestData();
+        asyncStore.cleanseTestData();
     }
 }

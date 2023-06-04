@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
@@ -16,6 +17,7 @@ import com.yahoo.elide.core.request.Relationship;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -29,6 +31,8 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     };
 
     private final Map<String, HashMapDataStore> hashMapDataStores;
+
+    private final Map<String, DataStoreTransaction> transactions = new HashMap<>();
 
     public MetaDataStoreTransaction(Map<String, HashMapDataStore> hashMapDataStores) {
         this.hashMapDataStores = hashMapDataStores;
@@ -66,10 +70,8 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
             Relationship relationship,
             RequestScope scope
     ) {
-        return hashMapDataStores
-                        .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
-                        .beginTransaction()
-                        .getToManyRelation(relationTx, entity, relationship, scope);
+        DataStoreTransaction dataStoreTransaction = getTransaction(scope);
+        return dataStoreTransaction.getToManyRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
@@ -79,31 +81,52 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
             Relationship relationship,
             RequestScope scope
     ) {
-        return hashMapDataStores
-                .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
-                .beginTransaction()
-                .getToOneRelation(relationTx, entity, relationship, scope);
+        DataStoreTransaction dataStoreTransaction = getTransaction(scope);
+        return dataStoreTransaction.getToOneRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
     public DataStoreIterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
-        return hashMapDataStores
-                        .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
-                        .beginTransaction()
-                        .loadObjects(projection, scope);
+        DataStoreTransaction dataStoreTransaction = getTransaction(scope);
+        return dataStoreTransaction.loadObjects(projection, scope);
     }
 
     @Override
     public Object loadObject(EntityProjection projection, Serializable id, RequestScope scope) {
-        return hashMapDataStores
-                        .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
-                        .beginTransaction()
-                        .loadObject(projection, id, scope);
+        DataStoreTransaction dataStoreTransaction = getTransaction(scope);
+        return dataStoreTransaction.loadObject(projection, id, scope);
+    }
+
+    protected DataStoreTransaction getTransaction(RequestScope scope) {
+        DataStore dataStore = hashMapDataStores.computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR);
+        return transactions.computeIfAbsent(scope.getApiVersion(),
+                key -> dataStore.beginReadTransaction());
     }
 
     @Override
     public void close() throws IOException {
-        // Do nothing
+        IOException exception = null;
+        for (DataStoreTransaction transaction : transactions.values()) {
+            try {
+                transaction.close();
+            } catch (IOException e) {
+                if (exception == null) {
+                    exception = e;
+                } else {
+                    exception.addSuppressed(e);
+                }
+            } catch (RuntimeException e) {
+                if (exception == null) {
+                    exception = new IOException(e);
+                } else {
+                    exception.addSuppressed(e);
+                }
+            }
+        }
+        transactions.clear();
+        if (exception != null) {
+            throw exception;
+        }
     }
 
     @Override

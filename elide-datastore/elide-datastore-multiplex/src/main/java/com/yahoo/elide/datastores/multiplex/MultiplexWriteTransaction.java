@@ -15,8 +15,6 @@ import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.type.Field;
-import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Type;
 
 import jakarta.ws.rs.WebApplicationException;
@@ -28,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map.Entry;
 
 /**
@@ -67,11 +66,18 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
         // flush all before commits
         flush(scope);
 
-        ArrayList<DataStore> commitList = new ArrayList<>();
-        for (Entry<DataStore, DataStoreTransaction> entry : transactions.entrySet()) {
+        List<DataStore> commitList = new ArrayList<>();
+
+        // Transactions must be committed in reverse order
+        ListIterator<Entry<DataStore, DataStoreTransaction>> iterator = new ArrayList<>(transactions.entrySet())
+                .listIterator(transactions.size());
+        while (iterator.hasPrevious()) {
+            Entry<DataStore, DataStoreTransaction> entry = iterator.previous();
             try {
                 entry.getValue().commit(scope);
-                commitList.add(entry.getKey());
+                if (this.multiplexManager.isApplyCompensatingTransactions(entry.getKey())) {
+                    commitList.add(entry.getKey());
+                }
             } catch (HttpStatusException | WebApplicationException e) {
                 reverseTransactions(commitList, e, scope);
                 throw e;
@@ -88,7 +94,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      * @param restoreList List of database managers to reverse the last commit
      * @param cause cause to add any suppressed exceptions
      */
-    private void reverseTransactions(ArrayList<DataStore> restoreList, Throwable cause, RequestScope requestScope) {
+    private void reverseTransactions(List<DataStore> restoreList, Throwable cause, RequestScope requestScope) {
         for (DataStore dataStore : restoreList) {
             try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
                 List<Object> list = dirtyObjects.get(dataStore);
@@ -97,7 +103,10 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
                     if (cloned == NEWLY_CREATED_OBJECT) {
                         transaction.delete(dirtyObject, requestScope);
                     } else {
-                        transaction.save(cloned, requestScope);
+                        // If cloned is null this is an update to an object that wasn't created yet
+                        if (cloned != null) {
+                            transaction.save(cloned, requestScope);
+                        }
                     }
                 }
                 transaction.commit(requestScope);
@@ -149,27 +158,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
         }
 
         Type<?> cls = multiplexManager.getDictionary().lookupBoundClass(EntityDictionary.getType(object));
-        try {
-            Object clone = cls.newInstance();
-            for (Field field : cls.getFields()) {
-                field.set(clone, field.get(object));
-            }
-            for (Method method : cls.getMethods()) {
-                if (method.getName().startsWith("set")) {
-                    try {
-                        Method getMethod = cls.getMethod("get" + method.getName().substring(3));
-                        method.invoke(clone, getMethod.invoke(object));
-                    } catch (IllegalStateException | IllegalArgumentException
-                            | ReflectiveOperationException | SecurityException e) {
-                        return null;
-                    }
-                }
-            }
-            return clone;
-        } catch (InstantiationException | IllegalAccessException e) {
-            // ignore
-        }
-        return null;
+        return this.multiplexManager.objectCloner.clone(object, cls);
     }
 
     @Override
