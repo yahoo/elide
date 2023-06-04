@@ -61,7 +61,9 @@ import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.spring.api.BasicOpenApiDocumentCustomizer;
+import com.yahoo.elide.spring.api.DefaultElideGroupedOpenApiCustomizer;
 import com.yahoo.elide.spring.api.DefaultElideOpenApiCustomizer;
+import com.yahoo.elide.spring.api.ElideGroupedOpenApiCustomizer;
 import com.yahoo.elide.spring.api.ElideOpenApiCustomizer;
 import com.yahoo.elide.spring.api.OpenApiDocumentCustomizer;
 import com.yahoo.elide.spring.controllers.ApiDocsController;
@@ -83,6 +85,7 @@ import com.yahoo.elide.utils.HeaderUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -698,6 +701,25 @@ public class ElideAutoConfiguration {
         @Scope(SCOPE_PROTOTYPE)
         public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide, ElideConfigProperties properties) {
             return new DefaultElideOpenApiCustomizer(elide, properties);
+        }
+
+        @Bean
+        @Scope(SCOPE_PROTOTYPE)
+        public ElideGroupedOpenApiCustomizer elideGroupedOpenApiCustomizer(RefreshableElide elide,
+                ElideConfigProperties properties) {
+            return new DefaultElideGroupedOpenApiCustomizer(elide, properties);
+        }
+
+        @Configuration
+        public static class ElideGroupedOpenApiConfiguration {
+            public ElideGroupedOpenApiConfiguration(Optional<List<GroupedOpenApi>> optionalGroupedOpenApis,
+                    ObjectProvider<ElideGroupedOpenApiCustomizer> customizerProvider) {
+                optionalGroupedOpenApis.ifPresent(groupedOpenApis -> {
+                    for (GroupedOpenApi groupedOpenApi : groupedOpenApis) {
+                        customizerProvider.orderedStream().forEach(customizer -> customizer.customize(groupedOpenApi));
+                    }
+                });
+            }
         }
     }
 

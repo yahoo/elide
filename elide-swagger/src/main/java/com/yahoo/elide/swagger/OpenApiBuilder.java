@@ -78,7 +78,7 @@ import java.util.stream.Collectors;
 public class OpenApiBuilder {
     protected EntityDictionary dictionary;
     protected Set<Type<?>> rootClasses;
-    protected Set<Type<?>> allClasses;
+    protected Set<Type<?>> managedClasses;
     protected OpenAPI openApi;
     protected Map<String, ApiResponse> globalResponses;
     protected Set<Parameter> globalParameters;
@@ -685,7 +685,7 @@ public class OpenApiBuilder {
         this.supportRSQLFilterDialect = true;
         this.globalResponses = new HashMap<>();
         this.globalParameters = new HashSet<>();
-        this.allClasses = new HashSet<>();
+        this.managedClasses = new HashSet<>();
         this.filterOperators = Sets.newHashSet(Operator.IN, Operator.NOT, Operator.INFIX, Operator.PREFIX,
                 Operator.POSTFIX, Operator.GE, Operator.GT, Operator.LE, Operator.LT, Operator.ISNULL,
                 Operator.NOTNULL);
@@ -745,8 +745,8 @@ public class OpenApiBuilder {
      * @param classes A subset of the entities in the entity dictionary.
      * @return the builder
      */
-    public OpenApiBuilder explicitClassList(Set<Type<?>> classes) {
-        this.allClasses = new HashSet<>(classes);
+    public OpenApiBuilder managedClasses(Set<Type<?>> classes) {
+        this.managedClasses = new HashSet<>(classes);
         return this;
     }
 
@@ -794,11 +794,11 @@ public class OpenApiBuilder {
      * @return the builder
      */
     public OpenApiBuilder applyTo(OpenAPI openApi) {
-        if (allClasses.isEmpty()) {
-            allClasses = dictionary.getBoundClassesByVersion(this.apiVersion);
+        if (managedClasses.isEmpty()) {
+            managedClasses = dictionary.getBoundClassesByVersion(this.apiVersion);
         } else {
-            allClasses = Sets.intersection(dictionary.getBoundClassesByVersion(this.apiVersion), allClasses);
-            if (allClasses.isEmpty()) {
+            managedClasses = Sets.intersection(dictionary.getBoundClassesByVersion(this.apiVersion), managedClasses);
+            if (managedClasses.isEmpty()) {
                 throw new IllegalArgumentException("None of the provided classes are exported by Elide");
             }
         }
@@ -813,7 +813,7 @@ public class OpenApiBuilder {
         ModelConverters converters = ModelConverters.getInstance();
         ModelConverter converter = new JsonApiModelResolver(this.dictionary);
         converters.addConverter(converter);
-        for (Type<?> clazz : allClasses) {
+        for (Type<?> clazz : managedClasses) {
             if (clazz instanceof ClassType<?> classType) {
                 converters.readAll(classType.getCls()).forEach(openApi::schema);
             } else {
@@ -823,7 +823,7 @@ public class OpenApiBuilder {
             }
         }
 
-        rootClasses = allClasses.stream()
+        rootClasses = managedClasses.stream()
                 .filter(dictionary::isRoot)
                 .collect(Collectors.toSet());
 
@@ -877,7 +877,7 @@ public class OpenApiBuilder {
         }
 
         /* We create OpenAPI 'tags' for each entity so Swagger UI organizes the paths by entities */
-        allClasses.stream()
+        managedClasses.stream()
                 .map(type -> new Tag().name(dictionary.getJsonAliasFor(type))
                         .description(EntityDictionary.getEntityDescription(type)))
                 .forEach(openApi::addTagsItem);
@@ -939,7 +939,7 @@ public class OpenApiBuilder {
                  * We don't allow cycles AND we only record paths that traverse through the
                  * provided subgraph
                  */
-                if (current.lineageContainsType(next) || !allClasses.contains(relationshipClass)) {
+                if (current.lineageContainsType(next) || !managedClasses.contains(relationshipClass)) {
                     continue;
                 }
 

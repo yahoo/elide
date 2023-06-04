@@ -11,11 +11,6 @@ import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Paths;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Default implementation for Elide OpenApiCustomizer to contribute to SpringDoc.
@@ -38,8 +33,12 @@ public class DefaultElideOpenApiCustomizer implements ElideOpenApiCustomizer {
                     .apiVersion(apiVersion).basePath(this.elide.getElide().getElideSettings().getJsonApiPath());
             if (this.settings.getApiVersioningStrategy().getPath().isEnabled()) {
                 if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
-                    builder.basePath(this.elide.getElide().getElideSettings().getJsonApiPath() + "/"
-                            + this.settings.getApiVersioningStrategy().getPath().getVersionPrefix() + apiVersion);
+                    String path = this.elide.getElide().getElideSettings().getJsonApiPath();
+                    if (!path.endsWith("/")) {
+                        path = path + "/";
+                    }
+                    path = path + this.settings.getApiVersioningStrategy().getPath().getVersionPrefix() + apiVersion;
+                    builder.basePath(path);
                 }
             } else if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
                 continue;
@@ -54,34 +53,6 @@ public class DefaultElideOpenApiCustomizer implements ElideOpenApiCustomizer {
      * @param openApi the document to remove paths from
      */
     protected void removePaths(OpenAPI openApi) {
-        removePathsByTags(openApi, "graphql-controller", "api-docs-controller", "json-api-controller");
-    }
-
-    public static void removePathsByTags(OpenAPI openApi, String... tagsToRemove) {
-        Set<String> tags = new HashSet<>();
-        Collections.addAll(tags, tagsToRemove);
-        removePathsByTags(openApi, tags);
-    }
-
-    public static void removePathsByTags(OpenAPI openApi, Set<String> tagsToRemove) {
-        Set<String> pathsToRemove = new HashSet<>();
-        Paths paths = openApi.getPaths();
-        if (paths != null) {
-            openApi.getPaths().forEach((path, pathItem) -> {
-                Set<String> tags = new HashSet<>();
-                if (pathItem.getGet() != null) {
-                    tags.addAll(pathItem.getGet().getTags());
-                } else if (pathItem.getPost() != null) {
-                    tags.addAll(pathItem.getPost().getTags());
-                }
-                for (String tagToRemove : tagsToRemove) {
-                    if (tags.contains(tagToRemove)) {
-                        pathsToRemove.add(path);
-                        break;
-                    }
-                }
-            });
-        }
-        pathsToRemove.forEach(key -> openApi.getPaths().remove(key));
+        OpenApis.removePathsByTags(openApi, "graphql-controller", "api-docs-controller", "json-api-controller");
     }
 }
