@@ -169,7 +169,7 @@
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
         <versioneye-maven-plugin.version>3.11.4</versioneye-maven-plugin.version>
         <wagon-ssh-external.version>3.5.3</wagon-ssh-external.version>
-        <native-maven-plugin.version>0.9.21</native-maven-plugin.version>
+        <native-maven-plugin.version>0.9.22</native-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
 
         <mpir.skip>true</mpir.skip>
