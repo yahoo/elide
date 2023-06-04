@@ -125,7 +125,7 @@
         <jansi.version>2.4.0</jansi.version>
         <jersey.version>3.1.2</jersey.version>
         <jetty.version>11.0.15</jetty.version>
-        <jedis.version>4.3.2</jedis.version>
+        <jedis.version>4.4.1</jedis.version>
         <jsonassert.version>1.5.1</jsonassert.version>
         <json2flat.version>1.0.3</json2flat.version>
         <json-path.version>2.8.0</json-path.version>
