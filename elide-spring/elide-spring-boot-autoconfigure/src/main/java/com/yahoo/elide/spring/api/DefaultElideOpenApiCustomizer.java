@@ -41,7 +41,8 @@ public class DefaultElideOpenApiCustomizer implements ElideOpenApiCustomizer {
                     builder.basePath(path);
                 }
             } else if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
-                continue;
+                // Regardless of the api versioning strategy the NO_VERSION one needs to be
+                // applied so other versions shall be skipped
             }
             builder.applyTo(openApi);
         }

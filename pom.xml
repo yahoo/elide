@@ -98,6 +98,7 @@
         <commons-compress.version>1.23.0</commons-compress.version>
         <commons-io.version>2.12.0</commons-io.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
+        <dom4j.version>2.1.4</dom4j.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
         <encoder.version>1.2.3</encoder.version>
         <federation-graphql-java-support-api.version>3.0.1</federation-graphql-java-support-api.version>
@@ -148,6 +149,7 @@
         <tomcat.version>10.1.9</tomcat.version>
         <mockito.version>5.3.1</mockito.version>
         
+        <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
         <checkstyle.version>10.8.0</checkstyle.version>
         <gmaven-plugin.version>1.5</gmaven-plugin.version>
@@ -244,6 +246,11 @@
                 <artifactId>commons-compress</artifactId>
                 <version>${commons-compress.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.dom4j</groupId>
+                <artifactId>dom4j</artifactId>
+                <version>${dom4j.version}</version>
+            </dependency>            
             <dependency>
                 <groupId>com.github.codemonstur</groupId>
                 <artifactId>embedded-redis</artifactId>
@@ -485,13 +492,11 @@
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
                 <version>${logback.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
                 <version>${logback.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey</groupId>
@@ -514,7 +519,6 @@
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <version>${h2.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
@@ -712,6 +716,7 @@
                     <showDeprecation>true</showDeprecation>
                     <showWarnings>true</showWarnings>
                     <optimize>true</optimize>
+                    <parameters>true</parameters>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <annotationProcessorPaths>
                         <path>

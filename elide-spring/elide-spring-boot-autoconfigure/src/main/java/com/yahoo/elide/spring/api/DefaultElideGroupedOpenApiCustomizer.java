@@ -47,30 +47,29 @@ public class DefaultElideGroupedOpenApiCustomizer implements ElideGroupedOpenApi
         });
         for (String apiVersion : this.elide.getElide().getElideSettings().getDictionary().getApiVersions()) {
             String path = this.elide.getElide().getElideSettings().getJsonApiPath();
-            if (EntityDictionary.NO_VERSION.equals(apiVersion)
-                    || this.settings.getApiVersioningStrategy().getPath().isEnabled()) {
-
-                if (!path.endsWith("/")) {
-                    path = path + "/";
-                }
-
-                if (this.settings.getApiVersioningStrategy().getPath().isEnabled()) {
+            if (!path.endsWith("/")) {
+                path = path + "/";
+            }
+            if (this.settings.getApiVersioningStrategy().getPath().isEnabled()) {
+                if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
                     path = path + this.settings.getApiVersioningStrategy().getPath().getVersionPrefix() + apiVersion;
                 }
+            } else if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                // Regardless of the api versioning strategy the NO_VERSION one needs to be
+                // applied so other versions shall be skipped
+                continue;
+            }
 
-                if (match(groupedOpenApi, path)) {
-                    String basePath = path;
-                    groupedOpenApi.getOpenApiCustomizers().add(0, new ElideOpenApiCustomizer() {
-                        @Override
-                        public void customise(OpenAPI openApi) {
-                            OpenApiBuilder builder = new OpenApiBuilder(
-                                    elide.getElide().getElideSettings().getDictionary())
-                                    .apiVersion(apiVersion).basePath(basePath);
-                            builder.applyTo(openApi);
-                        }
-                    });
-                }
-
+            if (match(groupedOpenApi, path)) {
+                String basePath = path;
+                groupedOpenApi.getOpenApiCustomizers().add(0, new ElideOpenApiCustomizer() {
+                    @Override
+                    public void customise(OpenAPI openApi) {
+                        OpenApiBuilder builder = new OpenApiBuilder(elide.getElide().getElideSettings().getDictionary())
+                                .apiVersion(apiVersion).basePath(basePath);
+                        builder.applyTo(openApi);
+                    }
+                });
             }
         }
     }

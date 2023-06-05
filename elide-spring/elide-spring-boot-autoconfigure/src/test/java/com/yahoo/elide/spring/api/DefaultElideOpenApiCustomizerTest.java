@@ -25,7 +25,8 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 
 /**
  * Test for DefaultElideOpenApiCustomizer.
@@ -38,8 +39,8 @@ class DefaultElideOpenApiCustomizerTest {
     void setup() {
         EntityDictionary entityDictionary = Mockito.mock(EntityDictionary.class);
         DataStore dataStore = Mockito.mock(DataStore.class);
-        ElideSettings settings = new ElideSettingsBuilder(dataStore).withEntityDictionary(entityDictionary).build();
-        when(entityDictionary.getApiVersions()).thenReturn(Collections.singleton(EntityDictionary.NO_VERSION));
+        ElideSettings settings = new ElideSettingsBuilder(dataStore).withEntityDictionary(entityDictionary).withJsonApiPath("/").build();
+        when(entityDictionary.getApiVersions()).thenReturn(new LinkedHashSet<>(Arrays.asList(EntityDictionary.NO_VERSION, "1", "2")));
         Elide elide = new Elide(settings);
         RefreshableElide refreshableElide = new RefreshableElide(elide);
         ElideConfigProperties properties = new ElideConfigProperties();

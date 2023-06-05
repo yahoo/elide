@@ -34,9 +34,11 @@ public class ParameterRouteResolver implements RouteResolver {
             if (this.apiVersionValidator.isValidApiVersion(apiVersion)) {
                 result = new LinkedHashMap<>(parameters);
                 result.remove(apiVersionParameterName);
-                return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).parameters(result).build();
+                return Route.builder().apiVersion(apiVersion).baseUrl(baseUrl).path(path).headers(headers)
+                        .parameters(result).build();
             }
         }
-        return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).parameters(result).build();
+        return Route.builder().apiVersion(NO_VERSION).baseUrl(baseUrl).path(path).headers(headers).parameters(result)
+                .build();
     }
 }

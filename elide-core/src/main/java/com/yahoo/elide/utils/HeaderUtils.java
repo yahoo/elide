@@ -6,16 +6,13 @@
 
 package com.yahoo.elide.utils;
 
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 /**
- * Utility class which modifies request headers
+ * Utility class which modifies request headers.
  */
 public class HeaderUtils {
 
@@ -24,19 +21,6 @@ public class HeaderUtils {
         Map<String, List<String>> process(Map<String, List<String>> headers);
     }
 
-    /**
-     * Resolve value of api version from request headers.
-     * @param headers HttpHeaders
-     * @return apiVersion
-     */
-
-     public static String resolveApiVersion(Map<String, List<String>> headers) {
-         String apiVersion = NO_VERSION;
-         if (headers != null && headers.get("ApiVersion") != null) {
-             apiVersion = headers.get("ApiVersion").get(0);
-         }
-         return apiVersion;
-     }
     /**
      * Remove Authorization and Proxy Authorization headers from request headers.
      * @param headers HttpHeaders

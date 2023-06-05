@@ -36,4 +36,9 @@ public class Route {
      * The parameters of the resolved route.
      */
     private final Map<String, List<String>> parameters;
+
+    /**
+     * The headers of the resolved route.
+     */
+    private final Map<String, List<String>> headers;
 }

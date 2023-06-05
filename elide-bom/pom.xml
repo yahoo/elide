@@ -120,6 +120,12 @@
                 <artifactId>elide-swagger</artifactId>
                 <version>7.0.0-pr7-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-test-helpers</artifactId>
+                <version>7.0.0-pr6-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

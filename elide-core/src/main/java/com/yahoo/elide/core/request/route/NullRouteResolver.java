@@ -19,6 +19,6 @@ public class NullRouteResolver implements RouteResolver {
     public Route resolve(String mediaType, String baseUrl, String path,
             Map<String, List<String>> headers, Map<String, List<String>> parameters) {
         return Route.builder().apiVersion(EntityDictionary.NO_VERSION).baseUrl(baseUrl).path(path)
-                .parameters(parameters).build();
+                .headers(headers).parameters(parameters).build();
     }
 }
