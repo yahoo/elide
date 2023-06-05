@@ -42,6 +42,12 @@
             <artifactId>elide-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-test-helpers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- JPA -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
@@ -52,8 +58,6 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <!-- This override is for hibernate-search-mapper-orm-orm6 6.1 fails with 6.2.2.Final -->
-            <version>6.2.7.Final</version>
         </dependency> 
 
         <dependency>
@@ -69,7 +73,6 @@
         <dependency>
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
-            <version>2.1.4</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
