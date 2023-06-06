@@ -163,7 +163,6 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, Map<String, List<String>> queryParams) {
-        return new RequestScope(null, path, NO_VERSION, null, tx, user, queryParams, null, UUID.randomUUID(), elideSettings);
         Route route = Route.builder().path(path).apiVersion(NO_VERSION).parameters(queryParams).build();
         return new JsonApiRequestScope(route, tx, user, UUID.randomUUID(), elideSettings, new JsonApiDocument());
     }

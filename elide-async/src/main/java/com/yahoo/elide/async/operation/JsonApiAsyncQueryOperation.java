@@ -40,15 +40,15 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
             throws URISyntaxException {
         Elide elide = getService().getElide();
         User user = scope.getUser();
-        String apiVersion = scope.getApiVersion();
+        String apiVersion = scope.getRoute().getApiVersion();
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         URIBuilder uri = new URIBuilder(queryObj.getQuery());
         Map<String, List<String>> queryParams = getQueryParams(uri);
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        Route route = Route.builder().baseUrl(scope.getBaseUrlEndPoint()).path(getPath(uri)).parameters(queryParams)
-                .headers(scope.getRequestHeaders()).apiVersion(apiVersion).build();
+        Route route = Route.builder().baseUrl(scope.getRoute().getBaseUrl()).path(getPath(uri)).parameters(queryParams)
+                .headers(scope.getRoute().getHeaders()).apiVersion(apiVersion).build();
         ElideResponse response = elide.get(route, user, requestUUID);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());

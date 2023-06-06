@@ -37,7 +37,8 @@ public class TestRequestScope extends JsonApiRequestScope {
                          .withEntityDictionary(dictionary)
                          .withJsonApiLinks(new DefaultJsonApiLinks())
                          .withJsonApiPath("/json")
-                         .build());
+                         .build(),
+                         new JsonApiDocument());
     }
 
     public TestRequestScope(DataStoreTransaction transaction,
@@ -60,10 +61,12 @@ public class TestRequestScope extends JsonApiRequestScope {
     }
 
     @Override
-    public Map<String, List<String>> getQueryParams() {
+    public Route getRoute() {
         if (queryParamOverrides != null) {
-            return queryParamOverrides;
+            Route copy = super.getRoute();
+            return Route.builder().baseUrl(copy.getBaseUrl()).path(copy.getPath()).parameters(queryParamOverrides)
+                    .headers(copy.getHeaders()).apiVersion(copy.getApiVersion()).build();
         }
-        return super.getQueryParams();
+        return super.getRoute();
     }
 }

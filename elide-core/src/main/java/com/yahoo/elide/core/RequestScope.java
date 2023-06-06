@@ -44,7 +44,7 @@ import java.util.function.Function;
  * Request scope object for relaying request-related data to various subsystems.
  */
 public class RequestScope implements com.yahoo.elide.core.security.RequestScope {
-    @Getter protected Route route;
+    protected Route route;
     @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
     @Getter protected final EntityDictionary dictionary;
@@ -104,9 +104,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
         this.metadata = new HashMap<>();
-        this.queryParams = queryParams == null ? new LinkedHashMap<>() : queryParams;
 
-        this.sparseFields = parseSparseFields(getQueryParams());
+        this.sparseFields = parseSparseFields(getRoute().getParameters());
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = new MultiplexPermissionExecutor(
@@ -373,19 +372,11 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         // Insert for all inherited entities as well
         dictionary.getSuperClassEntities(type).stream()
                 .map(i -> getInheritanceKey(boundType.getName(), i.getName()))
-                .forEach((newType) -> objectEntityCache.put(newType, id, object));
+                .forEach(newType -> objectEntityCache.put(newType, id, object));
     }
 
     private String getInheritanceKey(String subClass, String superClass) {
         return subClass + "!" + superClass;
-    }
-
-    @Override
-    public String getRequestHeaderByName(String headerName) {
-        if (this.route.getHeaders().get(headerName) == null) {
-            return null;
-        }
-        return this.route.getHeaders().get(headerName).get(0);
     }
 
     @Override
@@ -404,25 +395,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     }
 
     @Override
-    public String getApiVersion() {
-        return this.route.getApiVersion();
-    }
-
-    @Override
-    public String getBaseUrlEndPoint() {
-        return this.route.getBaseUrl();
-    }
-
-    public String getPath() {
-        return this.route.getPath();
-    }
-
-    @Override
-    public Map<String, List<String>> getQueryParams() {
-        return this.route.getParameters();
-    }
-
-    public Map<String, List<String>> getRequestHeaders() {
-        return this.route.getHeaders();
+    public Route getRoute() {
+        return this.route;
     }
 }

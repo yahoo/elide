@@ -180,7 +180,7 @@ public abstract class BaseState {
     }
 
     protected static JsonApiDocument getResponseBody(PersistentResource resource, RequestScope requestScope) {
-        Map<String, List<String>> queryParams = requestScope.getQueryParams();
+        Map<String, List<String>> queryParams = requestScope.getRoute().getParameters();
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         //TODO Make this a document processor

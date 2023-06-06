@@ -19,6 +19,7 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,12 +43,12 @@ public class GraphQLAsyncQueryOperationTest {
         user = mock(User.class);
         elide = mock(Elide.class);
         requestScope = mock(RequestScope.class);
+        when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion("v1").build());
         runner = mock(QueryRunner.class);
         runners.put("v1", runner);
         asyncExecutorService = mock(AsyncExecutorService.class);
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(asyncExecutorService.getRunners()).thenReturn(runners);
-        when(requestScope.getApiVersion()).thenReturn("v1");
     }
 
     @Test
@@ -113,7 +114,7 @@ public class GraphQLAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
 
-        when(requestScope.getApiVersion()).thenReturn("v2");
+        when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion("v2").build());
         GraphQLAsyncQueryOperation graphQLOperation = new GraphQLAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         assertThrows(InvalidOperationException.class, () -> graphQLOperation.call());
     }

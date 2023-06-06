@@ -57,6 +57,6 @@ public class JsonApiJsonPatchRequestScope extends JsonApiRequestScope {
      */
     public JsonApiJsonPatchRequestScope(String path, JsonApiDocument jsonApiDocument,
             JsonApiJsonPatchRequestScope scope) {
-        super(path, scope.getApiVersion(), jsonApiDocument, scope);
+        super(path, scope.getRoute().getApiVersion(), jsonApiDocument, scope);
     }
 }

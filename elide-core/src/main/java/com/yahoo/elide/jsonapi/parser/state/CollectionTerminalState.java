@@ -71,7 +71,7 @@ public class CollectionTerminalState extends BaseState {
     public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        Map<String, List<String>> queryParams = requestScope.getQueryParams();
+        Map<String, List<String>> queryParams = requestScope.getRoute().getParameters();
 
         LinkedHashSet<PersistentResource> collection =
                 getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
@@ -120,7 +120,6 @@ public class CollectionTerminalState extends BaseState {
     @Override
     public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) {
         JsonApiRequestScope requestScope = state.getRequestScope();
-        JsonApiMapper mapper = requestScope.getMapper();
 
         newObject = createObject(requestScope);
         parent.ifPresent(persistentResource -> persistentResource.addRelation(relationName.get(), newObject));
@@ -129,7 +128,7 @@ public class CollectionTerminalState extends BaseState {
             returnDoc.setData(new Data<>(newObject.toResource()));
 
             PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
-            metaProcessor.execute(returnDoc, requestScope, newObject, requestScope.getQueryParams());
+            metaProcessor.execute(returnDoc, requestScope, newObject, requestScope.getRoute().getParameters());
 
             return Pair.of(HttpStatus.SC_CREATED, returnDoc);
         };
@@ -192,7 +191,7 @@ public class CollectionTerminalState extends BaseState {
         String id = resource.getId();
 
         Type<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType(),
-                requestScope.getApiVersion());
+                requestScope.getRoute().getApiVersion());
 
         if (newObjectClass == null) {
             throw new UnknownEntityException("Entity " + resource.getType() + " not found");

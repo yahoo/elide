@@ -16,8 +16,11 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
+
 import org.apache.http.client.utils.URIBuilder;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +51,7 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             Map<String, List<String>> additionalRequestHeaders) {
         UUID requestId = UUID.fromString(export.getRequestId());
         User user = scope.getUser();
-        String apiVersion = scope.getApiVersion();
+        String apiVersion = scope.getRoute().getApiVersion();
         URIBuilder uri;
         try {
             uri = new URIBuilder(export.getQuery());
@@ -59,7 +62,7 @@ public class JsonApiTableExportOperation extends TableExportOperation {
         Map<String, List<String>> queryParams = JsonApiAsyncQueryOperation.getQueryParams(uri);
 
         // Call with additionalHeader alone
-        if (scope.getRequestHeaders().isEmpty()) {
+        if (scope.getRoute().getHeaders().isEmpty()) {
             Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
                     .apiVersion(apiVersion).headers(additionalRequestHeaders).parameters(queryParams).build();
 
@@ -68,14 +71,14 @@ public class JsonApiTableExportOperation extends TableExportOperation {
         }
 
         // Combine additionalRequestHeaders and existing scope's request headers
-        Map<String, List<String>> finalRequestHeaders = new HashMap<String, List<String>>();
-        scope.getRequestHeaders().forEach((entry, value) -> finalRequestHeaders.put(entry, value));
+        Map<String, List<String>> finalRequestHeaders = new HashMap<>();
+        scope.getRoute().getHeaders().forEach(finalRequestHeaders::put);
 
         //additionalRequestHeaders will override any headers in scope.getRequestHeaders()
-        additionalRequestHeaders.forEach((entry, value) -> finalRequestHeaders.put(entry, value));
+        additionalRequestHeaders.forEach(finalRequestHeaders::put);
 
         Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
-                .apiVersion(apiVersion).headers(scope.getRequestHeaders()).parameters(queryParams).build();
+                .apiVersion(apiVersion).headers(scope.getRoute().getHeaders()).parameters(queryParams).build();
         return new JsonApiRequestScope(route, tx, user, requestId, getService().getElide().getElideSettings(), null);
     }
 

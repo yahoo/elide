@@ -18,13 +18,14 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
 
-public class JSONAPIAsyncQueryOperationTest {
+public class JsonApiAsyncQueryOperationTest {
 
     private User user;
     private Elide elide;
@@ -37,6 +38,7 @@ public class JSONAPIAsyncQueryOperationTest {
         elide = mock(Elide.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
+        when(requestScope.getRoute()).thenReturn(Route.builder().build());
         when(asyncExecutorService.getElide()).thenReturn(elide);
     }
 
@@ -55,7 +57,7 @@ public class JSONAPIAsyncQueryOperationTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
         when(elide.get(any(), any(), any())).thenReturn(response);
-        JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        JsonApiAsyncQueryOperation jsonOperation = new JsonApiAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -74,7 +76,7 @@ public class JSONAPIAsyncQueryOperationTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
         when(elide.get(any(), any(), any())).thenReturn(response);
-        JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        JsonApiAsyncQueryOperation jsonOperation = new JsonApiAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());
         assertEquals(201, queryResultObj.getHttpStatus());
