@@ -117,7 +117,7 @@ public class ConfigDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public void commit(RequestScope scope) {
-        boolean validateOnly = scope.getRequestHeaderByName(VALIDATE_ONLY_HEADER) != null;
+        boolean validateOnly = scope.getRoute().getHeaders().get(VALIDATE_ONLY_HEADER) != null;
 
         if (! validateOnly) {
             for (Runnable runnable : todo) {

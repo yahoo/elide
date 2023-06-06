@@ -50,7 +50,7 @@ public class GraphQLTableExportOperation extends TableExportOperation {
             Map<String, List<String>> additionalRequestHeaders) {
         UUID requestId = UUID.fromString(export.getRequestId());
         User user = scope.getUser();
-        String apiVersion = scope.getApiVersion();
+        String apiVersion = scope.getRoute().getApiVersion();
         Route route = Route.builder().baseUrl("").apiVersion(apiVersion).headers(additionalRequestHeaders).build();
         return new GraphQLRequestScope(route, tx, user, getService().getElide().getElideSettings(),
                 null, requestId);
@@ -69,7 +69,7 @@ public class GraphQLTableExportOperation extends TableExportOperation {
             String queryString = QueryRunner.extractQuery(node);
 
             projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
-                            scope.getApiVersion()).make(queryString);
+                            scope.getRoute().getApiVersion()).make(queryString);
 
         } catch (IOException e) {
             throw new IllegalStateException(e);

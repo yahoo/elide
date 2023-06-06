@@ -19,8 +19,6 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -59,10 +57,12 @@ public class TestRequestScope extends JsonApiRequestScope {
     }
 
     @Override
-    public Map<String, List<String>> getQueryParams() {
+    public Route getRoute() {
         if (queryParamOverrides != null) {
-            return queryParamOverrides;
+            Route copy = super.getRoute();
+            return Route.builder().baseUrl(copy.getBaseUrl()).path(copy.getPath()).parameters(queryParamOverrides)
+                    .headers(copy.getHeaders()).apiVersion(copy.getApiVersion()).build();
         }
-        return super.getQueryParams();
+        return super.getRoute();
     }
 }

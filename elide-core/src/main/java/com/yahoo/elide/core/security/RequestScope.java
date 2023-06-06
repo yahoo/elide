@@ -6,19 +6,14 @@
 package com.yahoo.elide.core.security;
 
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * The request scope interface passed to checks.
  */
 public interface RequestScope extends WithMetadata {
     User getUser();
-    String getApiVersion();
-    String getRequestHeaderByName(String headerName);
-    String getBaseUrlEndPoint();
-    Map<String, List<String>> getQueryParams();
+    Route getRoute();
     DataStoreTransaction getTransaction();
 }

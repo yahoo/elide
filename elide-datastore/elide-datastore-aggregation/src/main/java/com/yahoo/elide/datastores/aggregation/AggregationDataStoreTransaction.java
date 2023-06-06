@@ -35,6 +35,7 @@ import org.apache.commons.compress.utils.Lists;
 import lombok.ToString;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,15 +94,15 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         try {
 
             //Convert multivalued map to map.
-            Map<String, String> headers = scope.getRequestHeaders().entrySet()
+            Map<String, String> headers = scope.getRoute().getHeaders().entrySet()
                     .stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            (entry) -> entry.getValue().stream().collect(Collectors.joining(" "))
+                            entry -> entry.getValue().stream().collect(Collectors.joining(" "))
                     ));
 
             queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), headers,
-                    scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
+                    scope.getRoute().getApiVersion(), scope.getRoute().getParameters(), scope.getRoute().getPath());
             Query query = buildQuery(entityProjection, scope);
             Table table = (Table) query.getSource();
             if (cache != null && !query.isBypassingCache()) {
@@ -155,8 +156,9 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Table table = metaDataStore.getTable(
                 scope.getDictionary().getJsonAliasFor(entityProjection.getType()),
-                scope.getApiVersion());
-        String bypassCacheStr = scope.getRequestHeaderByName("bypasscache");
+                scope.getRoute().getApiVersion());
+        String bypassCacheStr = scope.getRoute().getHeaders().getOrDefault("bypasscache", Collections.emptyList())
+                .stream().findFirst().orElse(null);
         Boolean bypassCache = "true".equals(bypassCacheStr);
 
         EntityProjectionTranslator translator = new EntityProjectionTranslator(

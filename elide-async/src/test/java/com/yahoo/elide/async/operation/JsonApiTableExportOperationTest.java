@@ -80,10 +80,9 @@ public class JsonApiTableExportOperationTest {
         asyncExecutorService = mock(AsyncExecutorService.class);
         engine = new FileResultStorageEngine(tempDir.toString(), true);
         when(asyncExecutorService.getElide()).thenReturn(elide);
-        when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
+        when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).baseUrl("https://elide.io").build());
         when(requestScope.getUser()).thenReturn(user);
         when(requestScope.getElideSettings()).thenReturn(elide.getElideSettings());
-        when(requestScope.getBaseUrlEndPoint()).thenReturn("https://elide.io");
     }
 
     @Test

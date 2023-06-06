@@ -60,7 +60,7 @@ public class JsonApiRequestScope extends RequestScope {
         this.filterDialect = new MultipleFilterDialect(elideSettings.getJoinFilterDialects(),
                 elideSettings.getSubqueryFilterDialects());
 
-        Map<String, List<String>> queryParams = getQueryParams();
+        Map<String, List<String>> queryParams = getRoute().getParameters();
         String path = route.getPath();
         String apiVersion = route.getApiVersion();
 
@@ -113,7 +113,8 @@ public class JsonApiRequestScope extends RequestScope {
     protected JsonApiRequestScope(String path, String apiVersion,
             JsonApiDocument jsonApiDocument, JsonApiRequestScope outerRequestScope) {
         super(outerRequestScope);
-        this.route = Route.builder().baseUrl(outerRequestScope.getBaseUrlEndPoint()).path(path).apiVersion(apiVersion)
+        this.route = Route.builder().baseUrl(outerRequestScope.getRoute().getBaseUrl()).path(path)
+                .apiVersion(apiVersion)
                 .headers(outerRequestScope.getRoute().getHeaders())
                 .parameters(outerRequestScope.getRoute().getParameters())
                 .build();

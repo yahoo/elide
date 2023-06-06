@@ -164,7 +164,7 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      */
     public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
         String downloadPath =  scope.getElideSettings().getExportApiPath();
-        String baseURL = scope.getBaseUrlEndPoint();
+        String baseURL = scope.getRoute().getBaseUrl();
         String jsonApiPath = scope.getElideSettings().getJsonApiPath();
         if (jsonApiPath != null && baseURL.endsWith(jsonApiPath)) {
             baseURL = baseURL.substring(0, baseURL.length() - jsonApiPath.length());

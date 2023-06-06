@@ -29,6 +29,7 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -120,7 +121,7 @@ public class AsyncExecutorServiceTest {
         when(queryObj.getRequestId()).thenReturn(id);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
         when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
-        when(scope.getApiVersion()).thenReturn(NO_VERSION);
+        when(scope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).build());
         when(scope.getUser()).thenReturn(testUser);
         JsonApiAsyncQueryOperation jsonOperation = new JsonApiAsyncQueryOperation(service, queryObj, scope);
         service.executeQuery(queryObj, jsonOperation);

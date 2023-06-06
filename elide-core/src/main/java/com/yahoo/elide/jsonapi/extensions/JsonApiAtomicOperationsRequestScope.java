@@ -57,6 +57,6 @@ public class JsonApiAtomicOperationsRequestScope extends JsonApiRequestScope {
      */
     public JsonApiAtomicOperationsRequestScope(String path, JsonApiDocument jsonApiDocument,
             JsonApiAtomicOperationsRequestScope scope) {
-        super(path, scope.getApiVersion(), jsonApiDocument, scope);
+        super(path, scope.getRoute().getApiVersion(), jsonApiDocument, scope);
     }
 }
