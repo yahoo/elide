@@ -11,6 +11,7 @@ import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -44,8 +45,9 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = elide.get(scope.getBaseUrlEndPoint(), getPath(uri), queryParams,
-                scope.getRequestHeaders(), user, apiVersion, requestUUID);
+        Route route = Route.builder().baseUrl(scope.getBaseUrlEndPoint()).path(getPath(uri)).parameters(queryParams)
+                .headers(scope.getRequestHeaders()).apiVersion(apiVersion).build();
+        ElideResponse response = elide.get(route, user, requestUUID);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;

@@ -15,6 +15,7 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -50,8 +51,9 @@ public class GraphQLTableExportOperation extends TableExportOperation {
         UUID requestId = UUID.fromString(export.getRequestId());
         User user = scope.getUser();
         String apiVersion = scope.getApiVersion();
-        return new GraphQLRequestScope("", tx, user, apiVersion, getService().getElide().getElideSettings(),
-                null, requestId, additionalRequestHeaders);
+        Route route = Route.builder().baseUrl("").apiVersion(apiVersion).headers(additionalRequestHeaders).build();
+        return new GraphQLRequestScope(route, tx, user, getService().getElide().getElideSettings(),
+                null, requestId);
     }
 
     @Override

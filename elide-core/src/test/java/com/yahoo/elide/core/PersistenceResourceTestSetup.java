@@ -22,11 +22,13 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -60,6 +62,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -134,9 +137,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         super(
                 new Child(),
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
-                new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(),
-                        initSettings()
-                )
+                new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), null, null, UUID.randomUUID(),
+                        initSettings())
         );
 
         elideSettings = initSettings();
@@ -157,11 +159,12 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected RequestScope buildRequestScope(DataStoreTransaction tx, User user) {
-        return buildRequestScope(null, tx, user, null);
+        return buildRequestScope("", tx, user, new MultivaluedHashMap<>());
     }
 
     protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, MultivaluedMap<String, String> queryParams) {
-        return new RequestScope(null, path, NO_VERSION, null, tx, user, queryParams, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().path(path).apiVersion(NO_VERSION).parameters(queryParams).build();
+        return new JsonApiRequestScope(route, tx, user, UUID.randomUUID(), elideSettings, new JsonApiDocument());
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
@@ -170,16 +173,18 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         User goodUser = new TestUser("1");
-        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope requestScope = new RequestScope(route, tx, goodUser, UUID.randomUUID(), elideSettings);
         return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
-        return new RequestScope(null, null, NO_VERSION, new JsonApiDocument(), null, user, null, null, UUID.randomUUID(),
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        return new JsonApiRequestScope(route, null, user, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                     .withEntityDictionary(dictionary)
                     .withAuditLogger(auditLogger)
-                    .build());
+                    .build(), new JsonApiDocument());
     }
 
     // Testing constructor, setId and non-null empty sets

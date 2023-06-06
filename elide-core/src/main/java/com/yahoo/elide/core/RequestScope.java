@@ -12,23 +12,18 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-import com.yahoo.elide.core.filter.dialect.ParseException;
-import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
 import com.yahoo.elide.core.lifecycle.LifecycleHookInvoker;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.security.executors.MultiplexPermissionExecutor;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import org.apache.commons.collections.MapUtils;
 
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -50,38 +45,30 @@ import java.util.function.Function;
  * Request scope object for relaying request-related data to various subsystems.
  */
 public class RequestScope implements com.yahoo.elide.core.security.RequestScope {
-    @Getter private final JsonApiDocument jsonApiDocument;
+    @Getter protected Route route;
     @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
     @Getter protected final EntityDictionary dictionary;
-    @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
-    @Getter private final Map<String, List<String>> queryParams;
-    @Getter private final Map<String, Set<String>> sparseFields;
-    @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final LinkedHashSet<PersistentResource> deletedResources;
-    @Getter private final String baseUrlEndPoint;
-    @Getter private final String path;
     @Getter private final ElideSettings elideSettings;
-    @Getter private final int updateStatusCode;
-    @Getter private final MultipleFilterDialect filterDialect;
-    @Getter private final String apiVersion;
-
+    @Getter private final Map<String, Set<String>> sparseFields;
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
     @Getter private final UUID requestId;
-    private final Map<String, FilterExpression> expressionsByType;
+
+    protected Map<String, FilterExpression> expressionsByType;
 
     private final Map<String, Object> metadata;
 
     private LinkedHashSet<CRUDEvent> eventQueue;
 
     /* Used to filter across heterogeneous types during the first load */
-    private FilterExpression globalFilterExpression;
+    protected FilterExpression globalFilterExpression;
 
     /**
      * Create a new RequestScope with specified update status code.
@@ -96,31 +83,19 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param requestHeaders the requestHeaders
      * @param elideSettings Elide settings object
      */
-    public RequestScope(String baseUrlEndPoint,
-                        String path,
-                        String apiVersion,
-                        JsonApiDocument jsonApiDocument,
+    public RequestScope(Route route,
                         DataStoreTransaction transaction,
                         User user,
-                        Map<String, List<String>> queryParams,
-                        Map<String, List<String>> requestHeaders,
                         UUID requestId,
                         ElideSettings elideSettings) {
-        this.apiVersion = apiVersion;
+        this.route = route;
         this.eventQueue = new LinkedHashSet<>();
 
-        this.path = path;
-        this.baseUrlEndPoint = baseUrlEndPoint;
-        this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
         this.user = user;
         this.dictionary = elideSettings.getDictionary();
-        this.mapper = elideSettings.getMapper();
         this.auditLogger = elideSettings.getAuditLogger();
-        this.filterDialect = new MultipleFilterDialect(elideSettings.getJoinFilterDialects(),
-                elideSettings.getSubqueryFilterDialects());
         this.elideSettings = elideSettings;
-        this.updateStatusCode = elideSettings.getUpdateStatusCode();
 
         this.globalFilterExpression = null;
         this.expressionsByType = new HashMap<>();
@@ -130,50 +105,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
         this.metadata = new HashMap<>();
-        this.queryParams = queryParams == null ? new MultivaluedHashMap<>() : queryParams;
-
-        this.requestHeaders = MapUtils.isEmpty(requestHeaders)
-                ? Collections.emptyMap()
-                : requestHeaders;
 
         this.sparseFields = parseSparseFields(getQueryParams());
-
-        if (!this.queryParams.isEmpty()) {
-
-            /* Extract any query param that starts with 'filter' */
-            MultivaluedMap<String, String> filterParams = getFilterParams(this.queryParams);
-
-            String errorMessage = "";
-            if (! filterParams.isEmpty()) {
-
-                /* First check to see if there is a global, cross-type filter */
-                try {
-                    globalFilterExpression = filterDialect.parseGlobalExpression(path, filterParams, apiVersion);
-                } catch (ParseException e) {
-                    errorMessage = e.getMessage();
-                }
-
-                /* Next check to see if there is are type specific filters */
-                try {
-                    expressionsByType.putAll(filterDialect.parseTypedExpression(path, filterParams, apiVersion));
-                } catch (ParseException e) {
-
-                    /* If neither dialect parsed, report the last error found */
-                    if (globalFilterExpression == null) {
-
-                        if (errorMessage.isEmpty()) {
-                            errorMessage = e.getMessage();
-                        } else if (! errorMessage.equals(e.getMessage())) {
-
-                            /* Combine the two different messages together */
-                            errorMessage = errorMessage + "\n" + e.getMessage();
-                        }
-
-                        throw new BadRequestException(errorMessage, e);
-                    }
-                }
-            }
-        }
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = new MultiplexPermissionExecutor(
@@ -185,41 +118,25 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         );
     }
 
-    /**
-     * Special copy constructor for use by PatchRequestScope.
-     *
-     * @param path the URL path
-     * @param apiVersion the API version
-     * @param jsonApiDocument   the json api document
-     * @param outerRequestScope the outer request scope
-     */
-    protected RequestScope(String path, String apiVersion,
-                           JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
-        this.jsonApiDocument = jsonApiDocument;
-        this.baseUrlEndPoint = outerRequestScope.baseUrlEndPoint;
-        this.apiVersion = apiVersion;
-        this.path = path;
-        this.transaction = outerRequestScope.transaction;
-        this.user = outerRequestScope.user;
-        this.dictionary = outerRequestScope.dictionary;
-        this.mapper = outerRequestScope.mapper;
-        this.auditLogger = outerRequestScope.auditLogger;
-        this.queryParams = new MultivaluedHashMap<>();
-        this.requestHeaders = new MultivaluedHashMap<>();
-        this.requestHeaders.putAll(outerRequestScope.requestHeaders);
-        this.objectEntityCache = outerRequestScope.objectEntityCache;
-        this.newPersistentResources = outerRequestScope.newPersistentResources;
-        this.permissionExecutor = outerRequestScope.getPermissionExecutor();
-        this.dirtyResources = outerRequestScope.dirtyResources;
-        this.deletedResources = outerRequestScope.deletedResources;
-        this.filterDialect = outerRequestScope.filterDialect;
-        this.expressionsByType = outerRequestScope.expressionsByType;
-        this.elideSettings = outerRequestScope.elideSettings;
-        this.eventQueue = outerRequestScope.eventQueue;
-        this.updateStatusCode = outerRequestScope.updateStatusCode;
-        this.requestId = outerRequestScope.requestId;
-        this.sparseFields = outerRequestScope.sparseFields;
-        this.metadata = new HashMap<>(outerRequestScope.metadata);
+    public RequestScope(RequestScope copy) {
+        this.route = copy.route;
+        this.transaction = copy.transaction;
+        this.user = copy.user;
+        this.dictionary = copy.dictionary;
+        this.auditLogger = copy.auditLogger;
+        this.permissionExecutor = copy.permissionExecutor;
+        this.objectEntityCache = copy.objectEntityCache;
+        this.newPersistentResources = copy.newPersistentResources;
+        this.dirtyResources = copy.dirtyResources;
+        this.deletedResources = copy.deletedResources;
+        this.elideSettings = copy.elideSettings;
+        this.entityProjection = copy.entityProjection;
+        this.sparseFields = copy.sparseFields;
+        this.requestId = copy.requestId;
+        this.expressionsByType = copy.expressionsByType;
+        this.metadata = copy.metadata;
+        this.eventQueue = copy.eventQueue;
+        this.globalFilterExpression = copy.globalFilterExpression;
     }
 
     public Set<com.yahoo.elide.core.security.PersistentResource> getNewResources() {
@@ -465,10 +382,10 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
 
     @Override
     public String getRequestHeaderByName(String headerName) {
-        if (this.requestHeaders.get(headerName) == null) {
+        if (this.route.getHeaders().get(headerName) == null) {
             return null;
         }
-        return this.requestHeaders.get(headerName).get(0);
+        return this.route.getHeaders().get(headerName).get(0);
     }
 
     @Override
@@ -484,5 +401,28 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Override
     public Set<String> getMetadataFields() {
         return metadata.keySet();
+    }
+
+    @Override
+    public String getApiVersion() {
+        return this.route.getApiVersion();
+    }
+
+    @Override
+    public String getBaseUrlEndPoint() {
+        return this.route.getBaseUrl();
+    }
+
+    public String getPath() {
+        return this.route.getPath();
+    }
+
+    @Override
+    public Map<String, List<String>> getQueryParams() {
+        return this.route.getParameters();
+    }
+
+    public Map<String, List<String>> getRequestHeaders() {
+        return this.route.getHeaders();
     }
 }

@@ -19,6 +19,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +43,6 @@ import jakarta.jms.JMSContext;
 import jakarta.jms.JMSProducer;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
@@ -105,16 +105,11 @@ public class JMSDataStoreTest {
 
         try (DataStoreTransaction tx = store.beginReadTransaction()) {
 
-
+            Route route = Route.builder().baseUrl("/json").path("/").apiVersion(NO_VERSION).build();
             RequestScope scope = new RequestScope(
-                    "/json",
-                    "/",
-                    NO_VERSION,
-                    null,
+                    route,
                     tx,
                     null,
-                    null,
-                    Collections.EMPTY_MAP,
                     UUID.randomUUID(),
                     new ElideSettingsBuilder(store)
                             .withEntityDictionary(dictionary)

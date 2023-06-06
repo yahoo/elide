@@ -17,6 +17,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionC
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.document.processors.PopulateMetaProcessor;
@@ -170,7 +171,7 @@ public abstract class BaseState {
     protected static Supplier<Pair<Integer, JsonApiDocument>> constructPatchResponse(
             PersistentResource record,
             StateContext stateContext) {
-        RequestScope requestScope = stateContext.getRequestScope();
+        JsonApiRequestScope requestScope = stateContext.getRequestScope();
         int updateStatusCode = requestScope.getUpdateStatusCode();
         return () -> Pair.of(
                 updateStatusCode,

@@ -47,6 +47,7 @@ import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
@@ -75,7 +76,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.owasp.encoder.Encode;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response.Status;
 
 import java.io.IOException;
@@ -2577,7 +2577,8 @@ public class ResourceIT extends IntegrationTest {
         elide.doScans();
 
         com.yahoo.elide.core.security.User user = new com.yahoo.elide.core.security.User(() -> "-1");
-        ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
+        Route route = Route.builder().baseUrl(baseUrl).path("parent/1/children").apiVersion(NO_VERSION).build();
+        ElideResponse response = elide.get(route, user, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
         assertEquals("{\"data\":[]}", response.getBody());
     }

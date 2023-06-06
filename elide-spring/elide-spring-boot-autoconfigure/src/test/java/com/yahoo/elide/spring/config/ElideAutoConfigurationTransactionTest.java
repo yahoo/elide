@@ -14,6 +14,7 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.spring.orm.jpa.config.EnableJpaDataStore;
@@ -236,7 +237,8 @@ class ElideAutoConfigurationTransactionTest {
                     RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
                     dataStore = refreshableElide.getElide().getDataStore();
 
-                    RequestScope scope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null,
+                    Route route = Route.builder().apiVersion(NO_VERSION).build();
+                    RequestScope scope = new RequestScope(route, null, null,
                             UUID.randomUUID(), refreshableElide.getElide().getElideSettings());
 
                     try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
@@ -294,7 +296,8 @@ class ElideAutoConfigurationTransactionTest {
                 .withUserConfiguration(MultipleDataSourceJpaConfiguration.class, MultipleEntityManagerFactoryJpaConfiguration.class)
                 .run(context -> {
                     RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
-                    RequestScope scope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null,
+                    Route route = Route.builder().apiVersion(NO_VERSION).build();
+                    RequestScope scope = new RequestScope(route, null, null,
                             UUID.randomUUID(), refreshableElide.getElide().getElideSettings());
                     EntityManagerFactory entityManagerFactoryV2 = context.getBean("entityManagerFactoryV2",
                             EntityManagerFactory.class);
@@ -455,8 +458,8 @@ class ElideAutoConfigurationTransactionTest {
                     // The data store will only be initialized properly by elide to populate the dictionary
                     RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
                     dataStore = refreshableElide.getElide().getDataStore();
-
-                    RequestScope scope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null,
+                    Route route = Route.builder().apiVersion(NO_VERSION).build();
+                    RequestScope scope = new RequestScope(route, null, null,
                             UUID.randomUUID(), refreshableElide.getElide().getElideSettings());
 
                     try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
@@ -516,7 +519,8 @@ class ElideAutoConfigurationTransactionTest {
                         MultipleEntityManagerFactoryJtaConfiguration.class)
                 .run(context -> {
                     RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
-                    RequestScope scope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null,
+                    Route route = Route.builder().apiVersion(NO_VERSION).build();
+                    RequestScope scope = new RequestScope(route, null, null,
                             UUID.randomUUID(), refreshableElide.getElide().getElideSettings());
                     EntityManagerFactory entityManagerFactoryV2 = context.getBean("entityManagerFactoryV2",
                             EntityManagerFactory.class);

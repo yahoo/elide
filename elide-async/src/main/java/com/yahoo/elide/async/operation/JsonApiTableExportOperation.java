@@ -8,7 +8,7 @@ package com.yahoo.elide.async.operation;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.export.validator.NoRelationshipsProjectionValidator;
-import com.yahoo.elide.async.models.AsyncApi;
+import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
@@ -16,8 +16,11 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
+
 import org.apache.http.client.utils.URIBuilder;
 
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -33,13 +36,13 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * JSON-API TableExport Execute Operation.
+ * JSONAPI TableExport Execute Operation.
  */
 @Slf4j
-public class JsonApiTableExportOperation extends TableExportOperation {
+public class JSONAPITableExportOperation extends TableExportOperation {
 
-    public JsonApiTableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncApi export, RequestScope scope, ResultStorageEngine engine) {
+    public JSONAPITableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
+            AsyncAPI export, RequestScope scope, ResultStorageEngine engine) {
         super(formatter, service, export, scope, engine,
                         Arrays.asList(new NoRelationshipsProjectionValidator()));
     }
@@ -57,12 +60,15 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             throw new BadRequestException(e.getMessage());
         }
 
-        MultivaluedMap<String, String> queryParams = JsonApiAsyncQueryOperation.getQueryParams(uri);
+        MultivaluedMap<String, String> queryParams = JSONAPIAsyncQueryOperation.getQueryParams(uri);
 
         // Call with additionalHeader alone
         if (scope.getRequestHeaders().isEmpty()) {
-            return new RequestScope("", JsonApiAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user,
-                    queryParams, additionalRequestHeaders, requestId, getService().getElide().getElideSettings());
+            Route route = Route.builder().baseUrl("").path(JSONAPIAsyncQueryOperation.getPath(uri))
+                    .apiVersion(apiVersion).headers(additionalRequestHeaders).parameters(queryParams).build();
+
+            return new JsonApiRequestScope(route, tx, user,
+                    requestId, getService().getElide().getElideSettings(), null);
         }
 
         // Combine additionalRequestHeaders and existing scope's request headers
@@ -72,8 +78,9 @@ public class JsonApiTableExportOperation extends TableExportOperation {
         //additionalRequestHeaders will override any headers in scope.getRequestHeaders()
         additionalRequestHeaders.forEach((entry, value) -> finalRequestHeaders.put(entry, value));
 
-        return new RequestScope("", JsonApiAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user, queryParams,
-                scope.getRequestHeaders(), requestId, getService().getElide().getElideSettings());
+        Route route = Route.builder().baseUrl("").path(JSONAPIAsyncQueryOperation.getPath(uri))
+                .apiVersion(apiVersion).headers(scope.getRequestHeaders()).parameters(queryParams).build();
+        return new JsonApiRequestScope(route, tx, user, requestId, getService().getElide().getElideSettings(), null);
     }
 
     @Override
@@ -83,7 +90,7 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             URIBuilder uri = new URIBuilder(export.getQuery());
             Elide elide = getService().getElide();
             projection = new EntityProjectionMaker(elide.getElideSettings().getDictionary(),
-                    scope).parsePath(JsonApiAsyncQueryOperation.getPath(uri));
+                    scope).parsePath(JSONAPIAsyncQueryOperation.getPath(uri));
 
         } catch (URISyntaxException e) {
             throw new BadRequestException(e.getMessage());

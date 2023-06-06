@@ -8,6 +8,7 @@ package com.yahoo.elide.core.request.route;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -41,4 +42,12 @@ public class Route {
      * The headers of the resolved route.
      */
     private final Map<String, List<String>> headers;
+
+    public static class RouteBuilder {
+        private String baseUrl = "";
+        private String path = "";
+        private String apiVersion = "";
+        private Map<String, List<String>> parameters = Collections.emptyMap();
+        private Map<String, List<String>> headers = Collections.emptyMap();
+    }
 }

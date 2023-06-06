@@ -72,15 +72,14 @@ public class JsonApiController {
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
-        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
+                allRequestParams);
         final User user = new AuthenticationUser(authentication);
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.get(route.getBaseUrl(), route.getPath(),
-                        route.getParameters(), requestHeadersCleaned,
-                        user, route.getApiVersion(), UUID.randomUUID());
+                ElideResponse response = elide.get(route, user, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -96,7 +95,8 @@ public class JsonApiController {
         String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
-        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
+                allRequestParams);
         final User user = new AuthenticationUser(authentication);
 
         return new Callable<ResponseEntity<String>>() {
@@ -104,19 +104,12 @@ public class JsonApiController {
             public ResponseEntity<String> call() throws Exception {
                 if ("/operations".equals(route.getPath())) {
                     // Atomic Operations
-                    ElideResponse response = elide
-                            .operations(route.getBaseUrl(), request.getContentType(), request.getContentType(),
-                                    route.getPath(),
-                                    body,
-                                    route.getParameters(), requestHeadersCleaned, user, route.getApiVersion(),
-                                   UUID.randomUUID());
+                    ElideResponse response = elide.operations(route, body, user, UUID.randomUUID());
                     return ResponseEntity.status(response.getResponseCode())
                             .contentType(MediaType.valueOf(JsonApi.AtomicOperations.MEDIA_TYPE))
                             .body(response.getBody());
                 } else {
-                    ElideResponse response = elide.post(route.getBaseUrl(), route.getPath(), body,
-                            route.getParameters(), requestHeadersCleaned, user, route.getApiVersion(),
-                            UUID.randomUUID());
+                    ElideResponse response = elide.post(route, body, user, UUID.randomUUID());
                     return ResponseEntity.status(response.getResponseCode())
                             .contentType(MediaType.valueOf(JsonApi.MEDIA_TYPE)).body(response.getBody());
                 }
@@ -137,15 +130,14 @@ public class JsonApiController {
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
-        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
+                allRequestParams);
         final User user = new AuthenticationUser(authentication);
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.patch(route.getBaseUrl(), request.getContentType(),
-                        request.getContentType(), route.getPath(), body, route.getParameters(),
-                        requestHeadersCleaned, user, route.getApiVersion(), UUID.randomUUID());
+                ElideResponse response = elide.patch(route, body, user, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -160,15 +152,14 @@ public class JsonApiController {
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
-        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
+                allRequestParams);
         final User user = new AuthenticationUser(authentication);
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.delete(route.getBaseUrl(), route.getPath(), null,
-                        route.getParameters(), requestHeadersCleaned,
-                        user, route.getApiVersion(), UUID.randomUUID());
+                ElideResponse response = elide.delete(route, null, user, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -185,15 +176,15 @@ public class JsonApiController {
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
-        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
+                allRequestParams);
         final User user = new AuthenticationUser(authentication);
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .delete(route.getBaseUrl(), route.getPath(), body, route.getParameters(),
-                                requestHeadersCleaned, user, route.getApiVersion(), UUID.randomUUID());
+                        .delete(route, body, user, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };

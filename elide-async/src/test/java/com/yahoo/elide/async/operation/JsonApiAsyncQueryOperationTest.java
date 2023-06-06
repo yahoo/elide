@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
 
-public class JsonApiAsyncQueryOperationTest {
+public class JSONAPIAsyncQueryOperationTest {
 
     private User user;
     private Elide elide;
@@ -54,8 +54,8 @@ public class JsonApiAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
-        when(elide.get(any(), any(), any(), any(), any(), any(), any())).thenReturn(response);
-        JsonApiAsyncQueryOperation jsonOperation = new JsonApiAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        when(elide.get(any(), any(), any())).thenReturn(response);
+        JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -73,8 +73,8 @@ public class JsonApiAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
-        when(elide.get(any(), any(), any(), any(), any(), any(), any())).thenReturn(response);
-        JsonApiAsyncQueryOperation jsonOperation = new JsonApiAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        when(elide.get(any(), any(), any())).thenReturn(response);
+        JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());
         assertEquals(201, queryResultObj.getHttpStatus());

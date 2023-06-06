@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.BeforeAll;
@@ -106,16 +107,15 @@ class HeaderIdentityTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide.getElide()).post(any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
+        verify(elide.getElide()).post(routeCaptor.capture(), any(), any(), any());
 
         Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 
     @Test
@@ -129,16 +129,15 @@ class HeaderIdentityTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
-        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide.getElide()).get(any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
+        verify(elide.getElide()).get(routeCaptor.capture(), any(), any());
 
         Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 
     @Test
@@ -164,16 +163,15 @@ class HeaderIdentityTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide.getElide()).patch(any(), any(), any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
+        verify(elide.getElide()).patch(routeCaptor.capture(), any(), any(), any());
 
         Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 
     @Test
@@ -187,14 +185,9 @@ class HeaderIdentityTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
         verify(elide.getElide()).delete(
-                any(),
-                any(),
-                any(),
-                requestParamsCaptor.capture(),
-                requestHeadersCleanedCaptor.capture(),
+                routeCaptor.capture(),
                 any(),
                 any(),
                 any()
@@ -202,10 +195,10 @@ class HeaderIdentityTest extends IntegrationTest {
 
         Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 
     @Test
@@ -223,14 +216,9 @@ class HeaderIdentityTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<Map<String, List<String>>> requestParamsCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
         verify(elide.getElide()).delete(
-                any(),
-                any(),
-                any(),
-                requestParamsCaptor.capture(),
-                requestHeadersCleanedCaptor.capture(),
+                routeCaptor.capture(),
                 any(),
                 any(),
                 any()
@@ -238,9 +226,9 @@ class HeaderIdentityTest extends IntegrationTest {
 
         Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertTrue(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertTrue(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 }
