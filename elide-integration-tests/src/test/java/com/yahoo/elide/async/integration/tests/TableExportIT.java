@@ -40,6 +40,7 @@ import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.test.graphql.EnumFieldSerializer;
@@ -53,7 +54,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import io.restassured.response.Response;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.SecurityContext;
 import lombok.Data;
 
@@ -1187,15 +1187,16 @@ public class TableExportIT extends AsyncApiIT {
 
         String baseUrl = "/";
         // Principal is Owner
-        response = elide.get(baseUrl, "/tableExport/" + id, new MultivaluedHashMap<>(), ownerUser, NO_VERSION);
+        Route route = Route.builder().baseUrl(baseUrl).path("/tableExport/" + id).apiVersion(NO_VERSION).build();
+        response = elide.get(route, ownerUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         // Principal has Admin Role
-        response = elide.get(baseUrl, "/tableExport/" + id, new MultivaluedHashMap<>(), securityContextAdminUser, NO_VERSION);
+        response = elide.get(route, securityContextAdminUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         // Principal without Admin Role
-        response = elide.get(baseUrl, "/tableExport/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
+        response = elide.get(route, securityContextNonAdminUser, null);
         assertEquals(HttpStatus.SC_NOT_FOUND, response.getResponseCode());
     }
 

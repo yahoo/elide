@@ -11,11 +11,11 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.ObjectEntityCache;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,14 +26,14 @@ import org.junit.jupiter.api.TestInstance;
 public class NoopTransactionTest {
     private DataStoreTransaction tx = new NoopTransaction();
     private NoopBean bean = new NoopBean();
-    private RequestScope requestScope;
+    private JsonApiRequestScope requestScope;
     private EntityDictionary dictionary;
 
     @BeforeAll
     public void setup() {
         dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(NoopBean.class);
-        requestScope = mock(RequestScope.class);
+        requestScope = mock(JsonApiRequestScope.class);
         JsonApiMapper mapper = mock(JsonApiMapper.class);
 
 

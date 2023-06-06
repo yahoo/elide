@@ -11,6 +11,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
@@ -159,15 +160,17 @@ public class RequestHandler implements Closeable {
                                 subscribeRequest.getPayload().getVariables(),
                                 connectionInfo.getGetApiVersion()).make(subscribeRequest.getPayload().getQuery());
 
+        Route route = Route.builder().baseUrl(connectionInfo.getBaseUrl()).apiVersion(connectionInfo.getGetApiVersion())
+                .parameters(connectionInfo.getParameters())
+                .build();
         GraphQLRequestScope requestScope = new GraphQLRequestScope(
-                connectionInfo.getBaseUrl(),
+                route,
                 transaction,
                 connectionInfo.getUser(),
-                connectionInfo.getGetApiVersion(),
                 settings,
                 projectionInfo,
-                requestID,
-                connectionInfo.getParameters());
+                requestID
+                );
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(subscribeRequest.getPayload().getQuery())

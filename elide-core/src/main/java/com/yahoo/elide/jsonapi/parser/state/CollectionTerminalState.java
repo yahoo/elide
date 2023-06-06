@@ -20,6 +20,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.document.processors.PopulateMetaProcessor;
@@ -118,7 +119,7 @@ public class CollectionTerminalState extends BaseState {
 
     @Override
     public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) {
-        RequestScope requestScope = state.getRequestScope();
+        JsonApiRequestScope requestScope = state.getRequestScope();
         JsonApiMapper mapper = requestScope.getMapper();
 
         newObject = createObject(requestScope);
@@ -167,7 +168,7 @@ public class CollectionTerminalState extends BaseState {
         return new Data<>(resources);
     }
 
-    private PersistentResource createObject(RequestScope requestScope)
+    private PersistentResource createObject(JsonApiRequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
         JsonApiDocument doc = requestScope.getJsonApiDocument();
         JsonApiMapper mapper = requestScope.getMapper();

@@ -6,20 +6,18 @@
 package com.yahoo.elide.jsonapi.extensions;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.jsonapi.EntityProjectionMaker;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
  * The request scope for the JSON API Atomic Operations extension.
  */
-public class JsonApiAtomicOperationsRequestScope extends RequestScope {
+public class JsonApiAtomicOperationsRequestScope extends JsonApiRequestScope {
 
     /**
      * Outer RequestScope constructor for use by Atomic Extension.
@@ -35,26 +33,18 @@ public class JsonApiAtomicOperationsRequestScope extends RequestScope {
      * @param elideSettings Elide settings object
      */
     public JsonApiAtomicOperationsRequestScope(
-            String baseUrlEndPoint,
-            String path,
-            String apiVersion,
+            Route route,
             DataStoreTransaction transaction,
             User user,
             UUID requestId,
-            Map<String, List<String>> queryParams,
-            Map<String, List<String>> requestHeaders,
             ElideSettings elideSettings) {
         super(
-                baseUrlEndPoint,
-                path,
-                apiVersion,
-                (JsonApiDocument) null,
+                route,
                 transaction,
                 user,
-                queryParams,
-                requestHeaders,
                 requestId,
-                elideSettings
+                elideSettings,
+                null
         );
     }
 
@@ -68,6 +58,5 @@ public class JsonApiAtomicOperationsRequestScope extends RequestScope {
     public JsonApiAtomicOperationsRequestScope(String path, JsonApiDocument jsonApiDocument,
             JsonApiAtomicOperationsRequestScope scope) {
         super(path, scope.getApiVersion(), jsonApiDocument, scope);
-        this.setEntityProjection(new EntityProjectionMaker(dictionary, this).parsePath(path));
     }
 }

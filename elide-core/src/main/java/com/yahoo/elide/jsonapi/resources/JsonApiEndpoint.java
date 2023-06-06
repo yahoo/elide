@@ -28,7 +28,6 @@ import jakarta.inject.Singleton;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -85,8 +84,6 @@ public class JsonApiEndpoint {
     @Path("{path:.*}")
     @Consumes(JsonApi.MEDIA_TYPE)
     public Response post(
-        @HeaderParam("Content-Type") String contentType,
-        @HeaderParam("accept") String accept,
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
         @Context HttpHeaders headers,
@@ -102,12 +99,10 @@ public class JsonApiEndpoint {
 
         if ("operations".equals(route.getPath())) {
             // Atomic Operations
-            return build(elide.operations(route.getBaseUrl(), contentType, accept, route.getPath(), jsonapiDocument,
-                    route.getParameters(), requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+            return build(elide.operations(route, jsonapiDocument, user, UUID.randomUUID()));
         }
 
-        return build(elide.post(route.getBaseUrl(), route.getPath(), jsonapiDocument,
-                route.getParameters(), requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+        return build(elide.post(route, jsonapiDocument, user, UUID.randomUUID()));
     }
 
     /**
@@ -134,8 +129,7 @@ public class JsonApiEndpoint {
         Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.get(route.getBaseUrl(), route.getPath(), route.getParameters(), requestHeaders, user,
-                route.getApiVersion(), UUID.randomUUID()));
+        return build(elide.get(route, user, UUID.randomUUID()));
     }
 
     /**
@@ -154,8 +148,6 @@ public class JsonApiEndpoint {
     @Path("{path:.*}")
     @Consumes(JsonApi.MEDIA_TYPE)
     public Response patch(
-        @HeaderParam("Content-Type") String contentType,
-        @HeaderParam("accept") String accept,
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
         @Context HttpHeaders headers,
@@ -169,8 +161,7 @@ public class JsonApiEndpoint {
         Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.patch(route.getBaseUrl(), contentType, accept, route.getPath(), jsonapiDocument,
-                route.getParameters(), requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+        return build(elide.patch(route, jsonapiDocument, user, UUID.randomUUID()));
     }
 
     /**
@@ -200,8 +191,7 @@ public class JsonApiEndpoint {
         Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.delete(route.getBaseUrl(), route.getPath(), jsonApiDocument, route.getParameters(),
-                requestHeaders, user, route.getApiVersion(), UUID.randomUUID()));
+        return build(elide.delete(route, jsonApiDocument, user, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {

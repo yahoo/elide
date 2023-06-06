@@ -40,6 +40,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
@@ -906,14 +907,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = new RequestScope(
-                null,
-                null,
-                NO_VERSION,
-                null,
+                Route.builder().apiVersion(NO_VERSION).build(),
                 tx,
                 goodUser,
-                null,
-                null,
                 UUID.randomUUID(),
                 elideSettings);
 
@@ -2853,18 +2849,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Route route = Route.builder().path("/book").apiVersion(NO_VERSION).build();
         JsonApiJsonPatchRequestScope parentScope = new JsonApiJsonPatchRequestScope(
-                null,
-                "/book",
-                NO_VERSION,
+                route,
                 tx,
                 new TestUser("1"),
                 UUID.randomUUID(),
-                null,
-                Collections.emptyMap(),
                 elideSettings);
         JsonApiJsonPatchRequestScope scope = new JsonApiJsonPatchRequestScope(
-                parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
+                parentScope.getRoute().getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works
         assertEquals(parentScope.getUpdateStatusCode(), scope.getUpdateStatusCode());
         assertEquals(parentScope.getObjectEntityCache(), scope.getObjectEntityCache());

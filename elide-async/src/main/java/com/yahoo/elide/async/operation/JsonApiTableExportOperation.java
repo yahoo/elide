@@ -60,8 +60,11 @@ public class JsonApiTableExportOperation extends TableExportOperation {
 
         // Call with additionalHeader alone
         if (scope.getRequestHeaders().isEmpty()) {
-            return new RequestScope("", JsonApiAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user,
-                    queryParams, additionalRequestHeaders, requestId, getService().getElide().getElideSettings());
+            Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
+                    .apiVersion(apiVersion).headers(additionalRequestHeaders).parameters(queryParams).build();
+
+            return new JsonApiRequestScope(route, tx, user,
+                    requestId, getService().getElide().getElideSettings(), null);
         }
 
         // Combine additionalRequestHeaders and existing scope's request headers
@@ -71,8 +74,9 @@ public class JsonApiTableExportOperation extends TableExportOperation {
         //additionalRequestHeaders will override any headers in scope.getRequestHeaders()
         additionalRequestHeaders.forEach((entry, value) -> finalRequestHeaders.put(entry, value));
 
-        return new RequestScope("", JsonApiAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user, queryParams,
-                scope.getRequestHeaders(), requestId, getService().getElide().getElideSettings());
+        Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
+                .apiVersion(apiVersion).headers(scope.getRequestHeaders()).parameters(queryParams).build();
+        return new JsonApiRequestScope(route, tx, user, requestId, getService().getElide().getElideSettings(), null);
     }
 
     @Override

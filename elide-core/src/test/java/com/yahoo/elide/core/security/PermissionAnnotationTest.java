@@ -21,6 +21,7 @@ import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import example.FunWithPermissions;
 import org.junit.jupiter.api.BeforeAll;
@@ -58,9 +59,10 @@ public class PermissionAnnotationTest {
                 .withEntityDictionary(dictionary)
                 .build();
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, null, GOOD_USER, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope goodScope = new RequestScope(route, null, GOOD_USER, UUID.randomUUID(), elideSettings);
         funRecord = new PersistentResource<>(fun, goodScope.getUUIDFor(fun), goodScope);
-        RequestScope badScope = new RequestScope(null, null, NO_VERSION, null, null, BAD_USER, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope badScope = new RequestScope(route, null, BAD_USER, UUID.randomUUID(), elideSettings);
         badRecord = new PersistentResource<>(fun, badScope.getUUIDFor(fun), badScope);
     }
 
