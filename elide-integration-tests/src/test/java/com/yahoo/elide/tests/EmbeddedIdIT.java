@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
@@ -32,6 +31,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.google.common.collect.Sets;
 import example.embeddedid.Address;
 import example.embeddedid.AddressSerde;
@@ -208,8 +208,8 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
     @Test
     public void testJsonApiCreate() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(data(
                         resource(
                                 type("building"),

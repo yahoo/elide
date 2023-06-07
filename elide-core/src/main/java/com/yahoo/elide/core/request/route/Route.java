@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.request.route;
 
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +15,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a route with the API Version.
+ * Represents a route which contains the base url, path, headers, parameters and
+ * api version of the request.
+ * <p>
+ * Use the static factory {@link #builder()} method to prepare an instance.
  */
 @Data
 @Builder
@@ -43,10 +48,23 @@ public class Route {
      */
     private final Map<String, List<String>> headers;
 
+    /**
+     * Returns a builder with the current values.
+     *
+     * @return the builder to mutate
+     */
+    public RouteBuilder mutate() {
+        return builder().baseUrl(this.baseUrl).path(this.path).apiVersion(this.apiVersion).parameters(this.parameters)
+                .headers(this.headers);
+    }
+
+    /**
+     * A mutable builder for creating a {@link Route}.
+     */
     public static class RouteBuilder {
         private String baseUrl = "";
         private String path = "";
-        private String apiVersion = "";
+        private String apiVersion = EntityDictionary.NO_VERSION;
         private Map<String, List<String>> parameters = Collections.emptyMap();
         private Map<String, List<String>> headers = Collections.emptyMap();
     }

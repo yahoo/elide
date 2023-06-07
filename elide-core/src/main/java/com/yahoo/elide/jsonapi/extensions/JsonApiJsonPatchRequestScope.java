@@ -22,14 +22,10 @@ public class JsonApiJsonPatchRequestScope extends JsonApiRequestScope {
     /**
      * Outer RequestScope constructor for use by Patch Extension.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param path the URL path
-     * @param apiVersion client requested API version
-     * @param transaction current database transaction
-     * @param user        request user
-     * @param requestId   request ID
-     * @param queryParams request query parameters
-     * @param requestHeaders request headers
+     * @param route         the route
+     * @param transaction   current transaction
+     * @param user          request user
+     * @param requestId     request ID
      * @param elideSettings Elide settings object
      */
     public JsonApiJsonPatchRequestScope(
@@ -51,12 +47,12 @@ public class JsonApiJsonPatchRequestScope extends JsonApiRequestScope {
     /**
      * Inner RequestScope copy constructor for use by Patch Extension actions.
      *
-     * @param path the URL path
+     * @param path            the URL path
      * @param jsonApiDocument document
      * @param scope           outer request scope
      */
     public JsonApiJsonPatchRequestScope(String path, JsonApiDocument jsonApiDocument,
             JsonApiJsonPatchRequestScope scope) {
-        super(path, scope.getRoute().getApiVersion(), jsonApiDocument, scope);
+        super(scope.getRoute().mutate().path(path).build(), jsonApiDocument, scope);
     }
 }

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.equalTo;
@@ -16,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -32,28 +32,28 @@ public class SortingIT extends IntegrationTest {
     public void setup() {
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher1.json"))
                 .patch("/");
 
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher2.json"))
                 .patch("/");
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher3.json"))
                 .patch("/");
 
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher4.json"))
                 .patch("/");
     }

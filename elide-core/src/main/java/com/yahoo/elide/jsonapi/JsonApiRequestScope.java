@@ -33,16 +33,12 @@ public class JsonApiRequestScope extends RequestScope {
     @Getter private final MultipleFilterDialect filterDialect;
 
     /**
-     * Create a new RequestScope with specified update status code.
+     * Create a new RequestScope.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param path the URL path
-     * @param apiVersion the API version.
-     * @param jsonApiDocument the document for this request
-     * @param transaction the transaction for this request
-     * @param user the user making this request
-     * @param queryParams the query parameters
-     * @param requestHeaders the requestHeaders
+     * @param route         the route
+     * @param transaction   the transaction for this request
+     * @param user          the user making this request
+     * @param requestId     request ID
      * @param elideSettings Elide settings object
      */
     public JsonApiRequestScope(Route route,
@@ -105,19 +101,13 @@ public class JsonApiRequestScope extends RequestScope {
     /**
      * Special copy constructor for use by PatchRequestScope.
      *
-     * @param path the URL path
-     * @param apiVersion the API version
+     * @param route             the route
      * @param jsonApiDocument   the json api document
      * @param outerRequestScope the outer request scope
      */
-    protected JsonApiRequestScope(String path, String apiVersion,
-            JsonApiDocument jsonApiDocument, JsonApiRequestScope outerRequestScope) {
+    protected JsonApiRequestScope(Route route, JsonApiDocument jsonApiDocument, JsonApiRequestScope outerRequestScope) {
         super(outerRequestScope);
-        this.route = Route.builder().baseUrl(outerRequestScope.getRoute().getBaseUrl()).path(path)
-                .apiVersion(apiVersion)
-                .headers(outerRequestScope.getRoute().getHeaders())
-                .parameters(outerRequestScope.getRoute().getParameters())
-                .build();
+        this.route = route;
         this.jsonApiDocument = jsonApiDocument;
         setEntityProjection(new EntityProjectionMaker(outerRequestScope.getElideSettings().getDictionary(), this)
                 .parsePath(this.route.getPath()));

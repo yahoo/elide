@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.errorObjectsTests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
@@ -14,6 +13,7 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;
@@ -30,8 +30,8 @@ public class ErrorObjectsIT extends IntegrationTest {
     public void testJsonAPIErrorObjects() throws IOException {
         JsonNode errors = objectMapper.readTree(
             given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                     datum(
                         resource(

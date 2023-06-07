@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.swagger;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,6 +26,7 @@ import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
@@ -953,7 +953,7 @@ class OpenApiBuilderTest {
      * @param refTypeName The model name
      */
     private void verifyData(Content content, String refTypeName) {
-        verifyData(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName);
+        verifyData(content.get(JsonApi.MEDIA_TYPE).getSchema(), refTypeName);
     }
 
     /**
@@ -978,7 +978,7 @@ class OpenApiBuilderTest {
      * @param included Whether or not the datum should have an 'included' section.
      */
     private void verifyDatum(Content content, String refTypeName, boolean included) {
-        verifyDatum(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName, included);
+        verifyDatum(content.get(JsonApi.MEDIA_TYPE).getSchema(), refTypeName, included);
     }
 
     /**
@@ -1006,7 +1006,7 @@ class OpenApiBuilderTest {
      * @param refTypeName The type field to match against
      */
     private void verifyDataRelationship(Content content, String refTypeName) {
-        verifyDataRelationship(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName);
+        verifyDataRelationship(content.get(JsonApi.MEDIA_TYPE).getSchema(), refTypeName);
     }
 
     /**

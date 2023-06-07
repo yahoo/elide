@@ -19,7 +19,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
-import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.jsonapi.JsonApi;
@@ -28,9 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
@@ -57,30 +54,26 @@ import java.util.Map;
         properties = {
                 "elide.json-api.links.enabled=true",
                 "elide.async.export.enabled=false",
-                "elide.strip-authorization-headers=false"
+                "elide.strip-authorization-headers=false",
+                "spring.cloud.refresh.enabled=false"
         }
 )
 @ActiveProfiles("default")
 class HeaderIdentityTest extends IntegrationTest {
     public static final String SORT_PARAM = "sort";
-    private String baseUrl;
 
     @SpyBean
-    private RefreshableElide elide;
-
-    @Autowired
-    private ApplicationContext applicationContext;
+    private JsonApi jsonApi;
 
     @BeforeAll
     @Override
     public void setUp() {
         super.setUp();
-        baseUrl = "https://elide.io/json/";
     }
 
     @BeforeEach
     public void resetMocks() {
-        reset(elide.getElide());
+        reset(jsonApi);
     }
 
     @Test
@@ -108,7 +101,7 @@ class HeaderIdentityTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
-        verify(elide.getElide()).post(routeCaptor.capture(), any(), any(), any());
+        verify(jsonApi).post(routeCaptor.capture(), any(), any(), any());
 
         Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
@@ -130,7 +123,7 @@ class HeaderIdentityTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK);
 
         ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
-        verify(elide.getElide()).get(routeCaptor.capture(), any(), any());
+        verify(jsonApi).get(routeCaptor.capture(), any(), any());
 
         Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
@@ -164,7 +157,7 @@ class HeaderIdentityTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
-        verify(elide.getElide()).patch(routeCaptor.capture(), any(), any(), any());
+        verify(jsonApi).patch(routeCaptor.capture(), any(), any(), any());
 
         Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
@@ -186,7 +179,7 @@ class HeaderIdentityTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
-        verify(elide.getElide()).delete(
+        verify(jsonApi).delete(
                 routeCaptor.capture(),
                 any(),
                 any(),
@@ -217,7 +210,7 @@ class HeaderIdentityTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
-        verify(elide.getElide()).delete(
+        verify(jsonApi).delete(
                 routeCaptor.capture(),
                 any(),
                 any(),

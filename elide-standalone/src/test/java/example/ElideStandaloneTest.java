@@ -5,7 +5,6 @@
  */
 package example;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.atomicOperation;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.atomicOperations;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
@@ -68,8 +67,8 @@ public class ElideStandaloneTest {
     @Test
     public void testJsonAPIPost() {
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(
                 datum(
                     resource(
@@ -109,8 +108,8 @@ public class ElideStandaloneTest {
             );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .delete("/api/post/1")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -178,8 +177,8 @@ public class ElideStandaloneTest {
     @Test
     public void testVersionedJsonAPIPost() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .header("ApiVersion", "1.0")
                 .body(
                         datum(
@@ -201,8 +200,8 @@ public class ElideStandaloneTest {
     @Test
     public void testForbiddenJsonAPIPost() {
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(
                 datum(
                     resource(
@@ -297,7 +296,7 @@ public class ElideStandaloneTest {
     public void testAsyncApiEndpoint() throws InterruptedException {
         //Create Async Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -404,8 +403,8 @@ public class ElideStandaloneTest {
     @Test
     public void testVerboseErrors() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(

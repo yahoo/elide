@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.swagger;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.annotation.CreatePermission;
@@ -20,6 +19,7 @@ import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.swagger.converter.JsonApiModelResolver;
 import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
@@ -251,7 +251,7 @@ public class OpenApiBuilder {
                     .addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Datum(new Relationship(typeName)))));
 
             ApiResponse okPluralResponse = new ApiResponse().description("Successful response").content(new Content()
-                    .addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Data(new Relationship(typeName)))));
+                    .addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Data(new Relationship(typeName)))));
 
             ApiResponse okEmptyResponse = new ApiResponse().description("Successful response");
 
@@ -267,18 +267,18 @@ public class OpenApiBuilder {
 
                 if (canUpdate(parentClass, name)) {
                     path.post(new Operation().tags(getTags()).description("Adds items to the relationship " + name)
-                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
                                     new MediaType().schema(new Data(new Relationship(typeName))))))
                             .responses(new ApiResponses().addApiResponse("201", okPluralResponse)));
 
                     path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
-                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
                                     new MediaType().schema(new Data(new Relationship(typeName))))))
                             .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
 
                     path.delete(new Operation().tags(getTags())
                             .description("Deletes items from the relationship " + name)
-                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
                                     new MediaType().schema(new Data(new Relationship(typeName))))))
                             .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
                 }
@@ -291,7 +291,7 @@ public class OpenApiBuilder {
 
                 if (canUpdate(parentClass, name)) {
                     path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
-                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
                                     new MediaType().schema(new Datum(new Relationship(typeName))))))
                             .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
                 }
@@ -325,10 +325,10 @@ public class OpenApiBuilder {
             lineage.stream().forEach(item -> path.addParametersItem(item.getPathParameter()));
 
             ApiResponse okSingularResponse = new ApiResponse().description("Successful response").content(
-                    new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Datum(typeName))));
+                    new Content().addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Datum(typeName))));
 
             ApiResponse okPluralResponse = new ApiResponse().description("Successful response").content(
-                    new Content().addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Data(typeName))));
+                    new Content().addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Data(typeName))));
 
             String getDescription;
             String postDescription;
@@ -356,7 +356,7 @@ public class OpenApiBuilder {
 
             if (canPost) {
                 path.post(new Operation().tags(getTags()).description(postDescription)
-                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                        .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
                                 new MediaType().schema(new Datum(typeName)))))
                         .responses(new ApiResponses().addApiResponse("201", okSingularResponse)));
             }
@@ -392,7 +392,7 @@ public class OpenApiBuilder {
             getFullLineage().stream().forEach(item -> path.addParametersItem(item.getPathParameter()));
 
             ApiResponse okSingularResponse = new ApiResponse().description("Successful response")
-                    .content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                    .content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
                             new MediaType().schema(new com.yahoo.elide.swagger.models.media.Datum(typeName))));
 
             ApiResponse okEmptyResponse = new ApiResponse().description("Successful response");
