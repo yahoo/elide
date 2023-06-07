@@ -7,9 +7,8 @@
 package com.yahoo.elide.utils;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.TreeMap;
 
 /**
  * Utility class which modifies request headers.
@@ -27,9 +26,10 @@ public class HeaderUtils {
      * @return requestHeaders
      */
      public static Map<String, List<String>> lowercaseAndRemoveAuthHeaders(Map<String, List<String>> headers) {
-         // HTTP headers should be treated lowercase, but maybe not all libraries consider this
-         Map<String, List<String>> requestHeaders = headers.entrySet().stream()
-                 .collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(Locale.ENGLISH), Map.Entry::getValue));
+         // HTTP header names should be case insensitive, but maybe not all libraries consider this
+         Map<String, List<String>> requestHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+         headers.entrySet().stream().forEach(entry -> requestHeaders.put(entry.getKey(), entry.getValue()));
 
          if (requestHeaders.get("authorization") != null) {
              requestHeaders.remove("authorization");
