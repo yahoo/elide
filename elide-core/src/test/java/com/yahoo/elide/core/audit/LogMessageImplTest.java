@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -56,9 +56,9 @@ public class LogMessageImplTest {
         final RequestScope requestScope = new RequestScope(route, null,
                 new TestUser("aaron"),
                 UUID.randomUUID(),
-                new ElideSettingsBuilder(null)
-                        .withAuditLogger(new TestAuditLogger())
-                        .withEntityDictionary(dictionary)
+                ElideSettings.builder().dataStore(null)
+                        .auditLogger(new TestAuditLogger())
+                        .entityDictionary(dictionary)
                         .build());
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope.getUUIDFor(parent), requestScope);

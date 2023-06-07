@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -533,8 +532,8 @@ public class PermissionExecutorTest {
     }
 
     private ElideSettings getElideSettings(EntityDictionary dictionary) {
-        return new ElideSettingsBuilder(null)
-                    .withEntityDictionary(dictionary)
+        return ElideSettings.builder().dataStore(null)
+                    .entityDictionary(dictionary)
                     .build();
     }
 

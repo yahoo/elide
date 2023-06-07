@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -111,8 +111,8 @@ public class JMSDataStoreTest {
                     tx,
                     null,
                     UUID.randomUUID(),
-                    new ElideSettingsBuilder(store)
-                            .withEntityDictionary(dictionary)
+                    ElideSettings.builder().dataStore(store)
+                            .entityDictionary(dictionary)
                             .build());
 
             Iterable<Book> books = tx.loadObjects(

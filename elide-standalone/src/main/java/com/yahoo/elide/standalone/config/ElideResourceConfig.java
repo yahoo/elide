@@ -132,14 +132,14 @@ public class ElideResourceConfig extends ResourceConfig {
             ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore,
                     settings.getObjectMapper());
             Elide elide = new Elide(elideSettings, new TransactionRegistry(),
-                    elideSettings.getDictionary().getScanner(), false);
+                    elideSettings.getEntityDictionary().getScanner(), false);
 
             // Bind elide instance for injection into endpoint
             bind(elide).to(Elide.class).named("elide");
 
             // Bind additional elements
             bind(elideSettings).to(ElideSettings.class);
-            bind(elideSettings.getDictionary()).to(EntityDictionary.class);
+            bind(elideSettings.getEntityDictionary()).to(EntityDictionary.class);
             bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
 
             // Binding async service
@@ -268,7 +268,7 @@ public class ElideResourceConfig extends ResourceConfig {
                             settings.getSubscriptionProperties().getConnectionFactory());
                 }
 
-                EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+                EntityDictionary dictionary = elide.getElideSettings().getEntityDictionary();
 
                 if (settings.enableApiDocs()) {
                     List<ApiDocsEndpoint.ApiDocsRegistration> apiDocs = settings.buildApiDocs(dictionary);

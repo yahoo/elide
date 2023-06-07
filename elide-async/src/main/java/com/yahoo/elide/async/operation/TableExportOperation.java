@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
 import com.yahoo.elide.async.export.validator.Validator;
@@ -21,6 +22,8 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.graphql.GraphQLSettings;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 
 import io.reactivex.Observable;
 import lombok.Getter;
@@ -163,15 +166,23 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      * @return URL generated.
      */
     public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
-        String downloadPath =  scope.getElideSettings().getExportApiPath();
+        AsyncSettings asyncSettings = scope.getElideSettings().getSettings(AsyncSettings.class);
+        JsonApiSettings jsonApiSettings = scope.getElideSettings().getSettings(JsonApiSettings.class);
+        GraphQLSettings graphqlSettings = scope.getElideSettings().getSettings(GraphQLSettings.class);
+
+        String downloadPath = asyncSettings.getExport().getPath();
         String baseURL = scope.getRoute().getBaseUrl();
-        String jsonApiPath = scope.getElideSettings().getJsonApiPath();
-        if (jsonApiPath != null && baseURL.endsWith(jsonApiPath)) {
-            baseURL = baseURL.substring(0, baseURL.length() - jsonApiPath.length());
+        if (jsonApiSettings != null) {
+            String jsonApiPath = jsonApiSettings.getPath();
+            if (jsonApiPath != null && baseURL.endsWith(jsonApiPath)) {
+                baseURL = baseURL.substring(0, baseURL.length() - jsonApiPath.length());
+            }
         }
-        String graphqlApiPath = scope.getElideSettings().getGraphQLApiPath();
-        if (graphqlApiPath != null && baseURL.endsWith(graphqlApiPath)) {
-            baseURL = baseURL.substring(0, baseURL.length() - graphqlApiPath.length());
+        if (graphqlSettings != null) {
+            String graphqlApiPath = graphqlSettings.getPath();
+            if (graphqlApiPath != null && baseURL.endsWith(graphqlApiPath)) {
+                baseURL = baseURL.substring(0, baseURL.length() - graphqlApiPath.length());
+            }
         }
         String extension = this.engine.isExtensionEnabled()
                 ? exportObj.getResultType().getFileExtensionType().getExtension()

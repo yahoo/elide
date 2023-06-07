@@ -114,7 +114,10 @@ public class ModelBuilder {
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
         this.dataFetcher = dataFetcher;
         this.apiVersion = apiVersion;
-        this.enableFederation = settings.isEnableGraphQLFederation();
+
+        GraphQLSettings graphQLSettings = settings.getSettings(GraphQLSettings.class);
+
+        this.enableFederation = graphQLSettings.getFederation().isEnabled();
 
         idArgument = newArgument()
                 .name(ARGUMENT_IDS)

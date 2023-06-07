@@ -16,7 +16,6 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -32,14 +31,14 @@ import java.util.Set;
 
 
 /**
- * REST Entry point handler.
+ * Elide.
  */
 @Slf4j
 public class Elide {
     @Getter private final ElideSettings elideSettings;
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
-    @Getter private final JsonApiMapper mapper;
+    @Getter private final ObjectMapper objectMapper;
     @Getter private final ErrorMapper errorMapper;
     @Getter private final TransactionRegistry transactionRegistry;
     @Getter private final ClassScanner scanner;
@@ -53,7 +52,7 @@ public class Elide {
     public Elide(
             ElideSettings elideSettings
     ) {
-        this(elideSettings, new TransactionRegistry(), elideSettings.getDictionary().getScanner(), false);
+        this(elideSettings, new TransactionRegistry(), elideSettings.getEntityDictionary().getScanner(), false);
     }
 
     /**
@@ -66,7 +65,7 @@ public class Elide {
             ElideSettings elideSettings,
             TransactionRegistry transactionRegistry
     ) {
-        this(elideSettings, transactionRegistry, elideSettings.getDictionary().getScanner(), false);
+        this(elideSettings, transactionRegistry, elideSettings.getEntityDictionary().getScanner(), false);
     }
 
     /**
@@ -87,7 +86,7 @@ public class Elide {
         this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
-        this.mapper = elideSettings.getMapper();
+        this.objectMapper = elideSettings.getObjectMapper();
         this.errorMapper = elideSettings.getErrorMapper();
         this.transactionRegistry = transactionRegistry;
 
@@ -106,15 +105,15 @@ public class Elide {
             registerCustomSerde();
 
             //Scan for security checks prior to populating data stores in case they need them.
-            elideSettings.getDictionary().scanForSecurityChecks();
+            elideSettings.getEntityDictionary().scanForSecurityChecks();
 
-            this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
+            this.dataStore.populateEntityDictionary(elideSettings.getEntityDictionary());
             initialized = true;
         }
     }
 
     protected void registerCustomSerde() {
-        Injector injector = elideSettings.getDictionary().getInjector();
+        Injector injector = elideSettings.getEntityDictionary().getInjector();
         Set<Class<?>> classes = registerCustomSerdeScan();
 
         for (Class<?> clazz : classes) {
@@ -146,7 +145,7 @@ public class Elide {
     }
 
     protected void registerCustomSerdeInObjectMapper(Class<?> type, Serde serde, String name) {
-        ObjectMapper objectMapper = mapper.getObjectMapper();
+        ObjectMapper objectMapper = this.objectMapper;
         objectMapper.registerModule(new SimpleModule(name)
                 .addSerializer(type, new JsonSerializer<Object>() {
                     @Override
@@ -177,5 +176,9 @@ public class Elide {
         }
 
         return null;
+    }
+
+    public <T extends Settings> T getSettings(Class<T> clazz) {
+        return this.elideSettings.getSettings(clazz);
     }
 }

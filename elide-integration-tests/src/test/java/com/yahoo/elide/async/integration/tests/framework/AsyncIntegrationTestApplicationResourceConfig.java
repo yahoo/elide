@@ -13,7 +13,8 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
@@ -37,6 +38,9 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.graphql.GraphQLSettings;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import example.TestCheckMappings;
 import example.models.triggers.Invoice;
 import example.models.triggers.InvoiceCompletionHook;
@@ -101,25 +105,31 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                Elide elide = new Elide(new ElideSettingsBuilder(AsyncIT.getDataStore())
-                        .withAuditLogger(LOGGER)
-                        .withJoinFilterDialect(multipleFilterStrategy)
-                        .withSubqueryFilterDialect(multipleFilterStrategy)
-                        .withEntityDictionary(dictionary)
-                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
-                        .withExportApiPath("/export")
-                        .withGraphQLApiPath("/graphQL")
+                JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().joinFilterDialect(multipleFilterStrategy)
+                        .subqueryFilterDialect(multipleFilterStrategy);
+
+                GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder().path("/graphQL");
+
+                AsyncSettings.AsyncSettingsBuilder asyncSettings = AsyncSettings.builder().export(export -> export.path("/export"));
+
+                Elide elide = new Elide(ElideSettings.builder().dataStore(AsyncIT.getDataStore())
+                        .auditLogger(LOGGER)
+                        .entityDictionary(dictionary)
+                        .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
+                        .settings(jsonApiSettings)
+                        .settings(graphqlSettings)
+                        .settings(asyncSettings)
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
                 elide.doScans();
 
-                AsyncApiDao asyncApiDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
-                bind(asyncApiDao).to(AsyncApiDao.class);
+                AsyncApiDao asyncAPIDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
+                bind(asyncAPIDao).to(AsyncApiDao.class);
 
                 ExecutorService executorService = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
-                        executorService, executorService, asyncApiDao, Optional.of(new SimpleDataFetcherExceptionHandler()));
+                        executorService, executorService, asyncAPIDao, Optional.of(new SimpleDataFetcherExceptionHandler()));
 
                 // Create ResultStorageEngine
                 Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
@@ -163,7 +173,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 dictionary.bindTrigger(Invoice.class, "complete", UPDATE, PRECOMMIT, invoiceCompletionHook);
 
                 AsyncCleanerService.init(elide, Duration.ofSeconds(30L), Duration.ofDays(5L), Duration.ofSeconds(150L),
-                        asyncApiDao);
+                        asyncAPIDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         });

@@ -8,15 +8,18 @@ package example.tests;
 import static org.mockito.Mockito.spy;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.RefreshableElide;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.utils.HeaderUtils;
@@ -39,43 +42,53 @@ public class IntegrationTestSetup {
                                             JsonApiMapper mapper,
                                             ErrorMapper errorMapper) {
 
-        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withErrorMapper(errorMapper)
-                .withJsonApiMapper(mapper)
-                .withDefaultMaxPageSize(settings.getMaxPageSize())
-                .withDefaultPageSize(settings.getPageSize())
-                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withAuditLogger(new Slf4jLogger())
-                .withBaseUrl(settings.getBaseUrl())
-                .withHeaderProcessor(headerProcessor)
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
-                .withJsonApiPath(settings.getJsonApi().getPath())
-                .withGraphQLApiPath(settings.getGraphql().getPath());
+        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .errorMapper(errorMapper)
+                .objectMapper(mapper.getObjectMapper())
+                .defaultMaxPageSize(settings.getMaxPageSize())
+                .defaultPageSize(settings.getPageSize())
+                .auditLogger(new Slf4jLogger())
+                .baseUrl(settings.getBaseUrl())
+                .headerProcessor(headerProcessor)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")));
+
+        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder().path(settings.getGraphql().getPath());
+        builder.settings(graphqlSettings);
 
         if (settings.isVerboseErrors()) {
-            builder.withVerboseErrors();
+            builder.verboseErrors(true);
         }
 
         if (settings.getAsync() != null
                 && settings.getAsync().getExport() != null
                 && settings.getAsync().getExport().isEnabled()) {
-            builder.withExportApiPath(settings.getAsync().getExport().getPath());
+            AsyncSettings.AsyncSettingsBuilder asyncSettings = AsyncSettings.builder()
+                    .export(export -> export.path(settings.getAsync().getExport().getPath()));
+            builder.settings(asyncSettings);
         }
+
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettingsBuilder = JsonApiSettings.builder()
+                .path(settings.getJsonApi().getPath())
+                .jsonApiMapper(mapper)
+                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build());
+
 
         if (settings.getJsonApi() != null
                 && settings.getJsonApi().isEnabled()
                 && settings.getJsonApi().getLinks().isEnabled()) {
             String baseUrl = settings.getBaseUrl();
-
+            jsonApiSettingsBuilder.links(links -> links.enabled(true));
             if (StringUtils.isEmpty(baseUrl)) {
-                builder.withJsonApiLinks(new DefaultJsonApiLinks());
+                jsonApiSettingsBuilder.links(links -> links.jsonApiLinks(new DefaultJsonApiLinks()));
             } else {
                 String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
-                builder.withJsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl));
+                jsonApiSettingsBuilder.links(links -> links.jsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl)));
             }
         }
+
+        builder.settings(jsonApiSettingsBuilder);
 
         Elide elide = new Elide(builder.build(), new TransactionRegistry(), dictionary.getScanner(), true);
 

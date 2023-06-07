@@ -25,7 +25,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
@@ -140,9 +140,9 @@ public class GraphQLEndpointTest {
 
         elide = spy(
                 new Elide(
-                    new ElideSettingsBuilder(inMemoryStore)
-                            .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
-                            .withAuditLogger(audit)
+                    ElideSettings.builder().dataStore(inMemoryStore)
+                            .entityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                            .auditLogger(audit)
                             .build())
 
                 );

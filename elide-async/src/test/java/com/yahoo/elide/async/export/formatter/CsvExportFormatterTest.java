@@ -13,7 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
@@ -52,9 +52,9 @@ public class CsvExportFormatterTest {
         dataStore = new HashMapDataStore(new DefaultClassScanner(), TableExport.class.getPackage());
         Map<String, Class<? extends Check>> map = new HashMap<>();
         elide = new Elide(
-                    new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(EntityDictionary.builder().checks(map).build())
-                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                    ElideSettings.builder().dataStore(dataStore)
+                        .entityDictionary(EntityDictionary.builder().checks(map).build())
+                        .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
                         .build());
         elide.doScans();
         scope = mock(RequestScope.class);

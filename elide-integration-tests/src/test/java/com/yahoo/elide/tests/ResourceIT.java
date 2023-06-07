@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.audit.TestAuditLogger;
@@ -2567,9 +2567,9 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build())
-                .withAuditLogger(new TestAuditLogger())
+        Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build())
+                .auditLogger(new TestAuditLogger())
                 .build());
 
         elide.doScans();

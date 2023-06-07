@@ -85,7 +85,7 @@ public class ElideAsyncConfiguration {
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
                 asyncProperties.getMaxAsyncAfter());
 
-        EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
+        EntityDictionary dictionary = elide.getElide().getElideSettings().getEntityDictionary();
 
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PREFLUSH, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);

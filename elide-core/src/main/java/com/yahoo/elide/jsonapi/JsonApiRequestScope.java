@@ -8,15 +8,21 @@ package com.yahoo.elide.jsonapi;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,11 +55,29 @@ public class JsonApiRequestScope extends RequestScope {
                         ) {
         super(route, transaction, user, requestId, elideSettings);
         this.jsonApiDocument = jsonApiDocument;
-        this.mapper = elideSettings.getMapper();
-        this.updateStatusCode = elideSettings.getUpdateStatusCode();
 
-        this.filterDialect = new MultipleFilterDialect(elideSettings.getJoinFilterDialects(),
-                elideSettings.getSubqueryFilterDialects());
+        JsonApiSettings jsonApiSettings = elideSettings.getSettings(JsonApiSettings.class);
+        this.mapper = jsonApiSettings.getJsonApiMapper();
+        this.updateStatusCode = jsonApiSettings.getUpdateStatusCode();
+
+        List<JoinFilterDialect> joinFilterDialects = new ArrayList<>(jsonApiSettings.getJoinFilterDialects());
+        List<SubqueryFilterDialect> subqueryFilterDialects = new ArrayList<>(
+                jsonApiSettings.getSubqueryFilterDialects());
+
+        EntityDictionary entityDictionary = elideSettings.getEntityDictionary();
+
+        if (joinFilterDialects.isEmpty()) {
+            joinFilterDialects.add(new DefaultFilterDialect(entityDictionary));
+            joinFilterDialects.add(RSQLFilterDialect.builder().dictionary(entityDictionary).build());
+        }
+
+        if (subqueryFilterDialects.isEmpty()) {
+            subqueryFilterDialects.add(new DefaultFilterDialect(entityDictionary));
+            subqueryFilterDialects.add(RSQLFilterDialect.builder().dictionary(entityDictionary).build());
+        }
+
+        this.filterDialect = new MultipleFilterDialect(joinFilterDialects,
+                subqueryFilterDialects);
 
         Map<String, List<String>> queryParams = getRoute().getParameters();
         String path = route.getPath();
@@ -108,7 +132,7 @@ public class JsonApiRequestScope extends RequestScope {
         super(outerRequestScope);
         this.route = route;
         this.jsonApiDocument = jsonApiDocument;
-        setEntityProjection(new EntityProjectionMaker(outerRequestScope.getElideSettings().getDictionary(), this)
+        setEntityProjection(new EntityProjectionMaker(outerRequestScope.getElideSettings().getEntityDictionary(), this)
                 .parsePath(this.route.getPath()));
         this.updateStatusCode = outerRequestScope.getUpdateStatusCode();
         this.mapper = outerRequestScope.getMapper();

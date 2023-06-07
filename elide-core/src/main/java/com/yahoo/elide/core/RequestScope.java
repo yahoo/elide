@@ -87,7 +87,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
 
         this.transaction = transaction;
         this.user = user;
-        this.dictionary = elideSettings.getDictionary();
+        this.dictionary = elideSettings.getEntityDictionary();
         this.auditLogger = elideSettings.getAuditLogger();
         this.elideSettings = elideSettings;
 

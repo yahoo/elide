@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -29,6 +28,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiRequestScope;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -125,11 +125,14 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected static ElideSettings initSettings() {
-        return new ElideSettingsBuilder(null)
-                .withEntityDictionary(initDictionary())
-                .withAuditLogger(MOCK_AUDIT_LOGGER)
-                .withDefaultMaxPageSize(10)
-                .withDefaultPageSize(10)
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder();
+        return ElideSettings.builder().dataStore(null)
+                .entityDictionary(initDictionary())
+                .auditLogger(MOCK_AUDIT_LOGGER)
+                .defaultMaxPageSize(10)
+                .defaultPageSize(10)
+                .settings(jsonApiSettings)
+                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
                 .build();
     }
 
@@ -181,9 +184,10 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
         Route route = Route.builder().apiVersion(NO_VERSION).build();
         return new JsonApiRequestScope(route, null, user, UUID.randomUUID(),
-                new ElideSettingsBuilder(null)
-                    .withEntityDictionary(dictionary)
-                    .withAuditLogger(auditLogger)
+                ElideSettings.builder().dataStore(null)
+                    .entityDictionary(dictionary)
+                    .auditLogger(auditLogger)
+                    .settings(JsonApiSettings.builder())
                     .build(), new JsonApiDocument());
     }
 

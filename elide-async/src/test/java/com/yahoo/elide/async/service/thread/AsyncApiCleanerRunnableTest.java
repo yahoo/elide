@@ -12,7 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.service.dao.AsyncApiDao;
@@ -49,9 +49,9 @@ class AsyncApiCleanerRunnableTest {
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
         elide = new Elide(
-                new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
-                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                ElideSettings.builder().dataStore(inMemoryStore)
+                        .entityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                        .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
                         .build());
         asyncApiDao = mock(DefaultAsyncApiDao.class);
         cleanerThread = new AsyncApiCleanerRunnable(Duration.ofMinutes(7), elide, Duration.ofDays(7), asyncApiDao, clock);

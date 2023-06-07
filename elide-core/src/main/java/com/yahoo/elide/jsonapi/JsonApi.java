@@ -69,10 +69,12 @@ public class JsonApi {
     private final Elide elide;
 
     private final ElideSettings elideSettings;
+    private final JsonApiSettings jsonApiSettings;
     private final DataStore dataStore;
     private final JsonApiMapper mapper;
     private final TransactionRegistry transactionRegistry;
     private final AuditLogger auditLogger;
+    private boolean strictQueryParameters;
 
     public JsonApi(RefreshableElide refreshableElide) {
         this(refreshableElide.getElide());
@@ -80,7 +82,9 @@ public class JsonApi {
 
     public JsonApi(Elide elide) {
         this.elide = elide;
-        this.mapper = this.elide.getMapper();
+        this.jsonApiSettings = elide.getSettings(JsonApiSettings.class);
+        this.strictQueryParameters = this.jsonApiSettings.isStrictQueryParameters();
+        this.mapper = this.jsonApiSettings.getJsonApiMapper();
         this.dataStore = this.elide.getDataStore();
         this.elideSettings = this.elide.getElideSettings();
         this.transactionRegistry = this.elide.getTransactionRegistry();
@@ -103,7 +107,7 @@ public class JsonApi {
                              UUID requestId) {
         UUID requestUuid = requestId != null ? requestId : UUID.randomUUID();
 
-        if (elideSettings.isStrictQueryParams()) {
+        if (strictQueryParameters) {
             try {
                 verifyQueryParams(route.getParameters());
             } catch (BadRequestException e) {
@@ -114,7 +118,7 @@ public class JsonApi {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             JsonApiRequestScope requestScope = new JsonApiRequestScope(route, tx, user, requestUuid, elideSettings,
                     jsonApiDoc);
-            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getEntityDictionary(),
                     requestScope).parsePath(route.getPath()));
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(route.getPath(), requestScope, visitor);
@@ -143,7 +147,7 @@ public class JsonApi {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
             JsonApiRequestScope requestScope = new JsonApiRequestScope(route, tx, user, requestUuid, elideSettings,
                     jsonApiDoc);
-            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getEntityDictionary(),
                     requestScope).parsePath(route.getPath()));
             BaseVisitor visitor = new PostVisitor(requestScope);
             return visit(route.getPath(), requestScope, visitor);
@@ -190,7 +194,7 @@ public class JsonApi {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
                 JsonApiRequestScope requestScope = new JsonApiRequestScope(route, tx, user, requestUuid, elideSettings,
                         jsonApiDoc);
-                requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getEntityDictionary(),
                         requestScope).parsePath(route.getPath()));
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 return visit(route.getPath(), requestScope, visitor);
@@ -223,7 +227,7 @@ public class JsonApi {
                     : mapper.readJsonApiDocument(jsonApiDocument);
             JsonApiRequestScope requestScope = new JsonApiRequestScope(route, tx, user, requestUuid, elideSettings,
                     jsonApiDoc);
-            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getEntityDictionary(),
                     requestScope).parsePath(route.getPath()));
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             return visit(route.getPath(), requestScope, visitor);

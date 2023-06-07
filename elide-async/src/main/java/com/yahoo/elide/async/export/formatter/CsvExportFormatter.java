@@ -32,7 +32,7 @@ public class CsvExportFormatter implements TableExportFormatter {
 
     public CsvExportFormatter(Elide elide, boolean writeHeader) {
         this.writeHeader = writeHeader;
-        this.mapper = elide.getMapper().getObjectMapper();
+        this.mapper = elide.getObjectMapper();
     }
 
     @Override

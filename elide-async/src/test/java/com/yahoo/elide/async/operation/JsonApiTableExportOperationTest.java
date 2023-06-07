@@ -12,7 +12,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.models.ArtifactGroup;
 import com.yahoo.elide.async.models.QueryType;
@@ -32,6 +33,8 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,10 +72,11 @@ public class JsonApiTableExportOperationTest {
                 AsyncApiInlineChecks.AsyncApiStatusQueuedValue.class);
 
         elide = new Elide(
-                    new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(EntityDictionary.builder().checks(map).build())
-                        .withAuditLogger(new Slf4jLogger())
-                        .withExportApiPath("/export")
+                    ElideSettings.builder().dataStore(dataStore)
+                        .entityDictionary(EntityDictionary.builder().checks(map).build())
+                        .auditLogger(new Slf4jLogger())
+                        .settings(AsyncSettings.builder().export(export -> export.path("/export")))
+                        .settings(JsonApiSettings.builder())
                         .build());
         elide.doScans();
         user = mock(User.class);

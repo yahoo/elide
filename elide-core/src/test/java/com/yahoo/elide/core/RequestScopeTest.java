@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.route.Route;
@@ -72,8 +72,8 @@ class RequestScopeTest {
 
         Route route = Route.builder().path("/").apiVersion(NO_VERSION).build();
         RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(),
-                new ElideSettingsBuilder(null)
-                        .withEntityDictionary(dictionary)
+                ElideSettings.builder().dataStore(null)
+                        .entityDictionary(dictionary)
                         .build());
 
         String myId = "myId";

@@ -9,7 +9,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
@@ -85,11 +85,11 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
                         dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
                     );
 
-                    Elide elide = new Elide(new ElideSettingsBuilder(getDataStore())
-                                    .withEntityDictionary(dictionary)
-                                    .withAuditLogger(new TestAuditLogger())
-                                    .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
-                                    .build());
+                    Elide elide = new Elide(ElideSettings.builder().dataStore(getDataStore())
+                                    .entityDictionary(dictionary)
+                                    .auditLogger(new TestAuditLogger())
+                                    .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                                    ).build());
 
                     elide.doScans();
                     bind(elide).to(Elide.class).named("elide");

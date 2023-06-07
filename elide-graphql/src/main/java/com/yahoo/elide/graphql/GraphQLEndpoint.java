@@ -70,12 +70,12 @@ public class GraphQLEndpoint {
         this.elide = elide;
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
         this.runners = new HashMap<>();
-        for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
+        for (String apiVersion : elide.getElideSettings().getEntityDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion,
                     optionalDataFetcherExceptionHandler.orElseGet(SimpleDataFetcherExceptionHandler::new)));
         }
         this.routeResolver = optionalRouteResolver.orElseGet(() -> {
-            Set<String> apiVersions = elide.getElideSettings().getDictionary().getApiVersions();
+            Set<String> apiVersions = elide.getElideSettings().getEntityDictionary().getApiVersions();
             if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
                 return new NullRouteResolver();
             } else {
@@ -113,7 +113,7 @@ public class GraphQLEndpoint {
 
         ElideResponse response;
         if (runner == null) {
-            response = buildErrorResponse(elide.getMapper().getObjectMapper(),
+            response = buildErrorResponse(elide.getObjectMapper(),
                     new InvalidOperationException("Invalid API Version"), false);
         } else {
             response = runner.run(route.getBaseUrl(),

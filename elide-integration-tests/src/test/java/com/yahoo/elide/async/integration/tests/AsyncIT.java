@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.core.audit.TestAuditLogger;
@@ -492,12 +492,12 @@ public class AsyncIT extends AsyncApiIT {
         tx.commit(null);
         tx.close();
 
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(
+        Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore)
+                        .entityDictionary(
                                 EntityDictionary.builder()
                                         .checks(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS)
                                         .build())
-                        .withAuditLogger(new TestAuditLogger()).build());
+                        .auditLogger(new TestAuditLogger()).build());
 
         elide.doScans();
         JsonApi jsonApi = new JsonApi(elide);

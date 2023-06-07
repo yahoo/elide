@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
@@ -54,6 +53,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiRequestScope;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -1845,14 +1845,17 @@ public class LifeCycleTest {
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
         ElideSettings settings = getElideSettings(dataStore, dictionary, auditLogger);
-        return new Elide(settings, new TransactionRegistry(), settings.getDictionary().getScanner(), false);
+        return new Elide(settings, new TransactionRegistry(), settings.getEntityDictionary().getScanner(), false);
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
-        return new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withAuditLogger(auditLogger)
-                .withVerboseErrors()
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder();
+        return ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .auditLogger(auditLogger)
+                .verboseErrors(true)
+                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
+                .settings(jsonApiSettings)
                 .build();
     }
 
