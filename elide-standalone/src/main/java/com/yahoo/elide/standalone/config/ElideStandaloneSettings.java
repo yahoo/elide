@@ -8,7 +8,9 @@ package com.yahoo.elide.standalone.config;
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -43,9 +45,9 @@ import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
-import com.yahoo.elide.graphql.GraphQLSettings;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
@@ -53,6 +55,8 @@ import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -149,6 +153,53 @@ public interface ElideStandaloneSettings {
         return entitiesToExclude;
     }
 
+    default JsonApiSettingsBuilder getJsonApiSettingsBuilder(EntityDictionary dictionary, JsonApiMapper mapper) {
+        return JsonApiSettingsBuilder.withDefaults(dictionary)
+                .path(getJsonApiPathSpec().replace("/*", ""))
+                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .jsonApiMapper(mapper);
+    }
+
+    default GraphQLSettingsBuilder getGraphQLSettingsBuilder(EntityDictionary dictionary) {
+        return GraphQLSettingsBuilder.withDefaults(dictionary)
+                .path(getGraphQLApiPathSpec().replace("/*", ""));
+    }
+
+    default AsyncSettingsBuilder getAsyncSettingsBuilder() {
+        return AsyncSettings.builder().export(export -> export
+                .enabled(getAsyncProperties().enableExport())
+                .path(getAsyncProperties().getExportApiPathSpec().replace("/*", "")));
+    }
+
+    default ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary, DataStore dataStore,
+            JsonApiMapper mapper) {
+        JsonApiSettingsBuilder jsonApiSettings = getJsonApiSettingsBuilder(dictionary, mapper);
+        GraphQLSettingsBuilder graphqlSettings = getGraphQLSettingsBuilder(dictionary);
+
+        ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .errorMapper(getErrorMapper())
+                .baseUrl(getBaseUrl())
+                .objectMapper(mapper.getObjectMapper())
+                .auditLogger(getAuditLogger())
+                .settings(jsonApiSettings)
+                .settings(graphqlSettings);
+
+        if (verboseErrors()) {
+            builder.verboseErrors(true);
+        }
+
+        if (getAsyncProperties().enableExport()) {
+            builder.settings(getAsyncSettingsBuilder());
+        }
+
+        if (enableISO8601Dates()) {
+            builder.serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")));
+        }
+        return builder;
+    }
+
     /**
      * Elide settings to be used for bootstrapping the Elide service. By default, this method constructs an
      * ElideSettings object using the application overrides provided in this class. If this method is overridden,
@@ -163,39 +214,7 @@ public interface ElideStandaloneSettings {
      * @return Configured ElideSettings object.
      */
     default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, JsonApiMapper mapper) {
-
-        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
-                .path(getJsonApiPathSpec().replace("/*", ""))
-                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .jsonApiMapper(mapper);
-
-        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder()
-                .path(getGraphQLApiPathSpec().replace("/*", ""));
-
-        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
-                .entityDictionary(dictionary)
-                .errorMapper(getErrorMapper())
-                .baseUrl(getBaseUrl())
-                .objectMapper(mapper.getObjectMapper())
-                .auditLogger(getAuditLogger())
-                .settings(jsonApiSettings)
-                .settings(graphqlSettings);
-
-        if (verboseErrors()) {
-            builder.verboseErrors(true);
-        }
-
-        if (getAsyncProperties().enableExport()) {
-            AsyncSettings.AsyncSettingsBuilder asyncSettings = AsyncSettings.builder().export(export -> export
-                    .enabled(true).path(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", "")));
-            builder.settings(asyncSettings);
-        }
-
-        if (enableISO8601Dates()) {
-            builder.serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")));
-        }
-
+        ElideSettingsBuilder builder = getElideSettingsBuilder(dictionary, dataStore, mapper);
         return builder.build();
     }
 
@@ -649,12 +668,21 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Get the JsonApiMapper for Elide.
+     *
+     * @return object mapper.
+     */
+    default JsonApiMapper getJsonApiMapper() {
+        return new JsonApiMapper(getObjectMapper());
+    }
+
+    /**
      * Get the Jackson object mapper for Elide.
      *
      * @return object mapper.
      */
-    default JsonApiMapper getObjectMapper() {
-        return new JsonApiMapper();
+    default ObjectMapper getObjectMapper() {
+        return new ObjectMapper();
     }
 
     /**

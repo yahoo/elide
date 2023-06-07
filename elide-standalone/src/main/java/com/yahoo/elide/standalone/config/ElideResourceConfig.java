@@ -130,7 +130,7 @@ public class ElideResourceConfig extends ResourceConfig {
             }
 
             ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore,
-                    settings.getObjectMapper());
+                    settings.getJsonApiMapper());
             Elide elide = new Elide(elideSettings, new TransactionRegistry(),
                     elideSettings.getEntityDictionary().getScanner(), false);
 
