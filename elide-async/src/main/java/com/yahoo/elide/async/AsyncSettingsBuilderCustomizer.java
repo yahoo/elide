@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.async;
 
-import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 
 /**
- * Used to customize the mutable {@link GraphQLSettingsBuilder}.
+ * Used to customize the mutable {@link AsyncSettingsBuilder}.
  */
 public interface AsyncSettingsBuilderCustomizer {
-    public void customize(GraphQLSettingsBuilder builder);
+    public void customize(AsyncSettingsBuilder builder);
 }

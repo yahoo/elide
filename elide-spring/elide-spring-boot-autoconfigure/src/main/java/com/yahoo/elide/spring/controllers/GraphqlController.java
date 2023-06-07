@@ -14,7 +14,6 @@ import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.QueryRunners;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
@@ -63,7 +62,7 @@ public class GraphqlController {
 
     public GraphqlController(
             QueryRunners runners,
-            JsonApiMapper jsonApiMapper,
+            ObjectMapper objectMapper,
             HeaderUtils.HeaderProcessor headerProcessor,
             ElideConfigProperties settings,
             RouteResolver routeResolver) {
@@ -71,7 +70,7 @@ public class GraphqlController {
         this.runners = runners;
         this.settings = settings;
         this.headerProcessor = headerProcessor;
-        this.mapper = jsonApiMapper.getObjectMapper();
+        this.mapper = objectMapper;
         this.routeResolver = routeResolver;
     }
 

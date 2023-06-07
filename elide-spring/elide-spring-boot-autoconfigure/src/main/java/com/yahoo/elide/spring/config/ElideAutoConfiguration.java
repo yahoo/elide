@@ -8,9 +8,15 @@ package com.yahoo.elide.spring.config;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideMapper;
+import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettingsBuilderCustomizer;
+import com.yahoo.elide.ElideSettingsBuilderCustomizers;
 import com.yahoo.elide.RefreshableElide;
-import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.Settings.SettingsBuilder;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
+import com.yahoo.elide.async.AsyncSettingsBuilderCustomizer;
+import com.yahoo.elide.async.AsyncSettingsBuilderCustomizers;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
@@ -53,11 +59,16 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
-import com.yahoo.elide.graphql.GraphQLSettings;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.graphql.GraphQLSettingsBuilderCustomizer;
+import com.yahoo.elide.graphql.GraphQLSettingsBuilderCustomizers;
 import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
+import com.yahoo.elide.jsonapi.JsonApiSettingsBuilderCustomizer;
+import com.yahoo.elide.jsonapi.JsonApiSettingsBuilderCustomizers;
 import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
@@ -275,17 +286,6 @@ public class ElideAutoConfiguration {
         };
     }
 
-    @Configuration
-    @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
-    public static class GraphQLConfiguration {
-        @Bean
-        @ConditionalOnMissingBean
-        @Scope(SCOPE_PROTOTYPE)
-        public DataFetcherExceptionHandler dataFetcherExceptionHandler() {
-            return new SimpleDataFetcherExceptionHandler();
-        }
-    }
-
     /**
      * Function which preprocesses HTTP request headers before storing them in the RequestScope.
      * @param settings Configuration settings
@@ -298,7 +298,7 @@ public class ElideAutoConfiguration {
             return HeaderUtils::lowercaseAndRemoveAuthHeaders;
         } else {
             //Identity Function
-            return (a) -> a;
+            return headers -> headers;
         }
     }
 
@@ -699,9 +699,8 @@ public class ElideAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @Scope(SCOPE_PROTOTYPE)
-    public JsonApiMapper jsonApiMapper(ObjectMapperBuilder builder) {
-        return new JsonApiMapper(builder.build());
+    public ElideMapper elideMapper(ObjectMapperBuilder builder) {
+        return new ElideMapper(builder.build());
     }
 
     @Bean
@@ -723,13 +722,11 @@ public class ElideAutoConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean
-        @Scope(SCOPE_PROTOTYPE)
         public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide, ElideConfigProperties properties) {
             return new DefaultElideOpenApiCustomizer(elide, properties);
         }
 
         @Bean
-        @Scope(SCOPE_PROTOTYPE)
         public ElideGroupedOpenApiCustomizer elideGroupedOpenApiCustomizer(RefreshableElide elide,
                 ElideConfigProperties properties) {
             return new DefaultElideGroupedOpenApiCustomizer(elide, properties);
@@ -755,21 +752,17 @@ public class ElideAutoConfiguration {
     public static class RefreshableConfiguration {
         /**
          * Creates the Elide instance with standard settings.
+         * @param elideSettingsBuilder the builder.
          * @param dictionary Stores the static metadata about Elide models.
-         * @param dataStore The persistence store.
-         * @param headerProcessor HTTP header function which is invoked for every request.
          * @param transactionRegistry Global transaction registry.
-         * @param settings Elide settings.
          * @return A new elide instance.
          */
         @Bean
         @RefreshScope
         @ConditionalOnMissingBean
-        public RefreshableElide refreshableElide(EntityDictionary dictionary, DataStore dataStore,
-                HeaderUtils.HeaderProcessor headerProcessor, TransactionRegistry transactionRegistry,
-                ElideConfigProperties settings, JsonApiMapper mapper, ErrorMapper errorMapper) {
-            return buildRefreshableElide(dictionary, dataStore, headerProcessor, transactionRegistry, settings, mapper,
-                    errorMapper);
+        public RefreshableElide refreshableElide(ElideSettingsBuilder elideSettingsBuilder, EntityDictionary dictionary,
+                TransactionRegistry transactionRegistry) {
+            return buildRefreshableElide(elideSettingsBuilder, dictionary, transactionRegistry);
         }
 
         @Configuration
@@ -830,6 +823,7 @@ public class ElideAutoConfiguration {
 
         @Configuration
         @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
+        @ConditionalOnClass(GraphQLSettingsBuilder.class)
         public static class GraphQLConfiguration {
             @Bean
             @RefreshScope
@@ -842,10 +836,11 @@ public class ElideAutoConfiguration {
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean(name = "graphqlController")
-            public GraphqlController graphqlController(QueryRunners runners, JsonApiMapper jsonApiMapper,
+            public GraphqlController graphqlController(QueryRunners runners, ElideMapper elideMapper,
                     HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings,
                     RouteResolver routeResolver) {
-                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings, routeResolver);
+                return new GraphqlController(runners, elideMapper.getObjectMapper(), headerProcessor, settings,
+                        routeResolver);
             }
         }
     }
@@ -856,20 +851,16 @@ public class ElideAutoConfiguration {
     public static class NonRefreshableConfiguration {
         /**
          * Creates the Elide instance with standard settings.
+         * @param elideSettingsBuilder the builder.
          * @param dictionary Stores the static metadata about Elide models.
-         * @param dataStore The persistence store.
-         * @param headerProcessor HTTP header function which is invoked for every request.
          * @param transactionRegistry Global transaction registry.
-         * @param settings Elide settings.
          * @return A new elide instance.
          */
         @Bean
         @ConditionalOnMissingBean
-        public RefreshableElide refreshableElide(EntityDictionary dictionary, DataStore dataStore,
-                HeaderUtils.HeaderProcessor headerProcessor, TransactionRegistry transactionRegistry,
-                ElideConfigProperties settings, JsonApiMapper mapper, ErrorMapper errorMapper) {
-            return buildRefreshableElide(dictionary, dataStore, headerProcessor, transactionRegistry, settings, mapper,
-                    errorMapper);
+        public RefreshableElide refreshableElide(ElideSettingsBuilder elideSettingsBuilder, EntityDictionary dictionary,
+                TransactionRegistry transactionRegistry) {
+            return buildRefreshableElide(elideSettingsBuilder, dictionary, transactionRegistry);
         }
 
         @Configuration
@@ -925,6 +916,7 @@ public class ElideAutoConfiguration {
 
         @Configuration
         @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
+        @ConditionalOnClass(GraphQLSettingsBuilder.class)
         public static class GraphQLConfiguration {
             @Bean
             @ConditionalOnMissingBean
@@ -935,66 +927,119 @@ public class ElideAutoConfiguration {
 
             @Bean
             @ConditionalOnMissingBean(name = "graphqlController")
-            public GraphqlController graphqlController(QueryRunners runners, JsonApiMapper jsonApiMapper,
+            public GraphqlController graphqlController(QueryRunners runners, ElideMapper elideMapper,
                     HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings,
                     RouteResolver routeResolver) {
-                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings, routeResolver);
+                return new GraphqlController(runners, elideMapper.getObjectMapper(), headerProcessor, settings,
+                        routeResolver);
             }
         }
     }
 
-    public static RefreshableElide buildRefreshableElide(EntityDictionary dictionary, DataStore dataStore,
-            HeaderUtils.HeaderProcessor headerProcessor, TransactionRegistry transactionRegistry,
-            ElideConfigProperties settings, JsonApiMapper mapper, ErrorMapper errorMapper) {
-
-        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
-                .entityDictionary(dictionary)
-                .errorMapper(errorMapper).objectMapper(mapper.getObjectMapper())
-                .defaultMaxPageSize(settings.getMaxPageSize()).defaultPageSize(settings.getPageSize())
-                .auditLogger(new Slf4jLogger()).baseUrl(settings.getBaseUrl())
-                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
-                .headerProcessor(headerProcessor);
-
-        if (settings.isVerboseErrors()) {
-            builder.verboseErrors(true);
+    @Configuration
+    @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
+    @ConditionalOnClass(GraphQLSettingsBuilder.class)
+    public static class GraphQLConfiguration {
+        @Bean
+        @ConditionalOnMissingBean
+        @Scope(SCOPE_PROTOTYPE)
+        public DataFetcherExceptionHandler dataFetcherExceptionHandler() {
+            return new SimpleDataFetcherExceptionHandler();
         }
 
-        if (settings.getAsync() != null && settings.getAsync().getExport() != null
-                && settings.getAsync().getExport().isEnabled()) {
-            AsyncSettings.AsyncSettingsBuilder asyncSettings = AsyncSettings.builder()
-                    .export(export -> export.path(settings.getAsync().getExport().getPath()));
-            builder.settings(asyncSettings);
+        @Bean
+        @ConditionalOnMissingBean
+        @Scope(SCOPE_PROTOTYPE)
+        public GraphQLSettingsBuilder graphqlSettingsBuilder(ElideConfigProperties settings,
+                EntityDictionary entityDictionary,
+                ObjectProvider<GraphQLSettingsBuilderCustomizer> customizerProviders) {
+            return GraphQLSettingsBuilderCustomizers.buildGraphQLSettingsBuilder(entityDictionary,
+                    builder -> {
+                        builder.path(settings.getGraphql().getPath()).federation(
+                                federation -> federation.enabled(settings.getGraphql().getFederation().isEnabled()));
+                        customizerProviders.orderedStream().forEach(customizer -> customizer.customize(builder));
+                    });
         }
+    }
 
-        if (settings.getGraphql() != null && settings.getGraphql().isEnabled()) {
-            GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder()
-                    .path(settings.getGraphql().getPath())
-                    .federation(federation -> federation.enabled(settings.getGraphql().getFederation().isEnabled()));
-            builder.settings(graphqlSettings);
-        }
-
-        if (settings.getJsonApi() != null && settings.getJsonApi().isEnabled()) {
-            JsonApiSettings.JsonApiSettingsBuilder jsonApiSettingsBuilder = JsonApiSettings.builder()
-                    .path(settings.getJsonApi().getPath())
-                    .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                    .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                    .jsonApiMapper(mapper);
-
-            if (settings.getJsonApi().getLinks().isEnabled()) {
-                String baseUrl = settings.getBaseUrl();
-                jsonApiSettingsBuilder.links(links -> links.enabled(true));
-                if (StringUtils.isEmpty(baseUrl)) {
-                    jsonApiSettingsBuilder.links(links -> links.jsonApiLinks(new DefaultJsonApiLinks()));
-                } else {
-                    String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
-                    jsonApiSettingsBuilder.links(links -> links.jsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl)));
+    @Configuration
+    @ConditionalOnProperty(name = "elide.jsonapi.enabled", havingValue = "true")
+    @ConditionalOnClass(JsonApiSettingsBuilder.class)
+    public static class JsonApiConfiguration {
+        @Bean
+        @ConditionalOnMissingBean
+        @Scope(SCOPE_PROTOTYPE)
+        public JsonApiSettingsBuilder jsonApiSettingsBuilder(ElideConfigProperties settings,
+                EntityDictionary entityDictionary, JsonApiMapper jsonApiMapper,
+                ObjectProvider<JsonApiSettingsBuilderCustomizer> customizerProviders) {
+            return JsonApiSettingsBuilderCustomizers.buildJsonApiSettingsBuilder(entityDictionary, builder -> {
+                builder.path(settings.getJsonApi().getPath())
+                        .joinFilterDialect(RSQLFilterDialect.builder().dictionary(entityDictionary).build())
+                        .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(entityDictionary).build())
+                        .jsonApiMapper(jsonApiMapper);
+                if (settings.getJsonApi().getLinks().isEnabled()) {
+                    String baseUrl = settings.getBaseUrl();
+                    builder.links(links -> links.enabled(true));
+                    if (StringUtils.isEmpty(baseUrl)) {
+                        builder.links(links -> links.jsonApiLinks(new DefaultJsonApiLinks()));
+                    } else {
+                        String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
+                        builder.links(links -> links.jsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl)));
+                    }
                 }
-            }
-            builder.settings(jsonApiSettingsBuilder);
+                customizerProviders.orderedStream().forEach(customizer -> customizer.customize(builder));
+            });
         }
 
-        Elide elide = new Elide(builder.build(), transactionRegistry, dictionary.getScanner(), true);
+        @Bean
+        @ConditionalOnMissingBean
+        public JsonApiMapper jsonApiMapper(ElideMapper elideMapper) {
+            return new JsonApiMapper(elideMapper.getObjectMapper());
+        }
+    }
 
+    @Configuration
+    @ConditionalOnProperty(name = "elide.async.enabled", havingValue = "true")
+    @ConditionalOnClass(AsyncSettingsBuilder.class)
+    public static class AsyncConfiguration {
+        @Bean
+        @ConditionalOnMissingBean
+        @Scope(SCOPE_PROTOTYPE)
+        public AsyncSettingsBuilder asyncSettingsBuilder(ElideConfigProperties settings,
+                ObjectProvider<AsyncSettingsBuilderCustomizer> customizerProviders) {
+            return AsyncSettingsBuilderCustomizers.buildAsyncSettingsBuilder(builder -> {
+                builder.export(export -> export.path(settings.getAsync().getExport().getPath()));
+                customizerProviders.orderedStream().forEach(customizer -> customizer.customize(builder));
+            });
+        }
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
+    public ElideSettingsBuilder elideSettingsBuilder(ElideConfigProperties settings, EntityDictionary entityDictionary,
+            ErrorMapper errorMapper, DataStore dataStore, HeaderUtils.HeaderProcessor headerProcessor,
+            ElideMapper elideMapper, ObjectProvider<SettingsBuilder> settingsProvider,
+            ObjectProvider<ElideSettingsBuilderCustomizer> customizerProvider) {
+        return ElideSettingsBuilderCustomizers.buildElideSettingsBuilder(builder -> {
+            builder.dataStore(dataStore).entityDictionary(entityDictionary).objectMapper(elideMapper.getObjectMapper())
+                    .errorMapper(errorMapper)
+                    .defaultMaxPageSize(settings.getMaxPageSize())
+                    .defaultPageSize(settings.getPageSize()).auditLogger(new Slf4jLogger())
+                    .baseUrl(settings.getBaseUrl())
+                    .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
+                    .headerProcessor(headerProcessor);
+            if (settings.isVerboseErrors()) {
+                builder.verboseErrors(true);
+            }
+            settingsProvider.orderedStream().forEach(builder::settings);
+            customizerProvider.orderedStream().forEach(customizer -> customizer.customize(builder));
+        });
+    }
+
+    public static RefreshableElide buildRefreshableElide(ElideSettingsBuilder elideSettingsBuilder,
+            EntityDictionary dictionary, TransactionRegistry transactionRegistry) {
+        Elide elide = new Elide(elideSettingsBuilder.build(), transactionRegistry, dictionary.getScanner(), true);
         return new RefreshableElide(elide);
     }
 

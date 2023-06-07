@@ -91,8 +91,8 @@ public class JsonApiSettings implements Settings {
         builder.links.enabled(this.links.enabled).jsonApiLinks(this.links.jsonApiLinks);
         builder.updateStatusCode = this.updateStatusCode;
         builder.strictQueryParameters = this.strictQueryParameters;
-        builder.joinFilterDialects = this.joinFilterDialects;
-        builder.subqueryFilterDialects = this.subqueryFilterDialects;
+        builder.joinFilterDialects.addAll(this.joinFilterDialects);
+        builder.subqueryFilterDialects.addAll(this.subqueryFilterDialects);
         return builder;
     }
 
