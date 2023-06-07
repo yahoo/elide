@@ -61,7 +61,7 @@ public class JsonApiEndpoint {
         this.jsonApi = new JsonApi(this.elide);
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
         this.routeResolver = optionalRouteResolver.orElseGet(() -> {
-            Set<String> apiVersions = elide.getElideSettings().getDictionary().getApiVersions();
+            Set<String> apiVersions = elide.getElideSettings().getEntityDictionary().getApiVersions();
             if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
                 return new NullRouteResolver();
             } else {

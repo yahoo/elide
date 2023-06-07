@@ -7,13 +7,15 @@
 package com.yahoo.elide.datastores.jms;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import example.Author;
 import example.Book;
 import example.ChatBot;
@@ -71,7 +73,7 @@ public class TestBinder extends AbstractBinder {
 
                 SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
                         .connectionFactory(connectionFactory)
-                        .dictionary(elide.getElideSettings().getDictionary())
+                        .entityDictionary(elide.getElideSettings().getEntityDictionary())
                         .scanner(elide.getScanner())
                         .build();
 
@@ -89,12 +91,13 @@ public class TestBinder extends AbstractBinder {
     protected Elide buildElide(DataStore store, EntityDictionary dictionary) {
         RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
-        return new Elide(new ElideSettingsBuilder(store)
-                .withAuditLogger(auditLogger)
-                .withJoinFilterDialect(rsqlFilterStrategy)
-                .withSubqueryFilterDialect(rsqlFilterStrategy)
-                .withEntityDictionary(dictionary)
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().joinFilterDialect(rsqlFilterStrategy)
+                .subqueryFilterDialect(rsqlFilterStrategy);
+        return new Elide(ElideSettings.builder().dataStore(store)
+                .auditLogger(auditLogger)
+                .settings(jsonApiSettings)
+                .entityDictionary(dictionary)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
                 .build());
     }
 }

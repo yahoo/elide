@@ -158,9 +158,9 @@ public class RequestHandler implements Closeable {
         GraphQLProjectionInfo projectionInfo =
             new SubscriptionEntityProjectionMaker(settings,
                                 subscribeRequest.getPayload().getVariables(),
-                                connectionInfo.getGetApiVersion()).make(subscribeRequest.getPayload().getQuery());
+                                connectionInfo.getApiVersion()).make(subscribeRequest.getPayload().getQuery());
 
-        Route route = Route.builder().baseUrl(connectionInfo.getBaseUrl()).apiVersion(connectionInfo.getGetApiVersion())
+        Route route = Route.builder().baseUrl(connectionInfo.getBaseUrl()).apiVersion(connectionInfo.getApiVersion())
                 .parameters(connectionInfo.getParameters())
                 .build();
         GraphQLRequestScope requestScope = new GraphQLRequestScope(
@@ -193,7 +193,7 @@ public class RequestHandler implements Closeable {
     }
 
     protected void safeSendPing() {
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Ping ping = new Ping();
 
         try {
@@ -206,7 +206,7 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendNext(ExecutionResult result) {
         log.debug("Sending Next {}", result);
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Next next = Next.builder()
                 .result(result)
                 .id(protocolID)
@@ -221,7 +221,7 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendComplete() {
         log.debug("Sending Complete");
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Complete complete = Complete.builder()
                 .id(protocolID)
                 .build();
@@ -235,7 +235,7 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendError(GraphQLError[] errors) {
         log.debug("Sending Error {}", errors);
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Error error = Error.builder()
                 .id(protocolID)
                 .payload(errors)

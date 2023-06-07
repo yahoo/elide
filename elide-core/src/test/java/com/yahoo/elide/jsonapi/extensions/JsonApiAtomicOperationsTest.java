@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
@@ -22,6 +21,7 @@ import com.yahoo.elide.core.exceptions.JsonApiAtomicOperationsException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.Results;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,8 +55,10 @@ public class JsonApiAtomicOperationsTest {
         this.dataStore = new HashMapDataStore(Arrays.asList(Book.class, Company.class, Person.class));
         EntityDictionary entityDictionary = EntityDictionary.builder().build();
         this.dataStore.populateEntityDictionary(entityDictionary);
-        this.settings = new ElideSettingsBuilder(this.dataStore).withEntityDictionary(entityDictionary)
-                .withJsonApiMapper(new JsonApiMapper()).build();
+        JsonApiMapper jsonApiMapper = new JsonApiMapper();
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().jsonApiMapper(jsonApiMapper);
+        this.settings = ElideSettings.builder().dataStore(this.dataStore).entityDictionary(entityDictionary)
+                .objectMapper(jsonApiMapper.getObjectMapper()).settings(jsonApiSettings).build();
     }
 
     Supplier<Pair<Integer, JsonNode>> doInTransaction(

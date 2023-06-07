@@ -8,12 +8,14 @@ package com.yahoo.elide.initialization;
 import static com.yahoo.elide.initialization.IntegrationTest.getDataStore;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import example.TestCheckMappings;
 import example.models.triggers.Invoice;
 import example.models.triggers.services.BillingService;
@@ -59,12 +61,15 @@ public class VerboseErrorResponsesTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                Elide elide = new Elide(new ElideSettingsBuilder(getDataStore())
-                        .withAuditLogger(auditLogger)
-                        .withJoinFilterDialect(multipleFilterStrategy)
-                        .withSubqueryFilterDialect(multipleFilterStrategy)
-                        .withEntityDictionary(dictionary)
-                        .withVerboseErrors()
+                JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                        .joinFilterDialect(multipleFilterStrategy)
+                        .subqueryFilterDialect(multipleFilterStrategy);
+
+                Elide elide = new Elide(ElideSettings.builder().dataStore(getDataStore())
+                        .auditLogger(auditLogger)
+                        .settings(jsonApiSettings)
+                        .entityDictionary(dictionary)
+                        .verboseErrors(true)
                         .build());
 
                 elide.doScans();

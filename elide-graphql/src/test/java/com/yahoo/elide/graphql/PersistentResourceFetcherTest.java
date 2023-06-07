@@ -17,7 +17,6 @@ import static org.mockito.Mockito.spy;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -25,6 +24,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -85,12 +85,17 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         hashMapDataStore = new HashMapDataStore(new DefaultClassScanner(), Author.class.getPackage());
 
-        settings = new ElideSettingsBuilder(hashMapDataStore)
-                .withEntityDictionary(dictionary)
-                .withJoinFilterDialect(filterDialect)
-                .withSubqueryFilterDialect(filterDialect)
-                .withGraphQLFederation(true)
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder()
+                .federation(federation -> federation.enabled(true));
+
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().joinFilterDialect(filterDialect)
+                .subqueryFilterDialect(filterDialect);
+
+        settings = ElideSettings.builder().dataStore(hashMapDataStore)
+                .entityDictionary(dictionary)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
+                .settings(graphqlSettings)
+                .settings(jsonApiSettings)
                 .build();
 
         settings.getSerdes().forEach(CoerceUtil::register);

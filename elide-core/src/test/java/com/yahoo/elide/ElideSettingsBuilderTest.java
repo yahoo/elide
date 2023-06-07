@@ -28,14 +28,14 @@ import java.util.TimeZone;
 
 class ElideSettingsBuilderTest {
 
-    private ElideSettingsBuilder testInstance;
+    private ElideSettings.ElideSettingsBuilder testInstance;
 
     @Mock
     private DataStore dataStore;
 
     @BeforeEach
     public void setUp() {
-        testInstance = new ElideSettingsBuilder(dataStore).withEntityDictionary(EntityDictionary.builder().build());
+        testInstance = ElideSettings.builder().dataStore(dataStore).entityDictionary(EntityDictionary.builder().build());
     }
 
     @Test

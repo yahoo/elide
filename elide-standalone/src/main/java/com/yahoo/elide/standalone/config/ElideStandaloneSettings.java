@@ -8,7 +8,7 @@ package com.yahoo.elide.standalone.config;
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -43,7 +43,9 @@ import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
@@ -162,27 +164,36 @@ public interface ElideStandaloneSettings {
      */
     default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, JsonApiMapper mapper) {
 
-        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withErrorMapper(getErrorMapper())
-                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withBaseUrl(getBaseUrl())
-                .withJsonApiPath(getJsonApiPathSpec().replace("/*", ""))
-                .withGraphQLApiPath(getGraphQLApiPathSpec().replace("/*", ""))
-                .withJsonApiMapper(mapper)
-                .withAuditLogger(getAuditLogger());
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                .path(getJsonApiPathSpec().replace("/*", ""))
+                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .jsonApiMapper(mapper);
+
+        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder()
+                .path(getGraphQLApiPathSpec().replace("/*", ""));
+
+        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .errorMapper(getErrorMapper())
+                .baseUrl(getBaseUrl())
+                .objectMapper(mapper.getObjectMapper())
+                .auditLogger(getAuditLogger())
+                .settings(jsonApiSettings)
+                .settings(graphqlSettings);
 
         if (verboseErrors()) {
-            builder.withVerboseErrors();
+            builder.verboseErrors(true);
         }
 
         if (getAsyncProperties().enableExport()) {
-            builder.withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
+            AsyncSettings.AsyncSettingsBuilder asyncSettings = AsyncSettings.builder().export(export -> export
+                    .enabled(true).path(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", "")));
+            builder.settings(asyncSettings);
         }
 
         if (enableISO8601Dates()) {
-            builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+            builder.serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")));
         }
 
         return builder.build();

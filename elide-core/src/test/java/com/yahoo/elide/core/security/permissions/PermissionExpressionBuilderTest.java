@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -49,8 +48,7 @@ public class PermissionExpressionBuilderTest {
         ExpressionResultCache cache = new ExpressionResultCache();
         builder = new PermissionExpressionBuilder(cache, dictionary);
 
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
+        elideSettings = ElideSettings.builder().entityDictionary(dictionary)
                 .build();
     }
 

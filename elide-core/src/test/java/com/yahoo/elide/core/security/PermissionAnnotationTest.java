@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -52,11 +51,11 @@ public class PermissionAnnotationTest {
 
         AuditLogger testLogger = new TestAuditLogger();
 
-        ElideSettings elideSettings = new ElideSettingsBuilder(null)
-                .withDefaultPageSize(10)
-                .withDefaultMaxPageSize(10)
-                .withAuditLogger(testLogger)
-                .withEntityDictionary(dictionary)
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null)
+                .defaultPageSize(10)
+                .defaultMaxPageSize(10)
+                .auditLogger(testLogger)
+                .entityDictionary(dictionary)
                 .build();
 
         Route route = Route.builder().apiVersion(NO_VERSION).build();

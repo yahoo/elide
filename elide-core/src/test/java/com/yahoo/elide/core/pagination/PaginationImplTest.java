@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -26,8 +25,8 @@ import jakarta.ws.rs.core.MultivaluedMap;
  */
 public class PaginationImplTest {
     private final ElideSettings elideSettings =
-            new ElideSettingsBuilder(null)
-                    .withEntityDictionary(EntityDictionary.builder().build())
+            ElideSettings.builder().dataStore(null)
+                    .entityDictionary(EntityDictionary.builder().build())
                     .build();
 
     @Test
@@ -214,10 +213,10 @@ public class PaginationImplTest {
         assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getLimit());
 
         pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
-                queryParams, new ElideSettingsBuilder(null)
-                    .withEntityDictionary(EntityDictionary.builder().build())
-                    .withDefaultPageSize(10)
-                    .withDefaultMaxPageSize(10)
+                queryParams, ElideSettings.builder().dataStore(null)
+                    .entityDictionary(EntityDictionary.builder().build())
+                    .defaultPageSize(10)
+                    .defaultMaxPageSize(10)
                     .build());
         assertEquals(0, pageData.getOffset());
         assertEquals(10, pageData.getLimit());
@@ -231,10 +230,10 @@ public class PaginationImplTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationOverrideTest.class),
                 queryParams,
-                new ElideSettingsBuilder(null)
-                    .withEntityDictionary(EntityDictionary.builder().build())
-                    .withDefaultPageSize(1)
-                    .withDefaultMaxPageSize(1)
+                ElideSettings.builder().dataStore(null)
+                    .entityDictionary(EntityDictionary.builder().build())
+                    .defaultPageSize(1)
+                    .defaultMaxPageSize(1)
                     .build());
 
         assertEquals(0, pageData.getOffset());

@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -41,6 +40,7 @@ import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -107,16 +107,19 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         session = mock(Session.class);
         remote = mock(RemoteEndpoint.Async.class);
 
-        settings = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withJoinFilterDialect(filterDialect)
-                .withSubqueryFilterDialect(filterDialect)
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build());
+
+        settings = ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .settings(jsonApiSettings)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
                 .build();
 
         elide = new Elide(settings);
 
-        elide.getMapper().getObjectMapper().registerModule(new SimpleModule("Test")
+        elide.getObjectMapper().registerModule(new SimpleModule("Test")
                 .addSerializer(ExecutionResult.class, new ExecutionResultSerializer(new GraphQLErrorSerializer()))
                 .addSerializer(GraphQLError.class, new GraphQLErrorSerializer())
                 .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())

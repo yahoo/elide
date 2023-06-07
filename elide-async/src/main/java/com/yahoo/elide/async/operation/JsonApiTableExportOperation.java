@@ -39,9 +39,9 @@ import java.util.UUID;
  * JSONAPI TableExport Execute Operation.
  */
 @Slf4j
-public class JSONAPITableExportOperation extends TableExportOperation {
+public class JsonApiTableExportOperation extends TableExportOperation {
 
-    public JSONAPITableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
+    public JsonApiTableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncAPI export, RequestScope scope, ResultStorageEngine engine) {
         super(formatter, service, export, scope, engine,
                         Arrays.asList(new NoRelationshipsProjectionValidator()));
@@ -60,11 +60,11 @@ public class JSONAPITableExportOperation extends TableExportOperation {
             throw new BadRequestException(e.getMessage());
         }
 
-        MultivaluedMap<String, String> queryParams = JSONAPIAsyncQueryOperation.getQueryParams(uri);
+        MultivaluedMap<String, String> queryParams = JsonApiAsyncQueryOperation.getQueryParams(uri);
 
         // Call with additionalHeader alone
         if (scope.getRoute().getHeaders().isEmpty()) {
-            Route route = Route.builder().baseUrl("").path(JSONAPIAsyncQueryOperation.getPath(uri))
+            Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
                     .apiVersion(apiVersion).headers(additionalRequestHeaders).parameters(queryParams).build();
 
             return new JsonApiRequestScope(route, tx, user,
@@ -78,7 +78,7 @@ public class JSONAPITableExportOperation extends TableExportOperation {
         //additionalRequestHeaders will override any headers in scope.getRequestHeaders()
         additionalRequestHeaders.forEach(finalRequestHeaders::put);
 
-        Route route = Route.builder().baseUrl("").path(JSONAPIAsyncQueryOperation.getPath(uri))
+        Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
                 .apiVersion(apiVersion).headers(scope.getRoute().getHeaders()).parameters(queryParams).build();
         return new JsonApiRequestScope(route, tx, user, requestId, getService().getElide().getElideSettings(), null);
     }
@@ -89,8 +89,8 @@ public class JSONAPITableExportOperation extends TableExportOperation {
         try {
             URIBuilder uri = new URIBuilder(export.getQuery());
             Elide elide = getService().getElide();
-            projection = new EntityProjectionMaker(elide.getElideSettings().getDictionary(),
-                    scope).parsePath(JSONAPIAsyncQueryOperation.getPath(uri));
+            projection = new EntityProjectionMaker(elide.getElideSettings().getEntityDictionary(),
+                    scope).parsePath(JsonApiAsyncQueryOperation.getPath(uri));
 
         } catch (URISyntaxException e) {
             throw new BadRequestException(e.getMessage());

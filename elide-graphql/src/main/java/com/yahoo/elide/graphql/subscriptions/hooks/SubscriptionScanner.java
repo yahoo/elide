@@ -32,7 +32,7 @@ import java.util.function.Function;
 @Builder
 public class SubscriptionScanner {
     private ConnectionFactory connectionFactory;
-    private EntityDictionary dictionary;
+    private EntityDictionary entityDictionary;
     private ClassScanner scanner;
 
     @Builder.Default
@@ -72,11 +72,11 @@ public class SubscriptionScanner {
             for (Subscription.Operation operation : operations) {
                 switch (operation) {
                     case UPDATE: {
-                        addUpdateHooks(ClassType.of(modelType), dictionary, producerFactory, gson);
+                        addUpdateHooks(ClassType.of(modelType), entityDictionary, producerFactory, gson);
                         break;
                     }
                     case DELETE: {
-                        dictionary.bindTrigger(
+                        entityDictionary.bindTrigger(
                                 modelType,
                                 LifeCycleHookBinding.Operation.DELETE,
                                 LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
@@ -86,7 +86,7 @@ public class SubscriptionScanner {
                         break;
                     }
                     case CREATE: {
-                        dictionary.bindTrigger(
+                        entityDictionary.bindTrigger(
                                 modelType,
                                 LifeCycleHookBinding.Operation.CREATE,
                                 LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,

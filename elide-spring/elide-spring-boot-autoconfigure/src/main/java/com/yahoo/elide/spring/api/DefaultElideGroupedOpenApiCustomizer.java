@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.api;
 
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 
@@ -45,8 +46,10 @@ public class DefaultElideGroupedOpenApiCustomizer implements ElideGroupedOpenApi
                 OpenApis.removePathsByTags(openApi, "graphql-controller", "api-docs-controller", "json-api-controller");
             }
         });
-        for (String apiVersion : this.elide.getElide().getElideSettings().getDictionary().getApiVersions()) {
-            String path = this.elide.getElide().getElideSettings().getJsonApiPath();
+        for (String apiVersion : this.elide.getElide().getElideSettings().getEntityDictionary().getApiVersions()) {
+            JsonApiSettings jsonApiSettings = this.elide.getElide().getElideSettings()
+                    .getSettings(JsonApiSettings.class);
+            String path = jsonApiSettings.getPath();
             if (!path.endsWith("/")) {
                 path = path + "/";
             }
@@ -65,8 +68,9 @@ public class DefaultElideGroupedOpenApiCustomizer implements ElideGroupedOpenApi
                 groupedOpenApi.getOpenApiCustomizers().add(0, new ElideOpenApiCustomizer() {
                     @Override
                     public void customise(OpenAPI openApi) {
-                        OpenApiBuilder builder = new OpenApiBuilder(elide.getElide().getElideSettings().getDictionary())
-                                .apiVersion(apiVersion).basePath(basePath);
+                        OpenApiBuilder builder = new OpenApiBuilder(
+                                elide.getElide().getElideSettings().getEntityDictionary()).apiVersion(apiVersion)
+                                .basePath(basePath);
                         builder.applyTo(openApi);
                     }
                 });

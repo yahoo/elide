@@ -131,7 +131,7 @@ public interface ElideStandaloneSubscriptionSettings {
 
                 //Things you probably don't care about...
                 .scanner(elide.getScanner())
-                .dictionary(elide.getElideSettings().getDictionary())
+                .entityDictionary(elide.getElideSettings().getEntityDictionary())
                 .connectionFactory(connectionFactory)
                 .build();
 

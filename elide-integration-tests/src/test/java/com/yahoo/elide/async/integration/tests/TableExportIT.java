@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
@@ -1143,9 +1143,9 @@ public class TableExportIT extends AsyncApiIT {
         tx.commit(null);
         tx.close();
 
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(dictionary)
-                        .withAuditLogger(new TestAuditLogger()).build());
+        Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore)
+                        .entityDictionary(dictionary)
+                        .auditLogger(new TestAuditLogger()).build());
         JsonApi jsonApi = new JsonApi(elide);
         User ownerUser = new User(() -> "owner-user");
         SecurityContextUser securityContextAdminUser = new SecurityContextUser(new SecurityContext() {

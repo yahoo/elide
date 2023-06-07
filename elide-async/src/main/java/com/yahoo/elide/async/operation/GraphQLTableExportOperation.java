@@ -62,7 +62,7 @@ public class GraphQLTableExportOperation extends TableExportOperation {
         try {
             String graphQLDocument = export.getQuery();
             Elide elide = getService().getElide();
-            ObjectMapper mapper = elide.getMapper().getObjectMapper();
+            ObjectMapper mapper = elide.getObjectMapper();
 
             JsonNode node = QueryRunner.getTopLevelNode(mapper, graphQLDocument);
             Map<String, Object> variables = QueryRunner.extractVariables(mapper, node);

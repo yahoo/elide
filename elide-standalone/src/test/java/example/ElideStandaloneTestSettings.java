@@ -6,12 +6,14 @@
 package example;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
@@ -37,22 +39,30 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
                 + getJsonApiPathSpec().replaceAll("/\\*", "")
                 + "/";
 
-        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withErrorMapper(getErrorMapper())
-                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withJsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl))
-                .withBaseUrl("https://elide.io")
-                .withAuditLogger(getAuditLogger())
-                .withVerboseErrors()
-                .withJsonApiMapper(mapper)
-                .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
-                .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
-                .withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().path(getJsonApiPathSpec().replaceAll("/\\*", ""))
+                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .links(links -> links.enabled(true).jsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl)))
+                .jsonApiMapper(mapper);
+
+        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder().path(getGraphQLApiPathSpec().replaceAll("/\\*", ""));
+
+        AsyncSettings.AsyncSettingsBuilder asyncSettings = AsyncSettings.builder()
+                .export(export -> export.path(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", "")));
+
+        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
+                .objectMapper(mapper.getObjectMapper())
+                .entityDictionary(dictionary)
+                .errorMapper(getErrorMapper())
+                .baseUrl("https://elide.io")
+                .auditLogger(getAuditLogger())
+                .verboseErrors(true)
+                .settings(jsonApiSettings)
+                .settings(graphqlSettings)
+                .settings(asyncSettings);
 
         if (enableISO8601Dates()) {
-            builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+            builder = builder.serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")));
         }
 
         return builder.build();

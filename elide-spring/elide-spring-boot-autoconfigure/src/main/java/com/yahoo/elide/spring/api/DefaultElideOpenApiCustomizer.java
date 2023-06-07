@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.api;
 
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 
@@ -28,12 +29,14 @@ public class DefaultElideOpenApiCustomizer implements ElideOpenApiCustomizer {
     @Override
     public void customise(OpenAPI openApi) {
         removePaths(openApi);
-        for (String apiVersion : this.elide.getElide().getElideSettings().getDictionary().getApiVersions()) {
-            OpenApiBuilder builder = new OpenApiBuilder(this.elide.getElide().getElideSettings().getDictionary())
-                    .apiVersion(apiVersion).basePath(this.elide.getElide().getElideSettings().getJsonApiPath());
+        JsonApiSettings jsonApiSettings = this.elide.getElide().getElideSettings().getSettings(JsonApiSettings.class);
+
+        for (String apiVersion : this.elide.getElide().getElideSettings().getEntityDictionary().getApiVersions()) {
+            OpenApiBuilder builder = new OpenApiBuilder(this.elide.getElide().getElideSettings().getEntityDictionary())
+                    .apiVersion(apiVersion).basePath(jsonApiSettings.getPath());
             if (this.settings.getApiVersioningStrategy().getPath().isEnabled()) {
                 if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
-                    String path = this.elide.getElide().getElideSettings().getJsonApiPath();
+                    String path = jsonApiSettings.getPath();
                     if (!path.endsWith("/")) {
                         path = path + "/";
                     }

@@ -16,14 +16,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.async.models.AsyncApiResult;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.operation.JsonApiAsyncQueryOperation;
-import com.yahoo.elide.async.service.dao.AsyncApiDao;
-import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
+import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.RequestScope;
@@ -33,6 +33,7 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 
 import org.apache.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeAll;
@@ -54,7 +55,7 @@ public class AsyncExecutorServiceTest {
 
     private AsyncExecutorService service;
     private Elide elide;
-    private AsyncApiDao asyncApiDao;
+    private AsyncAPIDAO asyncAPIDao;
     private User testUser;
     private RequestScope scope;
     private ResultStorageEngine resultStorageEngine;
@@ -73,15 +74,16 @@ public class AsyncExecutorServiceTest {
         );
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
         elide = new Elide(
-                new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                ElideSettings.builder().dataStore(inMemoryStore)
+                        .entityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                        .settings(JsonApiSettings.builder())
                         .build());
-        asyncApiDao = mock(DefaultAsyncApiDao.class);
+        asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
         testUser = mock(User.class);
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
         service = new AsyncExecutorService(elide, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5),
-                        asyncApiDao, Optional.of(dataFetcherExceptionHandler));
+                        asyncAPIDao, Optional.of(dataFetcherExceptionHandler));
 
     }
 
@@ -91,7 +93,7 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getRunners());
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
-        assertEquals(asyncApiDao, service.getAsyncApiDao());
+        assertEquals(asyncAPIDao, service.getAsyncAPIDao());
         assertEquals(resultStorageEngine, resultStorageEngine);
     }
 
@@ -101,7 +103,7 @@ public class AsyncExecutorServiceTest {
        AsyncQuery queryObj = mock(AsyncQuery.class);
        when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
 
-       Callable<AsyncApiResult> mockCallable = mock(Callable.class);
+       Callable<AsyncAPIResult> mockCallable = mock(Callable.class);
        when(mockCallable.call()).thenThrow(new NoHttpResponseException(""));
 
        service.executeQuery(queryObj, mockCallable);

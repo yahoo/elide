@@ -68,7 +68,7 @@ public class AsyncExecutorService {
         this.elide = elide;
         runners = new HashMap<>();
 
-        for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
+        for (String apiVersion : elide.getElideSettings().getEntityDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion,
                     optionalDataFetcherExceptionHandler.orElseGet(SimpleDataFetcherExceptionHandler::new)));
         }

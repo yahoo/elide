@@ -23,6 +23,7 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -36,6 +37,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.GraphQLNameUtils;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.ModelBuilder;
 
 import graphql.language.Argument;
@@ -88,8 +90,10 @@ public class GraphQLEntityProjectionMaker {
      */
     public GraphQLEntityProjectionMaker(ElideSettings elideSettings, Map<String, Object> variables, String apiVersion) {
         this.elideSettings = elideSettings;
-        this.entityDictionary = elideSettings.getDictionary();
-        this.filterDialect = elideSettings.getGraphqlDialect();
+        this.entityDictionary = elideSettings.getEntityDictionary();
+        GraphQLSettings graphqlSettings = elideSettings.getSettings(GraphQLSettings.class);
+        this.filterDialect = graphqlSettings.getFilterDialect() != null ? graphqlSettings.getFilterDialect()
+                : RSQLFilterDialect.builder().dictionary(entityDictionary).build();
 
         this.variableResolver = new VariableResolver(variables);
         this.fragmentResolver = new FragmentResolver();

@@ -26,12 +26,12 @@ import java.util.Set;
  * JSON output format implementation.
  */
 @Slf4j
-public class JsonExportFormatter implements TableExportFormatter {
+public class JSONExportFormatter implements TableExportFormatter {
     private static final String COMMA = ",";
     private ObjectMapper mapper;
 
-    public JsonExportFormatter(Elide elide) {
-        this.mapper = elide.getMapper().getObjectMapper();
+    public JSONExportFormatter(Elide elide) {
+        this.mapper = elide.getObjectMapper();
     }
 
     @Override

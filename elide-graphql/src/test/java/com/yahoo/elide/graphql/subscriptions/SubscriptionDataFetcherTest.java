@@ -15,7 +15,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -33,6 +32,7 @@ import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;
@@ -93,11 +93,13 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 .type(ClassType.of(TopicType.class))
                 .build());
 
-        settings = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withJoinFilterDialect(filterDialect)
-                .withSubqueryFilterDialect(filterDialect)
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().joinFilterDialect(filterDialect)
+                .subqueryFilterDialect(filterDialect);
+
+        settings = ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .settings(jsonApiSettings)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
                 .build();
 
         settings.getSerdes().forEach(CoerceUtil::register);
