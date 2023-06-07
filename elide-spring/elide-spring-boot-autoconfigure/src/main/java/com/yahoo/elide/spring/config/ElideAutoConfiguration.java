@@ -1008,7 +1008,8 @@ public class ElideAutoConfiguration {
         public AsyncSettingsBuilder asyncSettingsBuilder(ElideConfigProperties settings,
                 ObjectProvider<AsyncSettingsBuilderCustomizer> customizerProviders) {
             return AsyncSettingsBuilderCustomizers.buildAsyncSettingsBuilder(builder -> {
-                builder.export(export -> export.path(settings.getAsync().getExport().getPath()));
+                builder.export(export -> export.enabled(settings.getAsync().getExport().isEnabled())
+                        .path(settings.getAsync().getExport().getPath()));
                 customizerProviders.orderedStream().forEach(customizer -> customizer.customize(builder));
             });
         }
