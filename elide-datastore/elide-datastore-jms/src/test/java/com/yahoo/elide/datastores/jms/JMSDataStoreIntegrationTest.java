@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.jms;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.datastores.jms.TestBinder.EMBEDDED_JMS_URL;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
@@ -25,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
@@ -135,8 +135,8 @@ public class JMSDataStoreIntegrationTest {
     @Test
     public void testLifecycleEventBeforeSubscribe() throws Exception {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -177,8 +177,8 @@ public class JMSDataStoreIntegrationTest {
             client.waitOnSubscribe(10);
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -210,8 +210,8 @@ public class JMSDataStoreIntegrationTest {
             client.waitOnSubscribe(10);
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -245,8 +245,8 @@ public class JMSDataStoreIntegrationTest {
             client.waitOnSubscribe(10);
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -260,8 +260,8 @@ public class JMSDataStoreIntegrationTest {
                     .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("10"));
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -293,8 +293,8 @@ public class JMSDataStoreIntegrationTest {
             client.waitOnSubscribe(10);
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -308,8 +308,8 @@ public class JMSDataStoreIntegrationTest {
                     .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1000"));
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -345,8 +345,8 @@ public class JMSDataStoreIntegrationTest {
             client.waitOnSubscribe(10);
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -360,8 +360,8 @@ public class JMSDataStoreIntegrationTest {
                     .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -375,8 +375,8 @@ public class JMSDataStoreIntegrationTest {
                     .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -394,8 +394,8 @@ public class JMSDataStoreIntegrationTest {
                     .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("3"));
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             datum(
                                     resource(
@@ -409,8 +409,8 @@ public class JMSDataStoreIntegrationTest {
                     .then().log().all().statusCode(HttpStatus.SC_NO_CONTENT);
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(
@@ -423,8 +423,8 @@ public class JMSDataStoreIntegrationTest {
                     .then().log().all().statusCode(HttpStatus.SC_NO_CONTENT);
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .delete("/book/3")
                     .then().statusCode(HttpStatus.SC_NO_CONTENT);
 
@@ -451,8 +451,8 @@ public class JMSDataStoreIntegrationTest {
             client.waitOnSubscribe(10);
 
             given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
                     .body(
                             data(
                                     resource(

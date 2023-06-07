@@ -7,7 +7,6 @@ package com.yahoo.elide.spring.controllers;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
@@ -49,17 +48,18 @@ import java.util.concurrent.Callable;
 @RestController
 @RequestMapping(value = "${elide.json-api.path}")
 public class JsonApiController {
-
+    private final JsonApi jsonApi;
     private final Elide elide;
     private final ElideConfigProperties settings;
     private final HeaderUtils.HeaderProcessor headerProcessor;
     private final RouteResolver routeResolver;
 
-    public JsonApiController(RefreshableElide refreshableElide, ElideConfigProperties settings,
+    public JsonApiController(JsonApi jsonApi, ElideConfigProperties settings,
             RouteResolver routeResolver) {
         log.debug("Started ~~");
+        this.jsonApi = jsonApi;
         this.settings = settings;
-        this.elide = refreshableElide.getElide();
+        this.elide = jsonApi.getElide();
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
         this.routeResolver = routeResolver;
     }
@@ -79,7 +79,7 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.get(route, user, UUID.randomUUID());
+                ElideResponse response = jsonApi.get(route, user, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -104,12 +104,12 @@ public class JsonApiController {
             public ResponseEntity<String> call() throws Exception {
                 if ("/operations".equals(route.getPath())) {
                     // Atomic Operations
-                    ElideResponse response = elide.operations(route, body, user, UUID.randomUUID());
+                    ElideResponse response = jsonApi.operations(route, body, user, UUID.randomUUID());
                     return ResponseEntity.status(response.getResponseCode())
                             .contentType(MediaType.valueOf(JsonApi.AtomicOperations.MEDIA_TYPE))
                             .body(response.getBody());
                 } else {
-                    ElideResponse response = elide.post(route, body, user, UUID.randomUUID());
+                    ElideResponse response = jsonApi.post(route, body, user, UUID.randomUUID());
                     return ResponseEntity.status(response.getResponseCode())
                             .contentType(MediaType.valueOf(JsonApi.MEDIA_TYPE)).body(response.getBody());
                 }
@@ -137,7 +137,7 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.patch(route, body, user, UUID.randomUUID());
+                ElideResponse response = jsonApi.patch(route, body, user, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -159,7 +159,7 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.delete(route, null, user, UUID.randomUUID());
+                ElideResponse response = jsonApi.delete(route, null, user, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -183,7 +183,7 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide
+                ElideResponse response = jsonApi
                         .delete(route, body, user, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }

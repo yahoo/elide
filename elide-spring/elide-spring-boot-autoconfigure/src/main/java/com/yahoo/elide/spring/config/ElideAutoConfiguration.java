@@ -53,6 +53,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBe
 import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.graphql.QueryRunners;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
@@ -772,9 +773,16 @@ public class ElideAutoConfiguration {
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean(name = "jsonApiController")
-            public JsonApiController jsonApiController(RefreshableElide refreshableElide,
-                    ElideConfigProperties settings, RouteResolver routeResolver) {
-                return new JsonApiController(refreshableElide, settings, routeResolver);
+            public JsonApiController jsonApiController(JsonApi jsonApi, ElideConfigProperties settings,
+                    RouteResolver routeResolver) {
+                return new JsonApiController(jsonApi, settings, routeResolver);
+            }
+
+            @Bean
+            @RefreshScope
+            @ConditionalOnMissingBean
+            public JsonApi jsonApi(RefreshableElide refreshableElide) {
+                return new JsonApi(refreshableElide);
             }
         }
 
@@ -864,9 +872,15 @@ public class ElideAutoConfiguration {
         public static class JsonApiConfiguration {
             @Bean
             @ConditionalOnMissingBean(name = "jsonApiController")
-            public JsonApiController jsonApiController(RefreshableElide refreshableElide,
-                    ElideConfigProperties settings, RouteResolver routeResolver) {
-                return new JsonApiController(refreshableElide, settings, routeResolver);
+            public JsonApiController jsonApiController(JsonApi jsonApi, ElideConfigProperties settings,
+                    RouteResolver routeResolver) {
+                return new JsonApiController(jsonApi, settings, routeResolver);
+            }
+
+            @Bean
+            @ConditionalOnMissingBean
+            public JsonApi jsonApi(RefreshableElide refreshableElide) {
+                return new JsonApi(refreshableElide);
             }
         }
 

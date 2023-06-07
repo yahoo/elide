@@ -22,6 +22,7 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +49,7 @@ import java.util.Set;
 public class DataStoreIT extends IntegrationTest {
     private final ObjectMapper mapper;
     private final Elide elide;
+    private final JsonApi jsonApi;
     private final User goodUser;
     private final User badUser;
 
@@ -80,6 +82,7 @@ public class DataStoreIT extends IntegrationTest {
                 .build());
 
         elide.doScans();
+        jsonApi = new JsonApi(elide);
     }
 
     @BeforeEach
@@ -140,7 +143,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = elide.get(route, goodUser, null);
+        ElideResponse response = jsonApi.get(route, goodUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
@@ -160,7 +163,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams)
                 .apiVersion(NO_VERSION).build();
-        ElideResponse response = elide.get(route, goodUser, null);
+        ElideResponse response = jsonApi.get(route, goodUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
@@ -181,7 +184,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = elide.get(route, goodUser, null);
+        ElideResponse response = jsonApi.get(route, goodUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
@@ -198,7 +201,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams)
                 .apiVersion(NO_VERSION).build();
-        ElideResponse response = elide.get(route, goodUser, null);
+        ElideResponse response = jsonApi.get(route, goodUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
@@ -215,7 +218,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("sort", Arrays.asList("-chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = elide.get(route, goodUser, null);
+        ElideResponse response = jsonApi.get(route, goodUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
@@ -236,7 +239,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("sort", Arrays.asList("-chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = elide.get(route, goodUser, null);
+        ElideResponse response = jsonApi.get(route, goodUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
@@ -260,7 +263,7 @@ public class DataStoreIT extends IntegrationTest {
 
         Route route = Route.builder().baseUrl(BASEURL).path("filtered").apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = elide.get(route, goodUser, null);
+        ElideResponse response = jsonApi.get(route, goodUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
         assertEquals(data.toJSON(), response.getBody());
     }
@@ -273,7 +276,7 @@ public class DataStoreIT extends IntegrationTest {
         );
         Route route = Route.builder().baseUrl(BASEURL).path("filtered").apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = elide.get(route, badUser, null);
+        ElideResponse response = jsonApi.get(route, badUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
         assertEquals(data.toJSON(), response.getBody());
     }
