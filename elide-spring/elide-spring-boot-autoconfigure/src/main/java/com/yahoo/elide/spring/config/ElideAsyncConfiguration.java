@@ -16,7 +16,6 @@ import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
-import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
@@ -27,8 +26,6 @@ import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.core.security.RequestScope;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -112,29 +109,11 @@ public class ElideAsyncConfiguration {
         return asyncExecutorService;
     }
 
-    // TODO Remove this method when ElideSettings has all the settings.
-    // Then the check can be done in TableExportHook.
-    // Trying to avoid adding too many individual properties to ElideSettings for now.
-    // https://github.com/yahoo/elide/issues/1803
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideConfigProperties settings, Map<ResultType, TableExportFormatter> supportedFormatters,
             ResultStorageEngine resultStorageEngine) {
-        boolean exportEnabled = ElideAutoConfiguration.isExportEnabled(settings.getAsync());
-
-        TableExportHook tableExportHook = null;
-        if (exportEnabled) {
-            tableExportHook = new TableExportHook(asyncExecutorService,
-                    settings.getAsync().getMaxAsyncAfter(), supportedFormatters, resultStorageEngine);
-        } else {
-            tableExportHook = new TableExportHook(asyncExecutorService,
-                    settings.getAsync().getMaxAsyncAfter(), supportedFormatters, resultStorageEngine) {
-                @Override
-                public void validateOptions(AsyncApi export, RequestScope requestScope) {
-                    throw new InvalidOperationException("TableExport is not supported.");
-                }
-            };
-        }
-        return tableExportHook;
+        return new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfter(), supportedFormatters,
+                resultStorageEngine);
     }
 
     /**
@@ -157,9 +136,9 @@ public class ElideAsyncConfiguration {
     }
 
     /**
-     * Configure the AsyncQueryDao used by async query requests.
+     * Configure the AsyncQueryDAO used by async query requests.
      * @param elide elideObject.
-     * @return an AsyncQueryDao object.
+     * @return an AsyncQueryDAO object.
      */
     @Bean
     @ConditionalOnMissingBean

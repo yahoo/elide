@@ -54,7 +54,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final LinkedHashSet<PersistentResource> deletedResources;
-    @Getter private final ElideSettings elideSettings;
+    private final ElideSettings elideSettings;
     @Getter private final Map<String, Set<String>> sparseFields;
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
@@ -392,5 +392,10 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Override
     public Route getRoute() {
         return this.route;
+    }
+
+    @Override
+    public ElideSettings getElideSettings() {
+        return this.elideSettings;
     }
 }

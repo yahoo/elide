@@ -17,7 +17,6 @@ import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
-import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
@@ -31,9 +30,7 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.request.route.RouteResolver;
-import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -315,26 +312,10 @@ public class ElideResourceConfig extends ResourceConfig {
         return healthCheckRegistry;
     }
 
-    // TODO Remove this method when ElideSettings has all the settings.
-    // Then the check can be done in TableExportHook.
-    // Trying to avoid adding too many individual properties to ElideSettings for now.
-    // https://github.com/yahoo/elide/issues/1803
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideStandaloneAsyncSettings asyncProperties, Map<ResultType, TableExportFormatter> supportedFormatters,
             ResultStorageEngine engine) {
-        TableExportHook tableExportHook = null;
-        if (asyncProperties.enableExport()) {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
+        return new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
                     supportedFormatters, engine);
-        } else {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
-                    supportedFormatters, engine) {
-                @Override
-                public void validateOptions(AsyncApi export, RequestScope requestScope) {
-                    throw new InvalidOperationException("TableExport is not supported.");
-                }
-            };
-        }
-        return tableExportHook;
     }
 }
