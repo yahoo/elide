@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
@@ -87,11 +88,13 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
                         dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
                     );
 
+                    JsonApiMapper jsonApiMapper = new JsonApiMapper();
                     Elide elide = new Elide(ElideSettings.builder().dataStore(getDataStore())
+                            .objectMapper(jsonApiMapper.getObjectMapper())
                             .entityDictionary(dictionary).auditLogger(new TestAuditLogger()).serdes(serdes -> serdes
                                     .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
                             .settings(GraphQLSettingsBuilder.withDefaults(dictionary))
-                            .settings(JsonApiSettingsBuilder.withDefaults(dictionary))
+                            .settings(JsonApiSettingsBuilder.withDefaults(dictionary).jsonApiMapper(jsonApiMapper))
                             .build());
 
                     elide.doScans();
