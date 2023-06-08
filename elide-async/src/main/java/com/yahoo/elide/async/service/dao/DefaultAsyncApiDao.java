@@ -40,7 +40,7 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
     @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
 
-    // Default constructor is needed for standalone implementation for override in getAsyncApiDao
+    // Default constructor is needed for standalone implementation for override in getAsyncAPIDao
     public DefaultAsyncApiDao() {
     }
 
@@ -51,12 +51,12 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends AsyncApi> T updateStatus(String asyncApiId, QueryStatus status, Class<T> type) {
+    public <T extends AsyncApi> T updateStatus(String asyncAPIId, QueryStatus status, Class<T> type) {
         T queryObj = (T) executeInTransaction(dataStore, (tx, scope) -> {
-            EntityProjection asyncApiIterable = EntityProjection.builder()
+            EntityProjection asyncAPIIterable = EntityProjection.builder()
                     .type(type)
                     .build();
-            T query = (T) tx.loadObject(asyncApiIterable, asyncApiId, scope);
+            T query = (T) tx.loadObject(asyncAPIIterable, asyncAPIId, scope);
             query.setStatus(status);
             tx.save(query, scope);
             return query;
@@ -67,31 +67,31 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
     @Override
     public <T extends AsyncApi> Iterable<T> updateStatusAsyncApiByFilter(FilterExpression filterExpression,
             QueryStatus status, Class<T> type) {
-        return updateAsyncApiIterable(filterExpression, asyncApi -> asyncApi.setStatus(status), type);
+        return updateAsyncApiIterable(filterExpression, asyncAPI -> asyncAPI.setStatus(status), type);
     }
 
     /**
-     * This method updates a Iterable of AsyncApi objects from database and
+     * This method updates a Iterable of AsyncAPI objects from database and
      * returns the objects updated.
-     * @param filterExpression Filter expression to update AsyncApi Objects based on
-     * @param updateFunction Functional interface for updating AsyncApi Object
-     * @param type AsyncApi Type Implementation.
+     * @param filterExpression Filter expression to update AsyncAPI Objects based on
+     * @param updateFunction Functional interface for updating AsyncAPI Object
+     * @param type AsyncAPI Type Implementation.
      * @return query object list updated
      */
     @SuppressWarnings("unchecked")
     private <T extends AsyncApi> Iterable<T> updateAsyncApiIterable(FilterExpression filterExpression,
             UpdateQuery updateFunction, Class<T> type) {
-        log.debug("updateAsyncApiIterable");
+        log.debug("updateAsyncAPIIterable");
 
-        Iterable<T> asyncApiList = null;
-        asyncApiList = (Iterable<T>) executeInTransaction(dataStore,
+        Iterable<T> asyncAPIList = null;
+        asyncAPIList = (Iterable<T>) executeInTransaction(dataStore,
                 (tx, scope) -> {
-            EntityProjection asyncApiIterable = EntityProjection.builder()
+            EntityProjection asyncAPIIterable = EntityProjection.builder()
                     .type(type)
                     .filterExpression(filterExpression)
                     .build();
 
-            Iterable<Object> loaded = tx.loadObjects(asyncApiIterable, scope);
+            Iterable<Object> loaded = tx.loadObjects(asyncAPIIterable, scope);
             Iterator<Object> itr = loaded.iterator();
 
             while (itr.hasNext()) {
@@ -101,22 +101,22 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
             }
             return loaded;
         });
-        return asyncApiList;
+        return asyncAPIList;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T extends AsyncApi> Iterable<T> deleteAsyncApiAndResultByFilter(
             FilterExpression filterExpression, Class<T> type) {
-        log.debug("deleteAsyncApiAndResultByFilter");
-        Iterable<T> asyncApiList = null;
-        asyncApiList = (Iterable<T>) executeInTransaction(dataStore, (tx, scope) -> {
-            EntityProjection asyncApiIterable = EntityProjection.builder()
+        log.debug("deleteAsyncAPIAndResultByFilter");
+        Iterable<T> asyncAPIList = null;
+        asyncAPIList = (Iterable<T>) executeInTransaction(dataStore, (tx, scope) -> {
+            EntityProjection asyncAPIIterable = EntityProjection.builder()
                     .type(type)
                     .filterExpression(filterExpression)
                     .build();
 
-            Iterable<Object> loaded = tx.loadObjects(asyncApiIterable, scope);
+            Iterable<Object> loaded = tx.loadObjects(asyncAPIIterable, scope);
             Iterator<Object> itr = loaded.iterator();
 
             while (itr.hasNext()) {
@@ -127,20 +127,20 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
             }
             return loaded;
         });
-        return asyncApiList;
+        return asyncAPIList;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends AsyncApi> T updateAsyncApiResult(AsyncApiResult asyncApiResult,
-            String asyncApiId, Class<T> type) {
-        log.debug("updateAsyncApiResult");
+    public <T extends AsyncApi> T updateAsyncApiResult(AsyncApiResult asyncAPIResult,
+            String asyncAPIId, Class<T> type) {
+        log.debug("updateAsyncAPIResult");
         T queryObj = (T) executeInTransaction(dataStore, (tx, scope) -> {
-            EntityProjection asyncApiIterable = EntityProjection.builder()
+            EntityProjection asyncAPIIterable = EntityProjection.builder()
                     .type(type)
                     .build();
-            T query = (T) tx.loadObject(asyncApiIterable, asyncApiId, scope);
-            query.setResult(asyncApiResult);
+            T query = (T) tx.loadObject(asyncAPIIterable, asyncAPIId, scope);
+            query.setResult(asyncAPIResult);
             if (query.getStatus().equals(QueryStatus.CANCELLED)) {
                 query.setStatus(QueryStatus.CANCEL_COMPLETE);
             } else if (!(query.getStatus().equals(QueryStatus.CANCEL_COMPLETE))) {
@@ -157,7 +157,7 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
      * a generic functional interface and closes the transaction.
      * @param dataStore Elide datastore retrieved from Elide object
      * @param action Functional interface to perform DB action
-     * @return Object Returns Entity Object (AsyncApiResult or AsyncResult)
+     * @return Object Returns Entity Object (AsyncAPIResult or AsyncResult)
      */
     protected Object executeInTransaction(DataStore dataStore, Transactional action) {
         log.debug("executeInTransaction");
@@ -181,21 +181,21 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
     @SuppressWarnings("unchecked")
     public <T extends AsyncApi> Iterable<T> loadAsyncApiByFilter(FilterExpression filterExpression,
             Class<T> type) {
-        Iterable<T> asyncApiList = null;
-        log.debug("loadAsyncApiByFilter");
+        Iterable<T> asyncAPIList = null;
+        log.debug("loadAsyncAPIByFilter");
         try {
-            asyncApiList = (Iterable<T>) executeInTransaction(dataStore, (tx, scope) -> {
+            asyncAPIList = (Iterable<T>) executeInTransaction(dataStore, (tx, scope) -> {
 
-                EntityProjection asyncApiIterable = EntityProjection.builder()
+                EntityProjection asyncAPIIterable = EntityProjection.builder()
                         .type(type)
                         .filterExpression(filterExpression)
                         .build();
-                return tx.loadObjects(asyncApiIterable, scope);
+                return tx.loadObjects(asyncAPIIterable, scope);
             });
         } catch (Exception e) {
             log.error("Exception: {}", e.toString());
             throw new IllegalStateException(e);
         }
-        return asyncApiList;
+        return asyncAPIList;
     }
 }

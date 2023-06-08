@@ -17,13 +17,13 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.operation.JsonApiAsyncQueryOperation;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.RequestScope;
@@ -55,7 +55,7 @@ public class AsyncExecutorServiceTest {
 
     private AsyncExecutorService service;
     private Elide elide;
-    private AsyncAPIDAO asyncAPIDao;
+    private AsyncApiDao asyncAPIDao;
     private User testUser;
     private RequestScope scope;
     private ResultStorageEngine resultStorageEngine;
@@ -78,7 +78,7 @@ public class AsyncExecutorServiceTest {
                         .entityDictionary(EntityDictionary.builder().checks(checkMappings).build())
                         .settings(JsonApiSettings.builder())
                         .build());
-        asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
+        asyncAPIDao = mock(DefaultAsyncApiDao.class);
         testUser = mock(User.class);
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
@@ -93,7 +93,7 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getRunners());
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
-        assertEquals(asyncAPIDao, service.getAsyncAPIDao());
+        assertEquals(asyncAPIDao, service.getAsyncApiDao());
         assertEquals(resultStorageEngine, resultStorageEngine);
     }
 
@@ -103,7 +103,7 @@ public class AsyncExecutorServiceTest {
        AsyncQuery queryObj = mock(AsyncQuery.class);
        when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
 
-       Callable<AsyncAPIResult> mockCallable = mock(Callable.class);
+       Callable<AsyncApiResult> mockCallable = mock(Callable.class);
        when(mockCallable.call()).thenThrow(new NoHttpResponseException(""));
 
        service.executeQuery(queryObj, mockCallable);

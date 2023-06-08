@@ -31,12 +31,12 @@ import java.util.Optional;
 public class AsyncApiInlineChecks {
     private static final String PRINCIPAL_NAME = "principalName";
 
-    static private FilterPredicate getPredicateOfPrincipalName(String principalName, Type entityClass) {
+    private static FilterPredicate getPredicateOfPrincipalName(String principalName, Type entityClass) {
         Path.PathElement path = new Path.PathElement(entityClass, ClassType.STRING_TYPE, PRINCIPAL_NAME);
         return new FilterPredicate(path, Operator.IN, Collections.singletonList(principalName));
     }
 
-    static private FilterPredicate getPredicateOfPrincipalNameNull(Type entityClass) {
+    private static FilterPredicate getPredicateOfPrincipalNameNull(Type entityClass) {
         Path.PathElement path = new Path.PathElement(entityClass, ClassType.STRING_TYPE, PRINCIPAL_NAME);
         return new FilterPredicate(path, Operator.ISNULL, Collections.emptyList());
     }
@@ -46,7 +46,7 @@ public class AsyncApiInlineChecks {
      * @param <T> type parameter
      */
     @SecurityCheck(AsyncApiOwner.PRINCIPAL_IS_OWNER)
-    static public class AsyncApiOwner<T> extends FilterExpressionCheck<T> {
+    public static class AsyncApiOwner<T> extends FilterExpressionCheck<T> {
         public static final String PRINCIPAL_IS_OWNER = "Principal is Owner";
         /**
          * query principalName == owner.

@@ -14,13 +14,13 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.AsyncSettings;
-import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
+import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.models.ArtifactGroup;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
-import com.yahoo.elide.async.models.security.AsyncAPIInlineChecks;
+import com.yahoo.elide.async.models.security.AsyncApiInlineChecks;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
@@ -62,14 +62,14 @@ public class JsonApiTableExportOperationTest {
         dataStore = new HashMapDataStore(new DefaultClassScanner(),
                         new HashSet<>(Arrays.asList(TableExport.class.getPackage(), ArtifactGroup.class.getPackage())));
         Map<String, Class<? extends Check>> map = new HashMap<>();
-        map.put(AsyncAPIInlineChecks.AsyncAPIOwner.PRINCIPAL_IS_OWNER,
-                AsyncAPIInlineChecks.AsyncAPIOwner.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIAdmin.PRINCIPAL_IS_ADMIN,
-                AsyncAPIInlineChecks.AsyncAPIAdmin.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIStatusValue.VALUE_IS_CANCELLED,
-                AsyncAPIInlineChecks.AsyncAPIStatusValue.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIStatusQueuedValue.VALUE_IS_QUEUED,
-                AsyncAPIInlineChecks.AsyncAPIStatusQueuedValue.class);
+        map.put(AsyncApiInlineChecks.AsyncApiOwner.PRINCIPAL_IS_OWNER,
+                AsyncApiInlineChecks.AsyncApiOwner.class);
+        map.put(AsyncApiInlineChecks.AsyncApiAdmin.PRINCIPAL_IS_ADMIN,
+                AsyncApiInlineChecks.AsyncApiAdmin.class);
+        map.put(AsyncApiInlineChecks.AsyncApiStatusValue.VALUE_IS_CANCELLED,
+                AsyncApiInlineChecks.AsyncApiStatusValue.class);
+        map.put(AsyncApiInlineChecks.AsyncApiStatusQueuedValue.VALUE_IS_QUEUED,
+                AsyncApiInlineChecks.AsyncApiStatusQueuedValue.class);
 
         elide = new Elide(
                     ElideSettings.builder().dataStore(dataStore)
@@ -100,7 +100,7 @@ public class JsonApiTableExportOperationTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setResultType(ResultType.CSV);
 
-        JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+        JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
                 queryObj, requestScope, engine);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
@@ -121,7 +121,7 @@ public class JsonApiTableExportOperationTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setResultType(ResultType.CSV);
 
-        JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+        JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
                 queryObj, requestScope, engine);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
@@ -140,7 +140,7 @@ public class JsonApiTableExportOperationTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setResultType(ResultType.CSV);
 
-        JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+        JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
                 queryObj, requestScope, engine);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
@@ -159,7 +159,7 @@ public class JsonApiTableExportOperationTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setResultType(ResultType.CSV);
 
-        JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JSONExportFormatter(elide),
+        JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JsonExportFormatter(elide),
                         asyncExecutorService, queryObj, requestScope, engine);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
