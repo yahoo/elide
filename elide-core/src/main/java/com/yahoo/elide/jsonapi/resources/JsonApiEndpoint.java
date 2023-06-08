@@ -7,7 +7,6 @@ package com.yahoo.elide.jsonapi.resources;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.route.BasicApiVersionValidator;
 import com.yahoo.elide.core.request.route.FlexibleRouteResolver;
@@ -26,6 +25,7 @@ import jakarta.inject.Singleton;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
