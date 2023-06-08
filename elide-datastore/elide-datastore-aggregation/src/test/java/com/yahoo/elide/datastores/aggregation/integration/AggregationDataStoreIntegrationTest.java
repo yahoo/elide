@@ -21,7 +21,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.model.DBConfig;
@@ -86,10 +88,11 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
                     );
 
                     Elide elide = new Elide(ElideSettings.builder().dataStore(getDataStore())
-                                    .entityDictionary(dictionary)
-                                    .auditLogger(new TestAuditLogger())
-                                    .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
-                                    ).build());
+                            .entityDictionary(dictionary).auditLogger(new TestAuditLogger()).serdes(serdes -> serdes
+                                    .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
+                            .settings(GraphQLSettingsBuilder.withDefaults(dictionary))
+                            .settings(JsonApiSettingsBuilder.withDefaults(dictionary))
+                            .build());
 
                     elide.doScans();
                     bind(elide).to(Elide.class).named("elide");

@@ -32,7 +32,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
-
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -138,11 +138,13 @@ public class GraphQLEndpointTest {
         checkMappings.put(UserChecks.IS_USER_2, UserChecks.IsUserId.Two.class);
         checkMappings.put(CommitChecks.IS_NOT_USER_3, CommitChecks.IsNotUser3.class);
 
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(checkMappings).build();
         elide = spy(
                 new Elide(
                     ElideSettings.builder().dataStore(inMemoryStore)
-                            .entityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                            .entityDictionary(entityDictionary)
                             .auditLogger(audit)
+                            .settings(GraphQLSettingsBuilder.withDefaults(entityDictionary))
                             .build())
 
                 );
