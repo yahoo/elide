@@ -5,15 +5,10 @@
  */
 package example;
 
-import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.async.AsyncSettings;
-import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
@@ -26,7 +21,6 @@ import jakarta.jms.ConnectionFactory;
 
 import java.time.Duration;
 import java.util.Properties;
-import java.util.TimeZone;
 
 /**
  * Settings class extending ElideStandaloneSettings for tests.
@@ -34,38 +28,13 @@ import java.util.TimeZone;
 public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
 
     @Override
-    public ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, JsonApiMapper mapper) {
+    public JsonApiSettingsBuilder getJsonApiSettingsBuilder(EntityDictionary dictionary, JsonApiMapper mapper) {
         String jsonApiBaseUrl = getBaseUrl()
-                + getJsonApiPathSpec().replaceAll("/\\*", "")
+                + getJsonApiPathSpec().replace("/*", "")
                 + "/";
 
-        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().path(getJsonApiPathSpec().replaceAll("/\\*", ""))
-                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .links(links -> links.enabled(true).jsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl)))
-                .jsonApiMapper(mapper);
-
-        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder().path(getGraphQLApiPathSpec().replaceAll("/\\*", ""));
-
-        AsyncSettings.AsyncSettingsBuilder asyncSettings = AsyncSettings.builder()
-                .export(export -> export.path(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", "")));
-
-        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
-                .objectMapper(mapper.getObjectMapper())
-                .entityDictionary(dictionary)
-                .errorMapper(getErrorMapper())
-                .baseUrl("https://elide.io")
-                .auditLogger(getAuditLogger())
-                .verboseErrors(true)
-                .settings(jsonApiSettings)
-                .settings(graphqlSettings)
-                .settings(asyncSettings);
-
-        if (enableISO8601Dates()) {
-            builder = builder.serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")));
-        }
-
-        return builder.build();
+        return ElideStandaloneSettings.super.getJsonApiSettingsBuilder(dictionary, mapper)
+                .links(links -> links.enabled(true).jsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl)));
     }
 
     @Override
@@ -107,6 +76,11 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
 
     @Override
     public boolean enableJSONAPI() {
+        return true;
+    }
+
+    @Override
+    public boolean verboseErrors() {
         return true;
     }
 
