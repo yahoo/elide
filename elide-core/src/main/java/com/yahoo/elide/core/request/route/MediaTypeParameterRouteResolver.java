@@ -18,6 +18,11 @@ public class MediaTypeParameterRouteResolver implements RouteResolver {
 
     private final Function<String, String> resolver;
 
+    /**
+     * Constructor.
+     *
+     * @param resolver the resolver to map the media type parameter value to API Version
+     */
     public MediaTypeParameterRouteResolver(Function<String, String> resolver) {
         this.resolver = resolver;
     }
@@ -40,9 +45,27 @@ public class MediaTypeParameterRouteResolver implements RouteResolver {
                 .parameters(parameters).build();
     }
 
-    protected String fromHeader(String header, String mediaType) {
-        if (header.startsWith(mediaType)) {
-            String[] parameters = header.split(";");
+    /**
+     * Determine if the Accept header value should be supported.
+     *
+     * @param acceptHeaderValue the Accept header value
+     * @param mediaType the media type that should be processed
+     * @return true if it should be processed
+     */
+    protected boolean supports(String acceptHeaderValue, String mediaType) {
+        return true;
+    }
+
+    /**
+     * Determine the API Version from the Accept header value.
+     *
+     * @param acceptHeaderValue the Accept header value
+     * @param mediaType the media type that should be processed
+     * @return the API Version or null
+     */
+    protected String fromHeader(String acceptHeaderValue, String mediaType) {
+        if (supports(acceptHeaderValue, mediaType)) {
+            String[] parameters = acceptHeaderValue.split(";");
             for (int x = 1; x < parameters.length; x++) {
                 String parameter = parameters[x].trim();
                 String apiVersion = fromMediaTypeParameter(parameter);

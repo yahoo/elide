@@ -7,8 +7,6 @@ package com.yahoo.elide.core.request.route;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,12 +60,18 @@ public class MediaTypeProfileRouteResolver extends MediaTypeParameterRouteResolv
         return NO_VERSION;
     }
 
-    @Data
+    /**
+     * The media type profile values.
+     */
     public static final class Profile {
         private List<String> values;
 
         public Profile(List<String> values) {
             this.values = values;
+        }
+
+        public List<String> getValues() {
+            return this.values;
         }
     }
 
