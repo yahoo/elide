@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 
 /**
  * Settings for GraphQL.
- *
+ * <p>
  * Use the static factory {@link #builder()} method to prepare an instance.
  */
 @Getter
@@ -59,19 +59,31 @@ public class GraphQLSettings implements Settings {
         this.filterDialect = filterDialect;
     }
 
+    /**
+     * Returns a builder with the current values.
+     *
+     * @return the builder to mutate
+     */
     public GraphQLSettingsBuilder mutate() {
-        GraphQLSettingsBuilder builder = new GraphQLSettingsBuilder();
-        builder.enabled = this.enabled;
-        builder.path = this.path;
-        builder.federation.enabled(this.federation.enabled);
-        builder.filterDialect = this.filterDialect;
-        return builder;
+        return new GraphQLSettingsBuilder()
+                .enabled(this.enabled)
+                .path(this.path)
+                .filterDialect(this.filterDialect)
+                .federation(newFederation -> newFederation.enabled(this.getFederation().isEnabled()));
     }
 
+    /**
+     * Returns a mutable {@link GraphQLSettingsBuilder} for building {@link GraphQLSettings}.
+     *
+     * @return the builder
+     */
     public static GraphQLSettingsBuilder builder() {
         return new GraphQLSettingsBuilder();
     }
 
+    /**
+     * A mutable builder for building {@link GraphQLSettings}.
+     */
     public static class GraphQLSettingsBuilder extends GraphQLSettingsBuilderSupport<GraphQLSettingsBuilder> {
         private Consumer<GraphQLSettingsBuilder> processor = null;
 
@@ -93,6 +105,12 @@ public class GraphQLSettings implements Settings {
             return this;
         }
 
+        /**
+         * Returns a mutable {@link GraphQLSettingsBuilder} for building
+         * {@link GraphQLSettings} with default filter dialect if not set.
+         *
+         * @return the builder
+         */
         public static GraphQLSettingsBuilder withDefaults(EntityDictionary entityDictionary) {
             return new GraphQLSettingsBuilder().processor(builder -> {
                 if (builder.filterDialect == null) {
@@ -110,21 +128,45 @@ public class GraphQLSettings implements Settings {
 
         protected abstract S self();
 
+        /**
+         * Enable GraphQL.
+         *
+         * @param enabled true for enabled
+         * @return the builder
+         */
         public S enabled(boolean enabled) {
             this.enabled = enabled;
             return self();
         }
 
+        /**
+         * Sets the path of the GraphQL endpoint.
+         *
+         * @param path the GraphQL endpoint path.
+         * @return the builder
+         */
         public S path(String path) {
             this.path = path;
             return self();
         }
 
+        /**
+         * Customize the Federation settings.
+         *
+         * @param federation the customizer
+         * @return the builder
+         */
         public S federation(Consumer<Federation.FederationBuilder> federation) {
             federation.accept(this.federation);
             return self();
         }
 
+        /**
+         * Sets the {@link FilterDialect}.
+         *
+         * @param filterDialect the filter dialect
+         * @return the builder
+         */
         public S filterDialect(FilterDialect filterDialect) {
             this.filterDialect = filterDialect;
             return self();

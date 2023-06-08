@@ -96,7 +96,7 @@ public class ElideStandalone {
             context.setAttribute(ASYNC_UPDATER_ATTR, Executors.newFixedThreadPool(threadPoolSize));
         }
 
-        if (elideStandaloneSettings.enableJSONAPI()) {
+        if (elideStandaloneSettings.enableJsonApi()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
                     elideStandaloneSettings.getJsonApiPathSpec());
             jerseyServlet.setInitOrder(0);

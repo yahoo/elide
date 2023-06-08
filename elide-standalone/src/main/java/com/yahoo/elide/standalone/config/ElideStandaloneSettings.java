@@ -225,7 +225,7 @@ public interface ElideStandaloneSettings {
             builder.verboseErrors(true);
         }
 
-        if (enableJSONAPI()) {
+        if (enableJsonApi()) {
             builder.settings(getJsonApiSettingsBuilder(dictionary, mapper));
         }
 
@@ -324,7 +324,7 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: True
      */
-    default boolean enableJSONAPI() {
+    default boolean enableJsonApi() {
         return true;
     }
 

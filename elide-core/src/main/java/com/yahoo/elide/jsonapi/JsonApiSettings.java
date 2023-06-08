@@ -83,23 +83,39 @@ public class JsonApiSettings implements Settings {
         this.subqueryFilterDialects = subqueryFilterDialects;
     }
 
+    /**
+     * Returns a builder with the current values.
+     *
+     * @return the builder to mutate
+     */
     public JsonApiSettingsBuilder mutate() {
-        JsonApiSettingsBuilder builder = new JsonApiSettingsBuilder();
-        builder.enabled = this.enabled;
-        builder.path = this.path;
-        builder.jsonApiMapper = this.jsonApiMapper;
-        builder.links.enabled(this.links.enabled).jsonApiLinks(this.links.jsonApiLinks);
+        JsonApiSettingsBuilder builder = new JsonApiSettingsBuilder()
+                .enabled(this.enabled)
+                .path(this.path)
+                .jsonApiMapper(this.jsonApiMapper)
+                .links(newLinks -> newLinks.enabled(this.getLinks().isEnabled())
+                        .jsonApiLinks(this.getLinks().getJsonApiLinks()))
+                .strictQueryParameters(this.isStrictQueryParameters());
+
         builder.updateStatusCode = this.updateStatusCode;
-        builder.strictQueryParameters = this.strictQueryParameters;
         builder.joinFilterDialects.addAll(this.joinFilterDialects);
         builder.subqueryFilterDialects.addAll(this.subqueryFilterDialects);
+
         return builder;
     }
 
+    /**
+     * Returns a mutable {@link JsonApiSettingsBuilder} for building {@link JsonApiSettings}.
+     *
+     * @return the builder
+     */
     public static JsonApiSettingsBuilder builder() {
         return new JsonApiSettingsBuilder();
     }
 
+    /**
+     * A mutable builder for building {@link JsonApiSettings}.
+     */
     public static class JsonApiSettingsBuilder extends JsonApiSettingsBuilderSupport<JsonApiSettingsBuilder> {
         private Consumer<JsonApiSettingsBuilder> processor = null;
 
@@ -123,6 +139,12 @@ public class JsonApiSettings implements Settings {
             return this;
         }
 
+        /**
+         * Returns a mutable {@link JsonApiSettingsBuilder} for building
+         * {@link JsonApiSettings} with default filter dialects if not set.
+         *
+         * @return the builder
+         */
         public static JsonApiSettingsBuilder withDefaults(EntityDictionary entityDictionary) {
             return new JsonApiSettingsBuilder().processor(builder -> {
                 if (builder.joinFilterDialects.isEmpty()) {
@@ -150,66 +172,142 @@ public class JsonApiSettings implements Settings {
 
         protected abstract S self();
 
+        /**
+         * Enable JSON API.
+         *
+         * @param enabled true for enabled
+         * @return the builder
+         */
         public S enabled(boolean enabled) {
             this.enabled = enabled;
             return self();
         }
 
+        /**
+         * Sets the path of the JSON API endpoint.
+         *
+         * @param path the JSON API endpoint path.
+         * @return the builder
+         */
         public S path(String path) {
             this.path = path;
             return self();
         }
 
+        /**
+         * Sets the {@link JsonApiMapper}.
+         *
+         * @param jsonApiMapper the mapper
+         * @return the builder
+         */
         public S jsonApiMapper(JsonApiMapper jsonApiMapper) {
             this.jsonApiMapper = jsonApiMapper;
             return self();
         }
 
+        /**
+         * Customize the JSON API Links.
+         *
+         * @param links the customizer
+         * @return the builder
+         */
         public S links(Consumer<Links.LinksBuilder> links) {
             links.accept(this.links);
             return self();
         }
 
+        /**
+         * Enable strict query parameters.
+         *
+         * @param strictQueryParameters true for strict
+         * @return the builder
+         */
         public S strictQueryParameters(boolean strictQueryParameters) {
             this.strictQueryParameters = strictQueryParameters;
             return self();
         }
 
+        /**
+         * Return 200 OK on update.
+         *
+         * @return the builder
+         */
         public S updateStatus200() {
             this.updateStatusCode = HttpStatus.SC_OK;
             return self();
         }
 
+        /**
+         * Return 204 No Content on update.
+         *
+         * @return the builder
+         */
         public S updateStatus204() {
             this.updateStatusCode = HttpStatus.SC_NO_CONTENT;
             return self();
         }
 
+        /**
+         * Sets the {@link JoinFilterDialect}.
+         *
+         * @param joinFilterDialects the dialects to set
+         * @return the builder
+         */
         public S joinFilterDialects(List<JoinFilterDialect> joinFilterDialects) {
             this.joinFilterDialects = joinFilterDialects;
             return self();
         }
 
+        /**
+         * Add the {@link JoinFilterDialect}.
+         *
+         * @param joinFilterDialect the dialect to add
+         * @return the builder
+         */
         public S joinFilterDialect(JoinFilterDialect joinFilterDialect) {
             this.joinFilterDialects.add(joinFilterDialect);
             return self();
         }
 
+        /**
+         * Customize the {@link JoinFilterDialect}.
+         *
+         * @param joinFilterDialects the customizer
+         * @return the builder
+         */
         public S joinFilterDialects(Consumer<List<JoinFilterDialect>> joinFilterDialects) {
             joinFilterDialects.accept(this.joinFilterDialects);
             return self();
         }
 
+        /**
+         * Sets the {@link SubqueryFilterDialect}.
+         *
+         * @param subqueryFilterDialects the dialects to set
+         * @return the builder
+         */
         public S subqueryFilterDialects(List<SubqueryFilterDialect> subqueryFilterDialects) {
             this.subqueryFilterDialects = subqueryFilterDialects;
             return self();
         }
 
+        /**
+         * Add the {@link SubqueryFilterDialect}.
+         *
+         * @param subqueryFilterDialect the dialect to add
+         * @return the builder
+         */
         public S subqueryFilterDialect(SubqueryFilterDialect subqueryFilterDialect) {
             this.subqueryFilterDialects.add(subqueryFilterDialect);
             return self();
         }
 
+        /**
+         * Customize the {@link SubqueryFilterDialect}.
+         *
+         * @param subqueryFilterDialects the customizer
+         * @return the builder
+         */
         public S subqueryFilterDialects(Consumer<List<SubqueryFilterDialect>> subqueryFilterDialects) {
             subqueryFilterDialects.accept(this.subqueryFilterDialects);
             return self();

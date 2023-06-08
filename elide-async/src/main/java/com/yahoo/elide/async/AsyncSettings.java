@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 
 /**
  * Settings for Async.
- *
+ * <p>
  * Use the static factory {@link #builder()} method to prepare an instance.
  */
 @Getter
@@ -62,18 +62,30 @@ public class AsyncSettings implements Settings {
         this.export = export;
     }
 
+    /**
+     * Returns a builder with the current values.
+     *
+     * @return the builder to mutate
+     */
     public AsyncSettingsBuilder mutate() {
-        AsyncSettingsBuilder builder = new AsyncSettingsBuilder();
-        builder.enabled = this.enabled;
-        builder.path = this.path;
-        builder.export.enabled(this.export.enabled).path(this.export.path);
-        return builder;
+        return new AsyncSettingsBuilder()
+                .enabled(this.enabled)
+                .path(this.path)
+                .export(newExport -> newExport.enabled(this.getExport().isEnabled()).path(this.getExport().getPath()));
     }
 
+    /**
+     * Returns a mutable {@link AsyncSettingsBuilder} for building {@link AsyncSettings}.
+     *
+     * @return the builder
+     */
     public static AsyncSettingsBuilder builder() {
         return new AsyncSettingsBuilder();
     }
 
+    /**
+     * A mutable builder for building {@link AsyncSettings}.
+     */
     public static class AsyncSettingsBuilder extends AsyncSettingsBuilderSupport<AsyncSettingsBuilder> {
         @Override
         public AsyncSettings build() {
@@ -103,6 +115,12 @@ public class AsyncSettings implements Settings {
             return self();
         }
 
+        /**
+         * Customize the export settings.
+         *
+         * @param export the customizer
+         * @return the builder
+         */
         public S export(Consumer<Export.ExportBuilder> export) {
             export.accept(this.export);
             return self();

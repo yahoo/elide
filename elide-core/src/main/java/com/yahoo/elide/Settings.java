@@ -10,12 +10,23 @@ package com.yahoo.elide;
  */
 public interface Settings {
 
+    /**
+     * Returns a builder with the current values.
+     *
+     * @return the builder to mutate
+     */
     public SettingsBuilder mutate();
 
     /**
      * Mutable builder for defining additional settings.
      */
     public interface SettingsBuilder {
+
+        /**
+         * Build the settings.
+         *
+         * @return the settings
+         */
         Settings build();
     }
 }

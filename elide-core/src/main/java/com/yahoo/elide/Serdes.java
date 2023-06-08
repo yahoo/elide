@@ -23,8 +23,8 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 
 /**
- * Contains serializers and deserializers.
- *
+ * Contains serializers and deserializers implemented using {@link Serde}.
+ * <p>
  * Use the static factory {@link #builder()} method to prepare an instance.
  *
  */
@@ -32,10 +32,28 @@ public class Serdes extends LinkedHashMap<Class, Serde> {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Returns a mutable {@link SerdesBuilder} for building {@link Serdes}.
+     *
+     * @return the builder
+     */
     public static SerdesBuilder builder() {
         return new SerdesBuilder();
     }
 
+    /**
+     * Returns a builder with the current values.
+     *
+     * @return the builder to mutate
+     */
+    public SerdesBuilder mutate() {
+        return builder().entries(
+                entries -> this.entrySet().stream().forEach(entry -> entries.put(entry.getKey(), entry.getValue())));
+    }
+
+    /**
+     * A mutable builder for building {@link Serdes}.
+     */
     public static class SerdesBuilder extends SerdesBuilderSupport<SerdesBuilder> {
         public Serdes build() {
             Serdes serdes = new Serdes();
@@ -49,7 +67,7 @@ public class Serdes extends LinkedHashMap<Class, Serde> {
         }
     }
 
-    public static abstract class SerdesBuilderSupport<S> {
+    public abstract static class SerdesBuilderSupport<S> {
         protected Map<Class<?>, Serde<?, ?>> entries = new LinkedHashMap<>();
 
         public abstract S self();
@@ -64,27 +82,32 @@ public class Serdes extends LinkedHashMap<Class, Serde> {
             return self();
         }
 
+        public S clear() {
+            this.entries.clear();
+            return self();
+        }
+
         public S withISO8601Dates(String dateFormat, TimeZone tz) {
-            entries.put(Date.class, new ISO8601DateSerde(dateFormat, tz));
-            entries.put(java.sql.Date.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Date.class));
-            entries.put(java.sql.Time.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Time.class));
-            entries.put(java.sql.Timestamp.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Timestamp.class));
+            this.entries.put(Date.class, new ISO8601DateSerde(dateFormat, tz));
+            this.entries.put(java.sql.Date.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Date.class));
+            this.entries.put(java.sql.Time.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Time.class));
+            this.entries.put(java.sql.Timestamp.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Timestamp.class));
             return self();
         }
 
         public S withEpochDates() {
-            entries.put(Date.class, new EpochToDateConverter<>(Date.class));
-            entries.put(java.sql.Date.class, new EpochToDateConverter<>(java.sql.Date.class));
-            entries.put(java.sql.Time.class, new EpochToDateConverter<>(java.sql.Time.class));
-            entries.put(java.sql.Timestamp.class, new EpochToDateConverter<>(java.sql.Timestamp.class));
+            this.entries.put(Date.class, new EpochToDateConverter<>(Date.class));
+            this.entries.put(java.sql.Date.class, new EpochToDateConverter<>(java.sql.Date.class));
+            this.entries.put(java.sql.Time.class, new EpochToDateConverter<>(java.sql.Time.class));
+            this.entries.put(java.sql.Timestamp.class, new EpochToDateConverter<>(java.sql.Timestamp.class));
             return self();
         }
 
         public S withDefaults() {
-            entries.put(Instant.class, new InstantSerde());
-            entries.put(OffsetDateTime.class, new OffsetDateTimeSerde());
-            entries.put(TimeZone.class, new TimeZoneSerde());
-            entries.put(URL.class, new URLSerde());
+            this.entries.put(Instant.class, new InstantSerde());
+            this.entries.put(OffsetDateTime.class, new OffsetDateTimeSerde());
+            this.entries.put(TimeZone.class, new TimeZoneSerde());
+            this.entries.put(URL.class, new URLSerde());
             return self();
         }
     }
