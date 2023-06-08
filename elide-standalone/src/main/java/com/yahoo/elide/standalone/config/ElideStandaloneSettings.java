@@ -174,23 +174,26 @@ public interface ElideStandaloneSettings {
 
     default ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary, DataStore dataStore,
             JsonApiMapper mapper) {
-        JsonApiSettingsBuilder jsonApiSettings = getJsonApiSettingsBuilder(dictionary, mapper);
-        GraphQLSettingsBuilder graphqlSettings = getGraphQLSettingsBuilder(dictionary);
-
         ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
                 .errorMapper(getErrorMapper())
                 .baseUrl(getBaseUrl())
                 .objectMapper(mapper.getObjectMapper())
-                .auditLogger(getAuditLogger())
-                .settings(jsonApiSettings)
-                .settings(graphqlSettings);
+                .auditLogger(getAuditLogger());
 
         if (verboseErrors()) {
             builder.verboseErrors(true);
         }
 
-        if (getAsyncProperties().enableExport()) {
+        if (enableJSONAPI()) {
+            builder.settings(getJsonApiSettingsBuilder(dictionary, mapper));
+        }
+
+        if (enableGraphQL()) {
+            builder.settings(getGraphQLSettingsBuilder(dictionary));
+        }
+
+        if (getAsyncProperties().enabled()) {
             builder.settings(getAsyncSettingsBuilder());
         }
 
@@ -206,10 +209,10 @@ public interface ElideStandaloneSettings {
      * the returned settings object is used over any additional Elide setting overrides.
      *
      * That is to say, if you intend to override this method, expect to fully configure the ElideSettings object to
-     * your needs.
+     * your needs. Alternatively override {@link #getElideSettingsBuilder}.
      *
      * @param dictionary EntityDictionary object.
-     * @param dataStore Dastore object
+     * @param dataStore DataStore object
      * @param mapper Object mapper
      * @return Configured ElideSettings object.
      */
