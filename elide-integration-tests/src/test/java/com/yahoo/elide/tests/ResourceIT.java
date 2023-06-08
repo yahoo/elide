@@ -49,6 +49,7 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -2567,9 +2568,11 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void elideSecurityEnabled() {
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build();
         Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore)
-                .entityDictionary(EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build())
+                .entityDictionary(entityDictionary)
                 .auditLogger(new TestAuditLogger())
+                .settings(JsonApiSettingsBuilder.withDefaults(entityDictionary))
                 .build());
 
         elide.doScans();

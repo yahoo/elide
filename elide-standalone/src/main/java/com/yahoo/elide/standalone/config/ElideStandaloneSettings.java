@@ -153,6 +153,13 @@ public interface ElideStandaloneSettings {
         return entitiesToExclude;
     }
 
+    /**
+     * Override this to customize the {@link JsonApiSettingsBuilder}.
+     *
+     * @param dictionary the dictionary
+     * @param mapper the mapper
+     * @return the JsonApiSettingsBuilder
+     */
     default JsonApiSettingsBuilder getJsonApiSettingsBuilder(EntityDictionary dictionary, JsonApiMapper mapper) {
         return JsonApiSettingsBuilder.withDefaults(dictionary)
                 .path(getJsonApiPathSpec().replace("/*", ""))
@@ -161,17 +168,50 @@ public interface ElideStandaloneSettings {
                 .jsonApiMapper(mapper);
     }
 
+    /**
+     * Override this to customize the {@link GraphQLSettingsBuilder}.
+     *
+     * @param dictionary the dictionary
+     * @return the GraphQLSettingsBuilder
+     */
     default GraphQLSettingsBuilder getGraphQLSettingsBuilder(EntityDictionary dictionary) {
         return GraphQLSettingsBuilder.withDefaults(dictionary)
                 .path(getGraphQLApiPathSpec().replace("/*", ""));
     }
 
+    /**
+     * Override this to customize the {@link AsyncSettingsBuilder}.
+     *
+     * @return the AsyncSettingsBuilder
+     */
     default AsyncSettingsBuilder getAsyncSettingsBuilder() {
         return AsyncSettings.builder().export(export -> export
                 .enabled(getAsyncProperties().enableExport())
                 .path(getAsyncProperties().getExportApiPathSpec().replace("/*", "")));
     }
 
+    /**
+     * Override this to customize the {@link ElideSettingsBuilder}.
+     * <p>
+     * The following example only customizes the {@link ElideSettingsBuilder#defaultMaxPageSize}.
+     *
+     * <pre>
+     * public ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary, DataStore dataStore,
+     *         JsonApiMapper mapper) {
+     *     return ElideStandaloneSettings.super.getElideSettingsBuilder(dictionary, dataStore, mapper)
+     *           .defaultMaxPageSize(1000);
+     * }
+     * </pre>
+     *
+     * @param dictionary the dictionary
+     * @param dataStore the data store
+     * @param mapper the mapper
+     * @return the ElideSettingsBuilder
+     *
+     * @see #getJsonApiSettingsBuilder(EntityDictionary, JsonApiMapper)
+     * @see #getGraphQLSettingsBuilder(EntityDictionary)
+     * @see #getAsyncSettingsBuilder()
+     */
     default ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary, DataStore dataStore,
             JsonApiMapper mapper) {
         ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
@@ -207,14 +247,18 @@ public interface ElideStandaloneSettings {
      * Elide settings to be used for bootstrapping the Elide service. By default, this method constructs an
      * ElideSettings object using the application overrides provided in this class. If this method is overridden,
      * the returned settings object is used over any additional Elide setting overrides.
-     *
+     * <p>
      * That is to say, if you intend to override this method, expect to fully configure the ElideSettings object to
-     * your needs. Alternatively override {@link #getElideSettingsBuilder}.
+     * your needs.
+     * <p>
+     * Alternatively override {@link #getElideSettingsBuilder} to only customize the settings you wish to change.
      *
      * @param dictionary EntityDictionary object.
      * @param dataStore DataStore object
      * @param mapper Object mapper
      * @return Configured ElideSettings object.
+     *
+     * @see #getElideSettingsBuilder(EntityDictionary, DataStore, JsonApiMapper)
      */
     default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, JsonApiMapper mapper) {
         ElideSettingsBuilder builder = getElideSettingsBuilder(dictionary, dataStore, mapper);

@@ -9,12 +9,15 @@ import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 
 import example.TestCheckMappings;
 import example.models.triggers.services.BillingService;
@@ -60,15 +63,19 @@ public class StandardTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                JsonApiSettingsBuilder jsonApiSettings = JsonApiSettingsBuilder.withDefaults(dictionary)
                         .joinFilterDialect(multipleFilterStrategy)
                         .subqueryFilterDialect(multipleFilterStrategy);
+
+                GraphQLSettingsBuilder graphqlSettings = GraphQLSettingsBuilder.withDefaults(dictionary);
+
+                AsyncSettingsBuilder asyncSettings = AsyncSettings.builder();
 
                 Elide elide = new Elide(ElideSettings.builder().dataStore(IntegrationTest.getDataStore())
                         .auditLogger(auditLogger)
                         .entityDictionary(dictionary)
                         .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
-                        .settings(jsonApiSettings)
+                        .settings(jsonApiSettings, graphqlSettings, asyncSettings)
                         .build());
 
                 elide.doScans();

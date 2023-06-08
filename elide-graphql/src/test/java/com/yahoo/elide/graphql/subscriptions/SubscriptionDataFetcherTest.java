@@ -27,12 +27,13 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;
@@ -93,12 +94,13 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 .type(ClassType.of(TopicType.class))
                 .build());
 
-        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().joinFilterDialect(filterDialect)
+        JsonApiSettingsBuilder jsonApiSettings = JsonApiSettingsBuilder.withDefaults(dictionary)
+                .joinFilterDialect(filterDialect)
                 .subqueryFilterDialect(filterDialect);
+        GraphQLSettingsBuilder graphqlSettings = GraphQLSettingsBuilder.withDefaults(dictionary);
 
-        settings = ElideSettings.builder().dataStore(dataStore)
-                .entityDictionary(dictionary)
-                .settings(jsonApiSettings)
+        settings = ElideSettings.builder().dataStore(dataStore).entityDictionary(dictionary)
+                .settings(jsonApiSettings, graphqlSettings)
                 .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
                 .build();
 

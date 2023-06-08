@@ -23,6 +23,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,9 +77,11 @@ public class DataStoreIT extends IntegrationTest {
         checks.put("filterCheck", Filtered.FilterCheck.class);
         checks.put("filterCheck3", Filtered.FilterCheck3.class);
 
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(checks).build();
         elide = new Elide(ElideSettings.builder().dataStore(dataStore)
                 .auditLogger(new TestAuditLogger())
-                .entityDictionary(EntityDictionary.builder().checks(checks).build())
+                .entityDictionary(entityDictionary)
+                .settings(JsonApiSettingsBuilder.withDefaults(entityDictionary))
                 .build());
 
         elide.doScans();

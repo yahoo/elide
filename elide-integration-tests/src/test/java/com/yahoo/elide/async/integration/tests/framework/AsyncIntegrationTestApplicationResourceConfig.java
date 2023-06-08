@@ -15,6 +15,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
@@ -38,8 +39,8 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.graphql.GraphQLSettings;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 
 import example.TestCheckMappings;
 import example.models.triggers.Invoice;
@@ -105,12 +106,12 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().joinFilterDialect(multipleFilterStrategy)
+                JsonApiSettingsBuilder jsonApiSettings = JsonApiSettingsBuilder.withDefaults(dictionary).joinFilterDialect(multipleFilterStrategy)
                         .subqueryFilterDialect(multipleFilterStrategy);
 
-                GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder().path("/graphQL");
+                GraphQLSettingsBuilder graphqlSettings = GraphQLSettingsBuilder.withDefaults(dictionary).path("/graphQL");
 
-                AsyncSettings.AsyncSettingsBuilder asyncSettings = AsyncSettings.builder().export(export -> export.path("/export"));
+                AsyncSettingsBuilder asyncSettings = AsyncSettings.builder().export(export -> export.enabled(true).path("/export"));
 
                 Elide elide = new Elide(ElideSettings.builder().dataStore(AsyncIT.getDataStore())
                         .auditLogger(LOGGER)

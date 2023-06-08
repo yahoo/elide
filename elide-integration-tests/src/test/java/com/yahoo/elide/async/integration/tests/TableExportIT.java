@@ -42,6 +42,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.test.graphql.EnumFieldSerializer;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -1145,6 +1146,7 @@ public class TableExportIT extends AsyncApiIT {
 
         Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore)
                         .entityDictionary(dictionary)
+                        .settings(JsonApiSettingsBuilder.withDefaults(dictionary))
                         .auditLogger(new TestAuditLogger()).build());
         JsonApi jsonApi = new JsonApi(elide);
         User ownerUser = new User(() -> "owner-user");

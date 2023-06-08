@@ -34,13 +34,14 @@ import com.yahoo.elide.graphql.ExecutionResultDeserializer;
 import com.yahoo.elide.graphql.ExecutionResultSerializer;
 import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
 import com.yahoo.elide.graphql.GraphQLErrorSerializer;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -107,13 +108,14 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         session = mock(Session.class);
         remote = mock(RemoteEndpoint.Async.class);
 
-        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+        JsonApiSettingsBuilder jsonApiSettings = JsonApiSettingsBuilder.withDefaults(dictionary)
                 .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build());
+        GraphQLSettingsBuilder graphqlSettings = GraphQLSettingsBuilder.withDefaults(dictionary);
 
         settings = ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
-                .settings(jsonApiSettings)
+                .settings(jsonApiSettings, graphqlSettings)
                 .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
                 .build();
 
