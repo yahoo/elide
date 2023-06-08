@@ -17,7 +17,6 @@ import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
-import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
@@ -31,9 +30,7 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.request.route.RouteResolver;
-import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -153,15 +150,15 @@ public class ElideResourceConfig extends ResourceConfig {
                 Elide elide,
                 EntityDictionary dictionary
         ) {
-            AsyncApiDao asyncApiDao = asyncProperties.getAsyncApiDao();
-            if (asyncApiDao == null) {
-                asyncApiDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
+            AsyncApiDao asyncAPIDao = asyncProperties.getApiDao();
+            if (asyncAPIDao == null) {
+                asyncAPIDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
             }
-            bind(asyncApiDao).to(AsyncApiDao.class);
+            bind(asyncAPIDao).to(AsyncApiDao.class);
 
             ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
             ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
-            AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncApiDao,
+            AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncAPIDao,
                     Optional.of(settings.getDataFetcherExceptionHandler()));
             bind(asyncExecutorService).to(AsyncExecutorService.class);
 
@@ -204,7 +201,7 @@ public class ElideResourceConfig extends ResourceConfig {
             if (asyncProperties.enableCleanup()) {
                 AsyncCleanerService.init(elide, asyncProperties.getQueryMaxRunTime(),
                         asyncProperties.getQueryRetentionDuration(),
-                        asyncProperties.getQueryCancellationCheckInterval(), asyncApiDao);
+                        asyncProperties.getQueryCancellationCheckInterval(), asyncAPIDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         }
@@ -315,26 +312,10 @@ public class ElideResourceConfig extends ResourceConfig {
         return healthCheckRegistry;
     }
 
-    // TODO Remove this method when ElideSettings has all the settings.
-    // Then the check can be done in TableExportHook.
-    // Trying to avoid adding too many individual properties to ElideSettings for now.
-    // https://github.com/yahoo/elide/issues/1803
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideStandaloneAsyncSettings asyncProperties, Map<ResultType, TableExportFormatter> supportedFormatters,
             ResultStorageEngine engine) {
-        TableExportHook tableExportHook = null;
-        if (asyncProperties.enableExport()) {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
+        return new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
                     supportedFormatters, engine);
-        } else {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
-                    supportedFormatters, engine) {
-                @Override
-                public void validateOptions(AsyncApi export, RequestScope requestScope) {
-                    throw new InvalidOperationException("TableExport is not supported.");
-                }
-            };
-        }
-        return tableExportHook;
     }
 }

@@ -11,24 +11,21 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.RefreshableElide;
-import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
-import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
+import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
+import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
-import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.core.security.RequestScope;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -70,7 +67,7 @@ public class ElideAsyncConfiguration {
     public AsyncExecutorService asyncExecutorService(
             RefreshableElide elide,
             ElideConfigProperties settings,
-            AsyncAPIDAO asyncQueryDao,
+            AsyncApiDao asyncQueryDao,
             Optional<ResultStorageEngine> optionalResultStorageEngine,
             Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler
     ) {
@@ -98,8 +95,8 @@ public class ElideAsyncConfiguration {
             boolean writeCSVHeader = asyncProperties.getExport() != null
                     && asyncProperties.getExport().getFormat().getCsv().isWriteHeader();
             Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-            supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide.getElide(), writeCSVHeader));
-            supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide.getElide()));
+            supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide.getElide(), writeCSVHeader));
+            supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide.getElide()));
 
             // Binding TableExport LifeCycleHook
             TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings, supportedFormatters,
@@ -112,29 +109,11 @@ public class ElideAsyncConfiguration {
         return asyncExecutorService;
     }
 
-    // TODO Remove this method when ElideSettings has all the settings.
-    // Then the check can be done in TableExportHook.
-    // Trying to avoid adding too many individual properties to ElideSettings for now.
-    // https://github.com/yahoo/elide/issues/1803
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideConfigProperties settings, Map<ResultType, TableExportFormatter> supportedFormatters,
             ResultStorageEngine resultStorageEngine) {
-        boolean exportEnabled = ElideAutoConfiguration.isExportEnabled(settings.getAsync());
-
-        TableExportHook tableExportHook = null;
-        if (exportEnabled) {
-            tableExportHook = new TableExportHook(asyncExecutorService,
-                    settings.getAsync().getMaxAsyncAfter(), supportedFormatters, resultStorageEngine);
-        } else {
-            tableExportHook = new TableExportHook(asyncExecutorService,
-                    settings.getAsync().getMaxAsyncAfter(), supportedFormatters, resultStorageEngine) {
-                @Override
-                public void validateOptions(AsyncAPI export, RequestScope requestScope) {
-                    throw new InvalidOperationException("TableExport is not supported.");
-                }
-            };
-        }
-        return tableExportHook;
+        return new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfter(), supportedFormatters,
+                resultStorageEngine);
     }
 
     /**
@@ -149,7 +128,7 @@ public class ElideAsyncConfiguration {
     @ConditionalOnProperty(prefix = "elide.async.cleanup", name = "enabled", matchIfMissing = false)
     public AsyncCleanerService asyncCleanerService(RefreshableElide elide,
                                                         ElideConfigProperties settings,
-                                                        AsyncAPIDAO asyncQueryDao) {
+                                                        AsyncApiDao asyncQueryDao) {
         AsyncCleanerService.init(elide.getElide(), settings.getAsync().getCleanup().getQueryMaxRunTime(),
                 settings.getAsync().getCleanup().getQueryRetentionDuration(),
                 settings.getAsync().getCleanup().getQueryCancellationCheckInterval(), asyncQueryDao);
@@ -163,8 +142,8 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public AsyncAPIDAO asyncAPIDAO(RefreshableElide elide) {
-        return new DefaultAsyncAPIDAO(elide.getElide().getElideSettings(), elide.getElide().getDataStore());
+    public AsyncApiDao asyncApiDao(RefreshableElide elide) {
+        return new DefaultAsyncApiDao(elide.getElide().getElideSettings(), elide.getElide().getDataStore());
     }
 
     /**

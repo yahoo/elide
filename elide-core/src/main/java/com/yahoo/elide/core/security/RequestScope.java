@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.security;
 
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
@@ -34,4 +35,11 @@ public interface RequestScope extends WithMetadata {
      * @return the transaction of the request
      */
     DataStoreTransaction getTransaction();
+
+    /**
+     * Returns the {@link ElideSettings}.
+     *
+     * @return the settings
+     */
+    ElideSettings getElideSettings();
 }
