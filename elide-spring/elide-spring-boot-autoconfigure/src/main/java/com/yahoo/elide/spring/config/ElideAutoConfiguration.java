@@ -350,52 +350,6 @@ public class ElideAutoConfiguration {
     }
 
     /**
-     * Creates the entity dictionary for Elide which contains static metadata about Elide models.
-     * Override to load check classes or life cycle hooks.
-     * @param injector Injector to inject Elide models.
-     * @param optionalDynamicConfig An instance of DynamicConfiguration.
-     * @param settings Elide configuration settings.
-     * @param entitiesToExclude set of Entities to exclude from binding.
-     * @return a newly configured EntityDictionary.
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    @Scope(SCOPE_PROTOTYPE)
-    public EntityDictionary entityDictionary(Injector injector,
-                                            ClassScanner scanner,
-                                            Optional<DynamicConfiguration> optionalDynamicConfig,
-                                            ElideConfigProperties settings,
-                                            @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude) {
-
-        Map<String, Class<? extends Check>> checks = new HashMap<>();
-
-        if (settings.getAggregationStore().getDynamicConfig().getConfigApi().isEnabled()) {
-            checks.put(ConfigChecks.CAN_CREATE_CONFIG, ConfigChecks.CanNotCreate.class);
-            checks.put(ConfigChecks.CAN_READ_CONFIG, ConfigChecks.CanNotRead.class);
-            checks.put(ConfigChecks.CAN_DELETE_CONFIG, ConfigChecks.CanNotDelete.class);
-            checks.put(ConfigChecks.CAN_UPDATE_CONFIG, ConfigChecks.CanNotUpdate.class);
-        }
-
-        EntityDictionary dictionary = new EntityDictionary(
-                checks, //Checks
-                new HashMap<>(), //Role Checks
-                injector,
-                CoerceUtil::lookup, //Serde Lookup
-                entitiesToExclude,
-                scanner);
-
-        if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
-            optionalDynamicConfig.ifPresent(dynamicConfig ->
-                dynamicConfig.getRoles().forEach(role ->
-                    dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
-                )
-            );
-        }
-
-        return dictionary;
-    }
-
-    /**
      * Create a QueryEngine instance for aggregation data store to use.
      * @param defaultDataSource DataSource for JPA.
      * @param optionalDynamicConfig An instance of DynamicConfiguration.
@@ -751,6 +705,26 @@ public class ElideAutoConfiguration {
     @Order(Ordered.LOWEST_PRECEDENCE - 1)
     public static class RefreshableConfiguration {
         /**
+         * Creates the entity dictionary for Elide which contains static metadata about Elide models.
+         * Override to load check classes or life cycle hooks.
+         * @param injector Injector to inject Elide models.
+         * @param optionalDynamicConfig An instance of DynamicConfiguration.
+         * @param settings Elide configuration settings.
+         * @param entitiesToExclude set of Entities to exclude from binding.
+         * @return a newly configured EntityDictionary.
+         */
+        @Bean
+        @RefreshScope
+        @ConditionalOnMissingBean
+        public EntityDictionary entityDictionary(Injector injector,
+                                                ClassScanner scanner,
+                                                Optional<DynamicConfiguration> optionalDynamicConfig,
+                                                ElideConfigProperties settings,
+                                                @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude) {
+            return buildEntityDictionary(injector, scanner, optionalDynamicConfig, settings, entitiesToExclude);
+        }
+
+        /**
          * Creates the Elide instance with standard settings.
          * @param elideSettingsBuilder the builder.
          * @param dictionary Stores the static metadata about Elide models.
@@ -849,6 +823,25 @@ public class ElideAutoConfiguration {
     @ConditionalOnProperty(name = "spring.cloud.refresh.enabled", havingValue = "false", matchIfMissing = true)
     @Order(Ordered.LOWEST_PRECEDENCE)
     public static class NonRefreshableConfiguration {
+        /**
+         * Creates the entity dictionary for Elide which contains static metadata about Elide models.
+         * Override to load check classes or life cycle hooks.
+         * @param injector Injector to inject Elide models.
+         * @param optionalDynamicConfig An instance of DynamicConfiguration.
+         * @param settings Elide configuration settings.
+         * @param entitiesToExclude set of Entities to exclude from binding.
+         * @return a newly configured EntityDictionary.
+         */
+        @Bean
+        @ConditionalOnMissingBean
+        public EntityDictionary entityDictionary(Injector injector,
+                                                ClassScanner scanner,
+                                                Optional<DynamicConfiguration> optionalDynamicConfig,
+                                                ElideConfigProperties settings,
+                                                @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude) {
+            return buildEntityDictionary(injector, scanner, optionalDynamicConfig, settings, entitiesToExclude);
+        }
+
         /**
          * Creates the Elide instance with standard settings.
          * @param elideSettingsBuilder the builder.
@@ -1094,6 +1087,32 @@ public class ElideAutoConfiguration {
                     settings.getApiDocs().getVersion().getValue(), apiVersion));
         });
         return new ApiDocsController.ApiDocsRegistrations(registrations);
+    }
+
+    public static EntityDictionary buildEntityDictionary(Injector injector, ClassScanner scanner,
+            Optional<DynamicConfiguration> optionalDynamicConfig, ElideConfigProperties settings,
+            Set<Type<?>> entitiesToExclude) {
+
+        Map<String, Class<? extends Check>> checks = new HashMap<>();
+
+        if (settings.getAggregationStore().getDynamicConfig().getConfigApi().isEnabled()) {
+            checks.put(ConfigChecks.CAN_CREATE_CONFIG, ConfigChecks.CanNotCreate.class);
+            checks.put(ConfigChecks.CAN_READ_CONFIG, ConfigChecks.CanNotRead.class);
+            checks.put(ConfigChecks.CAN_DELETE_CONFIG, ConfigChecks.CanNotDelete.class);
+            checks.put(ConfigChecks.CAN_UPDATE_CONFIG, ConfigChecks.CanNotUpdate.class);
+        }
+
+        EntityDictionary dictionary = new EntityDictionary(checks, // Checks
+                new HashMap<>(), // Role Checks
+                injector, CoerceUtil::lookup, // Serde Lookup
+                entitiesToExclude, scanner);
+
+        if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
+            optionalDynamicConfig.ifPresent(dynamicConfig -> dynamicConfig.getRoles()
+                    .forEach(role -> dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))));
+        }
+
+        return dictionary;
     }
 
     public static boolean isDynamicConfigEnabled(ElideConfigProperties settings) {
