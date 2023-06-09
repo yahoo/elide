@@ -53,13 +53,11 @@ public class LogMessageImplTest {
         child.setFriends(Sets.newHashSet(friend));
 
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        final RequestScope requestScope = new RequestScope(route, null,
-                new TestUser("aaron"),
-                UUID.randomUUID(),
-                ElideSettings.builder().dataStore(null)
-                        .auditLogger(new TestAuditLogger())
-                        .entityDictionary(dictionary)
-                        .build());
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null).auditLogger(new TestAuditLogger())
+                .entityDictionary(dictionary).build();
+
+        final RequestScope requestScope = RequestScope.builder().route(route).user(new TestUser("aaron"))
+                .requestId(UUID.randomUUID()).elideSettings(elideSettings).build();
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope.getUUIDFor(parent), requestScope);
         childRecord = new PersistentResource<>(child, parentRecord, "children", requestScope.getUUIDFor(child), requestScope);

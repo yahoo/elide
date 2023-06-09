@@ -29,33 +29,26 @@ public class TestRequestScope extends JsonApiRequestScope {
 
     private MultivaluedMap<String, String> queryParamOverrides = null;
 
-    public TestRequestScope(String baseURL,
-                            DataStoreTransaction transaction,
-                            User user,
-                            EntityDictionary dictionary) {
+    public TestRequestScope(String baseURL, DataStoreTransaction transaction, User user, EntityDictionary dictionary) {
         super(Route.builder().baseUrl(baseURL).apiVersion(NO_VERSION).build(), transaction, user, UUID.randomUUID(),
                 ElideSettings.builder().dataStore(null).entityDictionary(dictionary)
                         .settings(JsonApiSettings.builder().path("/json")
                                 .links(links -> links.enabled(true).jsonApiLinks(new DefaultJsonApiLinks())))
-                        .build(), new JsonApiDocument());
+                        .build(),
+                null, new JsonApiDocument());
     }
 
-    public TestRequestScope(DataStoreTransaction transaction,
-                        User user,
-                        EntityDictionary dictionary) {
-        super(Route.builder().apiVersion(NO_VERSION).build(), transaction, user, UUID.randomUUID(),
-                ElideSettings.builder().dataStore(null).entityDictionary(dictionary)
-                        .settings(JsonApiSettings.builder())
-                        .build(), new JsonApiDocument());
+    public TestRequestScope(DataStoreTransaction transaction, User user, EntityDictionary dictionary) {
+        super(Route.builder().apiVersion(NO_VERSION).build(), transaction, user, UUID.randomUUID(), ElideSettings
+                .builder().dataStore(null).entityDictionary(dictionary).settings(JsonApiSettings.builder()).build(),
+                null, new JsonApiDocument());
     }
 
-    public TestRequestScope(EntityDictionary dictionary,
-                            String path,
-                            MultivaluedMap<String, String> queryParams) {
+    public TestRequestScope(EntityDictionary dictionary, String path, MultivaluedMap<String, String> queryParams) {
         super(Route.builder().path(path).apiVersion(NO_VERSION).parameters(queryParams).build(), null, null,
                 UUID.randomUUID(), ElideSettings.builder().dataStore(null).entityDictionary(dictionary)
                         .settings(JsonApiSettings.builder()).build(),
-                new JsonApiDocument());
+                null, new JsonApiDocument());
     }
 
     public void setQueryParams(MultivaluedMap<String, String> queryParams) {

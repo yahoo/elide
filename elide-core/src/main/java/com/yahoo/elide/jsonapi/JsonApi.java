@@ -116,8 +116,9 @@ public class JsonApi {
         }
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestUuid, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            JsonApiRequestScope requestScope = new JsonApiRequestScope(route, tx, user, requestUuid, elideSettings,
-                    jsonApiDoc);
+            JsonApiRequestScope requestScope = JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx)
+                    .user(user).requestId(requestUuid).elideSettings(elideSettings).jsonApiDocument(jsonApiDoc)
+                    .build();
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getEntityDictionary(),
                     requestScope).parsePath(route.getPath()));
             BaseVisitor visitor = new GetVisitor(requestScope);
@@ -145,8 +146,9 @@ public class JsonApi {
 
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestUuid, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-            JsonApiRequestScope requestScope = new JsonApiRequestScope(route, tx, user, requestUuid, elideSettings,
-                    jsonApiDoc);
+            JsonApiRequestScope requestScope = JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx)
+                    .user(user).requestId(requestUuid).elideSettings(elideSettings).jsonApiDocument(jsonApiDoc)
+                    .build();
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getEntityDictionary(),
                     requestScope).parsePath(route.getPath()));
             BaseVisitor visitor = new PostVisitor(requestScope);
@@ -192,8 +194,9 @@ public class JsonApi {
         } else {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-                JsonApiRequestScope requestScope = new JsonApiRequestScope(route, tx, user, requestUuid, elideSettings,
-                        jsonApiDoc);
+                JsonApiRequestScope requestScope = JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx)
+                        .user(user).requestId(requestUuid).elideSettings(elideSettings).jsonApiDocument(jsonApiDoc)
+                        .build();
                 requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getEntityDictionary(),
                         requestScope).parsePath(route.getPath()));
                 BaseVisitor visitor = new PatchVisitor(requestScope);
@@ -225,8 +228,8 @@ public class JsonApi {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
-            JsonApiRequestScope requestScope = new JsonApiRequestScope(route, tx, user, requestUuid, elideSettings,
-                    jsonApiDoc);
+            JsonApiRequestScope requestScope = JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx)
+                    .user(user).requestId(requestUuid).elideSettings(elideSettings).jsonApiDocument(jsonApiDoc).build();
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getEntityDictionary(),
                     requestScope).parsePath(route.getPath()));
             BaseVisitor visitor = new DeleteVisitor(requestScope);

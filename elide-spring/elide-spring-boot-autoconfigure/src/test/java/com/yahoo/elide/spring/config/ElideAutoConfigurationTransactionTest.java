@@ -238,8 +238,8 @@ class ElideAutoConfigurationTransactionTest {
                     dataStore = refreshableElide.getElide().getDataStore();
 
                     Route route = Route.builder().apiVersion(NO_VERSION).build();
-                    RequestScope scope = new RequestScope(route, null, null,
-                            UUID.randomUUID(), refreshableElide.getElide().getElideSettings());
+                    RequestScope scope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                            .elideSettings(refreshableElide.getElide().getElideSettings()).build();
 
                     try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
                         ArtifactGroupV2 artifactGroupV2 = new ArtifactGroupV2();
@@ -297,8 +297,8 @@ class ElideAutoConfigurationTransactionTest {
                 .run(context -> {
                     RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
                     Route route = Route.builder().apiVersion(NO_VERSION).build();
-                    RequestScope scope = new RequestScope(route, null, null,
-                            UUID.randomUUID(), refreshableElide.getElide().getElideSettings());
+                    RequestScope scope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                            .elideSettings(refreshableElide.getElide().getElideSettings()).build();
                     EntityManagerFactory entityManagerFactoryV2 = context.getBean("entityManagerFactoryV2",
                             EntityManagerFactory.class);
                     EntityManagerFactory entityManagerFactoryV3 = context.getBean("entityManagerFactoryV3",
@@ -459,8 +459,8 @@ class ElideAutoConfigurationTransactionTest {
                     RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
                     dataStore = refreshableElide.getElide().getDataStore();
                     Route route = Route.builder().apiVersion(NO_VERSION).build();
-                    RequestScope scope = new RequestScope(route, null, null,
-                            UUID.randomUUID(), refreshableElide.getElide().getElideSettings());
+                    RequestScope scope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                            .elideSettings(refreshableElide.getElide().getElideSettings()).build();
 
                     try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
                         ArtifactGroupV2 artifactGroupV2 = new ArtifactGroupV2();
@@ -520,8 +520,8 @@ class ElideAutoConfigurationTransactionTest {
                 .run(context -> {
                     RefreshableElide refreshableElide = context.getBean(RefreshableElide.class);
                     Route route = Route.builder().apiVersion(NO_VERSION).build();
-                    RequestScope scope = new RequestScope(route, null, null,
-                            UUID.randomUUID(), refreshableElide.getElide().getElideSettings());
+                    RequestScope scope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                            .elideSettings(refreshableElide.getElide().getElideSettings()).build();
                     EntityManagerFactory entityManagerFactoryV2 = context.getBean("entityManagerFactoryV2",
                             EntityManagerFactory.class);
                     EntityManagerFactory entityManagerFactoryV3 = context.getBean("entityManagerFactoryV3",

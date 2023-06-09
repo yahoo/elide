@@ -40,6 +40,7 @@ public class JsonApiJsonPatchRequestScope extends JsonApiRequestScope {
                 user,
                 requestId,
                 elideSettings,
+                null,
                 null
         );
     }

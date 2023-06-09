@@ -353,10 +353,16 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         InMemoryDataStore inMemoryDataStore = new InMemoryDataStore(dataStore);
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
 
-        GraphQLProjectionInfo projectionInfo =
-                new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION).make(request);
+        GraphQLProjectionInfo projectionInfo = new SubscriptionEntityProjectionMaker(settings, new HashMap<>(),
+                NO_VERSION).make(request);
         Route route = Route.builder().baseUrl(baseUrl).apiVersion(NO_VERSION).build();
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(route, tx, null, settings, projectionInfo, UUID.randomUUID());
+        GraphQLRequestScope requestScope = GraphQLRequestScope.builder()
+                .route(route)
+                .dataStoreTransaction(tx)
+                .requestId(UUID.randomUUID())
+                .elideSettings(settings)
+                .projectionInfo(projectionInfo)
+                .build();
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(request)

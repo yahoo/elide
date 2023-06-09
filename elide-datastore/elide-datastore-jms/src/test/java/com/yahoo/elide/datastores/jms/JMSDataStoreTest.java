@@ -106,14 +106,9 @@ public class JMSDataStoreTest {
         try (DataStoreTransaction tx = store.beginReadTransaction()) {
 
             Route route = Route.builder().baseUrl("/json").path("/").apiVersion(NO_VERSION).build();
-            RequestScope scope = new RequestScope(
-                    route,
-                    tx,
-                    null,
-                    UUID.randomUUID(),
-                    ElideSettings.builder().dataStore(store)
-                            .entityDictionary(dictionary)
-                            .build());
+            ElideSettings elideSettings = ElideSettings.builder().dataStore(store).entityDictionary(dictionary).build();
+            RequestScope scope = RequestScope.builder().route(route).dataStoreTransaction(tx)
+                    .requestId(UUID.randomUUID()).elideSettings(elideSettings).build();
 
             Iterable<Book> books = tx.loadObjects(
                     EntityProjection.builder()

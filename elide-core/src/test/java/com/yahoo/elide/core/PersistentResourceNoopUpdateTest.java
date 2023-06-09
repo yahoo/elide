@@ -32,8 +32,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
     private final User goodUser;
     PersistentResourceNoopUpdateTest() {
         goodUser = new TestUser("1");
-        goodUserScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(),
-                mock(DataStoreTransaction.class), goodUser, UUID.randomUUID(), elideSettings);
+        goodUserScope = RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                .dataStoreTransaction(mock(DataStoreTransaction.class)).user(goodUser).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
         initDictionary();
         reset(goodUserScope.getTransaction());
     }
@@ -46,8 +47,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), tx, goodUser,
-                UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                .dataStoreTransaction(tx).user(goodUser).requestId(UUID.randomUUID()).elideSettings(elideSettings)
+                .build();
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, "1", goodScope);
 
@@ -66,8 +68,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), tx, goodUser,
-                UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                .dataStoreTransaction(tx).user(goodUser).requestId(UUID.randomUUID()).elideSettings(elideSettings)
+                .build();
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, "1", goodScope);
         funResource.addRelation("relation3", childResource);
@@ -85,8 +88,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), tx, goodUser,
-                UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                .dataStoreTransaction(tx).user(goodUser).requestId(UUID.randomUUID()).elideSettings(elideSettings)
+                .build();
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, goodScope);
         //We do not want the update to one method to be called when we add the existing entity to the relation
@@ -101,8 +105,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), tx, goodUser,
-                UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                .dataStoreTransaction(tx).user(goodUser).requestId(UUID.randomUUID()).elideSettings(elideSettings)
+                .build();
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, goodScope);
         funResource.addRelation("relation1", childResource);

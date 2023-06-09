@@ -127,7 +127,8 @@ public class PermissionExpressionBuilderTest {
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope requestScope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
         return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 }

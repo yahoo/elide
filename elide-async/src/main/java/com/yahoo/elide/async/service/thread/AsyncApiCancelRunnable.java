@@ -104,20 +104,18 @@ public class AsyncApiCancelRunnable implements Runnable {
             .collect(Collectors.toSet());
 
             //Cancel Transactions
-            queryUUIDsToCancel.stream()
-               .forEach((uuid) -> {
-                   DataStoreTransaction runningTransaction = transactionRegistry.getRunningTransaction(uuid);
-                   if (runningTransaction != null) {
-                       JsonApiDocument jsonApiDoc = new JsonApiDocument();
-                       MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-                            Route route = Route.builder().path("query").apiVersion(NO_VERSION).parameters(queryParams)
-                                    .build();
-                            RequestScope scope = new JsonApiRequestScope(route,
-                               runningTransaction, null,
-                               uuid, elide.getElideSettings(), jsonApiDoc);
-                       runningTransaction.cancel(scope);
-                   }
-               });
+            queryUUIDsToCancel.stream().forEach(uuid -> {
+                DataStoreTransaction runningTransaction = transactionRegistry.getRunningTransaction(uuid);
+                if (runningTransaction != null) {
+                    JsonApiDocument jsonApiDoc = new JsonApiDocument();
+                    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+                    Route route = Route.builder().path("query").apiVersion(NO_VERSION).parameters(queryParams).build();
+                    RequestScope scope = JsonApiRequestScope.builder().route(route)
+                            .dataStoreTransaction(runningTransaction).requestId(uuid)
+                            .elideSettings(elide.getElideSettings()).jsonApiDocument(jsonApiDoc).build();
+                    runningTransaction.cancel(scope);
+                }
+            });
 
             //Change queryStatus for cancelled queries
             if (!queryIDsToCancel.isEmpty()) {

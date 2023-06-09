@@ -160,17 +160,20 @@ public class RequestHandler implements Closeable {
                                 subscribeRequest.getPayload().getVariables(),
                                 connectionInfo.getApiVersion()).make(subscribeRequest.getPayload().getQuery());
 
-        Route route = Route.builder().baseUrl(connectionInfo.getBaseUrl()).apiVersion(connectionInfo.getApiVersion())
+        Route route = Route.builder()
+                .baseUrl(connectionInfo.getBaseUrl())
+                .apiVersion(connectionInfo.getApiVersion())
                 .parameters(connectionInfo.getParameters())
                 .build();
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(
-                route,
-                transaction,
-                connectionInfo.getUser(),
-                settings,
-                projectionInfo,
-                requestID
-                );
+
+        GraphQLRequestScope requestScope = GraphQLRequestScope.builder()
+                .route(route)
+                .dataStoreTransaction(transaction)
+                .user(connectionInfo.getUser())
+                .requestId(requestID)
+                .elideSettings(settings)
+                .projectionInfo(projectionInfo)
+                .build();
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(subscribeRequest.getPayload().getQuery())

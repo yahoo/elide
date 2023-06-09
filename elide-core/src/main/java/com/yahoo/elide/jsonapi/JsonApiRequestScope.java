@@ -16,6 +16,7 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
@@ -52,9 +54,10 @@ public class JsonApiRequestScope extends RequestScope {
                         User user,
                         UUID requestId,
                         ElideSettings elideSettings,
+                        Function<RequestScope, EntityProjection> entityProjection,
                         JsonApiDocument jsonApiDocument
                         ) {
-        super(route, transaction, user, requestId, elideSettings);
+        super(route, transaction, user, requestId, elideSettings, entityProjection);
         this.jsonApiDocument = jsonApiDocument;
 
         JsonApiSettings jsonApiSettings = elideSettings.getSettings(JsonApiSettings.class);
@@ -153,5 +156,69 @@ public class JsonApiRequestScope extends RequestScope {
                 .filter(entry -> entry.getKey().startsWith("filter"))
                 .forEach(entry -> returnMap.put(entry.getKey(), entry.getValue()));
         return returnMap;
+    }
+
+    /**
+     * Returns a mutable {@link JsonApiRequestScopeBuilder} for building {@link JsonApiRequestScope}.
+     *
+     * @return the builder
+     */
+    public static JsonApiRequestScopeBuilder builder() {
+        return new JsonApiRequestScopeBuilder();
+    }
+
+    /**
+     * A mutable builder for building {@link JsonApiRequestScope}.
+     */
+    public static class JsonApiRequestScopeBuilder extends RequestScopeBuilder {
+        protected JsonApiDocument jsonApiDocument;
+
+        public JsonApiRequestScopeBuilder jsonApiDocument(JsonApiDocument jsonApiDocument) {
+            this.jsonApiDocument = jsonApiDocument;
+            return this;
+        }
+
+        @Override
+        public JsonApiRequestScope build() {
+            applyDefaults();
+            return new JsonApiRequestScope(this.route, this.dataStoreTransaction, this.user, this.requestId,
+                    this.elideSettings, this.entityProjection, this.jsonApiDocument);
+        }
+
+        @Override
+        public JsonApiRequestScopeBuilder route(Route route) {
+            super.route(route);
+            return this;
+        }
+
+        @Override
+        public JsonApiRequestScopeBuilder dataStoreTransaction(DataStoreTransaction transaction) {
+            super.dataStoreTransaction(transaction);
+            return this;
+        }
+
+        @Override
+        public JsonApiRequestScopeBuilder user(User user) {
+            super.user(user);
+            return this;
+        }
+
+        @Override
+        public JsonApiRequestScopeBuilder requestId(UUID requestId) {
+            super.requestId(requestId);
+            return this;
+        }
+
+        @Override
+        public JsonApiRequestScopeBuilder elideSettings(ElideSettings elideSettings) {
+            super.elideSettings(elideSettings);
+            return this;
+        }
+
+        @Override
+        public JsonApiRequestScopeBuilder entityProjection(Function<RequestScope, EntityProjection> entityProjection) {
+            super.entityProjection(entityProjection);
+            return this;
+        }
     }
 }

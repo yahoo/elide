@@ -514,7 +514,8 @@ public class PermissionExecutorTest {
         EntityDictionary dictionary = EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build();
         dictionary.bindEntity(cls);
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(), getElideSettings(dictionary));
+        RequestScope requestScope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(getElideSettings(dictionary)).build();
         PersistentResource resource = new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
         if (markNew) {
             requestScope.getNewPersistentResources().add(resource);
