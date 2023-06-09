@@ -97,7 +97,7 @@ public class JsonApiEndpoint {
         Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        if ("operations".equals(route.getPath())) {
+        if ("/operations".equals(route.getPath()) || "operations".equals(route.getPath())) {
             // Atomic Operations
             return build(jsonApi.operations(route, jsonapiDocument, user, UUID.randomUUID()));
         }

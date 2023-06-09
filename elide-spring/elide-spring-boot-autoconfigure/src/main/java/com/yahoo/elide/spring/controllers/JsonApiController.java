@@ -102,7 +102,7 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                if ("/operations".equals(route.getPath())) {
+                if ("/operations".equals(route.getPath()) || "operations".equals(route.getPath())) {
                     // Atomic Operations
                     ElideResponse response = jsonApi.operations(route, body, user, UUID.randomUUID());
                     return ResponseEntity.status(response.getResponseCode())
