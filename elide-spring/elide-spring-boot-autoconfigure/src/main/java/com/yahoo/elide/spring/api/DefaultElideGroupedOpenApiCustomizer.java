@@ -50,11 +50,11 @@ public class DefaultElideGroupedOpenApiCustomizer implements ElideGroupedOpenApi
             JsonApiSettings jsonApiSettings = this.elide.getElide().getElideSettings()
                     .getSettings(JsonApiSettings.class);
             String path = jsonApiSettings.getPath();
-            if (!path.endsWith("/")) {
-                path = path + "/";
-            }
             if (this.settings.getApiVersioningStrategy().getPath().isEnabled()) {
                 if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                    if (!path.endsWith("/")) {
+                        path = path + "/";
+                    }
                     path = path + this.settings.getApiVersioningStrategy().getPath().getVersionPrefix() + apiVersion;
                 }
             } else if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
