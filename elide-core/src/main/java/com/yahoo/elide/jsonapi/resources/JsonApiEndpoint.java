@@ -15,7 +15,7 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
-import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.HeaderProcessor;
 import com.yahoo.elide.utils.ResourceUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,7 +51,7 @@ import java.util.UUID;
 public class JsonApiEndpoint {
     protected final Elide elide;
     protected final JsonApi jsonApi;
-    protected final HeaderUtils.HeaderProcessor headerProcessor;
+    protected final HeaderProcessor headerProcessor;
     protected final RouteResolver routeResolver;
 
     @Inject

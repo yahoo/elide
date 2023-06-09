@@ -1190,4 +1190,48 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("A book publisher", EntityDictionary.getEntityDescription(ClassType.of(Publisher.class)));
         assertNull(EntityDictionary.getEntityDescription(ClassType.of(Book.class)));
     }
+
+    @Test
+    void builderRoleChecksCustomizer() {
+        UserCheck userCheck = mock(UserCheck.class);
+        EntityDictionary entityDictionary = EntityDictionary.builder()
+                .roleChecks(roleChecks -> roleChecks.put("test", userCheck)).build();
+        assertNotNull(entityDictionary.getRoleChecks().get("test"));
+    }
+
+    @Test
+    void builderRoleChecks() {
+        UserCheck userCheck = mock(UserCheck.class);
+        EntityDictionary entityDictionary = EntityDictionary.builder()
+                .roleChecks(Map.of("test", userCheck)).build();
+        assertNotNull(entityDictionary.getRoleChecks().get("test"));
+    }
+
+    @Test
+    void builderChecksCustomizer() {
+        EntityDictionary entityDictionary = EntityDictionary.builder()
+                .checks(checks -> checks.put("test", TestCheck.class)).build();
+        assertNotNull(entityDictionary.getCheck("test"));
+    }
+
+    @Test
+    void builderChecks() {
+        EntityDictionary entityDictionary = EntityDictionary.builder()
+                .checks(Map.of("test", TestCheck.class)).build();
+        assertNotNull(entityDictionary.getCheck("test"));
+    }
+
+    @Test
+    void builderEntitiesToExcludeCustomizer() {
+        EntityDictionary entityDictionary = EntityDictionary.builder()
+                .entitiesToExclude(entitiesToExclude -> entitiesToExclude.add(ClassType.of(TestCheck.class))).build();
+        assertEquals(1, entityDictionary.getEntitiesToExclude().size());
+    }
+
+    @Test
+    void builderEntitiesToExclude() {
+        EntityDictionary entityDictionary = EntityDictionary.builder()
+                .entitiesToExclude(Set.of(ClassType.of(TestCheck.class))).build();
+        assertEquals(1, entityDictionary.getEntitiesToExclude().size());
+    }
 }
