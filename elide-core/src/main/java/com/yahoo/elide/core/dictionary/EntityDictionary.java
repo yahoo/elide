@@ -95,6 +95,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -2236,6 +2237,45 @@ public class EntityDictionary {
     }
 
     public static class EntityDictionaryBuilder {
+        public EntityDictionaryBuilder checks(Map<String, Class<? extends Check>> checks) {
+            this.checks = checks;
+            return this;
+        }
+
+        public EntityDictionaryBuilder checks(Consumer<Map<String, Class<? extends Check>>> checks) {
+            if (this.checks == null) {
+                this.checks = new LinkedHashMap<>();
+            }
+            checks.accept(this.checks);
+            return this;
+        }
+
+        public EntityDictionaryBuilder roleChecks(Map<String, UserCheck> roleChecks) {
+            this.roleChecks = roleChecks;
+            return this;
+        }
+
+        public EntityDictionaryBuilder roleChecks(Consumer<Map<String, UserCheck>> roleChecks) {
+            if (this.roleChecks == null) {
+                this.roleChecks = new LinkedHashMap<>();
+            }
+            roleChecks.accept(this.roleChecks);
+            return this;
+        }
+
+        public EntityDictionaryBuilder entitiesToExclude(Set<Type<?>> entitiesToExclude) {
+            this.entitiesToExclude = entitiesToExclude;
+            return this;
+        }
+
+        public EntityDictionaryBuilder entitiesToExclude(Consumer<Set<Type<?>>> entitiesToExclude) {
+            if (this.entitiesToExclude == null) {
+                this.entitiesToExclude = new LinkedHashSet<>();
+            }
+            entitiesToExclude.accept(this.entitiesToExclude);
+            return this;
+        }
+
         public EntityDictionary build() {
 
             if (scanner == null) {

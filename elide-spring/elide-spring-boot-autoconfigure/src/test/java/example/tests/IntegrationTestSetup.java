@@ -22,7 +22,7 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
-import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.HeaderProcessor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +38,7 @@ public class IntegrationTestSetup {
     public RefreshableElide initializeElide(EntityDictionary dictionary,
                                             DataStore dataStore,
                                             ElideConfigProperties settings,
-                                            HeaderUtils.HeaderProcessor headerProcessor,
+                                            HeaderProcessor headerProcessor,
                                             JsonApiMapper mapper,
                                             ErrorMapper errorMapper) {
 

@@ -13,7 +13,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
-import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.HeaderProcessor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -51,7 +51,7 @@ public class JsonApiController {
     private final JsonApi jsonApi;
     private final Elide elide;
     private final ElideConfigProperties settings;
-    private final HeaderUtils.HeaderProcessor headerProcessor;
+    private final HeaderProcessor headerProcessor;
     private final RouteResolver routeResolver;
 
     public JsonApiController(JsonApi jsonApi, ElideConfigProperties settings,

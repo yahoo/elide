@@ -18,7 +18,7 @@ import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
-import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.HeaderProcessor;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -29,7 +29,7 @@ public class Update200StatusTestSetup {
     @Bean
     public RefreshableElide getRefreshableElide(EntityDictionary dictionary,
                                                 DataStore dataStore,
-                                                HeaderUtils.HeaderProcessor headerProcessor,
+                                                HeaderProcessor headerProcessor,
                                                 TransactionRegistry transactionRegistry,
                                                 ElideConfigProperties settings,
                                                 JsonApiMapper mapper,

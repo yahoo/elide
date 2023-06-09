@@ -19,7 +19,7 @@ import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
-import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.HeaderProcessor;
 import com.yahoo.elide.utils.ResourceUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,7 +58,7 @@ import java.util.UUID;
 public class GraphQLEndpoint {
     private final Map<String, QueryRunner> runners;
     private final Elide elide;
-    private final HeaderUtils.HeaderProcessor headerProcessor;
+    private final HeaderProcessor headerProcessor;
     protected final RouteResolver routeResolver;
 
     @Inject

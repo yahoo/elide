@@ -99,7 +99,8 @@ import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrations;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilder;
 import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilderCustomizer;
 import com.yahoo.elide.swagger.OpenApiBuilder;
-import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.HeaderProcessor;
+import com.yahoo.elide.utils.Headers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
@@ -182,7 +183,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
     public ElideSettingsBuilder elideSettingsBuilder(ElideConfigProperties settings, EntityDictionary entityDictionary,
-            ErrorMapper errorMapper, DataStore dataStore, HeaderUtils.HeaderProcessor headerProcessor,
+            ErrorMapper errorMapper, DataStore dataStore, HeaderProcessor headerProcessor,
             ElideMapper elideMapper, ObjectProvider<SettingsBuilder> settingsProvider,
             ObjectProvider<ElideSettingsBuilderCustomizer> customizerProvider) {
         return ElideSettingsBuilderCustomizers.buildElideSettingsBuilder(builder -> {
@@ -332,9 +333,9 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public HeaderUtils.HeaderProcessor headerProcessor(ElideConfigProperties settings) {
+    public HeaderProcessor headerProcessor(ElideConfigProperties settings) {
         if (settings.isStripAuthorizationHeaders()) {
-            return HeaderUtils::lowercaseAndRemoveAuthHeaders;
+            return Headers::removeAuthorizationHeaders;
         } else {
             //Identity Function
             return headers -> headers;
@@ -668,7 +669,7 @@ public class ElideAutoConfiguration {
             @RefreshScope
             @ConditionalOnMissingBean(name = "graphqlController")
             public GraphqlController graphqlController(QueryRunners runners, ElideMapper elideMapper,
-                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings,
+                    HeaderProcessor headerProcessor, ElideConfigProperties settings,
                     RouteResolver routeResolver) {
                 return new GraphqlController(runners, elideMapper.getObjectMapper(), headerProcessor, settings,
                         routeResolver);
@@ -771,7 +772,7 @@ public class ElideAutoConfiguration {
             @Bean
             @ConditionalOnMissingBean(name = "graphqlController")
             public GraphqlController graphqlController(QueryRunners runners, ElideMapper elideMapper,
-                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings,
+                    HeaderProcessor headerProcessor, ElideConfigProperties settings,
                     RouteResolver routeResolver) {
                 return new GraphqlController(runners, elideMapper.getObjectMapper(), headerProcessor, settings,
                         routeResolver);

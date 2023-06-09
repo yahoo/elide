@@ -17,8 +17,8 @@ import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
-import com.yahoo.elide.utils.HeaderUtils;
-import com.yahoo.elide.utils.HeaderUtils.HeaderProcessor;
+import com.yahoo.elide.utils.HeaderProcessor;
+import com.yahoo.elide.utils.Headers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Getter;
@@ -142,7 +142,7 @@ public class ElideSettings {
         protected Serdes.SerdesBuilder serdes = Serdes.builder();
         protected String baseUrl = "";
         protected AuditLogger auditLogger = new Slf4jLogger();
-        protected HeaderProcessor headerProcessor = HeaderUtils::lowercaseAndRemoveAuthHeaders;
+        protected HeaderProcessor headerProcessor = Headers::removeAuthorizationHeaders;
         protected ObjectMapper objectMapper = new ObjectMapper();
         protected int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
         protected int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
