@@ -40,6 +40,7 @@ public class JsonApiAtomicOperationsRequestScope extends JsonApiRequestScope {
                 user,
                 requestId,
                 elideSettings,
+                null,
                 null
         );
     }

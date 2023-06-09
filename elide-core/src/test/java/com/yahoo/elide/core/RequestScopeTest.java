@@ -8,12 +8,17 @@ package com.yahoo.elide.core;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.route.Route;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.Test;
 
@@ -71,14 +76,34 @@ class RequestScopeTest {
         dictionary.bindEntity(MyInheritedClass.class);
 
         Route route = Route.builder().path("/").apiVersion(NO_VERSION).build();
-        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(),
-                ElideSettings.builder().dataStore(null)
-                        .entityDictionary(dictionary)
-                        .build());
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null).entityDictionary(dictionary).build();
+        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(), elideSettings, null);
 
         String myId = "myId";
         // Test that a new inherited class is counted for base type
         requestScope.setUUIDForObject(ClassType.of(MyInheritedClass.class), myId, new MyInheritedClass());
         assertNotNull(requestScope.getObjectById(ClassType.of(MyBaseClass.class), myId));
+    }
+
+    @Test
+    void builder() {
+        DataStoreTransaction dataStoreTransaction = mock(DataStoreTransaction.class);
+        User user = mock(User.class);
+        EntityProjection entityProjection = mock(EntityProjection.class);
+
+        ElideSettings elideSettings = ElideSettings.builder().entityDictionary(EntityDictionary.builder().build()).build();
+        Route route = Route.builder().build();
+        UUID requestId = UUID.randomUUID();
+
+        RequestScope requestScope = RequestScope.builder().route(route).requestId(requestId)
+                .elideSettings(elideSettings)
+                .dataStoreTransaction(dataStoreTransaction).user(user)
+                .entityProjection(scope -> entityProjection)
+                .build();
+        assertSame(user, requestScope.getUser());
+        assertSame(elideSettings, requestScope.getElideSettings());
+        assertSame(route, requestScope.getRoute());
+        assertSame(requestId, requestScope.getRequestId());
+        assertSame(entityProjection, requestScope.getEntityProjection());
     }
 }

@@ -178,8 +178,8 @@ public class JsonApiTableExportOperationTest {
         TableExport temp = new TableExport();
         DataStoreTransaction tx = dataStore.beginTransaction();
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        RequestScope scope = new RequestScope(route, tx, user,
-                UUID.randomUUID(), elide.getElideSettings());
+        RequestScope scope = RequestScope.builder().route(route).dataStoreTransaction(tx).user(user)
+                .requestId(UUID.randomUUID()).elideSettings(elide.getElideSettings()).build();
         tx.save(temp, scope);
         tx.commit(scope);
         tx.close();

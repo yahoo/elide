@@ -906,12 +906,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         @SuppressWarnings("resource")
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(
-                Route.builder().apiVersion(NO_VERSION).build(),
-                tx,
-                goodUser,
-                UUID.randomUUID(),
-                elideSettings);
+        RequestScope goodScope = RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                .dataStoreTransaction(tx).user(goodUser).requestId(UUID.randomUUID()).elideSettings(elideSettings)
+                .build();
 
         // null resource in toMany relationship is not valid
         List<Resource> idList = new ArrayList<>();

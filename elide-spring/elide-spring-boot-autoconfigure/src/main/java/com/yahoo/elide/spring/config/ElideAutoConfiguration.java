@@ -165,7 +165,7 @@ import javax.sql.DataSource;
 public class ElideAutoConfiguration {
 
     /**
-     * Creates the {@link ElideSettingsBuilder} that creates the {@link ElideSettings}.
+     * Creates the {@link ElideSettingsBuilder}.
      * <p>
      * Defining a {@link ElideSettingsBuilderCustomizer} will allow customization of the default builder.
      *

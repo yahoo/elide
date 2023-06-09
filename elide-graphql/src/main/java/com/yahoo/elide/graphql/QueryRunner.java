@@ -64,7 +64,6 @@ public class QueryRunner {
     @Getter
     private final Elide elide;
     private GraphQL api;
-    private ObjectMapper mapper;
 
     @Getter
     private String apiVersion;
@@ -91,7 +90,6 @@ public class QueryRunner {
     public QueryRunner(Elide elide, String apiVersion, DataFetcherExceptionHandler exceptionHandler) {
         this.elide = elide;
         this.apiVersion = apiVersion;
-        this.mapper = elide.getObjectMapper();
 
         EntityDictionary dictionary = elide.getElideSettings().getEntityDictionary();
 
@@ -299,10 +297,19 @@ public class QueryRunner {
             //TODO - get API version.
             GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
                     apiVersion).make(queryText);
-            Route route = Route.builder().baseUrl(baseUrlEndPoint).apiVersion(apiVersion).headers(requestHeaders)
+            Route route = Route.builder()
+                    .baseUrl(baseUrlEndPoint)
+                    .apiVersion(apiVersion)
+                    .headers(requestHeaders)
                     .build();
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(route, tx, principal,
-                    elide.getElideSettings(), projectionInfo, requestId);
+            GraphQLRequestScope requestScope = GraphQLRequestScope.builder()
+                    .route(route)
+                    .dataStoreTransaction(tx)
+                    .user(principal)
+                    .requestId(requestId)
+                    .elideSettings(elide.getElideSettings())
+                    .projectionInfo(projectionInfo)
+                    .build();
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 

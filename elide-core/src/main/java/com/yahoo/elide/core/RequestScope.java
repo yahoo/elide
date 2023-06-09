@@ -58,6 +58,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final Map<String, Set<String>> sparseFields;
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
+    protected Function<RequestScope, EntityProjection> entityProjectionResolver;
     @Getter private final UUID requestId;
 
     protected Map<String, FilterExpression> expressionsByType;
@@ -76,12 +77,15 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param transaction   current transaction
      * @param user          request user
      * @param requestId     request ID
+     * @param entityProjection entity projection
      */
     public RequestScope(Route route,
                         DataStoreTransaction transaction,
                         User user,
                         UUID requestId,
-                        ElideSettings elideSettings) {
+                        ElideSettings elideSettings,
+                        Function<RequestScope, EntityProjection> entityProjection
+                        ) {
         this.route = route;
         this.eventQueue = new LinkedHashSet<>();
 
@@ -102,6 +106,11 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
 
         this.sparseFields = parseSparseFields(getRoute().getParameters());
 
+        this.entityProjectionResolver = entityProjection;
+        if (this.entityProjectionResolver != null) {
+            this.entityProjection = this.entityProjectionResolver.apply(this);
+        }
+
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = new MultiplexPermissionExecutor(
                 dictionary.buildPermissionExecutors(this),
@@ -118,19 +127,24 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.user = copy.user;
         this.dictionary = copy.dictionary;
         this.auditLogger = copy.auditLogger;
-        this.permissionExecutor = copy.permissionExecutor;
         this.objectEntityCache = copy.objectEntityCache;
         this.newPersistentResources = copy.newPersistentResources;
         this.dirtyResources = copy.dirtyResources;
         this.deletedResources = copy.deletedResources;
         this.elideSettings = copy.elideSettings;
-        this.entityProjection = copy.entityProjection;
         this.sparseFields = copy.sparseFields;
         this.requestId = copy.requestId;
         this.expressionsByType = copy.expressionsByType;
         this.metadata = copy.metadata;
         this.eventQueue = copy.eventQueue;
         this.globalFilterExpression = copy.globalFilterExpression;
+
+        this.permissionExecutor = copy.permissionExecutor;
+
+        this.entityProjectionResolver = copy.entityProjectionResolver;
+        if (this.entityProjectionResolver != null) {
+            this.entityProjection = this.entityProjectionResolver.apply(this);
+        }
     }
 
     public Set<com.yahoo.elide.core.security.PersistentResource> getNewResources() {
@@ -397,5 +411,73 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Override
     public ElideSettings getElideSettings() {
         return this.elideSettings;
+    }
+
+    /**
+     * Returns a mutable {@link RequestScopeBuilder} for building {@link RequestScope}.
+     *
+     * @return the builder
+     */
+    public static RequestScopeBuilder builder() {
+        return new RequestScopeBuilder();
+    }
+
+    /**
+     * A mutable builder for building {@link RequestScope}.
+     */
+    public static class RequestScopeBuilder {
+        protected Route route;
+        protected DataStoreTransaction dataStoreTransaction;
+        protected User user;
+        protected UUID requestId;
+        protected ElideSettings elideSettings;
+        protected Function<RequestScope, EntityProjection> entityProjection;
+
+        protected void applyDefaults() {
+            if (this.requestId == null) {
+                this.requestId = UUID.randomUUID();
+            }
+        }
+
+        public RequestScope build() {
+            applyDefaults();
+            return new RequestScope(this.route, this.dataStoreTransaction, this.user, this.requestId,
+                    this.elideSettings, this.entityProjection);
+        }
+
+        public RequestScopeBuilder route(Route route) {
+            this.route = route;
+            return this;
+        }
+
+        public RequestScopeBuilder dataStoreTransaction(DataStoreTransaction transaction) {
+            this.dataStoreTransaction = transaction;
+            return this;
+        }
+
+        public RequestScopeBuilder user(User user) {
+            this.user = user;
+            return this;
+        }
+
+        public RequestScopeBuilder requestId(UUID requestId) {
+            this.requestId = requestId;
+            return this;
+        }
+
+        public RequestScopeBuilder elideSettings(ElideSettings elideSettings) {
+            this.elideSettings = elideSettings;
+            return this;
+        }
+
+        public RequestScopeBuilder entityProjection(Function<RequestScope, EntityProjection> entityProjection) {
+            this.entityProjection = entityProjection;
+            return this;
+        }
+
+        public RequestScopeBuilder entityProjection(EntityProjection entityProjection) {
+            this.entityProjection = requestScope -> entityProjection;
+            return this;
+        }
     }
 }

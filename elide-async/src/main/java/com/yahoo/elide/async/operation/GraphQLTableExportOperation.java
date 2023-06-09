@@ -52,8 +52,8 @@ public class GraphQLTableExportOperation extends TableExportOperation {
         User user = scope.getUser();
         String apiVersion = scope.getRoute().getApiVersion();
         Route route = Route.builder().baseUrl("").apiVersion(apiVersion).headers(additionalRequestHeaders).build();
-        return new GraphQLRequestScope(route, tx, user, getService().getElide().getElideSettings(),
-                null, requestId);
+        return GraphQLRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(requestId)
+                .elideSettings(getService().getElide().getElideSettings()).build();
     }
 
     @Override

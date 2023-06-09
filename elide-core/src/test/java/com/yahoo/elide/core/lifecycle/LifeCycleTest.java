@@ -1862,7 +1862,8 @@ public class LifeCycleTest {
     private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx) {
         User user = new TestUser("1");
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        return new JsonApiRequestScope(route, tx, user, UUID.randomUUID(),
-                getElideSettings(null, dict, MOCK_AUDIT_LOGGER), null);
+        ElideSettings elideSettings = getElideSettings(null, dict, MOCK_AUDIT_LOGGER);
+        return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user)
+                .requestId(UUID.randomUUID()).elideSettings(elideSettings).build();
     }
 }

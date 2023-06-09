@@ -240,7 +240,8 @@ public class PermissionToFilterExpressionVisitorTest {
     public RequestScope newRequestScope() {
         User john = new TestUser("John");
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        return requestScope = new RequestScope(route, null, john, UUID.randomUUID(), elideSettings);
+        return requestScope = RequestScope.builder().route(route).user(john).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

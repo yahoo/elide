@@ -140,9 +140,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         super(
                 new Child(),
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
-                new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), null, null, UUID.randomUUID(),
-                        initSettings())
-        );
+                RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                        .requestId(UUID.randomUUID()).elideSettings(initSettings()).build());
 
         elideSettings = initSettings();
     }
@@ -167,7 +166,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, Map<String, List<String>> queryParams) {
         Route route = Route.builder().path(path).apiVersion(NO_VERSION).parameters(queryParams).build();
-        return new JsonApiRequestScope(route, tx, user, UUID.randomUUID(), elideSettings, new JsonApiDocument());
+        return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(UUID.randomUUID())
+                .jsonApiDocument(new JsonApiDocument()).elideSettings(elideSettings).build();
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
@@ -177,18 +177,18 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         User goodUser = new TestUser("1");
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        RequestScope requestScope = new RequestScope(route, tx, goodUser, UUID.randomUUID(), elideSettings);
+        RequestScope requestScope = RequestScope.builder().route(route)
+                .dataStoreTransaction(tx).user(goodUser).requestId(UUID.randomUUID()).elideSettings(elideSettings)
+                .build();
         return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        return new JsonApiRequestScope(route, null, user, UUID.randomUUID(),
-                ElideSettings.builder().dataStore(null)
-                    .entityDictionary(dictionary)
-                    .auditLogger(auditLogger)
-                    .settings(JsonApiSettings.builder())
-                    .build(), new JsonApiDocument());
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null).entityDictionary(dictionary)
+                .auditLogger(auditLogger).settings(JsonApiSettings.builder()).build();
+        return JsonApiRequestScope.builder().route(route).user(user).requestId(UUID.randomUUID())
+                .jsonApiDocument(new JsonApiDocument()).elideSettings(elideSettings).build();
     }
 
     // Testing constructor, setId and non-null empty sets
