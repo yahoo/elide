@@ -36,6 +36,8 @@ import example.models.Author;
 import example.models.Book;
 import example.models.Product;
 import example.models.Publisher;
+import example.models.v2.BookV2;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -94,6 +96,39 @@ class OpenApiBuilderTest {
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
         openApi = builder.build().info(info);
+    }
+
+    @Test
+    void testApiVersion() {
+        String tag = "v2/book";
+        EntityDictionary dictionary = EntityDictionary.builder().build();
+        dictionary.bindEntity(BookV2.class);
+        OpenAPI openApi = new OpenApiBuilder(dictionary).apiVersion("2").build();
+        assertEquals(tag, openApi.getTags().get(0).getName());
+        Schema<?> schema = openApi.getComponents().getSchemas().get("v2_book");
+        assertNotNull(schema);
+        openApi.getPaths().forEach((path, pathItem) -> {
+          Operation get = pathItem.getGet();
+          if (get != null) {
+              get.getTags().contains(tag);
+          }
+          Operation post = pathItem.getPost();
+          if (post != null) {
+              post.getTags().contains(tag);
+          }
+          Operation patch = pathItem.getPatch();
+          if (patch != null) {
+              patch.getTags().contains(tag);
+          }
+          Operation delete = pathItem.getDelete();
+          if (delete != null) {
+              delete.getTags().contains(tag);
+          }
+          Operation put = pathItem.getPut();
+          if (put != null) {
+              put.getTags().contains(tag);
+          }
+        });
     }
 
     @Test

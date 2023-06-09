@@ -209,7 +209,7 @@ public class OpenApiBuilder {
          * @return the entity type name
          */
         private String getTag() {
-            return dictionary.getJsonAliasFor(type);
+            return tagNameOf(type);
         }
 
         private List<String> getTags() {
@@ -245,13 +245,13 @@ public class OpenApiBuilder {
             /* The path parameter apply for all operations */
             lineage.stream().forEach(item -> path.addParametersItem(item.getPathParameter()));
 
-            String typeName = dictionary.getJsonAliasFor(type);
+            String schemaName = getSchemaName(type);
 
             ApiResponse okSingularResponse = new ApiResponse().description("Successful response").content(new Content()
-                    .addMediaType(JSONAPI_CONTENT_TYPE, new MediaType().schema(new Datum(new Relationship(typeName)))));
+                    .addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Datum(new Relationship(schemaName)))));
 
             ApiResponse okPluralResponse = new ApiResponse().description("Successful response").content(new Content()
-                    .addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Data(new Relationship(typeName)))));
+                    .addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Data(new Relationship(schemaName)))));
 
             ApiResponse okEmptyResponse = new ApiResponse().description("Successful response");
 
@@ -268,18 +268,18 @@ public class OpenApiBuilder {
                 if (canUpdate(parentClass, name)) {
                     path.post(new Operation().tags(getTags()).description("Adds items to the relationship " + name)
                             .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
-                                    new MediaType().schema(new Data(new Relationship(typeName))))))
+                                    new MediaType().schema(new Data(new Relationship(schemaName))))))
                             .responses(new ApiResponses().addApiResponse("201", okPluralResponse)));
 
                     path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
                             .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
-                                    new MediaType().schema(new Data(new Relationship(typeName))))))
+                                    new MediaType().schema(new Data(new Relationship(schemaName))))))
                             .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
 
                     path.delete(new Operation().tags(getTags())
                             .description("Deletes items from the relationship " + name)
                             .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
-                                    new MediaType().schema(new Data(new Relationship(typeName))))))
+                                    new MediaType().schema(new Data(new Relationship(schemaName))))))
                             .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
                 }
             } else {
@@ -292,7 +292,7 @@ public class OpenApiBuilder {
                 if (canUpdate(parentClass, name)) {
                     path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
                             .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
-                                    new MediaType().schema(new Datum(new Relationship(typeName))))))
+                                    new MediaType().schema(new Datum(new Relationship(schemaName))))))
                             .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
                 }
             }
@@ -319,16 +319,17 @@ public class OpenApiBuilder {
          */
         public PathItem getCollectionPath() {
             String typeName = dictionary.getJsonAliasFor(type);
+            String schemaName = getSchemaName(type);
             PathItem path = new PathItem();
 
             /* The path parameter apply for all operations */
             lineage.stream().forEach(item -> path.addParametersItem(item.getPathParameter()));
 
             ApiResponse okSingularResponse = new ApiResponse().description("Successful response").content(
-                    new Content().addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Datum(typeName))));
+                    new Content().addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Datum(schemaName))));
 
             ApiResponse okPluralResponse = new ApiResponse().description("Successful response").content(
-                    new Content().addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Data(typeName))));
+                    new Content().addMediaType(JsonApi.MEDIA_TYPE, new MediaType().schema(new Data(schemaName))));
 
             String getDescription;
             String postDescription;
@@ -357,7 +358,7 @@ public class OpenApiBuilder {
             if (canPost) {
                 path.post(new Operation().tags(getTags()).description(postDescription)
                         .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
-                                new MediaType().schema(new Datum(typeName)))))
+                                new MediaType().schema(new Datum(schemaName)))))
                         .responses(new ApiResponses().addApiResponse("201", okSingularResponse)));
             }
 
@@ -386,6 +387,7 @@ public class OpenApiBuilder {
          */
         public PathItem getInstancePath() {
             String typeName = dictionary.getJsonAliasFor(type);
+            String schemaName = getSchemaName(type);
             PathItem path = new PathItem();
 
             /* The path parameter apply for all operations */
@@ -393,7 +395,7 @@ public class OpenApiBuilder {
 
             ApiResponse okSingularResponse = new ApiResponse().description("Successful response")
                     .content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
-                            new MediaType().schema(new com.yahoo.elide.swagger.models.media.Datum(typeName))));
+                            new MediaType().schema(new com.yahoo.elide.swagger.models.media.Datum(schemaName))));
 
             ApiResponse okEmptyResponse = new ApiResponse().description("Successful response");
 
@@ -426,8 +428,8 @@ public class OpenApiBuilder {
 
             if (canPatch) {
                 path.patch(new Operation().tags(getTags()).description("Modifies an instance of type " + typeName)
-                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                new MediaType().schema(new Datum(typeName)))))
+                        .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.MEDIA_TYPE,
+                                new MediaType().schema(new Datum(schemaName)))))
                         .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
             }
 
@@ -878,10 +880,18 @@ public class OpenApiBuilder {
 
         /* We create OpenAPI 'tags' for each entity so Swagger UI organizes the paths by entities */
         managedClasses.stream()
-                .map(type -> new Tag().name(dictionary.getJsonAliasFor(type))
+                .map(type -> new Tag().name(tagNameOf(type))
                         .description(EntityDictionary.getEntityDescription(type)))
                 .forEach(openApi::addTagsItem);
         return this;
+    }
+
+    protected String tagNameOf(Type<?> type) {
+        String tagName = dictionary.getJsonAliasFor(type);
+        if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+            tagName = "v" + apiVersion + "/" + tagName;
+        }
+        return tagName;
     }
 
     protected String pathOf(String url) {
@@ -950,6 +960,13 @@ public class OpenApiBuilder {
         return paths;
     }
 
+    protected String getSchemaName(Type<?> type) {
+        String schemaName = dictionary.getJsonAliasFor(type);
+        if (!EntityDictionary.NO_VERSION.equals(this.apiVersion)) {
+            schemaName = "v" + this.apiVersion + "_" + schemaName;
+        }
+        return schemaName;
+    }
     protected boolean isNone(String permission) {
         return "Prefab.Role.None".equalsIgnoreCase(permission) || Role.NONE_ROLE.equalsIgnoreCase(permission);
     }
