@@ -7,9 +7,17 @@ package com.yahoo.elide.spring.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
+import com.yahoo.elide.SerdesBuilderCustomizer;
+import com.yahoo.elide.core.request.route.NullRouteResolver;
+import com.yahoo.elide.core.request.route.Route;
+import com.yahoo.elide.core.request.route.RouteResolver;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -24,7 +32,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -160,5 +171,111 @@ class ElideAutoConfigurationTest {
                                 .endsWith(input.userConfiguration.getSimpleName());
                     }
                 });
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    public static class UserSerdesConfiguration {
+        @Bean
+        public SerdesBuilderCustomizer serdesBuilderCustomizer() {
+            return builder -> builder.clear();
+        }
+    }
+
+    @Test
+    void customizeSerdes() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false")
+        .withConfiguration(UserConfigurations.of(UserSerdesConfiguration.class)).run(context -> {
+            ElideSettingsBuilder builder = context.getBean(ElideSettingsBuilder.class);
+            ElideSettings elideSettings = builder.build();
+            assertThat(elideSettings.getSerdes()).isEmpty();
+        });
+    }
+
+    @Test
+    void defaultSerdesConfigured() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false").run(context -> {
+            ElideSettingsBuilder builder = context.getBean(ElideSettingsBuilder.class);
+            ElideSettings elideSettings = builder.build();
+            assertThat(elideSettings.getSerdes()).hasSize(8);
+        });
+    }
+
+    @Test
+    void defaultApiVersioningStrategyHeader() {
+        contextRunner
+                .withPropertyValues("spring.cloud.refresh.enabled=false",
+                        "elide.api-versioning-strategy.header.enabled=true")
+                .run(context -> {
+                    RouteResolver routeResolver = context.getBean(RouteResolver.class);
+                    Route route = routeResolver.resolve("", "", "", Map.of("accept-version", List.of("1")), Collections.emptyMap());
+                    assertThat(route.getApiVersion()).isEqualTo("1");
+                });
+    }
+
+    @Test
+    void configuredApiVersioningStrategyHeader() {
+        contextRunner
+                .withPropertyValues("spring.cloud.refresh.enabled=false",
+                        "elide.api-versioning-strategy.header.enabled=true",
+                        "elide.api-versioning-strategy.header.header-name=ApiVersion")
+                .run(context -> {
+                    RouteResolver routeResolver = context.getBean(RouteResolver.class);
+                    Route route = routeResolver.resolve("", "", "", Map.of("apiversion", List.of("1")), Collections.emptyMap());
+                    assertThat(route.getApiVersion()).isEqualTo("1");
+                });
+    }
+
+    @Test
+    void defaultApiVersioningStrategyParameter() {
+        contextRunner
+                .withPropertyValues("spring.cloud.refresh.enabled=false",
+                        "elide.api-versioning-strategy.parameter.enabled=true")
+                .run(context -> {
+                    RouteResolver routeResolver = context.getBean(RouteResolver.class);
+                    Route route = routeResolver.resolve("", "", "", Collections.emptyMap(), Map.of("v", List.of("1")));
+                    assertThat(route.getApiVersion()).isEqualTo("1");
+                });
+    }
+
+    @Test
+    void defaultApiVersioningMediaTypeProfile() {
+        contextRunner
+                .withPropertyValues("spring.cloud.refresh.enabled=false",
+                        "elide.api-versioning-strategy.media-type-profile.enabled=true",
+                        "elide.base-url=https://example.org")
+                .run(context -> {
+                    String accept = "application/vnd.api+json; profile=\"https://example.org/api/v1 https://example.org/profile\"";
+                    RouteResolver routeResolver = context.getBean(RouteResolver.class);
+                    Route route = routeResolver.resolve("", "", "", Map.of("accept", List.of(accept)), Collections.emptyMap());
+                    assertThat(route.getApiVersion()).isEqualTo("1");
+                });
+    }
+
+    @Test
+    void noApiVersioning() {
+        contextRunner
+                .withPropertyValues("spring.cloud.refresh.enabled=false",
+                        "elide.api-versioning-strategy.path.enabled=false")
+                .run(context -> {
+                    RouteResolver routeResolver = context.getBean(RouteResolver.class);
+                    assertThat(routeResolver).isInstanceOf(NullRouteResolver.class);
+                });
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    public static class UserGroupedOpenApiConfiguration {
+        @Bean
+        public GroupedOpenApi groupedOpenApi() {
+            return GroupedOpenApi.builder().group("v1").pathsToMatch("/api/v1").build();
+        }
+    }
+
+    @Test
+    void groupedOpenApi() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false")
+        .withConfiguration(UserConfigurations.of(UserGroupedOpenApiConfiguration.class)).run(context -> {
+            GroupedOpenApi groupedOpenApi = context.getBean(GroupedOpenApi.class);
+            assertThat(groupedOpenApi.getOpenApiCustomizers()).hasSize(1);
+        });
     }
 }
