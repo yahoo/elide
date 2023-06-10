@@ -13,6 +13,9 @@ import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
 import com.yahoo.elide.ElideSettingsBuilderCustomizer;
 import com.yahoo.elide.ElideSettingsBuilderCustomizers;
 import com.yahoo.elide.RefreshableElide;
+import com.yahoo.elide.Serdes;
+import com.yahoo.elide.Serdes.SerdesBuilder;
+import com.yahoo.elide.SerdesBuilderCustomizer;
 import com.yahoo.elide.Settings.SettingsBuilder;
 import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.async.AsyncSettingsBuilderCustomizer;
@@ -68,7 +71,6 @@ import com.yahoo.elide.graphql.GraphQLSettingsBuilderCustomizers;
 import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.JsonApiSettingsBuilderCustomizer;
 import com.yahoo.elide.jsonapi.JsonApiSettingsBuilderCustomizers;
@@ -184,7 +186,7 @@ public class ElideAutoConfiguration {
     @Scope(SCOPE_PROTOTYPE)
     public ElideSettingsBuilder elideSettingsBuilder(ElideConfigProperties settings, EntityDictionary entityDictionary,
             ErrorMapper errorMapper, DataStore dataStore, HeaderProcessor headerProcessor,
-            ElideMapper elideMapper, ObjectProvider<SettingsBuilder> settingsProvider,
+            ElideMapper elideMapper, SerdesBuilder serdesBuilder, ObjectProvider<SettingsBuilder> settingsProvider,
             ObjectProvider<ElideSettingsBuilderCustomizer> customizerProvider) {
         return ElideSettingsBuilderCustomizers.buildElideSettingsBuilder(builder -> {
             builder.dataStore(dataStore).entityDictionary(entityDictionary).objectMapper(elideMapper.getObjectMapper())
@@ -192,7 +194,12 @@ public class ElideAutoConfiguration {
                     .defaultMaxPageSize(settings.getMaxPageSize())
                     .defaultPageSize(settings.getPageSize()).auditLogger(new Slf4jLogger())
                     .baseUrl(settings.getBaseUrl())
-                    .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
+                    .serdes(serdes -> serdes.entries(entries -> {
+                        entries.clear();
+                        serdesBuilder.build().entrySet().stream().forEach(entry -> {
+                            entries.put(entry.getKey(), entry.getValue());
+                        });
+                    }))
                     .headerProcessor(headerProcessor);
             if (settings.isVerboseErrors()) {
                 builder.verboseErrors(true);
@@ -200,6 +207,25 @@ public class ElideAutoConfiguration {
             settingsProvider.orderedStream().forEach(builder::settings);
             customizerProvider.orderedStream().forEach(customizer -> customizer.customize(builder));
         });
+    }
+
+    /**
+     * Creates the {@link SerdesBuilder}.
+     * <p>
+     * Defining a {@link SerdesBuilderCustomizer} will allow customization of the default builder.
+     *
+     * @param customizerProvider the customizer
+     * @return the SerdesBuilder
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
+    public SerdesBuilder serdesBuilder(ObjectProvider<SerdesBuilderCustomizer> customizerProvider) {
+        SerdesBuilder builder = Serdes.builder()
+                .withDefaults()
+                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+        customizerProvider.orderedStream().forEach(customizer -> customizer.customize(builder));
+        return builder;
     }
 
     /**
@@ -291,24 +317,13 @@ public class ElideAutoConfiguration {
                             if (!settings.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix().isBlank()) {
                                 return settings.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix();
                             }
-
                             String baseUrl = refreshableElide.getElide().getElideSettings().getBaseUrl();
-                            JsonApiSettings jsonApiSettings = refreshableElide.getElide().getElideSettings()
-                                    .getSettings(JsonApiSettings.class);
-                            String prefix = jsonApiSettings.getPath();
-
                             if (StringUtils.isEmpty(baseUrl)) {
-                                baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                                baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                                        .path("")
+                                        .build()
+                                        .toUriString();
                             }
-
-                            if (prefix.length() > 1) {
-                                if (baseUrl.endsWith("/")) {
-                                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
-                                } else {
-                                    baseUrl = baseUrl + prefix;
-                                }
-                            }
-
                             return baseUrl;
                         }));
             }
