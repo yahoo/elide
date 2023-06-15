@@ -450,7 +450,19 @@ public enum Operator {
     //
     // Null checking
     private static <T> Predicate<T> isNull(Path fieldPath, RequestScope requestScope) {
-        return (T entity) -> getFieldValue(entity, fieldPath, requestScope) == null;
+        return (T entity) -> {
+            Object val = getFieldValue(entity, fieldPath, requestScope, true);
+            if (val == null) {
+                return true;
+            } else if (val instanceof Collection<?> collection) {
+                for (Object item : collection) {
+                    if (item == null) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
     }
 
     private static <T> Predicate<T> lt(Path fieldPath, List<Object> values, RequestScope requestScope) {
@@ -498,11 +510,11 @@ public enum Operator {
         return (T entity) -> {
 
             Object val = getFieldValue(entity, fieldPath, requestScope);
-            if (val instanceof Collection<?>) {
-                return ((Collection<?>) val).isEmpty();
+            if (val instanceof Collection<?> collection) {
+                return collection.isEmpty();
             }
-            if (val instanceof Map<?, ?>) {
-                return ((Map<?, ?>) val).isEmpty();
+            if (val instanceof Map<?, ?> map) {
+                return map.isEmpty();
             }
 
             return false;
@@ -540,6 +552,20 @@ public enum Operator {
      * @return the value of the field
      */
     private static <T> Object getFieldValue(T entity, Path fieldPath, RequestScope requestScope) {
+        return getFieldValue(entity, fieldPath, requestScope, false);
+    }
+
+    /**
+     * Return value of field/path for given entity. For example this.book.author
+     *
+     * @param <T> the type of entity to retrieve a value from
+     * @param entity Entity bean
+     * @param fieldPath field value/path
+     * @param requestScope Request scope
+     * @param allow null values
+     * @return the value of the field
+     */
+    private static <T> Object getFieldValue(T entity, Path fieldPath, RequestScope requestScope, boolean nullable) {
         Object val = entity;
         for (Path.PathElement field : fieldPath.getPathElements()) {
             if ("this".equals(field.getFieldName())) {
@@ -548,14 +574,14 @@ public enum Operator {
             if (val == null) {
                 break;
             }
-            if (val instanceof Collection) {
-                val = ((Collection) val).stream()
+            if (val instanceof Collection<?> collection) {
+                val = collection.stream()
                         .filter(Objects::nonNull)
                         .map(target -> PersistentResource.getValue(target, field.getFieldName(), requestScope))
-                        .filter(Objects::nonNull)
+                        .filter(test -> Objects.nonNull(test) || nullable)
                         .flatMap(result -> {
-                            if (result instanceof Collection) {
-                                return ((Collection) result).stream();
+                            if (result instanceof Collection<?> resultCollection) {
+                                return resultCollection.stream();
                             }
                             return Stream.of(result);
                         })
