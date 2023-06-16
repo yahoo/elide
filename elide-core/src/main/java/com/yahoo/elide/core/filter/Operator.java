@@ -562,7 +562,7 @@ public enum Operator {
      * @param entity Entity bean
      * @param fieldPath field value/path
      * @param requestScope Request scope
-     * @param allow null values
+     * @param nullable allow null values
      * @return the value of the field
      */
     private static <T> Object getFieldValue(T entity, Path fieldPath, RequestScope requestScope, boolean nullable) {
