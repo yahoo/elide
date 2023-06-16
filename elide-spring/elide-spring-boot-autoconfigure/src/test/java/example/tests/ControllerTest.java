@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -76,8 +77,9 @@ import java.util.Map;
 @Sql(
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = "classpath:db/test_init.sql",
-        statements = "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
+        statements = """
+                INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES ('com.example.repository','Example Repository','The code for this project', false);
+                """
 )
 @TestPropertySource(
         properties = {
@@ -363,6 +365,274 @@ public class ControllerTest extends IntegrationTest {
         String deleteExpected = """
                 [{"data":null},{"data":null}]""";
         assertEquals(deleteExpected, deleteResult);
+    }
+
+    /**
+     * Tests that relationship updates have inline checks deferred.
+     *
+     * @throws JsonMappingException the exception
+     * @throws JsonProcessingException the exception
+     */
+    @Test
+    public void jsonApiPatchExtensionPermissionTest() throws JsonMappingException, JsonProcessingException {
+        // Setup
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .body(
+                        patchSet(
+                                patchOperation(add, "/permissionauthor",
+                                        resource(
+                                                type("permissionauthor"),
+                                                id("7f14b0c3-d0ed-436c-9843-6bfbf7342df6"),
+                                                attributes(
+                                                        attr("name", "Ernest Hemingway")
+                                                )
+                                        )
+                                ),
+                                patchOperation(add, "/permissionbook",
+                                        resource(
+                                                type("permissionbook"),
+                                                id("1"),
+                                                attributes(
+                                                        attr("title", "The Old Man and the Sea")
+                                                )
+                                        )
+                                ),
+                                patchOperation(add, "/permissionbook",
+                                        resource(
+                                                type("permissionbook"),
+                                                id("2"),
+                                                attributes(
+                                                        attr("title", "For Whom the Bell Tolls")
+                                                )
+                                        )
+                                ),
+                                patchOperation(add, "/permissionauthor/7f14b0c3-d0ed-436c-9843-6bfbf7342df6/authorBooks",
+                                        resource(
+                                                type("permissionauthorBook"),
+                                                id("e2d0e822-d94d-4e36-a592-ef4f2af89f75"),
+                                                relationships(
+                                                        relation("book",
+                                                                true,
+                                                                resource(
+                                                                        type("permissionbook"),
+                                                                        id("1")))
+                                                        )
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/json")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String result = response.asString();
+        assertNotNull(result);
+        String authorId = response.path("[0].data.id");
+        String authorBookId = response.path("[3].data.id");
+
+        // Test inline checks deferred
+        // See AuthorHasUserAccessibleBooks
+        String path = "/permissionauthor/1/authorBooks";
+        path = path.replace("1", authorId);
+        ExtractableResponse<Response> updateResponse = given()
+                .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .body(
+                        patchSet(
+                                patchOperation(add, path,
+                                        resource(
+                                                type("permissionauthorBook"),
+                                                id("bd71bc1a-dc41-4adb-bf17-610149429f68"),
+                                                relationships(
+                                                        relation("book",
+                                                                true,
+                                                                resource(
+                                                                        type("permissionbook"),
+                                                                        id("2")))
+                                                        )
+                                        )
+                                ),
+                                patchOperation(remove, path,
+                                        resource(
+                                                type("permissionauthorBook"),
+                                                id(authorBookId)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/json")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String deleteResult = updateResponse.asString();
+        assertNotNull(deleteResult);
+
+        // Cleanup
+        ExtractableResponse<Response> cleanupResponse = given()
+                .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .body(
+                        patchSet(
+                                patchOperation(remove, "/permissionbook",
+                                        resource(
+                                                type("permissionbook"),
+                                                id("1")
+                                        )
+                                ),
+                                patchOperation(remove, "/permissionbook",
+                                        resource(
+                                                type("permissionbook"),
+                                                id("2")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/json")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String cleanupResult = cleanupResponse.asString();
+        String cleanupExpected = """
+                [{"data":null},{"data":null}]""";
+        assertEquals(cleanupExpected, cleanupResult);
+    }
+
+    /**
+     * Tests that relationship updates have inline checks deferred.
+     */
+    @Test
+    public void jsonApiAtomicOperationsExtensionPermissionTest() {
+        // Setup
+        ExtractableResponse<Response> response = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.add, "/permissionauthor",
+                                        datum(resource(
+                                                type("permissionauthor"),
+                                                lid("7f14b0c3-d0ed-436c-9843-6bfbf7342df6"),
+                                                attributes(
+                                                        attr("name", "Ernest Hemingway")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add, "/permissionbook",
+                                        datum(resource(
+                                                type("permissionbook"),
+                                                id("1"),
+                                                attributes(
+                                                        attr("title", "The Old Man and the Sea")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add, "/permissionbook",
+                                        datum(resource(
+                                                type("permissionbook"),
+                                                id("2"),
+                                                attributes(
+                                                        attr("title", "For Whom the Bell Tolls")
+                                                )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.add, "/permissionauthor/7f14b0c3-d0ed-436c-9843-6bfbf7342df6/authorBooks",
+                                        datum(resource(
+                                                type("permissionauthorBook"),
+                                                lid("e2d0e822-d94d-4e36-a592-ef4f2af89f75"),
+                                                relationships(
+                                                        relation("book",
+                                                                true,
+                                                                resource(
+                                                                        type("permissionbook"),
+                                                                        id("1")))
+                                                        )
+                                        ))
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+
+        String result = response.asString();
+        String expected = """
+                {"atomic:results":[{"data":{"type":"permissionauthor","id":"1","attributes":{"name":"Ernest Hemingway"},"relationships":{"authorBooks":{"links":{"self":"https://elide.io/json/permissionauthor/1/relationships/authorBooks","related":"https://elide.io/json/permissionauthor/1/authorBooks"},"data":[{"type":"permissionauthorBook","id":"1"}]}},"links":{"self":"https://elide.io/json/permissionauthor/1"}}},{"data":{"type":"permissionbook","id":"1","attributes":{"title":"The Old Man and the Sea"},"relationships":{"authorBooks":{"links":{"self":"https://elide.io/json/permissionbook/1/relationships/authorBooks","related":"https://elide.io/json/permissionbook/1/authorBooks"},"data":[{"type":"permissionauthorBook","id":"1"}]}},"links":{"self":"https://elide.io/json/permissionbook/1"}}},{"data":{"type":"permissionbook","id":"2","attributes":{"title":"For Whom the Bell Tolls"},"relationships":{"authorBooks":{"links":{"self":"https://elide.io/json/permissionbook/2/relationships/authorBooks","related":"https://elide.io/json/permissionbook/2/authorBooks"},"data":[]}},"links":{"self":"https://elide.io/json/permissionbook/2"}}},{"data":{"type":"permissionauthorBook","id":"1","relationships":{"author":{"links":{"self":"https://elide.io/json/permissionauthor/1/authorBooks/1/relationships/author","related":"https://elide.io/json/permissionauthor/1/authorBooks/1/author"},"data":{"type":"permissionauthor","id":"1"}},"book":{"links":{"self":"https://elide.io/json/permissionauthor/1/authorBooks/1/relationships/book","related":"https://elide.io/json/permissionauthor/1/authorBooks/1/book"},"data":{"type":"permissionbook","id":"1"}}},"links":{"self":"https://elide.io/json/permissionauthor/1/authorBooks/1"}}}]}""";
+        assertEquals(expected, result);
+
+        // Test inline checks deferred
+        // See AuthorHasUserAccessibleBooks
+        ExtractableResponse<Response> updateResponse = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.add, "/permissionauthor/1/authorBooks",
+                                        datum(resource(
+                                                type("permissionauthorBook"),
+                                                lid("bd71bc1a-dc41-4adb-bf17-610149429f68"),
+                                                relationships(
+                                                        relation("book",
+                                                                true,
+                                                                resource(
+                                                                        type("permissionbook"),
+                                                                        id("2")))
+                                                        )
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.remove, "/permissionauthor/1/authorBooks",
+                                        datum(resource(
+                                                type("permissionauthorBook"),
+                                                id("1")
+                                        ))
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String deleteResult = updateResponse.asString();
+        String deleteExpected = """
+                {"atomic:results":[{"data":{"type":"permissionauthorBook","id":"2","relationships":{"author":{"links":{"self":"https://elide.io/json/permissionauthor/1/authorBooks/2/relationships/author","related":"https://elide.io/json/permissionauthor/1/authorBooks/2/author"},"data":{"type":"permissionauthor","id":"1"}},"book":{"links":{"self":"https://elide.io/json/permissionauthor/1/authorBooks/2/relationships/book","related":"https://elide.io/json/permissionauthor/1/authorBooks/2/book"},"data":{"type":"permissionbook","id":"2"}}},"links":{"self":"https://elide.io/json/permissionauthor/1/authorBooks/2"}}},{"data":null}]}""";
+        assertEquals(deleteExpected, deleteResult);
+
+        // Cleanup
+        ExtractableResponse<Response> cleanupResponse = given()
+                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .body(
+                        atomicOperations(
+                                atomicOperation(AtomicOperationCode.remove, "/permissionbook",
+                                        datum(resource(
+                                                type("permissionbook"),
+                                                id("1")
+                                        ))
+                                ),
+                                atomicOperation(AtomicOperationCode.remove, "/permissionbook",
+                                        datum(resource(
+                                                type("permissionbook"),
+                                                id("2")
+                                        ))
+                                )
+                        )
+                )
+                .when()
+                .post("/json/operations")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract();
+        String cleanupResult = cleanupResponse.asString();
+        String cleanupExpected = """
+                {"atomic:results":[{"data":null},{"data":null}]}""";
+        assertEquals(cleanupExpected, cleanupResult);
     }
 
     @Test
@@ -1085,7 +1355,8 @@ public class ControllerTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats", "namespace", "tableSource", "maintainer", "book", "publisher", "person"));
+                        "stats", "namespace", "tableSource", "maintainer", "book", "publisher", "person",
+                        "permissionauthor", "permissionbook", "permissionauthorBook"));
     }
 
     @Test

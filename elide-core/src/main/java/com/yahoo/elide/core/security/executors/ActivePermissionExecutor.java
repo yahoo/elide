@@ -103,7 +103,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             // for newly created object in PatchRequest limit to User checks
-            if (resource.isNewlyCreated()) {
+            if (resource.isNewlyCreated() || requestScope.isDeferInlineChecks()) {
                 return executeUserChecksDeferInline(annotationClass, expression);
             }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
@@ -189,7 +189,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                         changeSpec);
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
-            if (requestScope.getNewPersistentResources().contains(resource)) {
+            if (requestScope.getNewPersistentResources().contains(resource) || requestScope.isDeferInlineChecks()) {
                 return executeUserChecksDeferInline(expressionAnnotation, expression);
             }
             return executeExpressions(expression, expressionAnnotation, Expression.EvaluationMode.INLINE_CHECKS_ONLY);

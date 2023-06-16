@@ -190,11 +190,23 @@ public class JsonApiDSL {
      *
      * @param type       the type
      * @param id         the id
-     * @param relationships the attributes
+     * @param relationships the relationships
      * @return the resource
      */
     public static Resource resource(Type type, Id id, Relationships relationships) {
         return new Resource(id, type, null, null, relationships);
+    }
+
+    /**
+     * Resource resource.
+     *
+     * @param type       the type
+     * @param lid        the lid
+     * @param relationships the relationships
+     * @return the resource
+     */
+    public static Resource resource(Type type, Lid lid, Relationships relationships) {
+        return new Resource(lid, type, null, null, relationships);
     }
 
     /**

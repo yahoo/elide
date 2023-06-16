@@ -307,6 +307,7 @@ public class JsonApiJsonPatch {
      * @param requestScope request scope
      */
     private void postProcessRelationships(JsonApiJsonPatchRequestScope requestScope) {
+        requestScope.setDeferInlineChecks(true);
         actions.forEach(action -> action.postProcess(requestScope));
     }
 
