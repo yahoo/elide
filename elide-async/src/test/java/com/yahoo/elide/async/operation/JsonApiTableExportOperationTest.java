@@ -56,7 +56,7 @@ public class JsonApiTableExportOperationTest {
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
-        dataStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
+        dataStore = new HashMapDataStore(new DefaultClassScanner(),
                         new HashSet<>(Arrays.asList(TableExport.class.getPackage(), ArtifactGroup.class.getPackage())));
         Map<String, Class<? extends Check>> map = new HashMap<>();
         map.put(AsyncApiInlineChecks.AsyncApiOwner.PRINCIPAL_IS_OWNER,

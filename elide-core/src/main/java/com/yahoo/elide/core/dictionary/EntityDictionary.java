@@ -2211,7 +2211,7 @@ public class EntityDictionary {
         public EntityDictionary build() {
 
             if (scanner == null) {
-                scanner = DefaultClassScanner.getInstance();
+                scanner = new DefaultClassScanner();
             }
 
             if (roleChecks == null) {

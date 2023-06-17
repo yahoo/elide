@@ -44,7 +44,7 @@ class AsyncApiCleanerRunnableTest {
 
     @BeforeEach
     public void setupMocks() {
-        HashMapDataStore inMemoryStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
+        HashMapDataStore inMemoryStore = new HashMapDataStore(new DefaultClassScanner(),
                 AsyncQuery.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 

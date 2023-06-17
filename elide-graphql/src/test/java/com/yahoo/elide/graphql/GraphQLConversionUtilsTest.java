@@ -28,7 +28,7 @@ public class GraphQLConversionUtilsTest {
         CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
         GraphQLConversionUtils graphQLConversionUtils =
                 new GraphQLConversionUtils(EntityDictionary.builder().build(),
-                        new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup));
+                        new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup));
         GraphQLScalarType offsetDateTimeType = graphQLConversionUtils.classToScalarType(ClassType.of(OffsetDateTime.class));
         assertNotNull(offsetDateTimeType);
         String expected = "OffsetDateTime";
@@ -39,7 +39,7 @@ public class GraphQLConversionUtilsTest {
         CoerceUtil.register(TimeZone.class, new TimeZoneSerde());
         GraphQLConversionUtils graphQLConversionUtils =
                 new GraphQLConversionUtils(EntityDictionary.builder().build(),
-                        new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup));
+                        new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup));
         GraphQLScalarType timeZoneType = graphQLConversionUtils.classToScalarType(ClassType.of(TimeZone.class));
         assertNotNull(timeZoneType);
         String expectedTimezone = "TimeZone";

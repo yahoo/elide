@@ -67,7 +67,7 @@ public class AsyncExecutorServiceTest {
     @BeforeAll
     public void setupMockElide() {
         HashMapDataStore inMemoryStore = new HashMapDataStore(
-                DefaultClassScanner.getInstance(),
+                new DefaultClassScanner(),
                 AsyncQuery.class.getPackage()
         );
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();

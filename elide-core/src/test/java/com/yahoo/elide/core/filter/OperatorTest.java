@@ -49,7 +49,7 @@ public class OperatorTest {
                     EntityDictionary.DEFAULT_INJECTOR,
                     CoerceUtil::lookup,
                     Collections.emptySet(), //excluded entities
-                    DefaultClassScanner.getInstance()
+                    new DefaultClassScanner()
             );
         }
 

@@ -49,7 +49,7 @@ public class CsvExportFormatterTest {
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
-        dataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), TableExport.class.getPackage());
+        dataStore = new HashMapDataStore(new DefaultClassScanner(), TableExport.class.getPackage());
         Map<String, Class<? extends Check>> map = new HashMap<>();
         elide = new Elide(
                     new ElideSettingsBuilder(dataStore)

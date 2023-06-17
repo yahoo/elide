@@ -107,7 +107,7 @@ public class ModelBuilderTest {
         DataFetcher fetcher = mock(DataFetcher.class);
         ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
                 settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
@@ -131,7 +131,7 @@ public class ModelBuilderTest {
         DataFetcher fetcher = mock(DataFetcher.class);
         ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
                 settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
@@ -145,7 +145,7 @@ public class ModelBuilderTest {
         DataFetcher fetcher = mock(DataFetcher.class);
         ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
                 settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
@@ -184,7 +184,7 @@ public class ModelBuilderTest {
         DataFetcher fetcher = mock(DataFetcher.class);
         ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
                 settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
@@ -264,7 +264,7 @@ public class ModelBuilderTest {
         DataFetcher fetcher = mock(DataFetcher.class);
         ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
                 settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
@@ -285,7 +285,7 @@ public class ModelBuilderTest {
         DataFetcher fetcher = mock(DataFetcher.class);
         ElideSettings settings = mock(ElideSettings.class);
         ModelBuilder builder = new ModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup),
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
                 settings, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();

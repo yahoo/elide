@@ -62,7 +62,7 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
     public static HikariConfig config = new HikariConfig("/" + "jpah2db.properties");
 
     static {
-        VALIDATOR = new DynamicConfigValidator(DefaultClassScanner.getInstance(), "src/test/resources/configs");
+        VALIDATOR = new DynamicConfigValidator(new DefaultClassScanner(), "src/test/resources/configs");
 
         try {
             VALIDATOR.readAndValidateConfigs();
