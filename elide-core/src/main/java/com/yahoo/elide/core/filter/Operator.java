@@ -514,16 +514,22 @@ public enum Operator {
             if (values.size() != 1) {
                 throw new BadRequestException("HasMember can only take one argument");
             }
-            Object val = getFieldValue(entity, fieldPath, requestScope);
+            Object val = getFieldValue(entity, fieldPath, requestScope, true);
             Object filterStr = fieldPath.lastElement()
                     .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
                     .orElseGet(() -> CoerceUtil.coerce(values.get(0), String.class));
 
-            if (val instanceof Collection<?>) {
-                return ((Collection<?>) val).contains(filterStr);
+            if (val instanceof Collection<?> collection) {
+                if ("null".equals(filterStr) && collection.contains(null)) {
+                    return true;
+                }
+                return collection.contains(filterStr);
             }
-            if (val instanceof Map<?, ?>) {
-                return ((Map<?, ?>) val).containsKey(filterStr);
+            if (val instanceof Map<?, ?> map) {
+                if ("null".equals(filterStr) && map.containsKey(null)) {
+                    return true;
+                }
+                return map.containsKey(filterStr);
             }
 
             return false;
@@ -540,6 +546,20 @@ public enum Operator {
      * @return the value of the field
      */
     private static <T> Object getFieldValue(T entity, Path fieldPath, RequestScope requestScope) {
+        return getFieldValue(entity, fieldPath, requestScope, false);
+    }
+
+    /**
+     * Return value of field/path for given entity. For example this.book.author
+     *
+     * @param <T> the type of entity to retrieve a value from
+     * @param entity Entity bean
+     * @param fieldPath field value/path
+     * @param requestScope Request scope
+     * @param nullable allow null values
+     * @return the value of the field
+     */
+    private static <T> Object getFieldValue(T entity, Path fieldPath, RequestScope requestScope, boolean nullable) {
         Object val = entity;
         for (Path.PathElement field : fieldPath.getPathElements()) {
             if ("this".equals(field.getFieldName())) {
@@ -548,14 +568,14 @@ public enum Operator {
             if (val == null) {
                 break;
             }
-            if (val instanceof Collection) {
-                val = ((Collection) val).stream()
+            if (val instanceof Collection<?> collection) {
+                val = collection.stream()
                         .filter(Objects::nonNull)
                         .map(target -> PersistentResource.getValue(target, field.getFieldName(), requestScope))
-                        .filter(Objects::nonNull)
+                        .filter(test -> Objects.nonNull(test) || nullable)
                         .flatMap(result -> {
-                            if (result instanceof Collection) {
-                                return ((Collection) result).stream();
+                            if (result instanceof Collection<?> resultCollection) {
+                                return resultCollection.stream();
                             }
                             return Stream.of(result);
                         })
