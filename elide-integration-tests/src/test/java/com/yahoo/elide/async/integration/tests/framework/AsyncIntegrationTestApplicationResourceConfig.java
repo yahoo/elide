@@ -14,8 +14,8 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
-import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
+import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
+import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
@@ -23,12 +23,12 @@ import com.yahoo.elide.async.integration.tests.AsyncIT;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
-import com.yahoo.elide.async.models.security.AsyncAPIInlineChecks;
+import com.yahoo.elide.async.models.security.AsyncApiInlineChecks;
 import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.audit.InMemoryLogger;
@@ -71,14 +71,14 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
     private static Map<String, Class<? extends Check>> defineMappings() {
         Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
-        map.put(AsyncAPIInlineChecks.AsyncAPIOwner.PRINCIPAL_IS_OWNER,
-                        AsyncAPIInlineChecks.AsyncAPIOwner.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIAdmin.PRINCIPAL_IS_ADMIN,
-                        AsyncAPIInlineChecks.AsyncAPIAdmin.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIStatusValue.VALUE_IS_CANCELLED,
-                        AsyncAPIInlineChecks.AsyncAPIStatusValue.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIStatusQueuedValue.VALUE_IS_QUEUED,
-                        AsyncAPIInlineChecks.AsyncAPIStatusQueuedValue.class);
+        map.put(AsyncApiInlineChecks.AsyncApiOwner.PRINCIPAL_IS_OWNER,
+                        AsyncApiInlineChecks.AsyncApiOwner.class);
+        map.put(AsyncApiInlineChecks.AsyncApiAdmin.PRINCIPAL_IS_ADMIN,
+                        AsyncApiInlineChecks.AsyncApiAdmin.class);
+        map.put(AsyncApiInlineChecks.AsyncApiStatusValue.VALUE_IS_CANCELLED,
+                        AsyncApiInlineChecks.AsyncApiStatusValue.class);
+        map.put(AsyncApiInlineChecks.AsyncApiStatusQueuedValue.VALUE_IS_QUEUED,
+                        AsyncApiInlineChecks.AsyncApiStatusQueuedValue.class);
         return Collections.unmodifiableMap(map);
     }
 
@@ -113,12 +113,12 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
                 elide.doScans();
 
-                AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
-                bind(asyncAPIDao).to(AsyncAPIDAO.class);
+                AsyncApiDao asyncApiDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
+                bind(asyncApiDao).to(AsyncApiDao.class);
 
                 ExecutorService executorService = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
-                        executorService, executorService, asyncAPIDao, Optional.of(new SimpleDataFetcherExceptionHandler()));
+                        executorService, executorService, asyncApiDao, Optional.of(new SimpleDataFetcherExceptionHandler()));
 
                 // Create ResultStorageEngine
                 Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
@@ -127,8 +127,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                     bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
                     Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, true));
-                    supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+                    supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide, true));
+                    supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
 
                     // Binding TableExport LifeCycleHook
                     TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, Duration.ofSeconds(10L),
@@ -162,7 +162,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 dictionary.bindTrigger(Invoice.class, "complete", UPDATE, PRECOMMIT, invoiceCompletionHook);
 
                 AsyncCleanerService.init(elide, Duration.ofSeconds(30L), Duration.ofDays(5L), Duration.ofSeconds(150L),
-                        asyncAPIDao);
+                        asyncApiDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         });

@@ -7,7 +7,7 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
@@ -26,14 +26,14 @@ import java.util.UUID;
  * JSON API implementation of AsyncQueryOperation for executing the query provided in AsyncQuery.
  */
 @Slf4j
-public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
+public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
 
-    public JSONAPIAsyncQueryOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
+    public JsonApiAsyncQueryOperation(AsyncExecutorService service, AsyncApi queryObj, RequestScope scope) {
         super(service, queryObj, scope);
     }
 
     @Override
-    public ElideResponse execute(AsyncAPI queryObj, RequestScope scope)
+    public ElideResponse execute(AsyncApi queryObj, RequestScope scope)
             throws URISyntaxException {
         Elide elide = getService().getElide();
         User user = scope.getUser();

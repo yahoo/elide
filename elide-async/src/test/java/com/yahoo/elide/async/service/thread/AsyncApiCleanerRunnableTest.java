@@ -15,8 +15,8 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -35,11 +35,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-class AsyncAPICleanerRunnableTest {
+class AsyncApiCleanerRunnableTest {
 
-    private AsyncAPICleanerRunnable cleanerThread;
+    private AsyncApiCleanerRunnable cleanerThread;
     private Elide elide;
-    private AsyncAPIDAO asyncAPIDao;
+    private AsyncApiDao asyncApiDao;
     private Clock clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("Z"));
 
     @BeforeEach
@@ -53,14 +53,14 @@ class AsyncAPICleanerRunnableTest {
                         .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
-        asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
-        cleanerThread = new AsyncAPICleanerRunnable(Duration.ofMinutes(7), elide, Duration.ofDays(7), asyncAPIDao, clock);
+        asyncApiDao = mock(DefaultAsyncApiDao.class);
+        cleanerThread = new AsyncApiCleanerRunnable(Duration.ofMinutes(7), elide, Duration.ofDays(7), asyncApiDao, clock);
     }
 
     @Test
     void testAsyncQueryCleanerThreadSet() {
         assertEquals(elide, cleanerThread.getElide());
-        assertEquals(asyncAPIDao, cleanerThread.getAsyncAPIDao());
+        assertEquals(asyncApiDao, cleanerThread.getAsyncApiDao());
         assertEquals(7, cleanerThread.getQueryMaxRunTime().toMinutes());
         assertEquals(7, cleanerThread.getQueryRetentionDuration().toDays());
     }
@@ -69,8 +69,8 @@ class AsyncAPICleanerRunnableTest {
     void testDeleteAsyncQuery() {
         Date testDate = Date.from(Instant.now(clock).plus(Duration.ofDays(7)));
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
-        cleanerThread.deleteAsyncAPI(AsyncQuery.class);
-        verify(asyncAPIDao, times(1)).deleteAsyncAPIAndResultByFilter(filterCaptor.capture(), any());
+        cleanerThread.deleteAsyncApi(AsyncQuery.class);
+        verify(asyncApiDao, times(1)).deleteAsyncApiAndResultByFilter(filterCaptor.capture(), any());
         assertEquals("asyncQuery.createdOn LE [" + testDate + "]", filterCaptor.getValue().toString());
     }
 
@@ -78,8 +78,8 @@ class AsyncAPICleanerRunnableTest {
     void testTimeoutAsyncQuery() {
         Date testDate = Date.from(Instant.now(clock).plus(Duration.ofMinutes(7)));
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
-        cleanerThread.timeoutAsyncAPI(AsyncQuery.class);
-        verify(asyncAPIDao, times(1)).updateStatusAsyncAPIByFilter(filterCaptor.capture(), any(QueryStatus.class), any());
+        cleanerThread.timeoutAsyncApi(AsyncQuery.class);
+        verify(asyncApiDao, times(1)).updateStatusAsyncApiByFilter(filterCaptor.capture(), any(QueryStatus.class), any());
         assertEquals("(asyncQuery.status IN [PROCESSING, QUEUED] AND asyncQuery.createdOn LE [" + testDate + "])", filterCaptor.getValue().toString());
     }
 }
