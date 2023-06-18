@@ -305,7 +305,7 @@ public enum Operator {
     // In with strict equality
     private static <T> Predicate<T> in(Path fieldPath, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
-            BiPredicate predicate = (a, b) -> a.equals(b);
+            BiPredicate<Object, Object> predicate = (a, b) -> a.equals(b);
 
             return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
@@ -317,7 +317,7 @@ public enum Operator {
             RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
 
-            BiPredicate predicate = (a, b) -> {
+            BiPredicate<Object, Object> predicate = (a, b) -> {
                 if (!a.getClass().isAssignableFrom(String.class)) {
                     throw new IllegalStateException("Cannot case insensitive compare non-string values");
                 }
@@ -341,7 +341,7 @@ public enum Operator {
                 throw new BadRequestException("PREFIX can only take one argument");
             }
 
-            BiPredicate predicate = (a, b) -> {
+            BiPredicate<Object, Object> predicate = (a, b) -> {
                 String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
                 String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
@@ -360,7 +360,7 @@ public enum Operator {
                 throw new BadRequestException("NOTPREFIX can only take one argument");
             }
 
-            BiPredicate predicate = (a, b) -> {
+            BiPredicate<Object, Object> predicate = (a, b) -> {
                 String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
                 String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
@@ -380,7 +380,7 @@ public enum Operator {
                 throw new BadRequestException("POSTFIX can only take one argument");
             }
 
-            BiPredicate predicate = (a, b) -> {
+            BiPredicate<Object, Object> predicate = (a, b) -> {
                 String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
                 String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
@@ -398,7 +398,7 @@ public enum Operator {
                 throw new BadRequestException("NOTPOSTFIX can only take one argument");
             }
 
-            BiPredicate predicate = (a, b) -> {
+            BiPredicate<Object, Object> predicate = (a, b) -> {
                 String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
                 String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
@@ -418,7 +418,7 @@ public enum Operator {
                 throw new BadRequestException("INFIX can only take one argument");
             }
 
-            BiPredicate predicate = (a, b) -> {
+            BiPredicate<Object, Object> predicate = (a, b) -> {
                 String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
                 String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
@@ -436,7 +436,7 @@ public enum Operator {
                 throw new BadRequestException("NOTINFIX can only take one argument");
             }
 
-            BiPredicate predicate = (a, b) -> {
+            BiPredicate<Object, Object> predicate = (a, b) -> {
                 String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
                 String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
@@ -498,11 +498,11 @@ public enum Operator {
         return (T entity) -> {
 
             Object val = getFieldValue(entity, fieldPath, requestScope);
-            if (val instanceof Collection<?>) {
-                return ((Collection<?>) val).isEmpty();
+            if (val instanceof Collection<?> collection) {
+                return collection.isEmpty();
             }
-            if (val instanceof Map<?, ?>) {
-                return ((Map<?, ?>) val).isEmpty();
+            if (val instanceof Map<?, ?> map) {
+                return map.isEmpty();
             }
 
             return false;
@@ -595,8 +595,8 @@ public enum Operator {
             }
             Object fieldVal = getFieldValue(entity, fieldPath, requestScope);
 
-            if (fieldVal instanceof Collection) {
-                return ((Collection) fieldVal).stream()
+            if (fieldVal instanceof Collection<?> collection) {
+                return collection.stream()
                         .anyMatch(fieldValueElement ->
                             fieldValueElement != null
                             && values.stream()
@@ -619,13 +619,13 @@ public enum Operator {
     }
 
     private static boolean evaluate(Object entity, Path fieldPath, List<Object> values,
-                             BiPredicate predicate, RequestScope requestScope) {
+                             BiPredicate<Object, Object> predicate, RequestScope requestScope) {
         Type<?> valueClass = fieldPath.lastElement().get().getFieldType();
 
         Object leftHandSide = getFieldValue(entity, fieldPath, requestScope);
 
-        if (leftHandSide instanceof Collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
-            return ((Collection) leftHandSide).stream()
+        if (leftHandSide instanceof Collection<?> collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
+            return collection.stream()
                     .anyMatch(leftHandSideElement ->
                         values.stream()
                             .map(value -> CoerceUtil.coerce(value, valueClass))
