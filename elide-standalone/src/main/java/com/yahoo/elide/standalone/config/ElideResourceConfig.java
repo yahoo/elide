@@ -150,15 +150,15 @@ public class ElideResourceConfig extends ResourceConfig {
                 Elide elide,
                 EntityDictionary dictionary
         ) {
-            AsyncApiDao asyncAPIDao = asyncProperties.getApiDao();
-            if (asyncAPIDao == null) {
-                asyncAPIDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
+            AsyncApiDao asyncApiDao = asyncProperties.getAsyncApiDao();
+            if (asyncApiDao == null) {
+                asyncApiDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
             }
-            bind(asyncAPIDao).to(AsyncApiDao.class);
+            bind(asyncApiDao).to(AsyncApiDao.class);
 
             ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
             ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
-            AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncAPIDao,
+            AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncApiDao,
                     Optional.of(settings.getDataFetcherExceptionHandler()));
             bind(asyncExecutorService).to(AsyncExecutorService.class);
 
@@ -201,7 +201,7 @@ public class ElideResourceConfig extends ResourceConfig {
             if (asyncProperties.enableCleanup()) {
                 AsyncCleanerService.init(elide, asyncProperties.getQueryMaxRunTime(),
                         asyncProperties.getQueryRetentionDuration(),
-                        asyncProperties.getQueryCancellationCheckInterval(), asyncAPIDao);
+                        asyncProperties.getQueryCancellationCheckInterval(), asyncApiDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         }

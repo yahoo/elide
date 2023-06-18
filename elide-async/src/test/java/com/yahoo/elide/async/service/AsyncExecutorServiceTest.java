@@ -55,7 +55,7 @@ public class AsyncExecutorServiceTest {
 
     private AsyncExecutorService service;
     private Elide elide;
-    private AsyncApiDao asyncAPIDao;
+    private AsyncApiDao asyncApiDao;
     private User testUser;
     private RequestScope scope;
     private ResultStorageEngine resultStorageEngine;
@@ -78,12 +78,12 @@ public class AsyncExecutorServiceTest {
                         .entityDictionary(EntityDictionary.builder().checks(checkMappings).build())
                         .settings(JsonApiSettings.builder())
                         .build());
-        asyncAPIDao = mock(DefaultAsyncApiDao.class);
+        asyncApiDao = mock(DefaultAsyncApiDao.class);
         testUser = mock(User.class);
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
         service = new AsyncExecutorService(elide, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5),
-                        asyncAPIDao, Optional.of(dataFetcherExceptionHandler));
+                        asyncApiDao, Optional.of(dataFetcherExceptionHandler));
 
     }
 
@@ -93,7 +93,7 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getRunners());
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
-        assertEquals(asyncAPIDao, service.getAsyncApiDao());
+        assertEquals(asyncApiDao, service.getAsyncApiDao());
         assertEquals(resultStorageEngine, resultStorageEngine);
     }
 

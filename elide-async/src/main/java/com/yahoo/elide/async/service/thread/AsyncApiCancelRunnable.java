@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * Runnable for cancelling AsyncAPI transactions
+ * Runnable for cancelling AsyncApi transactions
  * beyond the max run time or if it has status CANCELLED.
  */
 @Slf4j
@@ -47,24 +47,24 @@ public class AsyncApiCancelRunnable implements Runnable {
 
     private long queryMaxRunTimeSeconds;
     private Elide elide;
-    private AsyncApiDao asyncAPIDao;
+    private AsyncApiDao asyncApiDao;
 
-    public AsyncApiCancelRunnable(Duration queryMaxRunTime, Elide elide, AsyncApiDao asyncAPIDao) {
+    public AsyncApiCancelRunnable(Duration queryMaxRunTime, Elide elide, AsyncApiDao asyncApiDao) {
         this.queryMaxRunTimeSeconds = queryMaxRunTime.toSeconds();
         this.elide = elide;
-        this.asyncAPIDao = asyncAPIDao;
+        this.asyncApiDao = asyncApiDao;
     }
 
     @Override
     public void run() {
-        cancelAsyncAPI(AsyncQuery.class);
+        cancelAsyncApi(AsyncQuery.class);
     }
 
     /**
      * This method cancels queries based on threshold.
-     * @param type AsyncAPI Type Implementation.
+     * @param type AsyncApi Type Implementation.
      */
-    protected <T extends AsyncApi> void cancelAsyncAPI(Class<T> type) {
+    protected <T extends AsyncApi> void cancelAsyncApi(Class<T> type) {
 
         try {
             TransactionRegistry transactionRegistry = elide.getTransactionRegistry();
@@ -80,24 +80,24 @@ public class AsyncApiCancelRunnable implements Runnable {
                     new InPredicate(statusPathElement, QueryStatus.CANCELLED, QueryStatus.PROCESSING,
                             QueryStatus.QUEUED);
 
-            Iterable<T> asyncAPIIterable =
-                    asyncAPIDao.loadAsyncApiByFilter(fltStatusExpression, type);
+            Iterable<T> asyncApiIterable =
+                    asyncApiDao.loadAsyncApiByFilter(fltStatusExpression, type);
 
-            //Active AsyncAPI UUIDs
-            Set<UUID> asyncTransactionUUIDs = StreamSupport.stream(asyncAPIIterable.spliterator(), false)
+            //Active AsyncApi UUIDs
+            Set<UUID> asyncTransactionUUIDs = StreamSupport.stream(asyncApiIterable.spliterator(), false)
                     .filter(query -> query.getStatus() == QueryStatus.CANCELLED
                     || TimeUnit.SECONDS.convert(Math.abs(new Date(System.currentTimeMillis()).getTime()
                             - query.getCreatedOn().getTime()), TimeUnit.MILLISECONDS) > queryMaxRunTimeSeconds)
                     .map(query -> UUID.fromString(query.getRequestId()))
             .collect(Collectors.toSet());
 
-            //AsyncAPI UUIDs that have active transactions
+            //AsyncApi UUIDs that have active transactions
             Set<UUID> queryUUIDsToCancel = Sets.intersection(runningTransactionUUIDs, asyncTransactionUUIDs);
 
-            //AsyncAPI IDs that need to be cancelled
+            //AsyncApi IDs that need to be cancelled
             Set<String> queryIDsToCancel = queryUUIDsToCancel.stream()
             .map(uuid -> StreamSupport
-                .stream(asyncAPIIterable.spliterator(), false)
+                .stream(asyncApiIterable.spliterator(), false)
                 .filter(query -> query.getRequestId().equals(uuid.toString()))
                 .map(T::getId)
                 .findFirst().orElseThrow(IllegalStateException::new))
@@ -122,7 +122,7 @@ public class AsyncApiCancelRunnable implements Runnable {
                 PathElement idPathElement = new PathElement(type, String.class, "id");
                 FilterExpression fltIdExpression =
                         new InPredicate(idPathElement, queryIDsToCancel);
-                asyncAPIDao.updateStatusAsyncApiByFilter(fltIdExpression, QueryStatus.CANCEL_COMPLETE,
+                asyncApiDao.updateStatusAsyncApiByFilter(fltIdExpression, QueryStatus.CANCEL_COMPLETE,
                         type);
             }
         } catch (Exception e) {

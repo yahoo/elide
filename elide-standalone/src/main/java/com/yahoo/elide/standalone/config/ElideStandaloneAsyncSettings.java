@@ -87,7 +87,7 @@ public interface ElideStandaloneAsyncSettings {
      *
      * @return AsyncApiDao type object.
      */
-    default AsyncApiDao getApiDao() {
+    default AsyncApiDao getAsyncApiDao() {
         return null;
     }
 

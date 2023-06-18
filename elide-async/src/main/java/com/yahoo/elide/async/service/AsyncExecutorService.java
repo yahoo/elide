@@ -63,7 +63,7 @@ public class AsyncExecutorService {
     }
 
     @Inject
-    public AsyncExecutorService(Elide elide, ExecutorService executor, ExecutorService updater, AsyncApiDao asyncAPIDao,
+    public AsyncExecutorService(Elide elide, ExecutorService executor, ExecutorService updater, AsyncApiDao asyncApiDao,
             Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler) {
         this.elide = elide;
         runners = new HashMap<>();
@@ -76,7 +76,7 @@ public class AsyncExecutorService {
         this.jsonApi = new JsonApi(this.elide);
         this.executor = executor;
         this.updater = updater;
-        this.asyncApiDao = asyncAPIDao;
+        this.asyncApiDao = asyncApiDao;
     }
 
     /**
@@ -119,10 +119,10 @@ public class AsyncExecutorService {
      * @param apiVersion API Version
      */
     public void completeQuery(AsyncApi query, User user, String apiVersion) {
-        AsyncApiResultFuture asyncAPIResultFuture = asyncResultFutureThreadLocal.get();
-        if (asyncAPIResultFuture.isSynchronousTimeout()) {
+        AsyncApiResultFuture asyncApiResultFuture = asyncResultFutureThreadLocal.get();
+        if (asyncApiResultFuture.isSynchronousTimeout()) {
             log.debug("Task has not completed");
-            updater.execute(new AsyncApiUpdateOperation(elide, asyncAPIResultFuture.getAsyncFuture(), query,
+            updater.execute(new AsyncApiUpdateOperation(elide, asyncApiResultFuture.getAsyncFuture(), query,
                     asyncApiDao));
             asyncResultFutureThreadLocal.remove();
         } else {

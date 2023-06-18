@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * JSONAPI TableExport Execute Operation.
+ * JSON-API TableExport Execute Operation.
  */
 @Slf4j
 public class JsonApiTableExportOperation extends TableExportOperation {

@@ -27,8 +27,8 @@ import java.time.Duration;
 import java.util.concurrent.Callable;
 
 /**
- * AsyncAPI Base Hook methods.
- * @param <T> Type of AsyncAPI.
+ * AsyncApi Base Hook methods.
+ * @param <T> Type of AsyncApi.
  */
 @Data
 public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<T> {
@@ -42,7 +42,7 @@ public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<
 
     /**
      * Validate the Query Options before executing.
-     * @param query AsyncAPI type object.
+     * @param query AsyncApi type object.
      * @param requestScope RequestScope object.
      * @throws InvalidValueException InvalidValueException
      */
@@ -54,7 +54,7 @@ public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<
 
     /**
      * Execute the Hook.
-     * @param query AsyncAPI type object.
+     * @param query AsyncApi type object.
      * @param requestScope RequestScope object.
      * @param queryWorker Thread to execute.
      * @throws InvalidOperationException InvalidOperationException
@@ -82,7 +82,7 @@ public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<
 
     /**
      * Call the completeQuery process in AsyncExecutorService.
-     * @param query AsyncAPI object to complete.
+     * @param query AsyncApi object to complete.
      * @param requestScope RequestScope object.
      */
     protected void completeAsync(AsyncApi query, RequestScope requestScope) {
@@ -91,7 +91,7 @@ public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<
 
     /**
      * Call the executeQuery process on AsyncExecutorService.
-     * @param query AsyncAPI object to complete.
+     * @param query AsyncApi object to complete.
      * @param callable CallableThread instance.
      */
     protected void executeAsync(AsyncApi query, Callable<AsyncApiResult> callable) {
@@ -102,7 +102,7 @@ public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<
 
     /**
      * Update Principal Name.
-     * @param query AsyncAPI object to complete.
+     * @param query AsyncApi object to complete.
      * @param requestScope RequestScope object.
      */
     protected void updatePrincipalName(AsyncApi query, RequestScope requestScope) {
@@ -114,7 +114,7 @@ public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<
 
     /**
      * Get Callable operation to submit.
-     * @param query AsyncAPI object to complete.
+     * @param query AsyncApi object to complete.
      * @param requestScope RequestScope object.
      * @return Callable initialized.
      */

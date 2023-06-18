@@ -41,11 +41,11 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
-public class AsyncAPICancelRunnableTest {
+public class AsyncApiCancelRunnableTest {
 
     private AsyncApiCancelRunnable cancelThread;
     private Elide elide;
-    private AsyncApiDao asyncAPIDao;
+    private AsyncApiDao asyncApiDao;
     private TransactionRegistry transactionRegistry;
 
     @BeforeEach
@@ -61,8 +61,8 @@ public class AsyncAPICancelRunnableTest {
                         .settings(JsonApiSettings.builder())
                         .build());
 
-        asyncAPIDao = mock(DefaultAsyncApiDao.class);
-        cancelThread = new AsyncApiCancelRunnable(Duration.ofSeconds(7), elide, asyncAPIDao);
+        asyncApiDao = mock(DefaultAsyncApiDao.class);
+        cancelThread = new AsyncApiCancelRunnable(Duration.ofSeconds(7), elide, asyncApiDao);
         transactionRegistry = elide.getTransactionRegistry();
 
     }
@@ -70,7 +70,7 @@ public class AsyncAPICancelRunnableTest {
     @Test
     public void testAsyncQueryCancelThreadSet() {
         assertEquals(elide, cancelThread.getElide());
-        assertEquals(asyncAPIDao, cancelThread.getAsyncAPIDao());
+        assertEquals(asyncApiDao, cancelThread.getAsyncApiDao());
         assertEquals(7, cancelThread.getQueryMaxRunTimeSeconds());
     }
 
@@ -85,12 +85,12 @@ public class AsyncAPICancelRunnableTest {
         Collection<AsyncApi> asyncCollection = new ArrayList<>();
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
-        when(cancelThread.getAsyncAPIDao().loadAsyncApiByFilter(any(), any())).thenReturn(asyncCollection);
-        cancelThread.cancelAsyncAPI(AsyncQuery.class);
+        when(cancelThread.getAsyncApiDao().loadAsyncApiByFilter(any(), any())).thenReturn(asyncCollection);
+        cancelThread.cancelAsyncApi(AsyncQuery.class);
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         ArgumentCaptor<QueryStatus> statusCaptor = ArgumentCaptor.forClass(QueryStatus.class);
-        verify(asyncAPIDao, times(1)).loadAsyncApiByFilter(any(), any());
-        verify(asyncAPIDao, times(1)).updateStatusAsyncApiByFilter(filterCaptor.capture(), statusCaptor.capture(), any());
+        verify(asyncApiDao, times(1)).loadAsyncApiByFilter(any(), any());
+        verify(asyncApiDao, times(1)).updateStatusAsyncApiByFilter(filterCaptor.capture(), statusCaptor.capture(), any());
         assertEquals("asyncQuery.id IN [[edc4a871-dff2-4054-804e-d80075cf828d]]", filterCaptor.getValue().toString());
         assertEquals("CANCEL_COMPLETE", statusCaptor.getValue().toString());
     }
@@ -111,12 +111,12 @@ public class AsyncAPICancelRunnableTest {
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
         asyncCollection.add(asyncQuery3);
-        when(cancelThread.getAsyncAPIDao().loadAsyncApiByFilter(any(), any())).thenReturn(asyncCollection);
-        cancelThread.cancelAsyncAPI(AsyncQuery.class);
+        when(cancelThread.getAsyncApiDao().loadAsyncApiByFilter(any(), any())).thenReturn(asyncCollection);
+        cancelThread.cancelAsyncApi(AsyncQuery.class);
         ArgumentCaptor<FilterExpression> fltStatusCaptor = ArgumentCaptor.forClass(FilterExpression.class);
-        verify(asyncAPIDao, times(1)).loadAsyncApiByFilter(fltStatusCaptor.capture(), any());
+        verify(asyncApiDao, times(1)).loadAsyncApiByFilter(fltStatusCaptor.capture(), any());
         assertEquals("asyncQuery.status IN [CANCELLED, PROCESSING, QUEUED]", fltStatusCaptor.getValue().toString());
-        verify(asyncAPIDao, times(1)).updateStatusAsyncApiByFilter(any(), any(), any());
+        verify(asyncApiDao, times(1)).updateStatusAsyncApiByFilter(any(), any(), any());
 
     }
 
@@ -135,11 +135,11 @@ public class AsyncAPICancelRunnableTest {
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
         asyncCollection.add(asyncQuery3);
-        when(cancelThread.getAsyncAPIDao().loadAsyncApiByFilter(any(), any())).thenReturn(asyncCollection);
-        cancelThread.cancelAsyncAPI(AsyncQuery.class);
+        when(cancelThread.getAsyncApiDao().loadAsyncApiByFilter(any(), any())).thenReturn(asyncCollection);
+        cancelThread.cancelAsyncApi(AsyncQuery.class);
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         ArgumentCaptor<QueryStatus> statusCaptor = ArgumentCaptor.forClass(QueryStatus.class);
-        verify(asyncAPIDao, times(1)).updateStatusAsyncApiByFilter(filterCaptor.capture(), statusCaptor.capture(), any());
+        verify(asyncApiDao, times(1)).updateStatusAsyncApiByFilter(filterCaptor.capture(), statusCaptor.capture(), any());
         assertEquals("asyncQuery.id IN [[edc4a871-dff2-4054-804e-d80075cf827d]]", filterCaptor.getValue().toString());
         assertEquals("CANCEL_COMPLETE", statusCaptor.getValue().toString());
 
