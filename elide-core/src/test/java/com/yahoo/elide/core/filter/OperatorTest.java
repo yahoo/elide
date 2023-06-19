@@ -295,6 +295,48 @@ public class OperatorTest {
     }
 
     @Test
+    public void memberOfNullTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        author.setName("AuthorForTest");
+
+        Book book = new Book();
+        book.setId(1L);
+        book.setLanguage("en");
+        author.getBooks().add(book);
+
+        // When language is not null
+        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "books.language"), Collections.singletonList(null), requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "books.language"), Collections.singletonList(null), requestScope);
+        assertTrue(fn.test(author));
+
+        // When language is null
+        book.setLanguage(null);
+        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "books.language"), Collections.singletonList(null), requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "books.language"), Collections.singletonList(null), requestScope);
+        assertFalse(fn.test(author));
+
+        // When any book language is null should still return true
+        Book book2 = new Book();
+        book2.setId(2L);
+        book2.setLanguage("de");
+        author.getBooks().add(book2);
+        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "books.language"), Collections.singletonList(null), requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "books.language"), Collections.singletonList(null), requestScope);
+        assertFalse(fn.test(author));
+
+        // When all book language is not null should return false
+        book.setLanguage("en");
+        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "books.language"), Collections.singletonList(null), requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "books.language"), Collections.singletonList(null), requestScope);
+        assertTrue(fn.test(author));
+    }
+
+    @Test
     public void prefixAndPostfixAndInfixTest() throws Exception {
         author = new Author();
         author.setId(1L);
