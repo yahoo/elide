@@ -26,4 +26,12 @@ class GraphQLSettingsBuilderCustomizersTest {
         assertEquals("hello", graphqlSettings.getPath());
         assertNotNull(graphqlSettings.getFilterDialect());
     }
+
+    @Test
+    void buildGraphQLSettingsBuilderNull() {
+        GraphQLSettings graphqlSettings = GraphQLSettingsBuilderCustomizers
+                .buildGraphQLSettingsBuilder(EntityDictionary.builder().build(), null).path("test").build();
+        assertEquals("test", graphqlSettings.getPath());
+        assertNotNull(graphqlSettings.getFilterDialect());
+    }
 }

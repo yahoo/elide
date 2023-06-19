@@ -76,4 +76,9 @@ class RouteTest {
     void toStringShouldEquals() {
         assertEquals(Route.builder().build().toString(), Route.builder().build().toString());
     }
+
+    @Test
+    void builderToStringShouldEquals() {
+        assertEquals(Route.builder().toString(), Route.builder().toString());
+    }
 }

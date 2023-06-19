@@ -7,12 +7,17 @@ package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 
 /**
  * Test for JsonApiSettings.
@@ -42,5 +47,47 @@ class JsonApiSettingsTest {
     @Test
     void updateStatus204() {
         assertEquals(204, JsonApiSettings.builder().updateStatus204().build().getUpdateStatusCode());
+    }
+
+    @Test
+    void joinFilterDialectsConsumer() {
+        JoinFilterDialect joinFilterDialect = new DefaultFilterDialect(EntityDictionary.builder().build());
+        JsonApiSettings jsonApiSettings = JsonApiSettings.builder().joinFilterDialect(joinFilterDialect)
+                .joinFilterDialects(joinFilterDialects -> {
+                    joinFilterDialects.add(joinFilterDialect);
+                }).build();
+        assertEquals(2, jsonApiSettings.getJoinFilterDialects().size());
+        assertSame(joinFilterDialect, jsonApiSettings.getJoinFilterDialects().get(0));
+        assertSame(joinFilterDialect, jsonApiSettings.getJoinFilterDialects().get(1));
+    }
+
+    @Test
+    void subqueryFilterDialectsConsumer() {
+        SubqueryFilterDialect subqueryFilterDialect = new DefaultFilterDialect(EntityDictionary.builder().build());
+        JsonApiSettings jsonApiSettings = JsonApiSettings.builder().subqueryFilterDialect(subqueryFilterDialect)
+                .subqueryFilterDialects(subqueryFilterDialects -> {
+                    subqueryFilterDialects.add(subqueryFilterDialect);
+                }).build();
+        assertEquals(2, jsonApiSettings.getSubqueryFilterDialects().size());
+        assertSame(subqueryFilterDialect, jsonApiSettings.getSubqueryFilterDialects().get(0));
+        assertSame(subqueryFilterDialect, jsonApiSettings.getSubqueryFilterDialects().get(1));
+    }
+
+    @Test
+    void joinFilterDialectsList() {
+        JoinFilterDialect joinFilterDialect = new DefaultFilterDialect(EntityDictionary.builder().build());
+        JsonApiSettings jsonApiSettings = JsonApiSettings.builder().joinFilterDialects(List.of(joinFilterDialect))
+                .build();
+        assertEquals(1, jsonApiSettings.getJoinFilterDialects().size());
+        assertSame(joinFilterDialect, jsonApiSettings.getJoinFilterDialects().get(0));
+    }
+
+    @Test
+    void subqueryFilterDialectsList() {
+        SubqueryFilterDialect subqueryFilterDialect = new DefaultFilterDialect(EntityDictionary.builder().build());
+        JsonApiSettings jsonApiSettings = JsonApiSettings.builder()
+                .subqueryFilterDialects(List.of(subqueryFilterDialect)).build();
+        assertEquals(1, jsonApiSettings.getSubqueryFilterDialects().size());
+        assertSame(subqueryFilterDialect, jsonApiSettings.getSubqueryFilterDialects().get(0));
     }
 }

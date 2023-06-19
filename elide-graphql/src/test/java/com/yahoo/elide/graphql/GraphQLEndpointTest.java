@@ -18,6 +18,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.toJson;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import example.models.versioned.BookV2;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -1062,6 +1064,22 @@ public class GraphQLEndpointTest {
 
         Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest, variables));
         assert200EqualBody(response, graphQLResponse);
+    }
+
+    @Test
+    public void testInvalidApiVersion() throws IOException {
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
+        entityDictionary.bindEntity(BookV2.class);
+        Elide elide = new Elide(
+                ElideSettings.builder().entityDictionary(entityDictionary).settings(GraphQLSettings.builder()).build());
+        GraphQLEndpoint graphqlEndpoint = new GraphQLEndpoint(elide, Optional.empty(), Optional.empty());
+        Response response = graphqlEndpoint.post("/v1", uriInfo, requestHeaders, user1, null);
+        Object entity = response.getEntity();
+        assertEquals(400, response.getStatus());
+        assertInstanceOf(String.class, entity);
+        if (entity instanceof String value) {
+            assertTrue(value.contains("Invalid API Version"));
+        }
     }
 
     private static String graphQLRequestToJSON(String request) {

@@ -19,6 +19,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
+import com.yahoo.elide.utils.HeaderProcessor;
 
 import org.junit.jupiter.api.Test;
 
@@ -79,5 +80,18 @@ class ElideSettingsTest {
             customizer.put(settingsBuilder.getClass(), settingsBuilder);
         });
         assertSame(settingsBuilder, elideSettingsBuilder.getSettings(settingsBuilder.getClass()));
+    }
+
+    @Test
+    void baseUrl() {
+        ElideSettings settings = ElideSettings.builder().baseUrl("baseUrl").build();
+        assertEquals("baseUrl", settings.getBaseUrl());
+    }
+
+    @Test
+    void headerProcessor() {
+        HeaderProcessor headerProcessor = mock(HeaderProcessor.class);
+        ElideSettings settings = ElideSettings.builder().headerProcessor(headerProcessor).build();
+        assertSame(headerProcessor, settings.getHeaderProcessor());
     }
 }
