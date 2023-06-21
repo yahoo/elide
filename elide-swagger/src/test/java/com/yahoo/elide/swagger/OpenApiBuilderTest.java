@@ -28,6 +28,7 @@ import com.yahoo.elide.swagger.models.media.Relationship;
 
 import example.models.Author;
 import example.models.Book;
+import example.models.Product;
 import example.models.Publisher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,7 @@ class OpenApiBuilderTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(Product.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
@@ -120,7 +122,10 @@ class OpenApiBuilderTest {
         assertTrue(openApi.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
         assertTrue(openApi.getPaths().containsKey("/book/{bookId}/relationships/publisher"));
 
-        assertEquals(16, openApi.getPaths().size());
+        assertTrue(openApi.getPaths().containsKey("/product"));
+        assertTrue(openApi.getPaths().containsKey("/product/{productId}"));
+
+        assertEquals(18, openApi.getPaths().size());
     }
 
     @Test
@@ -143,13 +148,22 @@ class OpenApiBuilderTest {
                 }
                 assertNotNull(path.getPatch());
             } else if (url.endsWith("Id}")) { //Instance URL
-                assertNotNull(path.getDelete());
+                if (url.contains("product")) {
+                    assertNull(path.getDelete()); // DeletePermission NONE
+                } else {
+                    assertNotNull(path.getDelete());
+                }
                 assertNotNull(path.getPatch());
                 assertNull(path.getPost());
             } else { //Collection URL
                 assertNull(path.getDelete());
                 assertNull(path.getPatch());
-                assertNotNull(path.getPost());
+
+                if (url.contains("product")) {
+                    assertNull(path.getPost()); // CreatePermission NONE
+                } else {
+                    assertNotNull(path.getPost());
+                }
             }
         });
     }
@@ -298,13 +312,21 @@ class OpenApiBuilderTest {
                 assertTrue(patchOperation.getResponses().containsKey("204"));
             } else if (url.endsWith("Id}")) { //Instance URL
                 Operation deleteOperation = path.getDelete();
-                assertTrue(deleteOperation.getResponses().containsKey("204"));
+                if (url.contains("product")) {
+                    assertNull(deleteOperation); // DeletePermission NONE
+                } else {
+                    assertTrue(deleteOperation.getResponses().containsKey("204"));
+                }
 
                 Operation patchOperation = path.getPatch();
                 assertTrue(patchOperation.getResponses().containsKey("204"));
             } else { //Collection URL
                 Operation postOperation = path.getPost();
-                assertTrue(postOperation.getResponses().containsKey("201"));
+                if (url.contains("product")) {
+                    assertNull(postOperation); // CreatePermission NONE
+                } else {
+                    assertTrue(postOperation.getResponses().containsKey("201"));
+                }
             }
         });
     }
@@ -474,7 +496,7 @@ class OpenApiBuilderTest {
     void testTagGeneration() throws Exception {
 
         /* Check for the global tag definitions */
-        assertEquals(3, openApi.getTags().size());
+        assertEquals(4, openApi.getTags().size());
 
         String bookTag = openApi.getTags().stream()
                 .filter((tag) -> tag.getName().equals("book"))
@@ -492,27 +514,27 @@ class OpenApiBuilderTest {
         /* For each operation, ensure its tagged with the root collection name */
         openApi.getPaths().forEach((url, path) -> {
             if (url.endsWith("relationships/books")) {
-                path.getGet().getTags().contains(bookTag);
-                path.getPost().getTags().contains(bookTag);
-                path.getDelete().getTags().contains(bookTag);
-                path.getPatch().getTags().contains(bookTag);
+                assertTrue(path.getGet().getTags().contains(bookTag));
+                assertTrue(path.getPost().getTags().contains(bookTag));
+                assertTrue(path.getDelete().getTags().contains(bookTag));
+                assertTrue(path.getPatch().getTags().contains(bookTag));
             } else if (url.endsWith("/books")) {
-                path.getGet().getTags().contains(bookTag);
-                path.getPost().getTags().contains(bookTag);
+                assertTrue(path.getGet().getTags().contains(bookTag));
+                assertTrue(path.getPost().getTags().contains(bookTag));
             } else if (url.endsWith("{bookId}")) {
-                path.getGet().getTags().contains(bookTag);
-                path.getPatch().getTags().contains(bookTag);
-                path.getDelete().getTags().contains(bookTag);
+                assertTrue(path.getGet().getTags().contains(bookTag));
+                assertTrue(path.getPatch().getTags().contains(bookTag));
+                assertTrue(path.getDelete().getTags().contains(bookTag));
             } else if (url.endsWith("relationships/publisher")) {
-                path.getGet().getTags().contains(publisherTag);
-                path.getPatch().getTags().contains(publisherTag);
+                assertTrue(path.getGet().getTags().contains(publisherTag.getName()));
+                assertTrue(path.getPatch().getTags().contains(publisherTag.getName()));
             } else if (url.endsWith("/publisher")) {
-                path.getGet().getTags().contains(publisherTag);
-                path.getPost().getTags().contains(publisherTag);
+                assertTrue(path.getGet().getTags().contains(publisherTag.getName()));
+                assertTrue(path.getPost().getTags().contains(publisherTag.getName()));
             } else if (url.endsWith("{publisherId}")) {
-                path.getGet().getTags().contains(publisherTag);
-                path.getPatch().getTags().contains(publisherTag);
-                path.getDelete().getTags().contains(publisherTag);
+                assertTrue(path.getGet().getTags().contains(publisherTag.getName()));
+                assertTrue(path.getPatch().getTags().contains(publisherTag.getName()));
+                assertTrue(path.getDelete().getTags().contains(publisherTag.getName()));
             }
         });
     }
