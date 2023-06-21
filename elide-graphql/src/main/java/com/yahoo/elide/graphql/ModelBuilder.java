@@ -12,8 +12,13 @@ import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
+import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.apollographql.federation.graphqljava.Federation;
@@ -24,6 +29,7 @@ import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
@@ -37,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,8 +65,7 @@ public class ModelBuilder {
     public static final String OBJECT_QUERY = "Query";
 
     private EntityDictionary entityDictionary;
-    private DataFetcher dataFetcher;
-    private GraphQLArgument relationshipOpArg;
+    private DataFetcher<?> dataFetcher;
     private GraphQLArgument idArgument;
     private GraphQLArgument filterArgument;
     private GraphQLArgument pageOffsetArgument;
@@ -76,6 +82,8 @@ public class ModelBuilder {
     private Set<Type<?>> excludedEntities;
     private Set<GraphQLObjectType> objectTypes;
 
+    private Map<Type<?>, GraphQLArgument> relationshipOpArgument;
+
     private boolean enableFederation;
 
     /**
@@ -87,7 +95,7 @@ public class ModelBuilder {
     public ModelBuilder(EntityDictionary entityDictionary,
                         NonEntityDictionary nonEntityDictionary,
                         ElideSettings settings,
-                        DataFetcher dataFetcher, String apiVersion) {
+                        DataFetcher<?> dataFetcher, String apiVersion) {
         objectTypes = new HashSet<>();
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
 
@@ -96,12 +104,6 @@ public class ModelBuilder {
         this.dataFetcher = dataFetcher;
         this.apiVersion = apiVersion;
         this.enableFederation = settings.isEnableGraphQLFederation();
-
-        relationshipOpArg = newArgument()
-                .name(ARGUMENT_OPERATION)
-                .type(generator.classToEnumType(ClassType.of(RelationshipOp.class)))
-                .defaultValue(RelationshipOp.FETCH)
-                .build();
 
         idArgument = newArgument()
                 .name(ARGUMENT_IDS)
@@ -150,10 +152,61 @@ public class ModelBuilder {
         queryObjectRegistry = new HashMap<>();
         connectionObjectRegistry = new HashMap<>();
         excludedEntities = new HashSet<>();
+        relationshipOpArgument = new HashMap<>();
     }
 
     public void withExcludedEntities(Set<Type<?>> excludedEntities) {
         this.excludedEntities = excludedEntities;
+    }
+
+    public GraphQLArgument getRelationshipOp(Type<?> clazz) {
+        GraphQLArgument existing = relationshipOpArgument.get(clazz);
+        if (existing != null) {
+            return existing;
+        }
+
+        String entityName = entityDictionary.getJsonAliasFor(clazz);
+        String postfix = entityName.substring(0, 1).toUpperCase(Locale.ENGLISH) + entityName.substring(1);
+        GraphQLEnumType relationshipOp = generator.buildClassToEnumType(ClassType.of(RelationshipOp.class),
+                name -> name + postfix, e -> {
+                    RelationshipOp op = RelationshipOp.valueOf(e.name());
+                    switch (op) {
+                    case FETCH:
+                        return canRead(clazz);
+                    case DELETE:
+                        return canDelete(clazz);
+                    case UPSERT:
+                        return canCreate(clazz) || canUpdate(clazz);
+                    case REPLACE:
+                        return canCreate(clazz) || canUpdate(clazz) || canDelete(clazz);
+                    case REMOVE:
+                        return canUpdate(clazz);
+                    case UPDATE:
+                        return canUpdate(clazz);
+                    }
+                    throw new IllegalArgumentException("Unsupported enum value " + e.toString());
+                });
+
+        Object defaultValue = null;
+        if (!relationshipOp.getValues().isEmpty()) {
+            if (relationshipOp.getValue(RelationshipOp.FETCH.name()) != null) {
+                defaultValue = relationshipOp.getValue(RelationshipOp.FETCH.name()).getValue();
+            } else {
+                defaultValue = null;
+            }
+        } else {
+            // No operations
+            return null;
+        }
+
+        GraphQLArgument result =  newArgument()
+                .name(ARGUMENT_OPERATION)
+                .type(relationshipOp)
+                .defaultValueProgrammatic(defaultValue)
+                .build();
+        relationshipOpArgument.put(clazz, result);
+        return result;
+
     }
 
     /**
@@ -178,18 +231,22 @@ public class ModelBuilder {
         GraphQLObjectType.Builder root = newObject().name(OBJECT_QUERY);
         for (Type<?> clazz : rootClasses) {
             String entityName = entityDictionary.getJsonAliasFor(clazz);
-            root.field(newFieldDefinition()
-                    .name(entityName)
-                    .description(EntityDictionary.getEntityDescription(clazz))
-                    .argument(relationshipOpArg)
-                    .argument(idArgument)
-                    .argument(filterArgument)
-                    .argument(sortArgument)
-                    .argument(pageFirstArgument)
-                    .argument(pageOffsetArgument)
-                    .argument(buildInputObjectArgument(clazz, true))
-                    .arguments(generator.entityArgumentToQueryObject(clazz, entityDictionary))
-                    .type(buildConnectionObject(clazz)));
+
+            GraphQLArgument relationshipOpArg = getRelationshipOp(clazz);
+            if (relationshipOpArg != null) {
+                root.field(newFieldDefinition()
+                        .name(entityName)
+                        .description(EntityDictionary.getEntityDescription(clazz))
+                        .argument(relationshipOpArg)
+                        .argument(idArgument)
+                        .argument(filterArgument)
+                        .argument(sortArgument)
+                        .argument(pageFirstArgument)
+                        .argument(pageOffsetArgument)
+                        .argument(buildInputObjectArgument(clazz, true))
+                        .arguments(generator.entityArgumentToQueryObject(clazz, entityDictionary))
+                        .type(buildConnectionObject(clazz)));
+            }
         }
 
 
@@ -318,28 +375,26 @@ public class ModelBuilder {
 
             String relationshipEntityName = nameUtils.toConnectionName(relationshipClass);
             RelationshipType type = entityDictionary.getRelationshipType(entityClass, relationship);
-
-            if (type.isToOne()) {
-                builder.field(newFieldDefinition()
-                                .name(relationship)
-                                .argument(relationshipOpArg)
-                                .argument(buildInputObjectArgument(relationshipClass, false))
-                                .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
-                                .type(new GraphQLTypeReference(relationshipEntityName))
-                );
-            } else {
-                builder.field(newFieldDefinition()
-                                .name(relationship)
-                                .argument(relationshipOpArg)
-                                .argument(filterArgument)
-                                .argument(sortArgument)
-                                .argument(pageOffsetArgument)
-                                .argument(pageFirstArgument)
-                                .argument(idArgument)
-                                .argument(buildInputObjectArgument(relationshipClass, true))
-                                .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
-                                .type(new GraphQLTypeReference(relationshipEntityName))
-                );
+            GraphQLArgument relationshipOpArg = getRelationshipOp(relationshipClass);
+            if (relationshipOpArg != null) {
+                if (type.isToOne()) {
+                    builder.field(newFieldDefinition().name(relationship)
+                            .argument(relationshipOpArg)
+                            .argument(buildInputObjectArgument(relationshipClass, false))
+                            .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
+                            .type(new GraphQLTypeReference(relationshipEntityName)));
+                } else {
+                    builder.field(newFieldDefinition().name(relationship)
+                            .argument(relationshipOpArg)
+                            .argument(filterArgument)
+                            .argument(sortArgument)
+                            .argument(pageOffsetArgument)
+                            .argument(pageFirstArgument)
+                            .argument(idArgument)
+                            .argument(buildInputObjectArgument(relationshipClass, true))
+                            .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
+                            .type(new GraphQLTypeReference(relationshipEntityName)));
+                }
             }
         }
 
@@ -448,5 +503,85 @@ public class ModelBuilder {
         GraphQLInputObjectType constructed = builder.build();
         inputObjectRegistry.put(clazz, constructed);
         return constructed;
+    }
+
+    protected boolean isNone(String permission) {
+        return "Prefab.Role.None".equalsIgnoreCase(permission) || Role.NONE_ROLE.equalsIgnoreCase(permission);
+    }
+
+    protected boolean canCreate(Type<?> type) {
+        return !isNone(getCreatePermission(type));
+    }
+
+    protected boolean canRead(Type<?> type) {
+        return !isNone(getReadPermission(type));
+    }
+
+    protected boolean canUpdate(Type<?> type) {
+        return !isNone(getUpdatePermission(type));
+    }
+
+    protected boolean canDelete(Type<?> type) {
+        return !isNone(getDeletePermission(type));
+    }
+
+    /**
+     * Get the calculated {@link CreatePermission} value for the entity.
+     *
+     * @param clazz the entity class
+     * @return the create permissions for an entity
+     */
+    protected String getCreatePermission(Type<?> clazz) {
+        CreatePermission classPermission = entityDictionary.getAnnotation(clazz, CreatePermission.class);
+
+        if (classPermission != null) {
+            return classPermission.expression();
+        }
+        return null;
+    }
+
+    /**
+     * Get the calculated {@link ReadPermission} value for the entity.
+     *
+     * @param clazz the entity class
+     * @return the read permissions for an entity
+     */
+    protected String getReadPermission(Type<?> clazz) {
+        ReadPermission classPermission = entityDictionary.getAnnotation(clazz, ReadPermission.class);
+
+        if (classPermission != null) {
+            return classPermission.expression();
+        }
+        return null;
+    }
+
+    /**
+     * Get the calculated {@link UpdatePermission} value for the entity.
+     *
+     * @param clazz the entity class
+     * @return the update permissions for an entity
+     */
+    protected String getUpdatePermission(Type<?> clazz) {
+        UpdatePermission classPermission = entityDictionary.getAnnotation(clazz, UpdatePermission.class);
+
+        if (classPermission != null) {
+            return classPermission.expression();
+        }
+        return null;
+    }
+
+    /**
+     * Get the calculated {@link DeletePermission} value for the entity.
+     *
+     * @param clazz the entity class
+     * @return the delete permissions for an entity
+     */
+    protected String getDeletePermission(Type<?> clazz) {
+        DeletePermission classPermission = entityDictionary.getAnnotation(clazz, DeletePermission.class);
+
+        if (classPermission != null) {
+            return classPermission.expression();
+        }
+        return null;
     }
 }

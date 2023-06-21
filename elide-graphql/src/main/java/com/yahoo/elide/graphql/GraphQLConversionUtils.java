@@ -41,6 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -133,19 +135,31 @@ public class GraphQLConversionUtils {
         if (enumConversions.containsKey(enumClazz)) {
             return enumConversions.get(enumClazz);
         }
+        GraphQLEnumType enumResult = buildClassToEnumType(enumClazz, Function.identity(), (value) -> true);
+        enumConversions.put(enumClazz, enumResult);
+        return enumResult;
+    }
 
-        Enum [] values = (Enum []) enumClazz.getEnumConstants();
+    /**
+     * Converts an enum to a GraphQLEnumType.
+     * @param enumClazz the Enum to convert
+     * @param nameProcessor the Enum to convert
+     * @param enumClazz the Enum to convert
+     * @return A GraphQLEnum type for class.
+     */
+    public GraphQLEnumType buildClassToEnumType(Type<?> enumClazz, Function<String, String> nameProcessor,
+            Predicate<Enum<?>> filter) {
+        Enum<?> [] values = (Enum []) enumClazz.getEnumConstants();
 
-        GraphQLEnumType.Builder builder = newEnum().name(nameUtils.toOutputTypeName(enumClazz));
+        GraphQLEnumType.Builder builder = newEnum().name(nameProcessor.apply(nameUtils.toOutputTypeName(enumClazz)));
 
-        for (Enum value : values) {
-            builder.value(value.toString(), value);
+        for (Enum<?> value : values) {
+            if (filter.test(value)) {
+                builder.value(value.toString(), value);
+            }
         }
 
         GraphQLEnumType enumResult = builder.build();
-
-        enumConversions.put(enumClazz, enumResult);
-
         return enumResult;
     }
 
