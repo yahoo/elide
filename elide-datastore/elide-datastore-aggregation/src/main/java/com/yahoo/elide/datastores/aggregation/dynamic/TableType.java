@@ -22,8 +22,12 @@ import static com.yahoo.elide.modelconfig.model.Type.MONEY;
 import static com.yahoo.elide.modelconfig.model.Type.TEXT;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
 
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Package;
@@ -392,7 +396,12 @@ public class TableType implements Type<DynamicModelInstance> {
                 return getArgumentDefinitions(table.getArguments());
             }
         });
+        putPermissionAnnotations(table, annotations);
+        return annotations;
+    }
 
+    private static void putPermissionAnnotations(Table table,
+            Map<Class<? extends Annotation>, Annotation> annotations) {
         String readPermission = table.getReadAccess();
         if (StringUtils.isNotEmpty(readPermission)) {
             annotations.put(ReadPermission.class, new ReadPermission() {
@@ -408,7 +417,45 @@ public class TableType implements Type<DynamicModelInstance> {
                 }
             });
         }
-        return annotations;
+
+        annotations.put(CreatePermission.class, new CreatePermission() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return CreatePermission.class;
+            }
+
+            @Override
+            public String expression() {
+                return Role.NONE_ROLE;
+            }
+        });
+
+        annotations.put(UpdatePermission.class, new UpdatePermission() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return UpdatePermission.class;
+            }
+
+            @Override
+            public String expression() {
+                return Role.NONE_ROLE;
+            }
+        });
+
+        annotations.put(DeletePermission.class, new DeletePermission() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return DeletePermission.class;
+            }
+
+            @Override
+            public String expression() {
+                return Role.NONE_ROLE;
+            }
+        });
     }
 
     private static ArgumentDefinition[] getArgumentDefinitions(List<Argument> arguments) {
