@@ -904,6 +904,20 @@ public class TableType implements Type<DynamicModelInstance> {
             }
         });
 
+        // This disables get by id
+        annotations.put(ReadPermission.class, new ReadPermission() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return ReadPermission.class;
+            }
+
+            @Override
+            public String expression() {
+                return Role.NONE_ROLE;
+            }
+        });
+
         return new FieldType("id", LONG_TYPE, annotations);
     }
 

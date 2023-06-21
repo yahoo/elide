@@ -388,20 +388,20 @@ public class OpenApiBuilder {
             parameters.add(getSparseFieldsParameter());
             getIncludeParameter().ifPresent(parameters::add);
 
-            if (canRead(type)) {
+            if (canReadById(type)) {
                 path.get(new Operation().tags(getTags()).description("Returns an instance of type " + typeName)
                         .parameters(parameters)
                         .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
             }
 
-            if (canUpdate(type)) {
+            if (canUpdateById(type)) {
                 path.patch(new Operation().tags(getTags()).description("Modifies an instance of type " + typeName)
                         .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
                                 new MediaType().schema(new Datum(typeName)))))
                         .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
             }
 
-            if (canDelete(type)) {
+            if (canDeleteById(type)) {
                 path.delete(new Operation().tags(getTags()).description("Deletes an instance of type " + typeName)
                         .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
             }
@@ -918,7 +918,7 @@ public class OpenApiBuilder {
     }
 
     protected boolean isNone(String permission) {
-        return "Prefab.Role.None".equals(permission) || Role.NONE_ROLE.equals(permission);
+        return "Prefab.Role.None".equalsIgnoreCase(permission) || Role.NONE_ROLE.equalsIgnoreCase(permission);
     }
 
     protected boolean canCreate(Type<?> type) {
@@ -935,6 +935,44 @@ public class OpenApiBuilder {
 
     protected boolean canDelete(Type<?> type) {
         return !isNone(getDeletePermission(type));
+    }
+
+    protected boolean canReadById(Type<?> type) {
+        ReadPermission classPermission = (ReadPermission) dictionary.getIdAnnotations(type)
+                .stream()
+                .filter(annotation -> annotation.annotationType().equals(ReadPermission.class))
+                .findFirst().orElse(null);
+        String expression = null;
+        if (classPermission != null) {
+            expression = classPermission.expression();
+        }
+        return !(isNone(getReadPermission(type)) || isNone(expression));
+    }
+
+    protected boolean canUpdateById(Type<?> type) {
+        UpdatePermission classPermission = (UpdatePermission) dictionary.getIdAnnotations(type)
+                .stream()
+                .filter(annotation -> annotation.annotationType().equals(UpdatePermission.class))
+                .findFirst().orElse(null);
+        String expression = null;
+        if (classPermission != null) {
+            expression = classPermission.expression();
+        }
+
+        return !(isNone(getUpdatePermission(type)) || isNone(expression));
+    }
+
+    protected boolean canDeleteById(Type<?> type) {
+        DeletePermission classPermission = (DeletePermission) dictionary.getIdAnnotations(type)
+                .stream()
+                .filter(annotation -> annotation.annotationType().equals(DeletePermission.class))
+                .findFirst().orElse(null);
+        String expression = null;
+        if (classPermission != null) {
+            expression = classPermission.expression();
+        }
+
+        return !(isNone(getDeletePermission(type)) || isNone(expression));
     }
 
     /**

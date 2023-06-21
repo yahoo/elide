@@ -1313,7 +1313,17 @@ public class EntityDictionary {
             return null;
         }
 
-        AccessibleObject idField = getEntityBinding(getType(value)).getIdField();
+        return getIdAnnotations(getType(value));
+    }
+
+    /**
+     * Returns annotations applied to the ID field.
+     *
+     * @param type the type
+     * @return Collection of Annotations
+     */
+    public Collection<Annotation> getIdAnnotations(Type<?> type) {
+        AccessibleObject idField = getEntityBinding(type).getIdField();
         if (idField != null) {
             return Arrays.asList(idField.getDeclaredAnnotations());
         }
