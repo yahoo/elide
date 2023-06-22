@@ -1332,6 +1332,24 @@ public class EntityDictionary {
     }
 
     /**
+     * Searches for a specific annotation on the ID field.
+     *
+     * @param <A> the annotation type to search for
+     * @param recordClass the record type
+     * @param annotationClass the annotation to search for
+     * @return
+     */
+    public <A extends Annotation> A getIdAnnotation(Type<?> recordClass, Class<A> annotationClass) {
+        Collection<Annotation> annotations = getIdAnnotations(recordClass);
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().equals(annotationClass)) {
+                return annotationClass.cast(annotation);
+            }
+        }
+        return null;
+    }
+
+    /**
      * Follow for this class or super-class for JPA {@link Entity} annotation.
      *
      * @param objClass provided class

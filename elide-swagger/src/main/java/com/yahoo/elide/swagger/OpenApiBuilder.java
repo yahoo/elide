@@ -938,10 +938,7 @@ public class OpenApiBuilder {
     }
 
     protected boolean canReadById(Type<?> type) {
-        ReadPermission classPermission = (ReadPermission) dictionary.getIdAnnotations(type)
-                .stream()
-                .filter(annotation -> annotation.annotationType().equals(ReadPermission.class))
-                .findFirst().orElse(null);
+        ReadPermission classPermission = dictionary.getIdAnnotation(type, ReadPermission.class);
         String expression = null;
         if (classPermission != null) {
             expression = classPermission.expression();
@@ -950,10 +947,7 @@ public class OpenApiBuilder {
     }
 
     protected boolean canUpdateById(Type<?> type) {
-        UpdatePermission classPermission = (UpdatePermission) dictionary.getIdAnnotations(type)
-                .stream()
-                .filter(annotation -> annotation.annotationType().equals(UpdatePermission.class))
-                .findFirst().orElse(null);
+        UpdatePermission classPermission = dictionary.getIdAnnotation(type, UpdatePermission.class);
         String expression = null;
         if (classPermission != null) {
             expression = classPermission.expression();
@@ -963,10 +957,7 @@ public class OpenApiBuilder {
     }
 
     protected boolean canDeleteById(Type<?> type) {
-        DeletePermission classPermission = (DeletePermission) dictionary.getIdAnnotations(type)
-                .stream()
-                .filter(annotation -> annotation.annotationType().equals(DeletePermission.class))
-                .findFirst().orElse(null);
+        DeletePermission classPermission = dictionary.getIdAnnotation(type, DeletePermission.class);
         String expression = null;
         if (classPermission != null) {
             expression = classPermission.expression();

@@ -12,7 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.EntityFieldType;
 import com.yahoo.elide.core.type.EntityMethodType;
@@ -732,6 +736,104 @@ class OpenApiBuilderTest {
         assertTrue(relationships.getRequired().contains("authors"));
     }
 
+    @Test
+    void testFilterCrud() {
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
+
+        entityDictionary.bindEntity(NoCreateEntity.class);
+        entityDictionary.bindEntity(NoReadEntity.class);
+        entityDictionary.bindEntity(NoUpdateEntity.class);
+        entityDictionary.bindEntity(NoDeleteEntity.class);
+        entityDictionary.bindEntity(NoReadIdEntity.class);
+        entityDictionary.bindEntity(NoUpdateIdEntity.class);
+        entityDictionary.bindEntity(NoDeleteIdEntity.class);
+        Info info = new Info().title("Test Service").version(NO_VERSION);
+
+        String noCreateEntityTag = "noCreateEntity";
+        String noReadEntityTag = "noReadEntity";
+        String noUpdateEntityTag = "noUpdateEntity";
+        String noDeleteEntityTag = "noDeleteEntity";
+        String noReadIdEntityTag = "noReadIdEntity";
+        String noUpdateIdEntityTag = "noUpdateIdEntity";
+        String noDeleteIdEntityTag = "noDeleteIdEntity";
+
+        OpenApiBuilder builder = new OpenApiBuilder(entityDictionary).apiVersion(info.getVersion());
+        OpenAPI testOpenApi = builder.build().info(info);
+        testOpenApi.getPaths().forEach((url, path) -> {
+            if (url.endsWith("noCreateEntity")) {
+                assertTrue(path.getGet().getTags().contains(noCreateEntityTag));
+                assertNull(path.getPost()); // no permission
+                assertNull(path.getDelete()); // collection endpoint
+                assertNull(path.getPatch()); // collection endpoint
+            } else if (url.endsWith("noCreateEntity/{noCreateEntityId}")) {
+                assertTrue(path.getGet().getTags().contains(noCreateEntityTag));
+                assertNull(path.getPost()); // id endpoint
+                assertTrue(path.getDelete().getTags().contains(noCreateEntityTag));
+                assertTrue(path.getPatch().getTags().contains(noCreateEntityTag));
+            } else if (url.endsWith("noReadEntity")) {
+                assertNull(path.getGet()); // no permission
+                assertTrue(path.getPost().getTags().contains(noReadEntityTag));
+                assertNull(path.getDelete()); // collection endpoint
+                assertNull(path.getPatch()); // collection endpoint
+            } else if (url.endsWith("noReadEntity/{noReadEntityId}")) {
+                assertNull(path.getGet()); // no permission
+                assertNull(path.getPost()); // id endpoint
+                assertTrue(path.getDelete().getTags().contains(noReadEntityTag));
+                assertTrue(path.getPatch().getTags().contains(noReadEntityTag));
+            } else if (url.endsWith("noUpdateEntity")) {
+                assertTrue(path.getGet().getTags().contains(noUpdateEntityTag));
+                assertTrue(path.getPost().getTags().contains(noUpdateEntityTag));
+                assertNull(path.getDelete()); // collection endpoint
+                assertNull(path.getPatch()); // collection endpoint
+            } else if (url.endsWith("noUpdateEntity/{noUpdateEntityId}")) {
+                assertTrue(path.getGet().getTags().contains(noUpdateEntityTag));
+                assertNull(path.getPost()); // id endpoint
+                assertTrue(path.getDelete().getTags().contains(noUpdateEntityTag));
+                assertNull(path.getPatch());
+            } else if (url.endsWith("noDeleteEntity")) {
+                assertTrue(path.getGet().getTags().contains(noDeleteEntityTag));
+                assertTrue(path.getPost().getTags().contains(noDeleteEntityTag));
+                assertNull(path.getDelete()); // collection endpoint
+                assertNull(path.getPatch()); // collection endpoint
+            } else if (url.endsWith("noDeleteEntity/{noDeleteEntityId}")) {
+                assertTrue(path.getGet().getTags().contains(noDeleteEntityTag));
+                assertNull(path.getPost()); // id endpoint
+                assertNull(path.getDelete()); // no permission;
+                assertTrue(path.getPatch().getTags().contains(noDeleteEntityTag));
+            } else if (url.endsWith("/noReadIdEntity")) {
+                assertTrue(path.getGet().getTags().contains(noReadIdEntityTag));
+                assertTrue(path.getPost().getTags().contains(noReadIdEntityTag));
+                assertNull(path.getDelete()); // collection endpoint
+                assertNull(path.getPatch()); // collection endpoint
+            } else if (url.endsWith("noReadIdEntity/{noReadIdEntityId}")) {
+                assertNull(path.getGet()); // no permission
+                assertNull(path.getPost()); // id endpoint
+                assertTrue(path.getDelete().getTags().contains(noReadIdEntityTag));
+                assertTrue(path.getPatch().getTags().contains(noReadIdEntityTag));
+            } else if (url.endsWith("/noUpdateIdEntity")) {
+                assertTrue(path.getGet().getTags().contains(noUpdateIdEntityTag));
+                assertTrue(path.getPost().getTags().contains(noUpdateIdEntityTag));
+                assertNull(path.getDelete()); // collection endpoint
+                assertNull(path.getPatch()); // collection endpoint
+            } else if (url.endsWith("noUpdateIdEntity/{noUpdateIdEntityId}")) {
+                assertTrue(path.getGet().getTags().contains(noUpdateIdEntityTag));
+                assertNull(path.getPost()); // id endpoint
+                assertTrue(path.getDelete().getTags().contains(noUpdateIdEntityTag));
+                assertNull(path.getPatch());
+            } else if (url.endsWith("/noDeleteIdEntity")) {
+                assertTrue(path.getGet().getTags().contains(noDeleteIdEntityTag));
+                assertTrue(path.getPost().getTags().contains(noDeleteIdEntityTag));
+                assertNull(path.getDelete()); // collection endpoint
+                assertNull(path.getPatch()); // collection endpoint
+            } else if (url.endsWith("noDeleteIdEntity/{noDeleteIdEntityId}")) {
+                assertTrue(path.getGet().getTags().contains(noDeleteIdEntityTag));
+                assertNull(path.getPost()); // id endpoint
+                assertNull(path.getDelete());
+                assertTrue(path.getPatch().getTags().contains(noDeleteIdEntityTag));
+            }
+        });
+    }
+
     /**
      * Verifies that the given property is of type 'Data' containing a reference to the given model.
      * @param content The content to check
@@ -932,5 +1034,54 @@ class OpenApiBuilderTest {
         public Optional<Class<Object>> getUnderlyingClass() {
             return Optional.empty();
         }
+    }
+
+    @Include
+    @CreatePermission(expression = "None")
+    public static class NoCreateEntity {
+        @Id
+        private Long id;
+    }
+
+    @Include
+    @ReadPermission(expression = "None")
+    public static class NoReadEntity {
+        @Id
+        private Long id;
+    }
+
+    @Include
+    @UpdatePermission(expression = "None")
+    public static class NoUpdateEntity {
+        @Id
+        private Long id;
+    }
+
+    @Include
+    @DeletePermission(expression = "None")
+    public static class NoDeleteEntity {
+        @Id
+        private Long id;
+    }
+
+    @Include
+    public static class NoReadIdEntity {
+        @Id
+        @ReadPermission(expression = "None")
+        private Long id;
+    }
+
+    @Include
+    public static class NoUpdateIdEntity {
+        @Id
+        @UpdatePermission(expression = "None")
+        private Long id;
+    }
+
+    @Include
+    public static class NoDeleteIdEntity {
+        @Id
+        @DeletePermission(expression = "None")
+        private Long id;
     }
 }

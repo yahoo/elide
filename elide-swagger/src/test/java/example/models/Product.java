@@ -11,11 +11,18 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 
 import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
 
+/**
+ * Product.
+ */
 @Entity
 @Include(friendlyName = "Product")
 @CreatePermission(expression = Role.NONE_ROLE)
 @DeletePermission(expression = Role.NONE_ROLE)
+@Getter
+@Setter
 public class Product {
     String id;
     String sku;
