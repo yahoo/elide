@@ -39,6 +39,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import graphql.Scalars;
 import graphql.scalars.java.JavaPrimitives;
 import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
@@ -112,6 +114,45 @@ public class ModelBuilderTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Address.class);
+    }
+
+    @Test
+    public void testFederationRootHasEntityKeyDirective() {
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        ElideSettings settings = ElideSettings.builder().entityDictionary(dictionary)
+                .settings(GraphQLSettingsBuilder.withDefaults(dictionary)
+                        .federation(federation -> federation.enabled(true)))
+                .build();
+        ModelBuilder builder = new ModelBuilder(dictionary,
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType internalBook = (GraphQLObjectType) schema.getType("ElideInternalBook");
+        assertNotNull(internalBook);
+        GraphQLDirective directive = internalBook.getDirective("key");
+        GraphQLArgument argument = directive.getArgument("fields");
+        assertNotNull(argument);
+    }
+
+    @Test
+    public void testFederationNonRootHasNoEntityKeyDirective() {
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        ElideSettings settings = ElideSettings.builder().entityDictionary(dictionary)
+                .settings(GraphQLSettingsBuilder.withDefaults(dictionary)
+                        .federation(federation -> federation.enabled(true)))
+                .build();
+        ModelBuilder builder = new ModelBuilder(dictionary,
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType publisher = (GraphQLObjectType) schema.getType("Publisher");
+        assertNotNull(publisher);
+        GraphQLDirective directive = publisher.getDirective("key");
+        assertNull(directive);
     }
 
     @Test

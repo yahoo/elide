@@ -22,6 +22,7 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.apollographql.federation.graphqljava.Federation;
+import com.apollographql.federation.graphqljava.FederationDirectives;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -40,6 +41,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
+import graphql.schema.TypeResolver;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -144,7 +146,7 @@ public class ModelBuilder {
                 .type(Scalars.GraphQLString)
                 .build();
 
-        pageInfoObject = newObject()
+        GraphQLObjectType.Builder pageInfoObjectBuilder = newObject()
                 .name(OBJECT_PAGE_INFO)
                 .field(newFieldDefinition()
                         .name("hasNextPage")
@@ -157,8 +159,8 @@ public class ModelBuilder {
                         .type(Scalars.GraphQLString))
                 .field(newFieldDefinition()
                         .name("totalRecords")
-                        .type(Scalars.GraphQLInt))
-                .build();
+                        .type(Scalars.GraphQLInt));
+        pageInfoObject = pageInfoObjectBuilder.build();
 
         objectTypes.add(pageInfoObject);
 
@@ -348,18 +350,27 @@ public class ModelBuilder {
         }
 
         /* Construct the schema */
-        GraphQLSchema schema = GraphQLSchema.newSchema()
+        GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema()
                 .query(queryRoot)
                 .mutation(mutationRoot)
                 .codeRegistry(codeRegistry.build())
                 .additionalTypes(new HashSet<>(CollectionUtils.union(
                                 connectionObjectRegistry.values(),
-                                inputObjectRegistry.values())))
-                .build();
+                                inputObjectRegistry.values())));
 
-        //Enable Apollo Federation
-        schema = (enableFederation) ? Federation.transform(schema).build() : schema;
-        return schema;
+        if (enableFederation) {
+            //Enable Apollo Federation
+            DataFetcher<?> entitiesDataFetcher = new EntitiesDataFetcher();
+            TypeResolver entityTypeResolver = new EntityTypeResolver(this.nameUtils);
+
+            schemaBuilder.additionalDirective(FederationDirectives.key);
+            return Federation.transform(schemaBuilder.build())
+                    .fetchEntities(entitiesDataFetcher)
+                    .resolveEntityType(entityTypeResolver)
+                    .build();
+        } else {
+            return schemaBuilder.build();
+        }
     }
 
     /**
@@ -414,6 +425,13 @@ public class ModelBuilder {
         builder.field(newFieldDefinition()
                 .name(id)
                 .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
+
+        if (this.enableFederation) {
+            if (entityDictionary.isRoot(entityClass)) {
+                // Add @key for root entities
+                builder.withDirective(FederationDirectives.key(id));
+            }
+        }
 
         for (String attribute : entityDictionary.getAttributes(entityClass)) {
             Type<?> attributeClass = entityDictionary.getType(entityClass, attribute);
