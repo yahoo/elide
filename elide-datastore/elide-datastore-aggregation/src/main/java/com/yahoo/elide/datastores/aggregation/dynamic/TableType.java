@@ -24,6 +24,7 @@ import static com.yahoo.elide.modelconfig.model.Type.TIME;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -905,16 +906,10 @@ public class TableType implements Type<DynamicModelInstance> {
         });
 
         // This disables get by id
-        annotations.put(ReadPermission.class, new ReadPermission() {
-
+        annotations.put(Exclude.class, new Exclude() {
             @Override
             public Class<? extends Annotation> annotationType() {
-                return ReadPermission.class;
-            }
-
-            @Override
-            public String expression() {
-                return Role.NONE_ROLE;
+                return Exclude.class;
             }
         });
 

@@ -10,6 +10,7 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -938,32 +939,18 @@ public class OpenApiBuilder {
     }
 
     protected boolean canReadById(Type<?> type) {
-        ReadPermission classPermission = dictionary.getIdAnnotation(type, ReadPermission.class);
-        String expression = null;
-        if (classPermission != null) {
-            expression = classPermission.expression();
-        }
-        return !(isNone(getReadPermission(type)) || isNone(expression));
+        boolean excluded = dictionary.getIdAnnotation(type, Exclude.class) != null;
+        return !(isNone(getReadPermission(type)) || excluded);
     }
 
     protected boolean canUpdateById(Type<?> type) {
-        UpdatePermission classPermission = dictionary.getIdAnnotation(type, UpdatePermission.class);
-        String expression = null;
-        if (classPermission != null) {
-            expression = classPermission.expression();
-        }
-
-        return !(isNone(getUpdatePermission(type)) || isNone(expression));
+        boolean excluded = dictionary.getIdAnnotation(type, Exclude.class) != null;
+        return !(isNone(getUpdatePermission(type)) || excluded);
     }
 
     protected boolean canDeleteById(Type<?> type) {
-        DeletePermission classPermission = dictionary.getIdAnnotation(type, DeletePermission.class);
-        String expression = null;
-        if (classPermission != null) {
-            expression = classPermission.expression();
-        }
-
-        return !(isNone(getDeletePermission(type)) || isNone(expression));
+        boolean excluded = dictionary.getIdAnnotation(type, Exclude.class) != null;
+        return !(isNone(getDeletePermission(type)) || excluded);
     }
 
     /**

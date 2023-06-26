@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -808,17 +809,17 @@ class OpenApiBuilderTest {
             } else if (url.endsWith("noReadIdEntity/{noReadIdEntityId}")) {
                 assertNull(path.getGet()); // no permission
                 assertNull(path.getPost()); // id endpoint
-                assertTrue(path.getDelete().getTags().contains(noReadIdEntityTag));
-                assertTrue(path.getPatch().getTags().contains(noReadIdEntityTag));
+                assertNull(path.getDelete());
+                assertNull(path.getPatch());
             } else if (url.endsWith("/noUpdateIdEntity")) {
                 assertTrue(path.getGet().getTags().contains(noUpdateIdEntityTag));
                 assertTrue(path.getPost().getTags().contains(noUpdateIdEntityTag));
                 assertNull(path.getDelete()); // collection endpoint
                 assertNull(path.getPatch()); // collection endpoint
             } else if (url.endsWith("noUpdateIdEntity/{noUpdateIdEntityId}")) {
-                assertTrue(path.getGet().getTags().contains(noUpdateIdEntityTag));
+                assertNull(path.getGet());
                 assertNull(path.getPost()); // id endpoint
-                assertTrue(path.getDelete().getTags().contains(noUpdateIdEntityTag));
+                assertNull(path.getDelete());
                 assertNull(path.getPatch());
             } else if (url.endsWith("/noDeleteIdEntity")) {
                 assertTrue(path.getGet().getTags().contains(noDeleteIdEntityTag));
@@ -826,10 +827,10 @@ class OpenApiBuilderTest {
                 assertNull(path.getDelete()); // collection endpoint
                 assertNull(path.getPatch()); // collection endpoint
             } else if (url.endsWith("noDeleteIdEntity/{noDeleteIdEntityId}")) {
-                assertTrue(path.getGet().getTags().contains(noDeleteIdEntityTag));
+                assertNull(path.getGet());
                 assertNull(path.getPost()); // id endpoint
                 assertNull(path.getDelete());
-                assertTrue(path.getPatch().getTags().contains(noDeleteIdEntityTag));
+                assertNull(path.getPatch());
             }
         });
     }
@@ -1067,21 +1068,21 @@ class OpenApiBuilderTest {
     @Include
     public static class NoReadIdEntity {
         @Id
-        @ReadPermission(expression = "None")
+        @Exclude
         private Long id;
     }
 
     @Include
     public static class NoUpdateIdEntity {
         @Id
-        @UpdatePermission(expression = "None")
+        @Exclude
         private Long id;
     }
 
     @Include
     public static class NoDeleteIdEntity {
         @Id
-        @DeletePermission(expression = "None")
+        @Exclude
         private Long id;
     }
 }
