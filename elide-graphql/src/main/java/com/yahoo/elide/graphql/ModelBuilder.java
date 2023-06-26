@@ -167,7 +167,7 @@ public class ModelBuilder {
 
         String entityName = entityDictionary.getJsonAliasFor(clazz);
         String postfix = entityName.substring(0, 1).toUpperCase(Locale.ENGLISH) + entityName.substring(1);
-        GraphQLEnumType relationshipOp = generator.buildClassToEnumType(ClassType.of(RelationshipOp.class),
+        GraphQLEnumType relationshipOp = generator.classToNamedEnumType(ClassType.of(RelationshipOp.class),
                 name -> name + postfix, e -> {
                     RelationshipOp op = RelationshipOp.valueOf(e.name());
                     switch (op) {
