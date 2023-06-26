@@ -174,7 +174,7 @@ public class ModelBuilder {
                     case FETCH:
                         return canRead(clazz);
                     case DELETE:
-                        return canDelete(clazz);
+                        return canUpdate(clazz);
                     case UPSERT:
                         return canCreate(clazz) || canUpdate(clazz);
                     case REPLACE:
