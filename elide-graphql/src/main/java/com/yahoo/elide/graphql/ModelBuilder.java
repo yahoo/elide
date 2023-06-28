@@ -21,8 +21,11 @@ import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.graphql.federation.EntitiesDataFetcher;
+import com.yahoo.elide.graphql.federation.EntityTypeResolver;
+import com.yahoo.elide.graphql.federation.FederationSchema;
+import com.yahoo.elide.graphql.federation.FederationVersion;
 import com.apollographql.federation.graphqljava.Federation;
-import com.apollographql.federation.graphqljava.FederationDirectives;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -51,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -91,6 +95,8 @@ public class ModelBuilder {
     private Map<RelationshipOpKey, GraphQLArgument> relationshipOpArgument;
 
     private boolean enableFederation;
+    private FederationVersion federationVersion;
+    private Optional<FederationSchema> federationSchema;
 
     @Builder
     @Data
@@ -120,7 +126,14 @@ public class ModelBuilder {
         GraphQLSettings graphQLSettings = settings.getSettings(GraphQLSettings.class);
 
         this.enableFederation = graphQLSettings.getFederation().isEnabled();
+        this.federationVersion = graphQLSettings.getFederation().getVersion();
 
+        if (this.enableFederation) {
+            this.federationSchema = Optional
+                    .of(FederationSchema.builder().version(federationVersion).imports("@key", "@shareable").build());
+        } else {
+            this.federationSchema = Optional.empty();
+        }
         idArgument = newArgument()
                 .name(ARGUMENT_IDS)
                 .type(new GraphQLList(Scalars.GraphQLString))
@@ -160,6 +173,7 @@ public class ModelBuilder {
                 .field(newFieldDefinition()
                         .name("totalRecords")
                         .type(Scalars.GraphQLInt));
+        federationSchema.ifPresent(schema -> schema.shareable().ifPresent(pageInfoObjectBuilder::withAppliedDirective));
         pageInfoObject = pageInfoObjectBuilder.build();
 
         objectTypes.add(pageInfoObject);
@@ -350,23 +364,21 @@ public class ModelBuilder {
         }
 
         /* Construct the schema */
-        GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema()
-                .query(queryRoot)
-                .mutation(mutationRoot)
-                .codeRegistry(codeRegistry.build())
-                .additionalTypes(new HashSet<>(CollectionUtils.union(
-                                connectionObjectRegistry.values(),
-                                inputObjectRegistry.values())));
+        GraphQLSchema.Builder schemaBuilder = federationSchema.isPresent()
+                ? GraphQLSchema.newSchema(federationSchema.get().getSchema())
+                : GraphQLSchema.newSchema();
+        schemaBuilder.query(queryRoot).mutation(mutationRoot).codeRegistry(codeRegistry.build()).additionalTypes(
+                new HashSet<>(CollectionUtils.union(connectionObjectRegistry.values(), inputObjectRegistry.values())));
 
         if (enableFederation) {
             //Enable Apollo Federation
             DataFetcher<?> entitiesDataFetcher = new EntitiesDataFetcher();
             TypeResolver entityTypeResolver = new EntityTypeResolver(this.nameUtils);
-
-            schemaBuilder.additionalDirective(FederationDirectives.key);
+            boolean federation2 = federationVersion.intValue() >= 20;
             return Federation.transform(schemaBuilder.build())
                     .fetchEntities(entitiesDataFetcher)
                     .resolveEntityType(entityTypeResolver)
+                    .setFederation2(federation2)
                     .build();
         } else {
             return schemaBuilder.build();
@@ -429,7 +441,7 @@ public class ModelBuilder {
         if (this.enableFederation) {
             if (entityDictionary.isRoot(entityClass)) {
                 // Add @key for root entities
-                builder.withDirective(FederationDirectives.key(id));
+                federationSchema.map(schema -> schema.key(id)).ifPresent(builder::withAppliedDirective);
             }
         }
 

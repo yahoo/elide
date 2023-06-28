@@ -11,6 +11,7 @@ import com.yahoo.elide.core.exceptions.BasicExceptionMappers;
 import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
+import com.yahoo.elide.graphql.federation.FederationVersion;
 
 import lombok.Getter;
 
@@ -26,9 +27,11 @@ public class GraphQLSettings implements Settings {
     @Getter
     public static class Federation {
         private final boolean enabled;
+        private final FederationVersion version;
 
-        public Federation(boolean enabled) {
+        public Federation(boolean enabled, FederationVersion version) {
             this.enabled = enabled;
+            this.version = version;
         }
 
         public static FederationBuilder builder() {
@@ -37,14 +40,24 @@ public class GraphQLSettings implements Settings {
 
         public static class FederationBuilder {
             private boolean enabled = false;
+            private FederationVersion version = FederationVersion.FEDERATION_1_0;
 
             public FederationBuilder enabled(boolean enabled) {
                 this.enabled = enabled;
                 return this;
             }
 
+            public FederationBuilder version(FederationVersion version) {
+                this.version = version;
+                return this;
+            }
+
+            public FederationBuilder version(String version) {
+                return version(FederationVersion.from(version));
+            }
+
             public Federation build() {
-                return new Federation(this.enabled);
+                return new Federation(this.enabled, this.version);
             }
         }
     }
@@ -74,7 +87,8 @@ public class GraphQLSettings implements Settings {
                 .enabled(this.enabled)
                 .path(this.path)
                 .filterDialect(this.filterDialect)
-                .federation(newFederation -> newFederation.enabled(this.getFederation().isEnabled()))
+                .federation(newFederation -> newFederation.enabled(this.getFederation().isEnabled())
+                        .version(this.getFederation().getVersion()))
                 .graphqlExceptionHandler(this.graphqlExceptionHandler);
     }
 
