@@ -22,6 +22,7 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.apollographql.federation.graphqljava.Federation;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
 
 import graphql.Scalars;
@@ -39,8 +40,11 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -82,9 +86,16 @@ public class ModelBuilder {
     private Set<Type<?>> excludedEntities;
     private Set<GraphQLObjectType> objectTypes;
 
-    private Map<Type<?>, GraphQLArgument> relationshipOpArgument;
+    private Map<RelationshipOpKey, GraphQLArgument> relationshipOpArgument;
 
     private boolean enableFederation;
+
+    @Builder
+    @Data
+    public static class RelationshipOpKey {
+        private final Type<?> entity;
+        private final String field;
+    }
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
@@ -159,34 +170,96 @@ public class ModelBuilder {
         this.excludedEntities = excludedEntities;
     }
 
-    public GraphQLArgument getRelationshipOp(Type<?> clazz) {
-        GraphQLArgument existing = relationshipOpArgument.get(clazz);
+    /**
+     * Gets the relationship op for a root entity.
+     *
+     * @param entityClass the entity class
+     * @return the relationship op
+     */
+    public GraphQLArgument getRelationshipOp(Type<?> entityClass) {
+        RelationshipOpKey key = RelationshipOpKey.builder().entity(entityClass).build();
+        GraphQLArgument existing = relationshipOpArgument.get(key);
         if (existing != null) {
             return existing;
         }
 
-        String entityName = entityDictionary.getJsonAliasFor(clazz);
+        String entityName = entityDictionary.getJsonAliasFor(entityClass);
         String postfix = entityName.substring(0, 1).toUpperCase(Locale.ENGLISH) + entityName.substring(1);
         GraphQLEnumType relationshipOp = generator.classToNamedEnumType(ClassType.of(RelationshipOp.class),
                 name -> name + postfix, e -> {
                     RelationshipOp op = RelationshipOp.valueOf(e.name());
                     switch (op) {
                     case FETCH:
-                        return canRead(clazz);
+                        return canRead(entityClass);
                     case DELETE:
-                        return canUpdate(clazz);
+                        return canDelete(entityClass);
                     case UPSERT:
-                        return canCreate(clazz) || canUpdate(clazz);
+                        return canCreate(entityClass);
                     case REPLACE:
-                        return canCreate(clazz) || canUpdate(clazz) || canDelete(clazz);
+                        return canCreate(entityClass) || canUpdate(entityClass) || canDelete(entityClass);
                     case REMOVE:
-                        return canUpdate(clazz);
+                        return canDelete(entityClass);
                     case UPDATE:
-                        return canUpdate(clazz);
+                        return canUpdate(entityClass);
                     }
                     throw new IllegalArgumentException("Unsupported enum value " + e.toString());
                 });
 
+        GraphQLArgument result = buildRelationshipOpArgument(relationshipOp);
+        relationshipOpArgument.put(key, result);
+        return result;
+    }
+
+    /**
+     * Gets the relationship op for a relationship.
+     *
+     * @param entityClass the entity class
+     * @param field the field
+     * @param relationshipClass the relationship class
+     * @return the relationship op
+     */
+    public GraphQLArgument getRelationshipOp(Type<?> entityClass, String field, Type<?> relationshipClass) {
+        RelationshipOpKey key = RelationshipOpKey.builder().entity(entityClass).field(field).build();
+        GraphQLArgument existing = relationshipOpArgument.get(key);
+        if (existing != null) {
+            return existing;
+        }
+
+        String entityName = entityDictionary.getJsonAliasFor(entityClass);
+        String postfix = entityName.substring(0, 1).toUpperCase(Locale.ENGLISH) + entityName.substring(1)
+                + field.substring(0, 1).toUpperCase(Locale.ENGLISH) + field.substring(1);
+        GraphQLEnumType relationshipOp = generator.classToNamedEnumType(ClassType.of(RelationshipOp.class),
+                name -> name + postfix, e -> {
+                    RelationshipOp op = RelationshipOp.valueOf(e.name());
+                    switch (op) {
+                    case FETCH:
+                        return canRead(entityClass, field);
+                    case DELETE:
+                        return canDelete(relationshipClass);
+                    case UPSERT:
+                        return canUpdate(entityClass, field);
+                    case REPLACE:
+                        return canUpdate(entityClass, field);
+                    case REMOVE:
+                        return canUpdate(entityClass, field);
+                    case UPDATE:
+                        return canUpdate(entityClass, field);
+                    }
+                    throw new IllegalArgumentException("Unsupported enum value " + e.toString());
+                });
+
+        GraphQLArgument result = buildRelationshipOpArgument(relationshipOp);
+        relationshipOpArgument.put(key, result);
+        return result;
+    }
+
+    /**
+     * Builds the relationship op argument given the relationship op enum.
+     *
+     * @param relationshipOp the relationship op enum
+     * @return the argument
+     */
+    private GraphQLArgument buildRelationshipOpArgument(GraphQLEnumType relationshipOp) {
         Object defaultValue = null;
         if (!relationshipOp.getValues().isEmpty()) {
             if (relationshipOp.getValue(RelationshipOp.FETCH.name()) != null) {
@@ -199,15 +272,13 @@ public class ModelBuilder {
             return null;
         }
 
-        GraphQLArgument result =  newArgument()
+        return newArgument()
                 .name(ARGUMENT_OPERATION)
                 .type(relationshipOp)
                 .defaultValueProgrammatic(defaultValue)
                 .build();
-        relationshipOpArgument.put(clazz, result);
-        return result;
-
     }
+
 
     /**
      * Builds a GraphQL schema.
@@ -375,7 +446,7 @@ public class ModelBuilder {
 
             String relationshipEntityName = nameUtils.toConnectionName(relationshipClass);
             RelationshipType type = entityDictionary.getRelationshipType(entityClass, relationship);
-            GraphQLArgument relationshipOpArg = getRelationshipOp(relationshipClass);
+            GraphQLArgument relationshipOpArg = getRelationshipOp(entityClass, relationship, relationshipClass);
             if (relationshipOpArg != null) {
                 if (type.isToOne()) {
                     builder.field(newFieldDefinition().name(relationship)
@@ -525,6 +596,22 @@ public class ModelBuilder {
         return !isNone(getDeletePermission(type));
     }
 
+    protected boolean canCreate(Type<?> type, String field) {
+        return !isNone(getCreatePermission(type, field));
+    }
+
+    protected boolean canRead(Type<?> type, String field) {
+        return !isNone(getReadPermission(type, field));
+    }
+
+    protected boolean canUpdate(Type<?> type, String field) {
+        return !isNone(getUpdatePermission(type, field));
+    }
+
+    protected boolean canDelete(Type<?> type, String field) {
+        return !isNone(getDeletePermission(type, field));
+    }
+
     /**
      * Get the calculated {@link CreatePermission} value for the entity.
      *
@@ -532,12 +619,7 @@ public class ModelBuilder {
      * @return the create permissions for an entity
      */
     protected String getCreatePermission(Type<?> clazz) {
-        CreatePermission classPermission = entityDictionary.getAnnotation(clazz, CreatePermission.class);
-
-        if (classPermission != null) {
-            return classPermission.expression();
-        }
-        return null;
+        return getPermission(clazz, CreatePermission.class);
     }
 
     /**
@@ -547,12 +629,7 @@ public class ModelBuilder {
      * @return the read permissions for an entity
      */
     protected String getReadPermission(Type<?> clazz) {
-        ReadPermission classPermission = entityDictionary.getAnnotation(clazz, ReadPermission.class);
-
-        if (classPermission != null) {
-            return classPermission.expression();
-        }
-        return null;
+        return getPermission(clazz, ReadPermission.class);
     }
 
     /**
@@ -562,12 +639,7 @@ public class ModelBuilder {
      * @return the update permissions for an entity
      */
     protected String getUpdatePermission(Type<?> clazz) {
-        UpdatePermission classPermission = entityDictionary.getAnnotation(clazz, UpdatePermission.class);
-
-        if (classPermission != null) {
-            return classPermission.expression();
-        }
-        return null;
+        return getPermission(clazz, UpdatePermission.class);
     }
 
     /**
@@ -577,10 +649,65 @@ public class ModelBuilder {
      * @return the delete permissions for an entity
      */
     protected String getDeletePermission(Type<?> clazz) {
-        DeletePermission classPermission = entityDictionary.getAnnotation(clazz, DeletePermission.class);
+        return getPermission(clazz, DeletePermission.class);
+    }
 
-        if (classPermission != null) {
-            return classPermission.expression();
+    /**
+     * Get the calculated {@link CreatePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the create permissions for the relationship
+     */
+    protected String getCreatePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, CreatePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link ReadPermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the read permissions for the relationship
+     */
+    protected String getReadPermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, ReadPermission.class);
+    }
+
+    /**
+     * Get the calculated {@link UpdatePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the update permissions for the relationship
+     */
+    protected String getUpdatePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, UpdatePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link DeletePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the delete permissions for the relationship
+     */
+    protected String getDeletePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, DeletePermission.class);
+    }
+
+    protected String getPermission(Type<?> clazz, Class<? extends Annotation> permission) {
+        ParseTree parseTree = entityDictionary.getPermissionsForClass(clazz, permission);
+        if (parseTree != null) {
+            return parseTree.getText();
+        }
+        return null;
+    }
+
+    protected String getPermission(Type<?> clazz, String field, Class<? extends Annotation> permission) {
+        ParseTree parseTree = entityDictionary.getPermissionsForField(clazz, field, permission);
+        if (parseTree != null) {
+            return parseTree.getText();
         }
         return null;
     }

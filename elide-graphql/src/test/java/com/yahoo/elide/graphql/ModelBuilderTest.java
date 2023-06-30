@@ -47,6 +47,8 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -340,9 +342,12 @@ public class ModelBuilderTest {
 
     @Include
     @DeletePermission(expression = "None")
+    @Getter
     public static class NoDeleteEntity {
         @Id
         private Long id;
+
+        private String name;
     }
 
     @Include
@@ -372,25 +377,26 @@ public class ModelBuilderTest {
         private Long id;
     }
 
-    enum RelationshipOpInput {
+    enum EntityRelationshipOpInput {
         NO_CREATE(NoCreateEntity.class,
                 List.of(RelationshipOp.DELETE, RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
-                        RelationshipOp.UPSERT, RelationshipOp.FETCH),
-                List.of()),
+                        RelationshipOp.FETCH),
+                List.of(RelationshipOp.UPSERT)),
         NO_READ(NoReadEntity.class,
                 List.of(RelationshipOp.DELETE, RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
                         RelationshipOp.UPSERT),
                 List.of(RelationshipOp.FETCH)),
         NO_UPDATE(NoUpdateEntity.class,
-                List.of(RelationshipOp.FETCH, RelationshipOp.UPSERT, RelationshipOp.REPLACE),
-                List.of(RelationshipOp.DELETE, RelationshipOp.REMOVE, RelationshipOp.UPDATE)),
+                List.of(RelationshipOp.FETCH, RelationshipOp.UPSERT, RelationshipOp.REPLACE, RelationshipOp.DELETE,
+                        RelationshipOp.REMOVE),
+                List.of(RelationshipOp.UPDATE)),
         NO_DELETE(NoDeleteEntity.class,
-                List.of(RelationshipOp.FETCH, RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
-                        RelationshipOp.UPSERT, RelationshipOp.DELETE),
-                List.of()),
+                List.of(RelationshipOp.FETCH, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
+                        RelationshipOp.UPSERT),
+                List.of(RelationshipOp.REMOVE, RelationshipOp.DELETE)),
         NO_UPSERT(NoUpsertEntity.class,
-                List.of(RelationshipOp.FETCH, RelationshipOp.REPLACE),
-                List.of(RelationshipOp.DELETE, RelationshipOp.REMOVE, RelationshipOp.UPDATE, RelationshipOp.UPSERT)),
+                List.of(RelationshipOp.FETCH, RelationshipOp.REPLACE, RelationshipOp.DELETE, RelationshipOp.REMOVE),
+                List.of(RelationshipOp.UPDATE, RelationshipOp.UPSERT)),
         NO_REPLACE(NoReplaceEntity.class,
                 List.of(RelationshipOp.FETCH),
                 List.of(RelationshipOp.REMOVE, RelationshipOp.UPDATE, RelationshipOp.UPSERT, RelationshipOp.DELETE,
@@ -399,7 +405,7 @@ public class ModelBuilderTest {
                 List.of(),
                 List.of(RelationshipOp.FETCH, RelationshipOp.DELETE, RelationshipOp.REMOVE, RelationshipOp.REPLACE,
                         RelationshipOp.UPDATE, RelationshipOp.UPSERT)),;        ;
-        RelationshipOpInput(Class<?> entity, List<RelationshipOp> includes, List<RelationshipOp> excludes) {
+        EntityRelationshipOpInput(Class<?> entity, List<RelationshipOp> includes, List<RelationshipOp> excludes) {
             this.entity = entity;
             this.includes = includes;
             this.excludes = excludes;
@@ -411,8 +417,8 @@ public class ModelBuilderTest {
     }
 
     @ParameterizedTest
-    @EnumSource(RelationshipOpInput.class)
-    void relationshipOp(RelationshipOpInput input) {
+    @EnumSource(EntityRelationshipOpInput.class)
+    void entityRelationshipOp(EntityRelationshipOpInput input) {
         DataFetcher<?> fetcher = mock(DataFetcher.class);
         ElideSettings settings = mock(ElideSettings.class);
         EntityDictionary dictionary = EntityDictionary.builder().build();
@@ -424,6 +430,105 @@ public class ModelBuilderTest {
 
         GraphQLSchema schema = builder.build();
         String type = "ElideRelationshipOp" + input.entity.getSimpleName();
+        if (schema.getType(type) instanceof GraphQLEnumType enumType) {
+            for (RelationshipOp include : input.includes) {
+                assertNotNull(enumType.getValue(include.name()));
+            }
+            for (RelationshipOp exclude : input.excludes) {
+                assertNull(enumType.getValue(exclude.name()));
+            }
+
+        }
+    }
+
+    @Include
+    @Getter
+    public static class RelatedEntity {
+        @Id
+        private Long id;
+
+        private String name;
+    }
+
+    @Include
+    @Getter
+    public static class RelationshipEntity {
+        @Id
+        private Long id;
+
+        @ReadPermission(expression = "None")
+        @OneToMany
+        private List<RelatedEntity> noFetch;
+
+        @OneToMany
+        private List<NoDeleteEntity> noDelete;
+
+        @UpdatePermission(expression = "None")
+        @OneToMany
+        private List<RelatedEntity> noRemove;
+
+        @UpdatePermission(expression = "None")
+        @OneToMany
+        private List<RelatedEntity> noReplace;
+
+        @UpdatePermission(expression = "None")
+        @OneToMany
+        private List<RelatedEntity> noUpdate;
+    }
+
+    enum RelationshipOpInput {
+        NO_FETCH("RelationshipEntityNoFetch",
+                List.of(RelationshipOp.DELETE, RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
+                        RelationshipOp.UPSERT),
+                List.of(RelationshipOp.FETCH)),
+        NO_REMOVE("RelationshipEntityNoRemove",
+                List.of(RelationshipOp.FETCH, RelationshipOp.DELETE),
+                List.of(RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
+                        RelationshipOp.UPSERT)),
+        NO_UPSERT("RelationshipEntityNoUpsert",
+                List.of(RelationshipOp.FETCH, RelationshipOp.DELETE),
+                List.of(RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
+                        RelationshipOp.UPSERT)),
+        NO_REPLACE("RelationshipEntityNoReplace",
+                List.of(RelationshipOp.FETCH, RelationshipOp.DELETE),
+                List.of(RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
+                        RelationshipOp.UPSERT)),
+        NO_UPDATE("RelationshipEntityNoUpdate",
+                List.of(RelationshipOp.FETCH, RelationshipOp.DELETE),
+                List.of(RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
+                        RelationshipOp.UPSERT)),
+        NO_DELETE("RelationshipEntityNoDelete",
+                List.of(RelationshipOp.FETCH, RelationshipOp.REMOVE, RelationshipOp.REPLACE, RelationshipOp.UPDATE,
+                        RelationshipOp.UPSERT),
+                List.of(RelationshipOp.DELETE))
+        ;
+
+        RelationshipOpInput(String name, List<RelationshipOp> includes, List<RelationshipOp> excludes) {
+            this.name = name;
+            this.includes = includes;
+            this.excludes = excludes;
+        }
+
+        String name;
+        List<RelationshipOp> includes;
+        List<RelationshipOp> excludes;
+    }
+
+    @ParameterizedTest
+    @EnumSource(RelationshipOpInput.class)
+    void relationshipOp(RelationshipOpInput input) {
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        ElideSettings settings = mock(ElideSettings.class);
+        EntityDictionary dictionary = EntityDictionary.builder().build();
+        dictionary.bindEntity(RelationshipEntity.class);
+        dictionary.bindEntity(RelatedEntity.class);
+        dictionary.bindEntity(NoDeleteEntity.class);
+        ModelBuilder builder = new ModelBuilder(dictionary,
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+        String type = "ElideRelationshipOp" + input.name;
         if (schema.getType(type) instanceof GraphQLEnumType enumType) {
             for (RelationshipOp include : input.includes) {
                 assertNotNull(enumType.getValue(include.name()));
