@@ -48,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -366,15 +367,21 @@ public class QueryRunner {
                     && ValidationErrorType.WrongType.equals(validationError.getValidationErrorType())) {
                 if (validationError.getDescription().contains("ElideRelationshipOp")) {
                     String queryPath = String.join(" ", validationError.getQueryPath());
-                    result.add(ValidationError.newValidationError()
-                            .description(
-                                    "Invalid operation: " + queryPath + " is read only.")
-                            .extensions(validationError.getExtensions())
-                            .validationErrorType(validationError.getValidationErrorType())
-                            .sourceLocations(validationError.getLocations())
-                            .queryPath(validationError.getQueryPath())
-                            .build());
-                    continue;
+                    RelationshipOp relationshipOp = Arrays.stream(RelationshipOp.values())
+                            .filter(op -> validationError.getDescription().contains(op.name()))
+                            .findFirst()
+                            .orElse(null);
+                    if (relationshipOp != null) {
+                        result.add(ValidationError.newValidationError()
+                                .description("Invalid operation: " + relationshipOp.name() + " is not permitted on "
+                                        + queryPath + ".")
+                                .extensions(validationError.getExtensions())
+                                .validationErrorType(validationError.getValidationErrorType())
+                                .sourceLocations(validationError.getLocations())
+                                .queryPath(validationError.getQueryPath())
+                                .build());
+                        continue;
+                    }
                 }
             }
             result.add(error);
