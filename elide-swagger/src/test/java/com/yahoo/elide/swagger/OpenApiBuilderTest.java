@@ -53,6 +53,9 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.tags.Tag;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import lombok.Getter;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -738,7 +741,7 @@ class OpenApiBuilderTest {
     }
 
     @Test
-    void testFilterCrud() {
+    void testEntityFilterCrud() {
         EntityDictionary entityDictionary = EntityDictionary.builder().build();
 
         entityDictionary.bindEntity(NoCreateEntity.class);
@@ -831,6 +834,85 @@ class OpenApiBuilderTest {
                 assertNull(path.getPost()); // id endpoint
                 assertNull(path.getDelete());
                 assertNull(path.getPatch());
+            }
+        });
+    }
+
+    @Test
+    void testRelationshipFilterCrud() {
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
+
+        entityDictionary.bindEntity(RelatedEntity.class);
+        entityDictionary.bindEntity(RelationshipEntity.class);
+        entityDictionary.bindEntity(NoReadEntity.class);
+        entityDictionary.bindEntity(NoCreateEntity.class);
+        Info info = new Info().title("Test Service").version(NO_VERSION);
+
+        String relatedEntityTag = "relatedEntity";
+        String noReadEntityTag = "noReadEntity";
+        String noCreateEntityTag = "noCreateEntity";
+
+        OpenApiBuilder builder = new OpenApiBuilder(entityDictionary).apiVersion(info.getVersion());
+        OpenAPI testOpenApi = builder.build().info(info);
+        testOpenApi.getPaths().forEach((url, path) -> {
+            if (url.endsWith("relationshipEntity/{relationshipEntityId}/relationships/tomanynoupdate")) {
+                assertTrue(path.getGet().getTags().contains(relatedEntityTag));
+                assertNull(path.getPost());
+                assertNull(path.getDelete());
+                assertNull(path.getPatch());
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/relationships/toonenoupdate")) {
+                assertTrue(path.getGet().getTags().contains(relatedEntityTag));
+                assertNull(path.getPost());
+                assertNull(path.getDelete());
+                assertNull(path.getPatch());
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/relationships/tomanynoread")) {
+                assertNull(path.getGet());
+                assertTrue(path.getPost().getTags().contains(relatedEntityTag));
+                assertTrue(path.getDelete().getTags().contains(relatedEntityTag));
+                assertTrue(path.getPatch().getTags().contains(relatedEntityTag));
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/relationships/toonenoread")) {
+                assertNull(path.getGet());
+                assertNull(path.getPost());
+                assertNull(path.getDelete());
+                assertTrue(path.getPatch().getTags().contains(relatedEntityTag));
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/tomanynoupdate/{relatedEntityId}")) {
+                assertTrue(path.getGet().getTags().contains(relatedEntityTag));
+                assertNull(path.getPost());
+                assertNull(path.getDelete());
+                assertNull(path.getPatch());
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/toonenoupdate/{relatedEntityId}")) {
+                assertTrue(path.getGet().getTags().contains(relatedEntityTag));
+                assertNull(path.getPost());
+                assertNull(path.getDelete());
+                assertNull(path.getPatch());
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/tomanynoread/{relatedEntityId}")) {
+                assertNull(path.getGet());
+                assertNull(path.getPost());
+                assertTrue(path.getDelete().getTags().contains(relatedEntityTag));
+                assertTrue(path.getPatch().getTags().contains(relatedEntityTag));
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/toonenoread/{relatedEntityId}")) {
+                assertNull(path.getGet());
+                assertNull(path.getPost());
+                assertTrue(path.getDelete().getTags().contains(relatedEntityTag));
+                assertTrue(path.getPatch().getTags().contains(relatedEntityTag));
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/tomanynoupdate")) {
+                assertTrue(path.getGet().getTags().contains(relatedEntityTag));
+                assertNull(path.getPost());
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/toonenoupdate")) {
+                assertTrue(path.getGet().getTags().contains(relatedEntityTag));
+                assertNull(path.getPost());
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/tomanynoread")) {
+                assertNull(path.getGet());
+                assertTrue(path.getPost().getTags().contains(relatedEntityTag));
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/toonenoread")) {
+                assertNull(path.getGet());
+                assertTrue(path.getPost().getTags().contains(relatedEntityTag));
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/collectionenoread")) {
+                assertNull(path.getGet());
+                assertTrue(path.getPost().getTags().contains(noReadEntityTag));
+            } else if (url.endsWith("relationshipEntity/{relationshipEntityId}/collectionnocreate")) {
+                assertTrue(path.getGet().getTags().contains(noCreateEntityTag));
+                assertNull(path.getPost());
             }
         });
     }
@@ -1084,5 +1166,44 @@ class OpenApiBuilderTest {
         @Id
         @Exclude
         private Long id;
+    }
+
+    @Include
+    @Getter
+    public static class RelatedEntity {
+        @Id
+        private Long id;
+
+        private String name;
+    }
+
+    @Include
+    @Getter
+    public static class RelationshipEntity {
+        @Id
+        private Long id;
+
+        @OneToMany
+        @UpdatePermission(expression = "None")
+        private List<RelatedEntity> tomanynoupdate;
+
+        @ManyToOne
+        @UpdatePermission(expression = "None")
+        private RelatedEntity toonenoupdate;
+
+        @OneToMany
+        @ReadPermission(expression = "None")
+        private List<RelatedEntity> tomanynoread;
+
+        @ManyToOne
+        @ReadPermission(expression = "None")
+        private RelatedEntity toonenoread;
+
+        @OneToMany
+        private List<NoReadEntity> collectionnoread;
+
+        @OneToMany
+        private List<NoCreateEntity> collectionnocreate;
+
     }
 }

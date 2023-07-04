@@ -25,6 +25,8 @@ import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.google.common.collect.Sets;
 
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverterContextImpl;
@@ -48,6 +50,7 @@ import io.swagger.v3.oas.models.tags.Tag;
 
 import lombok.Getter;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -254,27 +257,23 @@ public class OpenApiBuilder {
             RelationshipType relationshipType = dictionary.getRelationshipType(parentClass, name);
 
             if (relationshipType.isToMany()) {
-                if (canCreate(type)) {
-                    path.post(new Operation().tags(getTags()).description("Adds items to the relationship " + name)
-                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                    new MediaType().schema(new Data(new Relationship(typeName))))))
-                            .responses(new ApiResponses().addApiResponse("201", okPluralResponse)));
-                }
-
-                if (canRead(type)) {
+                if (canRead(parentClass, name) && canRead(type)) {
                     path.get(new Operation().tags(getTags())
                             .description("Returns the relationship identifiers for " + name)
                             .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
                 }
 
-                if (canUpdate(type)) {
+                if (canUpdate(parentClass, name)) {
+                    path.post(new Operation().tags(getTags()).description("Adds items to the relationship " + name)
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                    new MediaType().schema(new Data(new Relationship(typeName))))))
+                            .responses(new ApiResponses().addApiResponse("201", okPluralResponse)));
+
                     path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
                             .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
                                     new MediaType().schema(new Data(new Relationship(typeName))))))
                             .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
-                }
 
-                if (canDelete(type)) {
                     path.delete(new Operation().tags(getTags())
                             .description("Deletes items from the relationship " + name)
                             .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
@@ -282,13 +281,13 @@ public class OpenApiBuilder {
                             .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
                 }
             } else {
-                if (canRead(type)) {
+                if (canRead(parentClass, name) && canRead(type)) {
                     path.get(new Operation().tags(getTags())
                             .description("Returns the relationship identifiers for " + name)
                             .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
                 }
 
-                if (canUpdate(type)) {
+                if (canUpdate(parentClass, name)) {
                     path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
                             .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
                                     new MediaType().schema(new Datum(new Relationship(typeName))))))
@@ -296,12 +295,14 @@ public class OpenApiBuilder {
                 }
             }
 
-            for (Parameter param : getFilterParameters()) {
-                path.getGet().addParametersItem(param);
-            }
+            if (path.getGet() != null) {
+                for (Parameter param : getFilterParameters()) {
+                    path.getGet().addParametersItem(param);
+                }
 
-            for (Parameter param : getPageParameters()) {
-                path.getGet().addParametersItem(param);
+                for (Parameter param : getPageParameters()) {
+                    path.getGet().addParametersItem(param);
+                }
             }
 
             decorateGlobalResponses(path);
@@ -329,12 +330,21 @@ public class OpenApiBuilder {
 
             String getDescription;
             String postDescription;
+            boolean canPost = false;
+            boolean canGet = false;
             if (lineage.isEmpty()) {
                 getDescription = "Returns the collection of type " + typeName;
                 postDescription = "Creates an item of type " + typeName;
+
+                canGet = canRead(type);
+                canPost = canCreate(type);
             } else {
                 getDescription = "Returns the relationship " + name;
                 postDescription = "Creates an item of type " + typeName + " and adds it to " + name;
+
+                Type<?> parentClass = lineage.peek().getType();
+                canGet = canRead(parentClass, name) && canRead(type);
+                canPost = canUpdate(parentClass, name) && canCreate(type);
             }
 
             List<Parameter> parameters = new ArrayList<>();
@@ -342,14 +352,14 @@ public class OpenApiBuilder {
             parameters.add(getSparseFieldsParameter());
             getIncludeParameter().ifPresent(parameters::add);
 
-            if (canCreate(type)) {
+            if (canPost) {
                 path.post(new Operation().tags(getTags()).description(postDescription)
                         .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
                                 new MediaType().schema(new Datum(typeName)))))
                         .responses(new ApiResponses().addApiResponse("201", okSingularResponse)));
             }
 
-            if (canRead(type)) {
+            if (canGet) {
                 path.get(new Operation().tags(getTags()).description(getDescription).parameters(parameters)
                         .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
 
@@ -389,20 +399,37 @@ public class OpenApiBuilder {
             parameters.add(getSparseFieldsParameter());
             getIncludeParameter().ifPresent(parameters::add);
 
-            if (canReadById(type)) {
+            boolean canGet = false;
+            boolean canPatch = false;
+            boolean canDelete = false;
+
+            if (lineage.isEmpty()) {
+                // Root entity
+                canGet = canReadById(type);
+                canPatch = canUpdateById(type);
+                canDelete = canDeleteById(type);
+            } else {
+                // Relationship
+                Type<?> parentClass = lineage.peek().getType();
+                canGet = canRead(parentClass, name) && canReadById(type);
+                canPatch = canUpdate(parentClass, name);
+                canDelete = canUpdate(parentClass, name);
+            }
+
+            if (canGet) {
                 path.get(new Operation().tags(getTags()).description("Returns an instance of type " + typeName)
                         .parameters(parameters)
                         .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
             }
 
-            if (canUpdateById(type)) {
+            if (canPatch) {
                 path.patch(new Operation().tags(getTags()).description("Modifies an instance of type " + typeName)
                         .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
                                 new MediaType().schema(new Datum(typeName)))))
                         .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
             }
 
-            if (canDeleteById(type)) {
+            if (canDelete) {
                 path.delete(new Operation().tags(getTags()).description("Deletes an instance of type " + typeName)
                         .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
             }
@@ -953,6 +980,22 @@ public class OpenApiBuilder {
         return !(isNone(getDeletePermission(type)) || excluded);
     }
 
+    protected boolean canCreate(Type<?> type, String field) {
+        return !isNone(getCreatePermission(type, field));
+    }
+
+    protected boolean canRead(Type<?> type, String field) {
+        return !isNone(getReadPermission(type, field));
+    }
+
+    protected boolean canUpdate(Type<?> type, String field) {
+        return !isNone(getUpdatePermission(type, field));
+    }
+
+    protected boolean canDelete(Type<?> type, String field) {
+        return !isNone(getDeletePermission(type, field));
+    }
+
     /**
      * Get the calculated {@link CreatePermission} value for the entity.
      *
@@ -960,12 +1003,7 @@ public class OpenApiBuilder {
      * @return the create permissions for an entity
      */
     protected String getCreatePermission(Type<?> clazz) {
-        CreatePermission classPermission = dictionary.getAnnotation(clazz, CreatePermission.class);
-
-        if (classPermission != null) {
-            return classPermission.expression();
-        }
-        return null;
+        return getPermission(clazz, CreatePermission.class);
     }
 
     /**
@@ -975,12 +1013,7 @@ public class OpenApiBuilder {
      * @return the read permissions for an entity
      */
     protected String getReadPermission(Type<?> clazz) {
-        ReadPermission classPermission = dictionary.getAnnotation(clazz, ReadPermission.class);
-
-        if (classPermission != null) {
-            return classPermission.expression();
-        }
-        return null;
+        return getPermission(clazz, ReadPermission.class);
     }
 
     /**
@@ -990,12 +1023,7 @@ public class OpenApiBuilder {
      * @return the update permissions for an entity
      */
     protected String getUpdatePermission(Type<?> clazz) {
-        UpdatePermission classPermission = dictionary.getAnnotation(clazz, UpdatePermission.class);
-
-        if (classPermission != null) {
-            return classPermission.expression();
-        }
-        return null;
+        return getPermission(clazz, UpdatePermission.class);
     }
 
     /**
@@ -1005,10 +1033,65 @@ public class OpenApiBuilder {
      * @return the delete permissions for an entity
      */
     protected String getDeletePermission(Type<?> clazz) {
-        DeletePermission classPermission = dictionary.getAnnotation(clazz, DeletePermission.class);
+        return getPermission(clazz, DeletePermission.class);
+    }
 
-        if (classPermission != null) {
-            return classPermission.expression();
+    /**
+     * Get the calculated {@link CreatePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the create permissions for the relationship
+     */
+    protected String getCreatePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, CreatePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link ReadPermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the read permissions for the relationship
+     */
+    protected String getReadPermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, ReadPermission.class);
+    }
+
+    /**
+     * Get the calculated {@link UpdatePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the update permissions for the relationship
+     */
+    protected String getUpdatePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, UpdatePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link DeletePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the delete permissions for the relationship
+     */
+    protected String getDeletePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, DeletePermission.class);
+    }
+
+    protected String getPermission(Type<?> clazz, Class<? extends Annotation> permission) {
+        ParseTree parseTree = dictionary.getPermissionsForClass(clazz, permission);
+        if (parseTree != null) {
+            return parseTree.getText();
+        }
+        return null;
+    }
+
+    protected String getPermission(Type<?> clazz, String field, Class<? extends Annotation> permission) {
+        ParseTree parseTree = dictionary.getPermissionsForField(clazz, field, permission);
+        if (parseTree != null) {
+            return parseTree.getText();
         }
         return null;
     }
