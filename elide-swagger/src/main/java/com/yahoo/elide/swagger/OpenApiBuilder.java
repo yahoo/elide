@@ -8,11 +8,7 @@ package com.yahoo.elide.swagger;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
@@ -49,6 +45,7 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.tags.Tag;
 
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
@@ -624,7 +621,7 @@ public class OpenApiBuilder {
          * @return is shorter or same
          */
         public boolean shorterThan(PathMetaData compare) {
-            return (compare.getUrl().startsWith(url));
+            return url.split("/").length < compare.getUrl().split("/").length;
         }
 
         @Override
@@ -835,12 +832,11 @@ public class OpenApiBuilder {
         Set<PathMetaData> toRemove = new HashSet<>();
 
         pathData.stream()
-                .collect(Collectors.groupingBy(PathMetaData::getRootType))
+                .collect(Collectors.groupingBy(p -> Pair.of(p.getType(), p.getName())))
                 .values()
                 .forEach(pathSet -> {
                     for (PathMetaData path : pathSet) {
                         for (PathMetaData compare : pathSet) {
-
                             /*
                              * We don't prune paths that are redundant with root collections to allow both BOTH
                              * root collection urls as well as relationship urls.
@@ -848,6 +844,10 @@ public class OpenApiBuilder {
                             if (compare.lineage.isEmpty() || path == compare) {
                                 continue;
                             }
+
+                            /*
+                             * Find the unique shortest path to the node.
+                             */
                             if (compare.shorterThan(path)) {
                                 toRemove.add(path);
                                 break;

@@ -6,10 +6,10 @@
 package example.models;
 
 import com.yahoo.elide.annotation.Include;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
 import java.util.Set;
@@ -27,6 +27,11 @@ public class Author {
 
     @OneToMany
     public Set<Book> getBooks() {
+        return null;
+    }
+
+    @ManyToOne
+    public Agent getAgent() {
         return null;
     }
 
