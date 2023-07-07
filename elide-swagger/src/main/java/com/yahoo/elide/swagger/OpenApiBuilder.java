@@ -8,7 +8,7 @@ package com.yahoo.elide.swagger;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.core.Path;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
@@ -20,6 +20,7 @@ import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.Pair;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -45,7 +46,6 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.tags.Tag;
 
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
