@@ -1313,12 +1313,40 @@ public class EntityDictionary {
             return null;
         }
 
-        AccessibleObject idField = getEntityBinding(getType(value)).getIdField();
+        return getIdAnnotations(getType(value));
+    }
+
+    /**
+     * Returns annotations applied to the ID field.
+     *
+     * @param type the type
+     * @return Collection of Annotations
+     */
+    public Collection<Annotation> getIdAnnotations(Type<?> type) {
+        AccessibleObject idField = getEntityBinding(type).getIdField();
         if (idField != null) {
             return Arrays.asList(idField.getDeclaredAnnotations());
         }
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Searches for a specific annotation on the ID field.
+     *
+     * @param <A> the annotation type to search for
+     * @param recordClass the record type
+     * @param annotationClass the annotation to search for
+     * @return
+     */
+    public <A extends Annotation> A getIdAnnotation(Type<?> recordClass, Class<A> annotationClass) {
+        Collection<Annotation> annotations = getIdAnnotations(recordClass);
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().equals(annotationClass)) {
+                return annotationClass.cast(annotation);
+            }
+        }
+        return null;
     }
 
     /**
