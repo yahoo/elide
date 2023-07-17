@@ -25,7 +25,6 @@ import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.tuple.Pair;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.tuple.Pair;
