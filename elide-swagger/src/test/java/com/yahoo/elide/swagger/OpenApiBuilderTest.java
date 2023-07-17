@@ -516,7 +516,7 @@ class OpenApiBuilderTest {
     void testTagGeneration() throws Exception {
 
         /* Check for the global tag definitions */
-        assertEquals(4, openApi.getTags().size());
+        assertEquals(5, openApi.getTags().size());
 
         String bookTag = openApi.getTags().stream()
                 .filter((tag) -> tag.getName().equals("book"))
