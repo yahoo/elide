@@ -31,6 +31,7 @@ import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
 
+import example.models.Agent;
 import example.models.Author;
 import example.models.Book;
 import example.models.Product;
@@ -86,6 +87,7 @@ class OpenApiBuilderTest {
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
+        dictionary.bindEntity(Agent.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Product.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);
@@ -119,12 +121,20 @@ class OpenApiBuilderTest {
         assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
         assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/relationships/exclusiveAuthors"));
 
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/agent"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/agent/{agentId}"));
+        assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/relationships/agent"));
+
         assertTrue(openApi.getPaths().containsKey("/book"));
         assertTrue(openApi.getPaths().containsKey("/book/{bookId}"));
 
         assertTrue(openApi.getPaths().containsKey("/book/{bookId}/authors"));
         assertTrue(openApi.getPaths().containsKey("/book/{bookId}/authors/{authorId}"));
         assertTrue(openApi.getPaths().containsKey("/book/{bookId}/relationships/authors"));
+
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/authors/{authorId}/agent"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/authors/{authorId}/agent/{agentId}"));
+        assertTrue(openApi.getPaths().containsKey("/book/{bookId}/authors/{authorId}/relationships/agent"));
 
         assertTrue(openApi.getPaths().containsKey("/book/{bookId}/publisher"));
         assertTrue(openApi.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
@@ -133,7 +143,7 @@ class OpenApiBuilderTest {
         assertTrue(openApi.getPaths().containsKey("/product"));
         assertTrue(openApi.getPaths().containsKey("/product/{productId}"));
 
-        assertEquals(18, openApi.getPaths().size());
+        assertEquals(24, openApi.getPaths().size());
     }
 
     @Test
@@ -147,7 +157,9 @@ class OpenApiBuilderTest {
             if (url.contains("relationship")) { //Relationship URL
 
                 /* The relationship is a one to one (so there is no DELETE op */
-                if ("/book/{bookId}/relationships/publisher".equals(url)) {
+                if ("/book/{bookId}/relationships/publisher".equals(url)
+                        || "/book/{bookId}/authors/{authorId}/relationships/agent".equals(url)
+                        || "/publisher/{publisherId}/exclusiveAuthors/{authorId}/relationships/agent".equals(url)) {
                     assertNull(path.getDelete());
                     assertNull(path.getPost());
                 } else {
@@ -504,7 +516,7 @@ class OpenApiBuilderTest {
     void testTagGeneration() throws Exception {
 
         /* Check for the global tag definitions */
-        assertEquals(4, openApi.getTags().size());
+        assertEquals(5, openApi.getTags().size());
 
         String bookTag = openApi.getTags().stream()
                 .filter((tag) -> tag.getName().equals("book"))

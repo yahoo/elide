@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
@@ -26,6 +27,7 @@ import com.yahoo.elide.swagger.models.media.Relationship;
 import com.google.common.collect.Sets;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.lang3.tuple.Pair;
 
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
@@ -624,7 +626,7 @@ public class OpenApiBuilder {
          * @return is shorter or same
          */
         public boolean shorterThan(PathMetaData compare) {
-            return (compare.getUrl().startsWith(url));
+            return url.split("/").length < compare.getUrl().split("/").length;
         }
 
         @Override
@@ -835,12 +837,11 @@ public class OpenApiBuilder {
         Set<PathMetaData> toRemove = new HashSet<>();
 
         pathData.stream()
-                .collect(Collectors.groupingBy(PathMetaData::getRootType))
+                .collect(Collectors.groupingBy(p -> Pair.of(p.getType(), p.getName())))
                 .values()
                 .forEach(pathSet -> {
                     for (PathMetaData path : pathSet) {
                         for (PathMetaData compare : pathSet) {
-
                             /*
                              * We don't prune paths that are redundant with root collections to allow both BOTH
                              * root collection urls as well as relationship urls.
@@ -848,6 +849,10 @@ public class OpenApiBuilder {
                             if (compare.lineage.isEmpty() || path == compare) {
                                 continue;
                             }
+
+                            /*
+                             * Find the unique shortest path to the node.
+                             */
                             if (compare.shorterThan(path)) {
                                 toRemove.add(path);
                                 break;
