@@ -15,7 +15,7 @@ import java.util.Date;
  */
 @MappedSuperclass
 @Data
-public abstract class AsyncAPIResult {
+public abstract class AsyncApiResult {
 
     private Integer recordCount;
 

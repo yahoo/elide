@@ -12,7 +12,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
+import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
@@ -42,7 +42,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
                 .withErrorMapper(getErrorMapper())
                 .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
+                .withJsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl))
                 .withBaseUrl("https://elide.io")
                 .withAuditLogger(getAuditLogger())
                 .withVerboseErrors()

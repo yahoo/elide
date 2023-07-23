@@ -129,7 +129,7 @@ public class SubscriptionWebSocket {
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
         for (String apiVersion : dictionary.getApiVersions()) {
             NonEntityDictionary nonEntityDictionary =
-                    new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
+                    new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup);
 
             SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary,
                     new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
