@@ -20,7 +20,7 @@ import java.util.TimeZone;
 public class Publisher {
 
     /* Tests an inner class */
-    public class Address {
+    public static class Address {
         public String street;
         public String city;
         public String state;

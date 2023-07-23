@@ -36,8 +36,8 @@ public class SkipOptimizerTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         MetaDataStore metaDataStore = new MetaDataStore(
-                DefaultClassScanner.getInstance(),
-                getClassType(DefaultClassScanner.getInstance().getAnnotatedClasses("example",
+                new DefaultClassScanner(),
+                getClassType(new DefaultClassScanner().getAnnotatedClasses("example",
                         Include.class)),
                 false);
 

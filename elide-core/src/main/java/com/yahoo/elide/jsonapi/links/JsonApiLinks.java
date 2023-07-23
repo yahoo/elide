@@ -9,7 +9,7 @@ import com.yahoo.elide.core.PersistentResource;
 
 import java.util.Map;
 
-public interface JSONApiLinks {
+public interface JsonApiLinks {
     /**
      * Links to be used in the Respose Entity.
      * @param resource

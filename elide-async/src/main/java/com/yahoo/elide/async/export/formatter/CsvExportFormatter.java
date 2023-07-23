@@ -23,14 +23,14 @@ import java.util.stream.Collectors;
  * JSON output format implementation.
  */
 @Slf4j
-public class CSVExportFormatter implements TableExportFormatter {
+public class CsvExportFormatter implements TableExportFormatter {
     private static final String COMMA = ",";
     private static final String DOUBLE_QUOTES = "\"";
 
     private boolean writeHeader = true;
     private ObjectMapper mapper;
 
-    public CSVExportFormatter(Elide elide, boolean writeHeader) {
+    public CsvExportFormatter(Elide elide, boolean writeHeader) {
         this.writeHeader = writeHeader;
         this.mapper = elide.getMapper().getObjectMapper();
     }
@@ -46,7 +46,7 @@ public class CSVExportFormatter implements TableExportFormatter {
         List<Object[]> json2Csv;
 
         try {
-            String jsonStr = JSONExportFormatter.resourceToJSON(mapper, resource);
+            String jsonStr = JsonExportFormatter.resourceToJSON(mapper, resource);
 
             JFlat flat = new JFlat(jsonStr);
 

@@ -6,9 +6,9 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.thread.AsyncAPICancelRunnable;
-import com.yahoo.elide.async.service.thread.AsyncAPICleanerRunnable;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.yahoo.elide.async.service.thread.AsyncApiCancelRunnable;
+import com.yahoo.elide.async.service.thread.AsyncApiCleanerRunnable;
 
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -34,14 +34,14 @@ public class AsyncCleanerService {
 
     @Inject
     private AsyncCleanerService(Elide elide, Duration queryMaxRunTime, Duration queryRetentionDuration,
-            Duration queryCancellationCheckInterval, AsyncAPIDAO asyncQueryDao) {
+            Duration queryCancellationCheckInterval, AsyncApiDao asyncQueryDao) {
 
         //If query is still running for twice than maxRunTime, then interrupt did not work due to host/app crash.
         Duration queryRunTimeThreshold = Duration.ofSeconds(queryMaxRunTime.getSeconds() * 2 + 30L);
 
         // Setting up query cleaner that marks long running query as TIMEDOUT.
         ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
-        AsyncAPICleanerRunnable cleanUpTask = new AsyncAPICleanerRunnable(
+        AsyncApiCleanerRunnable cleanUpTask = new AsyncApiCleanerRunnable(
                 queryRunTimeThreshold, elide, queryRetentionDuration, asyncQueryDao,
                 Clock.systemUTC());
 
@@ -61,7 +61,7 @@ public class AsyncCleanerService {
         //Setting up query cancel service that cancels long running queries based on status or runtime
         ScheduledExecutorService cancellation = Executors.newSingleThreadScheduledExecutor();
 
-        AsyncAPICancelRunnable cancelTask = new AsyncAPICancelRunnable(queryMaxRunTime,
+        AsyncApiCancelRunnable cancelTask = new AsyncApiCancelRunnable(queryMaxRunTime,
                 elide, asyncQueryDao);
 
         cancellation.scheduleWithFixedDelay(cancelTask, 0, queryCancellationCheckInterval.toSeconds(),
@@ -78,7 +78,7 @@ public class AsyncCleanerService {
      * @param asyncQueryDao DAO Object
      */
     public static void init(Elide elide, Duration queryMaxRunTime, Duration queryRetentionDuration,
-            Duration queryCancellationCheckInterval, AsyncAPIDAO asyncQueryDao) {
+            Duration queryCancellationCheckInterval, AsyncApiDao asyncQueryDao) {
         if (asyncCleanerService == null) {
             asyncCleanerService = new AsyncCleanerService(elide, queryMaxRunTime, queryRetentionDuration,
                     queryCancellationCheckInterval, asyncQueryDao);

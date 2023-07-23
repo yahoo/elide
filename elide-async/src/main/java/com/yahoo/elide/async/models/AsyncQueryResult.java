@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
 @Embeddable
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AsyncQueryResult extends AsyncAPIResult {
+public class AsyncQueryResult extends AsyncApiResult {
     private Integer contentLength;
 
     @Lob

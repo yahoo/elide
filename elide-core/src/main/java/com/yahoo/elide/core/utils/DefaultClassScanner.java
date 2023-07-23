@@ -26,11 +26,6 @@ public class DefaultClassScanner implements ClassScanner {
     private final Map<String, Set<Class<?>>> startupCache;
 
     /**
-     * Primarily for tests so builds don't take forever. //TODO This is no longer needed with the lazy static cache
-     */
-    private static DefaultClassScanner _instance;
-
-    /**
      * For use within a container where class scanning happens at compile time.
      * @param startupCache Maps annotations (in CACHE_ANNOTATIONS) to classes.
      */
@@ -91,17 +86,5 @@ public class DefaultClassScanner implements ClassScanner {
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         }
-    }
-
-    /**
-     * Primarily for tests to only create a single instance of this to reduce build times.  Production code
-     * will use DI to accomplish the same.
-     * @return The single instance.
-     */
-    public static synchronized DefaultClassScanner getInstance() {
-        if (_instance == null) {
-            _instance = new DefaultClassScanner();
-        }
-        return _instance;
     }
 }

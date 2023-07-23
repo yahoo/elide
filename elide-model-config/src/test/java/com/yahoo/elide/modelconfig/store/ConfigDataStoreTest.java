@@ -52,7 +52,7 @@ public class ConfigDataStoreTest {
     @Test
     public void testLoadObjects() {
         String configRoot = "src/test/resources/validator/valid";
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigDataStoreTransaction tx = store.beginReadTransaction();
@@ -130,7 +130,7 @@ public class ConfigDataStoreTest {
     public void testCreate(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigFile newFile = createFile("test", store, false);
@@ -150,7 +150,7 @@ public class ConfigDataStoreTest {
         //This path is read only (Classpath)...
         String configRoot = "src/test/resources/validator/valid";
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         assertThrows(UnsupportedOperationException.class,
@@ -161,7 +161,7 @@ public class ConfigDataStoreTest {
     public void testCreateInvalid(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         assertThrows(BadRequestException.class,
@@ -172,7 +172,7 @@ public class ConfigDataStoreTest {
     public void testCreateValidateOnly(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
@@ -188,7 +188,7 @@ public class ConfigDataStoreTest {
     public void testUpdate(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         createFile("test", store, false);
@@ -207,7 +207,7 @@ public class ConfigDataStoreTest {
     public void testUpdateWithPermissionError(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigFile createdFile = createFile("test", store, false);
@@ -229,7 +229,7 @@ public class ConfigDataStoreTest {
     public void testDeleteWithPermissionError(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigFile createdFile = createFile("test", store, false);
@@ -253,7 +253,7 @@ public class ConfigDataStoreTest {
     @Test
     public void testCreateWithPermissionError(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         File file = configPath.toFile();
@@ -271,7 +271,7 @@ public class ConfigDataStoreTest {
     public void testDelete(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigFile newFile = createFile("test", store, false);
@@ -295,7 +295,7 @@ public class ConfigDataStoreTest {
     public void testMultipleFileOperations(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
         ConfigDataStoreTransaction tx = store.beginTransaction();
         RequestScope scope = mock(RequestScope.class);

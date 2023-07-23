@@ -119,8 +119,7 @@ public class JsonApiAtomicOperations {
             Operations operations = requestScope.getMapper().forAtomicOperations().readDoc(operationsDoc);
             actions = operations.getOperations();
         } catch (InvalidFormatException e) {
-            if (e.getMessage() != null
-                    && e.getMessage().contains("$OperationCode")) {
+            if (OperationCode.class.equals(e.getTargetType())) {
                 // Invalid op code results in a format error as it is an enum
                 throw new InvalidEntityBodyException(
                         "Invalid Atomic Operations extension operation code:"

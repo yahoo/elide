@@ -103,7 +103,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 DEFAULT_INJECTOR,
                 CoerceUtil::lookup,
                 Collections.emptySet(),
-                DefaultClassScanner.getInstance()
+                new DefaultClassScanner()
         );
         init();
     }
@@ -231,7 +231,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 DEFAULT_INJECTOR,
                 unused -> new ISO8601DateSerde(),
                 Collections.emptySet(),
-                DefaultClassScanner.getInstance());
+                new DefaultClassScanner());
 
         testDictionary.bindEntity(EntityWithDateId.class);
 
