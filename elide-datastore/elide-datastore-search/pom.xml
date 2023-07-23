@@ -53,7 +53,7 @@
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <!-- This override is for hibernate-search-mapper-orm-orm6 6.1 fails with 6.2.2.Final -->
-            <version>6.1.7.Final</version>
+            <version>6.2.4.Final</version>
         </dependency> 
 
         <dependency>
