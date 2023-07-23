@@ -137,7 +137,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
             String configDir = cli.getOptionValue("configDir");
 
             DynamicConfigValidator dynamicConfigValidator =
-                    new DynamicConfigValidator(DefaultClassScanner.getInstance(), configDir);
+                    new DynamicConfigValidator(new DefaultClassScanner(), configDir);
             dynamicConfigValidator.readAndValidateConfigs();
             System.out.println("Configs Validation Passed!");
             System.exit(0);

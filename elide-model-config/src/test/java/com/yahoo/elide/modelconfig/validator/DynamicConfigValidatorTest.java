@@ -26,7 +26,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testValidInheritanceConfig() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
                 "src/test/resources/validator/valid");
 
         testClass.readConfigs();
@@ -56,7 +56,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testValidNamespace() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
                 "src/test/resources/validator/valid");
         testClass.readConfigs();
         Table parent = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
@@ -406,7 +406,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testDuplicateArgumentName() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
                 "src/test/resources/validator/valid");
         testClass.readConfigs();
         Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
@@ -420,7 +420,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testDuplicateArgumentNameInColumnFilter() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
                 "src/test/resources/validator/duplicate_column_args");
         testClass.readConfigs();
 
@@ -430,7 +430,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testDuplicateArgumentNameInTableFilter() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
                 "src/test/resources/validator/valid");
         testClass.readConfigs();
         Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
@@ -443,7 +443,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testDuplicateArgumentNameInComplexTableFilter() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
                 "src/test/resources/validator/valid");
         testClass.readConfigs();
         Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
@@ -457,7 +457,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testPathAndConfigFileTypeMismatches() {
-        DynamicConfigValidator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+        DynamicConfigValidator validator = new DynamicConfigValidator(new DefaultClassScanner(),
                 "src/test/resources/validator/valid");
 
         Map<String, ConfigFile> resources = Map.of("blah/foo",

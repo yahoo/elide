@@ -71,7 +71,7 @@ public class SubscriptionModelBuilderTest {
     public void testRootType() {
         DataFetcher fetcher = mock(DataFetcher.class);
         SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
         GraphQLObjectType subscriptionType = (GraphQLObjectType) schema.getType("Subscription");
@@ -115,7 +115,7 @@ public class SubscriptionModelBuilderTest {
     public void testModelTypes() {
         DataFetcher fetcher = mock(DataFetcher.class);
         SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary,
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 

@@ -129,7 +129,7 @@ public class GraphQLEndpointTest {
 
     @BeforeEach
     public void setupTest() throws Exception {
-        HashMapDataStore inMemoryStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
+        HashMapDataStore inMemoryStore = new HashMapDataStore(new DefaultClassScanner(),
                 Book.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 

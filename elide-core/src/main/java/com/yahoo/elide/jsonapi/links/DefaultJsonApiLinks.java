@@ -19,15 +19,15 @@ import java.util.Map;
  * To add custom links, Override `getResourceLevelLinks` and `getRelationshipLinks`.
  * Ad the subclass object in ElideAutoConfiguration.
  */
-public class DefaultJSONApiLinks implements JSONApiLinks {
+public class DefaultJsonApiLinks implements JsonApiLinks {
 
     private final String baseUrl;
 
-    public DefaultJSONApiLinks() {
+    public DefaultJsonApiLinks() {
         this("");
     }
 
-    public DefaultJSONApiLinks(String baseUrl) {
+    public DefaultJsonApiLinks(String baseUrl) {
         this.baseUrl = baseUrl;
     }
 

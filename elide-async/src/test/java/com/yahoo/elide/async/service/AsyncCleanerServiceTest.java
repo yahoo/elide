@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -25,7 +25,7 @@ public class AsyncCleanerServiceTest {
     @BeforeAll
     public void setupMocks() {
         Elide elide = mock(Elide.class);
-        AsyncAPIDAO dao = mock(DefaultAsyncAPIDAO.class);
+        AsyncApiDao dao = mock(DefaultAsyncApiDao.class);
         AsyncCleanerService.init(elide, Duration.ofSeconds(5), Duration.ofDays(60), Duration.ofSeconds(300), dao);
         service = AsyncCleanerService.getInstance();
     }

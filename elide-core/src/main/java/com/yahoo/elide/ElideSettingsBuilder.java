@@ -29,7 +29,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import com.yahoo.elide.core.utils.coerce.converters.URLSerde;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.links.JSONApiLinks;
+import com.yahoo.elide.jsonapi.links.JsonApiLinks;
 import com.yahoo.elide.utils.HeaderUtils;
 
 import java.net.URL;
@@ -56,7 +56,7 @@ public class ElideSettingsBuilder {
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
     private FilterDialect graphqlFilterDialect;
-    private JSONApiLinks jsonApiLinks;
+    private JsonApiLinks jsonApiLinks;
     private HeaderUtils.HeaderProcessor headerProcessor;
     private Map<Class, Serde> serdes;
     private int defaultMaxPageSize = PaginationImpl.MAX_PAGE_LIMIT;
@@ -233,7 +233,7 @@ public class ElideSettingsBuilder {
         return this;
     }
 
-    public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
+    public ElideSettingsBuilder withJsonApiLinks(JsonApiLinks links) {
         this.enableJsonLinks = true;
         this.jsonApiLinks = links;
         return this;

@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 public class MetaDataStoreTest {
-    private ClassScanner scanner = DefaultClassScanner.getInstance();
+    private ClassScanner scanner = new DefaultClassScanner();
     private MetaDataStore dataStore;
     public MetaDataStoreTest() {
         Set<Type<?>> types = getClassType(Set.of(

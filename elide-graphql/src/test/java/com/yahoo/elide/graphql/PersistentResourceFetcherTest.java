@@ -83,7 +83,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     public void initializeQueryRunner() {
         RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
-        hashMapDataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage());
+        hashMapDataStore = new HashMapDataStore(new DefaultClassScanner(), Author.class.getPackage());
 
         settings = new ElideSettingsBuilder(hashMapDataStore)
                 .withEntityDictionary(dictionary)

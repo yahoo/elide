@@ -12,7 +12,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
+import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -33,7 +33,7 @@ public class TestRequestScope extends RequestScope {
         super(baseURL, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
-                        .withJSONApiLinks(new DefaultJSONApiLinks())
+                        .withJsonApiLinks(new DefaultJsonApiLinks())
                         .withJsonApiPath("/json")
                         .build());
     }

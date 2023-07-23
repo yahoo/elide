@@ -6,7 +6,6 @@
 package example.models;
 
 import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -27,7 +26,6 @@ import java.util.Set;
 @Include(friendlyName = "Book")
 @ReadPermission(expression = "Principal is author OR Principal is publisher")
 @CreatePermission(expression = "Principal is author")
-@DeletePermission(expression = "Prefab.Role.None")
 @Schema(title = "Override Include Title", description = "A book")
 public class Book {
     @OneToMany

@@ -92,7 +92,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     }
 
     public AggregationDataStoreTransactionTest() {
-        metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), false);
+        metaDataStore = new MetaDataStore(new DefaultClassScanner(), false);
         CoerceUtil.register(Date.class, new ISO8601DateSerde());
     }
 

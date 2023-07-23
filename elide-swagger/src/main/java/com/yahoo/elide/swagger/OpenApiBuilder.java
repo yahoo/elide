@@ -8,9 +8,16 @@ package com.yahoo.elide.swagger;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.swagger.converter.JsonApiModelResolver;
@@ -18,6 +25,9 @@ import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.google.common.collect.Sets;
+
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.lang3.tuple.Pair;
 
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
@@ -42,6 +52,7 @@ import io.swagger.v3.oas.models.tags.Tag;
 
 import lombok.Getter;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -248,36 +259,52 @@ public class OpenApiBuilder {
             RelationshipType relationshipType = dictionary.getRelationshipType(parentClass, name);
 
             if (relationshipType.isToMany()) {
-                path.get(new Operation().tags(getTags()).description("Returns the relationship identifiers for " + name)
-                        .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
+                if (canRead(parentClass, name) && canRead(type)) {
+                    path.get(new Operation().tags(getTags())
+                            .description("Returns the relationship identifiers for " + name)
+                            .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
+                }
 
-                path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
-                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                new MediaType().schema(new Data(new Relationship(typeName))))))
-                        .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
-                path.delete(new Operation().tags(getTags()).description("Deletes items from the relationship " + name)
-                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                new MediaType().schema(new Data(new Relationship(typeName))))))
-                        .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
-                path.post(new Operation().tags(getTags()).description("Adds items to the relationship " + name)
-                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                new MediaType().schema(new Data(new Relationship(typeName))))))
-                        .responses(new ApiResponses().addApiResponse("201", okPluralResponse)));
+                if (canUpdate(parentClass, name)) {
+                    path.post(new Operation().tags(getTags()).description("Adds items to the relationship " + name)
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                    new MediaType().schema(new Data(new Relationship(typeName))))))
+                            .responses(new ApiResponses().addApiResponse("201", okPluralResponse)));
+
+                    path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                    new MediaType().schema(new Data(new Relationship(typeName))))))
+                            .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+
+                    path.delete(new Operation().tags(getTags())
+                            .description("Deletes items from the relationship " + name)
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                    new MediaType().schema(new Data(new Relationship(typeName))))))
+                            .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+                }
             } else {
-                path.get(new Operation().tags(getTags()).description("Returns the relationship identifiers for " + name)
-                        .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
-                path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
-                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                                new MediaType().schema(new Datum(new Relationship(typeName))))))
-                        .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+                if (canRead(parentClass, name) && canRead(type)) {
+                    path.get(new Operation().tags(getTags())
+                            .description("Returns the relationship identifiers for " + name)
+                            .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
+                }
+
+                if (canUpdate(parentClass, name)) {
+                    path.patch(new Operation().tags(getTags()).description("Replaces the relationship " + name)
+                            .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                    new MediaType().schema(new Datum(new Relationship(typeName))))))
+                            .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+                }
             }
 
-            for (Parameter param : getFilterParameters()) {
-                path.getGet().addParametersItem(param);
-            }
+            if (path.getGet() != null) {
+                for (Parameter param : getFilterParameters()) {
+                    path.getGet().addParametersItem(param);
+                }
 
-            for (Parameter param : getPageParameters()) {
-                path.getGet().addParametersItem(param);
+                for (Parameter param : getPageParameters()) {
+                    path.getGet().addParametersItem(param);
+                }
             }
 
             decorateGlobalResponses(path);
@@ -305,12 +332,21 @@ public class OpenApiBuilder {
 
             String getDescription;
             String postDescription;
+            boolean canPost = false;
+            boolean canGet = false;
             if (lineage.isEmpty()) {
                 getDescription = "Returns the collection of type " + typeName;
                 postDescription = "Creates an item of type " + typeName;
+
+                canGet = canRead(type);
+                canPost = canCreate(type);
             } else {
                 getDescription = "Returns the relationship " + name;
                 postDescription = "Creates an item of type " + typeName + " and adds it to " + name;
+
+                Type<?> parentClass = lineage.peek().getType();
+                canGet = canRead(parentClass, name) && canRead(type);
+                canPost = canUpdate(parentClass, name) && canCreate(type);
             }
 
             List<Parameter> parameters = new ArrayList<>();
@@ -318,21 +354,25 @@ public class OpenApiBuilder {
             parameters.add(getSparseFieldsParameter());
             getIncludeParameter().ifPresent(parameters::add);
 
-            path.get(new Operation().tags(getTags()).description(getDescription).parameters(parameters)
-                    .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
-
-            for (Parameter param : getFilterParameters()) {
-                path.getGet().addParametersItem(param);
+            if (canPost) {
+                path.post(new Operation().tags(getTags()).description(postDescription)
+                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                new MediaType().schema(new Datum(typeName)))))
+                        .responses(new ApiResponses().addApiResponse("201", okSingularResponse)));
             }
 
-            for (Parameter param : getPageParameters()) {
-                path.getGet().addParametersItem(param);
-            }
+            if (canGet) {
+                path.get(new Operation().tags(getTags()).description(getDescription).parameters(parameters)
+                        .responses(new ApiResponses().addApiResponse("200", okPluralResponse)));
 
-            path.post(new Operation().tags(getTags()).description(postDescription)
-                    .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                            new MediaType().schema(new Datum(typeName)))))
-                    .responses(new ApiResponses().addApiResponse("201", okSingularResponse)));
+                for (Parameter param : getFilterParameters()) {
+                    path.getGet().addParametersItem(param);
+                }
+
+                for (Parameter param : getPageParameters()) {
+                    path.getGet().addParametersItem(param);
+                }
+            }
 
             decorateGlobalResponses(path);
             decorateGlobalParameters(path);
@@ -361,17 +401,40 @@ public class OpenApiBuilder {
             parameters.add(getSparseFieldsParameter());
             getIncludeParameter().ifPresent(parameters::add);
 
-            path.get(new Operation().tags(getTags()).description("Returns an instance of type " + typeName)
-                    .parameters(parameters)
-                    .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
+            boolean canGet = false;
+            boolean canPatch = false;
+            boolean canDelete = false;
 
-            path.patch(new Operation().tags(getTags()).description("Modifies an instance of type " + typeName)
-                    .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
-                            new MediaType().schema(new Datum(typeName)))))
-                    .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+            if (lineage.isEmpty()) {
+                // Root entity
+                canGet = canReadById(type);
+                canPatch = canUpdateById(type);
+                canDelete = canDeleteById(type);
+            } else {
+                // Relationship
+                Type<?> parentClass = lineage.peek().getType();
+                canGet = canRead(parentClass, name) && canReadById(type);
+                canPatch = canUpdate(parentClass, name);
+                canDelete = canUpdate(parentClass, name);
+            }
 
-            path.delete(new Operation().tags(getTags()).description("Deletes an instance of type " + typeName)
-                    .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+            if (canGet) {
+                path.get(new Operation().tags(getTags()).description("Returns an instance of type " + typeName)
+                        .parameters(parameters)
+                        .responses(new ApiResponses().addApiResponse("200", okSingularResponse)));
+            }
+
+            if (canPatch) {
+                path.patch(new Operation().tags(getTags()).description("Modifies an instance of type " + typeName)
+                        .requestBody(new RequestBody().content(new Content().addMediaType(JSONAPI_CONTENT_TYPE,
+                                new MediaType().schema(new Datum(typeName)))))
+                        .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+            }
+
+            if (canDelete) {
+                path.delete(new Operation().tags(getTags()).description("Deletes an instance of type " + typeName)
+                        .responses(new ApiResponses().addApiResponse("204", okEmptyResponse)));
+            }
 
             decorateGlobalResponses(path);
             decorateGlobalParameters(path);
@@ -563,7 +626,7 @@ public class OpenApiBuilder {
          * @return is shorter or same
          */
         public boolean shorterThan(PathMetaData compare) {
-            return (compare.getUrl().startsWith(url));
+            return url.split("/").length < compare.getUrl().split("/").length;
         }
 
         @Override
@@ -774,12 +837,11 @@ public class OpenApiBuilder {
         Set<PathMetaData> toRemove = new HashSet<>();
 
         pathData.stream()
-                .collect(Collectors.groupingBy(PathMetaData::getRootType))
+                .collect(Collectors.groupingBy(p -> Pair.of(p.getType(), p.getName())))
                 .values()
                 .forEach(pathSet -> {
                     for (PathMetaData path : pathSet) {
                         for (PathMetaData compare : pathSet) {
-
                             /*
                              * We don't prune paths that are redundant with root collections to allow both BOTH
                              * root collection urls as well as relationship urls.
@@ -787,6 +849,10 @@ public class OpenApiBuilder {
                             if (compare.lineage.isEmpty() || path == compare) {
                                 continue;
                             }
+
+                            /*
+                             * Find the unique shortest path to the node.
+                             */
                             if (compare.shorterThan(path)) {
                                 toRemove.add(path);
                                 break;
@@ -882,5 +948,156 @@ public class OpenApiBuilder {
             paths.add(current);
         }
         return paths;
+    }
+
+    protected boolean isNone(String permission) {
+        return "Prefab.Role.None".equalsIgnoreCase(permission) || Role.NONE_ROLE.equalsIgnoreCase(permission);
+    }
+
+    protected boolean canCreate(Type<?> type) {
+        return !isNone(getCreatePermission(type));
+    }
+
+    protected boolean canRead(Type<?> type) {
+        return !isNone(getReadPermission(type));
+    }
+
+    protected boolean canUpdate(Type<?> type) {
+        return !isNone(getUpdatePermission(type));
+    }
+
+    protected boolean canDelete(Type<?> type) {
+        return !isNone(getDeletePermission(type));
+    }
+
+    protected boolean canReadById(Type<?> type) {
+        boolean excluded = dictionary.getIdAnnotation(type, Exclude.class) != null;
+        return !(isNone(getReadPermission(type)) || excluded);
+    }
+
+    protected boolean canUpdateById(Type<?> type) {
+        boolean excluded = dictionary.getIdAnnotation(type, Exclude.class) != null;
+        return !(isNone(getUpdatePermission(type)) || excluded);
+    }
+
+    protected boolean canDeleteById(Type<?> type) {
+        boolean excluded = dictionary.getIdAnnotation(type, Exclude.class) != null;
+        return !(isNone(getDeletePermission(type)) || excluded);
+    }
+
+    protected boolean canCreate(Type<?> type, String field) {
+        return !isNone(getCreatePermission(type, field));
+    }
+
+    protected boolean canRead(Type<?> type, String field) {
+        return !isNone(getReadPermission(type, field));
+    }
+
+    protected boolean canUpdate(Type<?> type, String field) {
+        return !isNone(getUpdatePermission(type, field));
+    }
+
+    protected boolean canDelete(Type<?> type, String field) {
+        return !isNone(getDeletePermission(type, field));
+    }
+
+    /**
+     * Get the calculated {@link CreatePermission} value for the entity.
+     *
+     * @param clazz the entity class
+     * @return the create permissions for an entity
+     */
+    protected String getCreatePermission(Type<?> clazz) {
+        return getPermission(clazz, CreatePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link ReadPermission} value for the entity.
+     *
+     * @param clazz the entity class
+     * @return the read permissions for an entity
+     */
+    protected String getReadPermission(Type<?> clazz) {
+        return getPermission(clazz, ReadPermission.class);
+    }
+
+    /**
+     * Get the calculated {@link UpdatePermission} value for the entity.
+     *
+     * @param clazz the entity class
+     * @return the update permissions for an entity
+     */
+    protected String getUpdatePermission(Type<?> clazz) {
+        return getPermission(clazz, UpdatePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link DeletePermission} value for the entity.
+     *
+     * @param clazz the entity class
+     * @return the delete permissions for an entity
+     */
+    protected String getDeletePermission(Type<?> clazz) {
+        return getPermission(clazz, DeletePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link CreatePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the create permissions for the relationship
+     */
+    protected String getCreatePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, CreatePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link ReadPermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the read permissions for the relationship
+     */
+    protected String getReadPermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, ReadPermission.class);
+    }
+
+    /**
+     * Get the calculated {@link UpdatePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the update permissions for the relationship
+     */
+    protected String getUpdatePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, UpdatePermission.class);
+    }
+
+    /**
+     * Get the calculated {@link DeletePermission} value for the relationship.
+     *
+     * @param clazz the entity class
+     * @param field the field to inspect
+     * @return the delete permissions for the relationship
+     */
+    protected String getDeletePermission(Type<?> clazz, String field) {
+        return getPermission(clazz, field, DeletePermission.class);
+    }
+
+    protected String getPermission(Type<?> clazz, Class<? extends Annotation> permission) {
+        ParseTree parseTree = dictionary.getPermissionsForClass(clazz, permission);
+        if (parseTree != null) {
+            return parseTree.getText();
+        }
+        return null;
+    }
+
+    protected String getPermission(Type<?> clazz, String field, Class<? extends Annotation> permission) {
+        ParseTree parseTree = dictionary.getPermissionsForField(clazz, field, permission);
+        if (parseTree != null) {
+            return parseTree.getText();
+        }
+        return null;
     }
 }

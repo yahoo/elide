@@ -30,7 +30,7 @@ import lombok.EqualsAndHashCode;
 @DeletePermission(expression = "Prefab.Role.None")
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class TableExport extends AsyncAPI {
+public class TableExport extends AsyncApi {
 
     @Enumerated(EnumType.STRING)
     @NotNull
@@ -40,7 +40,7 @@ public class TableExport extends AsyncAPI {
     private TableExportResult result;
 
     @Override
-    public void setResult(AsyncAPIResult result) {
+    public void setResult(AsyncApiResult result) {
         this.result = (TableExportResult) result;
     }
 }
