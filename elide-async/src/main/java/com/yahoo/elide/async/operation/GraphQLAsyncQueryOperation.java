@@ -6,7 +6,7 @@
 package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
@@ -25,12 +25,12 @@ import java.util.UUID;
 @Slf4j
 public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
 
-    public GraphQLAsyncQueryOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
+    public GraphQLAsyncQueryOperation(AsyncExecutorService service, AsyncApi queryObj, RequestScope scope) {
         super(service, queryObj, scope);
     }
 
     @Override
-    public ElideResponse execute(AsyncAPI queryObj, RequestScope scope) throws URISyntaxException {
+    public ElideResponse execute(AsyncApi queryObj, RequestScope scope) throws URISyntaxException {
         User user = scope.getUser();
         String apiVersion = scope.getApiVersion();
         QueryRunner runner = getService().getRunners().get(apiVersion);

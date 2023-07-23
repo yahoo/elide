@@ -5,13 +5,13 @@
  */
 package com.yahoo.elide.async.service.dao;
 
-import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncApi;
 
 /**
  * Function which will be invoked for updating elide async query base implementation.
  * @param <T> AsyncQueryBase Type Implementation.
  */
 @FunctionalInterface
-public interface UpdateQuery<T extends AsyncAPI> {
+public interface UpdateQuery<T extends AsyncApi> {
     public void update(T query);
 }

@@ -564,7 +564,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testInMemoryDataStore() {
-        HashMapDataStore wrapped = new HashMapDataStore(DefaultClassScanner.getInstance(), Book.class.getPackage());
+        HashMapDataStore wrapped = new HashMapDataStore(new DefaultClassScanner(), Book.class.getPackage());
         InMemoryDataStore store = new InMemoryDataStore(wrapped);
         DataStoreTransaction tx = store.beginReadTransaction();
         assertEquals(InMemoryStoreTransaction.class, tx.getClass());

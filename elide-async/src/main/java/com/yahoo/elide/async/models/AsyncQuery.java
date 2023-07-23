@@ -27,12 +27,12 @@ import lombok.EqualsAndHashCode;
 @DeletePermission(expression = "Prefab.Role.None")
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AsyncQuery extends AsyncAPI {
+public class AsyncQuery extends AsyncApi {
     @Embedded
     private AsyncQueryResult result;
 
     @Override
-    public void setResult(AsyncAPIResult result) {
+    public void setResult(AsyncApiResult result) {
         this.result = (AsyncQueryResult) result;
     }
 }

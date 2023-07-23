@@ -47,7 +47,7 @@ public class MultiplexManagerTest {
 
     @BeforeAll
     public void setup() {
-        ClassScanner scanner = DefaultClassScanner.getInstance();
+        ClassScanner scanner = new DefaultClassScanner();
         entityDictionary = EntityDictionary.builder().build();
         final HashMapDataStore inMemoryDataStore1 = new HashMapDataStore(scanner, FirstBean.class.getPackage());
         final HashMapDataStore inMemoryDataStore2 = new HashMapDataStore(scanner, OtherBean.class.getPackage());
@@ -109,7 +109,7 @@ public class MultiplexManagerTest {
     public void partialCommitFailureNoCommit() throws IOException, IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
         final EntityDictionary entityDictionary = EntityDictionary.builder().build();
-        final HashMapDataStore ds1 = new HashMapDataStore(DefaultClassScanner.getInstance(),
+        final HashMapDataStore ds1 = new HashMapDataStore(new DefaultClassScanner(),
                 FirstBean.class.getPackage());
         final DataStore ds2 = new TestDataStore(OtherBean.class.getPackage());
         final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);
@@ -175,7 +175,7 @@ public class MultiplexManagerTest {
     public void partialCommitFailureReverseTransactions() throws IOException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
         final EntityDictionary entityDictionary = EntityDictionary.builder().build();
-        final HashMapDataStore ds1 = new HashMapDataStore(DefaultClassScanner.getInstance(),
+        final HashMapDataStore ds1 = new HashMapDataStore(new DefaultClassScanner(),
                 FirstBean.class.getPackage());
         final DataStore ds2 = new TestDataStore(OtherBean.class.getPackage());
         final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);

@@ -9,8 +9,8 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
 import com.yahoo.elide.async.export.validator.Validator;
-import com.yahoo.elide.async.models.AsyncAPI;
-import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.AsyncApi;
+import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
@@ -44,7 +44,7 @@ import java.util.concurrent.Callable;
  * TableExport Execute Operation Interface.
  */
 @Slf4j
-public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
+public abstract class TableExportOperation implements Callable<AsyncApiResult> {
     private TableExportFormatter formatter;
     @Getter private AsyncExecutorService service;
     private Integer recordNumber = 0;
@@ -54,7 +54,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     private List<Validator> validators = new ArrayList<>(Arrays.asList(new SingleRootProjectionValidator()));
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncAPI exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators) {
+            AsyncApi exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators) {
         this.formatter = formatter;
         this.service = service;
         this.exportObj = (TableExport) exportObj;
@@ -64,7 +64,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     }
 
     @Override
-    public AsyncAPIResult call() {
+    public AsyncApiResult call() {
         log.debug("TableExport Object from request: {}", exportObj);
         Elide elide = service.getElide();
         TableExportResult exportResult = new TableExportResult();

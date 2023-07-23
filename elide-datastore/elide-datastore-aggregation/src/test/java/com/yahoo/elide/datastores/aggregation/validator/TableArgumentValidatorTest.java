@@ -84,7 +84,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
@@ -106,7 +106,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
@@ -128,7 +128,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
@@ -145,7 +145,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
@@ -167,7 +167,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
@@ -192,7 +192,7 @@ public class TableArgumentValidatorTest {
                         .name("JoinTable")
                         .namespace("namespace")
                         .build());
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
@@ -224,7 +224,7 @@ public class TableArgumentValidatorTest {
                                         .build())
                         .build());
 
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 
@@ -254,7 +254,7 @@ public class TableArgumentValidatorTest {
                 .build());
 
         assertDoesNotThrow(() -> {
-            new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+            new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         });
     }
 
@@ -282,7 +282,7 @@ public class TableArgumentValidatorTest {
                                         .build())
                         .build());
 
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 

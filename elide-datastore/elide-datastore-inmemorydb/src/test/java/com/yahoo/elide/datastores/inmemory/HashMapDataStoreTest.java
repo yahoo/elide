@@ -49,7 +49,7 @@ public class HashMapDataStoreTest {
     @BeforeEach
     public void setup() {
         entityDictionary = EntityDictionary.builder().build();
-        hashMapDataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), FirstBean.class.getPackage());
+        hashMapDataStore = new HashMapDataStore(new DefaultClassScanner(), FirstBean.class.getPackage());
         hashMapDataStore.populateEntityDictionary(entityDictionary);
     }
 

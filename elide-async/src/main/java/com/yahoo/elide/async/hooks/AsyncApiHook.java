@@ -11,8 +11,8 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.async.models.AsyncAPI;
-import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.AsyncApi;
+import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -27,26 +27,26 @@ import java.time.Duration;
 import java.util.concurrent.Callable;
 
 /**
- * AsyncAPI Base Hook methods.
- * @param <T> Type of AsyncAPI.
+ * AsyncApi Base Hook methods.
+ * @param <T> Type of AsyncApi.
  */
 @Data
-public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<T> {
+public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<T> {
     private final AsyncExecutorService asyncExecutorService;
     private final long maxAsyncAfterSeconds;
 
-    protected AsyncAPIHook(AsyncExecutorService asyncExecutorService, Duration maxAsyncAfter) {
+    protected AsyncApiHook(AsyncExecutorService asyncExecutorService, Duration maxAsyncAfter) {
         this.asyncExecutorService = asyncExecutorService;
         this.maxAsyncAfterSeconds = maxAsyncAfter.toSeconds();
     }
 
     /**
      * Validate the Query Options before executing.
-     * @param query AsyncAPI type object.
+     * @param query AsyncApi type object.
      * @param requestScope RequestScope object.
      * @throws InvalidValueException InvalidValueException
      */
-    protected void validateOptions(AsyncAPI query, RequestScope requestScope) {
+    protected void validateOptions(AsyncApi query, RequestScope requestScope) {
         if (query.getAsyncAfterSeconds() > maxAsyncAfterSeconds) {
             throw new InvalidValueException("Invalid Async After Seconds");
         }
@@ -54,13 +54,13 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
 
     /**
      * Execute the Hook.
-     * @param query AsyncAPI type object.
+     * @param query AsyncApi type object.
      * @param requestScope RequestScope object.
      * @param queryWorker Thread to execute.
      * @throws InvalidOperationException InvalidOperationException
      */
     protected void executeHook(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
-            AsyncAPI query, RequestScope requestScope, Callable<AsyncAPIResult> queryWorker) {
+            AsyncApi query, RequestScope requestScope, Callable<AsyncApiResult> queryWorker) {
         if (operation.equals(CREATE)) {
             if (phase.equals(PREFLUSH)) {
                 validateOptions(query, requestScope);
@@ -82,19 +82,19 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
 
     /**
      * Call the completeQuery process in AsyncExecutorService.
-     * @param query AsyncAPI object to complete.
+     * @param query AsyncApi object to complete.
      * @param requestScope RequestScope object.
      */
-    protected void completeAsync(AsyncAPI query, RequestScope requestScope) {
+    protected void completeAsync(AsyncApi query, RequestScope requestScope) {
         asyncExecutorService.completeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
     }
 
     /**
      * Call the executeQuery process on AsyncExecutorService.
-     * @param query AsyncAPI object to complete.
+     * @param query AsyncApi object to complete.
      * @param callable CallableThread instance.
      */
-    protected void executeAsync(AsyncAPI query, Callable<AsyncAPIResult> callable) {
+    protected void executeAsync(AsyncApi query, Callable<AsyncApiResult> callable) {
         if (query.getStatus() == QueryStatus.QUEUED && query.getResult() == null) {
             asyncExecutorService.executeQuery(query, callable);
         }
@@ -102,10 +102,10 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
 
     /**
      * Update Principal Name.
-     * @param query AsyncAPI object to complete.
+     * @param query AsyncApi object to complete.
      * @param requestScope RequestScope object.
      */
-    protected void updatePrincipalName(AsyncAPI query, RequestScope requestScope) {
+    protected void updatePrincipalName(AsyncApi query, RequestScope requestScope) {
         Principal principal = requestScope.getUser().getPrincipal();
         if (principal != null) {
             query.setPrincipalName(principal.getName());
@@ -114,9 +114,9 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
 
     /**
      * Get Callable operation to submit.
-     * @param query AsyncAPI object to complete.
+     * @param query AsyncApi object to complete.
      * @param requestScope RequestScope object.
      * @return Callable initialized.
      */
-    public abstract Callable<AsyncAPIResult> getOperation(AsyncAPI query, RequestScope requestScope);
+    public abstract Callable<AsyncApiResult> getOperation(AsyncApi query, RequestScope requestScope);
 }

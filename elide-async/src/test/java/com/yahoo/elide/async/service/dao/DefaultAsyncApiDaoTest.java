@@ -34,9 +34,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-public class DefaultAsyncAPIDAOTest {
+public class DefaultAsyncApiDaoTest {
 
-    private DefaultAsyncAPIDAO asyncAPIDAO;
+    private DefaultAsyncApiDao asyncApiDao;
     private Elide elide;
     private DataStore dataStore;
     private AsyncQuery asyncQuery;
@@ -67,19 +67,19 @@ public class DefaultAsyncAPIDAOTest {
 
         elide = new Elide(elideSettings);
         when(dataStore.beginTransaction()).thenReturn(tx);
-        asyncAPIDAO = new DefaultAsyncAPIDAO(elide.getElideSettings(), dataStore);
+        asyncApiDao = new DefaultAsyncApiDao(elide.getElideSettings(), dataStore);
     }
 
     @Test
     public void testAsyncQueryCleanerThreadSet() {
-        assertEquals(elide.getElideSettings(), asyncAPIDAO.getElideSettings());
-        assertEquals(dataStore, asyncAPIDAO.getDataStore());
+        assertEquals(elide.getElideSettings(), asyncApiDao.getElideSettings());
+        assertEquals(dataStore, asyncApiDao.getDataStore());
     }
 
     @Test
     public void testUpdateStatus() {
         when(tx.loadObject(any(), any(), any())).thenReturn(asyncQuery);
-        asyncAPIDAO.updateStatus("1234", QueryStatus.PROCESSING, asyncQuery.getClass());
+        asyncApiDao.updateStatus("1234", QueryStatus.PROCESSING, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).save(any(AsyncQuery.class), any(RequestScope.class));
         verify(asyncQuery, times(1)).setStatus(QueryStatus.PROCESSING);
@@ -89,7 +89,7 @@ public class DefaultAsyncAPIDAOTest {
    public void testUpdateStatusAsyncQueryCollection() {
        Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery);
        when(tx.loadObjects(any(), any())).thenReturn(new DataStoreIterableBuilder(loaded).build());
-       asyncAPIDAO.updateStatusAsyncAPIByFilter(filter, QueryStatus.TIMEDOUT, asyncQuery.getClass());
+       asyncApiDao.updateStatusAsyncApiByFilter(filter, QueryStatus.TIMEDOUT, asyncQuery.getClass());
        verify(tx, times(2)).save(any(AsyncQuery.class), any(RequestScope.class));
        verify(asyncQuery, times(2)).setStatus(QueryStatus.TIMEDOUT);
    }
@@ -98,7 +98,7 @@ public class DefaultAsyncAPIDAOTest {
     public void testDeleteAsyncQueryAndResultCollection() {
         Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
         when(tx.loadObjects(any(), any())).thenReturn(new DataStoreIterableBuilder(loaded).build());
-        asyncAPIDAO.deleteAsyncAPIAndResultByFilter(filter, asyncQuery.getClass());
+        asyncApiDao.deleteAsyncApiAndResultByFilter(filter, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).loadObjects(any(), any());
         verify(tx, times(3)).delete(any(AsyncQuery.class), any(RequestScope.class));
@@ -108,7 +108,7 @@ public class DefaultAsyncAPIDAOTest {
     public void testUpdateAsyncQueryResult() {
         when(tx.loadObject(any(), any(), any())).thenReturn(asyncQuery);
         when(asyncQuery.getStatus()).thenReturn(QueryStatus.PROCESSING);
-        asyncAPIDAO.updateAsyncAPIResult(asyncQueryResult, asyncQuery.getId(), asyncQuery.getClass());
+        asyncApiDao.updateAsyncApiResult(asyncQueryResult, asyncQuery.getId(), asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).save(any(AsyncQuery.class), any(RequestScope.class));
         verify(asyncQuery, times(1)).setResult(asyncQueryResult);
@@ -120,7 +120,7 @@ public class DefaultAsyncAPIDAOTest {
     public void testLoadAsyncQueryCollection() {
         Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
         when(tx.loadObjects(any(), any())).thenReturn(new DataStoreIterableBuilder(loaded).build());
-        asyncAPIDAO.loadAsyncAPIByFilter(filter, asyncQuery.getClass());
+        asyncApiDao.loadAsyncApiByFilter(filter, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).loadObjects(any(), any());
     }

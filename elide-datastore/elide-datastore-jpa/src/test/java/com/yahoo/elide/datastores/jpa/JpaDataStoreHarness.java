@@ -59,7 +59,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
     }
 
     public JpaDataStoreHarness(QueryLogger logger, boolean delegateToInMemoryStore) {
-        ClassScanner scanner = DefaultClassScanner.getInstance();
+        ClassScanner scanner = new DefaultClassScanner();
         Map<String, Object> options = new HashMap<>();
         ArrayList<Class<?>> bindClasses = new ArrayList<>();
 

@@ -1,21 +1,21 @@
 [
   {
-    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIAdmin",
+    "name": "com.yahoo.elide.async.models.security.AsyncApiInlineChecks$AsyncApiAdmin",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIOwner",
+    "name": "com.yahoo.elide.async.models.security.AsyncApiInlineChecks$AsyncApiOwner",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIStatusQueuedValue",
+    "name": "com.yahoo.elide.async.models.security.AsyncApiInlineChecks$AsyncApiStatusQueuedValue",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.async.models.security.AsyncAPIInlineChecks$AsyncAPIStatusValue",
+    "name": "com.yahoo.elide.async.models.security.AsyncApiInlineChecks$AsyncApiStatusValue",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
   }

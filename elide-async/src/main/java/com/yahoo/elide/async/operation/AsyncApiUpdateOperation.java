@@ -6,10 +6,10 @@
 package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncAPI;
-import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.AsyncApi;
+import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,12 +23,12 @@ import java.util.concurrent.Future;
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncAPIUpdateOperation implements Runnable {
+public class AsyncApiUpdateOperation implements Runnable {
 
     private Elide elide;
-    private Future<AsyncAPIResult> task;
-    private AsyncAPI queryObj;
-    private AsyncAPIDAO asyncAPIDao;
+    private Future<AsyncApiResult> task;
+    private AsyncApi queryObj;
+    private AsyncApiDao asyncApiDao;
 
     /**
      * This is the main method which updates the Async API request.
@@ -36,17 +36,17 @@ public class AsyncAPIUpdateOperation implements Runnable {
     @Override
     public void run() {
         try {
-            AsyncAPIResult queryResultObj = task.get();
+            AsyncApiResult queryResultObj = task.get();
             // add queryResult object to query object
-            asyncAPIDao.updateAsyncAPIResult(queryResultObj, queryObj.getId(), queryObj.getClass());
+            asyncApiDao.updateAsyncApiResult(queryResultObj, queryObj.getId(), queryObj.getClass());
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("InterruptedException: {}", e.toString());
-            asyncAPIDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE, queryObj.getClass());
+            asyncApiDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE, queryObj.getClass());
         } catch (Exception e) {
             log.error("Exception: {}", e.toString());
-            asyncAPIDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE, queryObj.getClass());
+            asyncApiDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE, queryObj.getClass());
         }
     }
 }

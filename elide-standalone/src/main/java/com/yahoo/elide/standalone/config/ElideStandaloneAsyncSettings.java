@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 
 import java.time.Duration;
@@ -83,11 +83,11 @@ public interface ElideStandaloneAsyncSettings {
     }
 
     /**
-     * Implementation of AsyncAPIDAO to use.
+     * Implementation of AsyncApiDao to use.
      *
-     * @return AsyncAPIDAO type object.
+     * @return AsyncApiDao type object.
      */
-    default AsyncAPIDAO getAPIDAO() {
+    default AsyncApiDao getAsyncApiDao() {
         return null;
     }
 

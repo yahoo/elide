@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-public class JSONExportFormatterTest {
+public class JsonExportFormatterTest {
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
     private static final FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("GMT"));
     private HashMapDataStore dataStore;
@@ -47,7 +47,7 @@ public class JSONExportFormatterTest {
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
-        dataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), TableExport.class.getPackage());
+        dataStore = new HashMapDataStore(new DefaultClassScanner(), TableExport.class.getPackage());
         Map<String, Class<? extends Check>> map = new HashMap<>();
         elide = new Elide(
                 new ElideSettingsBuilder(dataStore)
@@ -60,7 +60,7 @@ public class JSONExportFormatterTest {
 
     @Test
     public void testFormat() {
-        JSONExportFormatter formatter = new JSONExportFormatter(elide);
+        JsonExportFormatter formatter = new JsonExportFormatter(elide);
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType createdOn} } } }";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
@@ -97,7 +97,7 @@ public class JSONExportFormatterTest {
 
     @Test
     public void testResourceToJSON() {
-        JSONExportFormatter formatter = new JSONExportFormatter(elide);
+        JsonExportFormatter formatter = new JsonExportFormatter(elide);
         TableExport queryObj = new TableExport();
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
@@ -128,7 +128,7 @@ public class JSONExportFormatterTest {
 
     @Test
     public void testNullResourceToJSON() {
-        JSONExportFormatter formatter = new JSONExportFormatter(elide);
+        JsonExportFormatter formatter = new JsonExportFormatter(elide);
         PersistentResource persistentResource = null;
 
         String output = formatter.format(persistentResource, 1);

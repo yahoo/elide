@@ -45,7 +45,7 @@ import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
+import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
@@ -843,10 +843,10 @@ public class ElideAutoConfiguration {
                 String baseUrl = settings.getBaseUrl();
 
                 if (StringUtils.isEmpty(baseUrl)) {
-                    builder.withJSONApiLinks(new DefaultJSONApiLinks());
+                    builder.withJsonApiLinks(new DefaultJsonApiLinks());
                 } else {
                     String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
-                    builder.withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl));
+                    builder.withJsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl));
                 }
             }
         }

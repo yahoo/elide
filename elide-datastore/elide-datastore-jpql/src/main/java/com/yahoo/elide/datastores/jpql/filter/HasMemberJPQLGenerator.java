@@ -55,6 +55,19 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator {
         Preconditions.checkArgument(path.lastElement().isPresent());
         Preconditions.checkArgument(! (path.lastElement().get().getType() instanceof Collection));
 
+        Object value = predicate.getParameters().get(0).getValue();
+        if (value == null || "null".equals(value)) {
+            // Builds the JPQL clause where the value IS NULL
+            return String.format("%sEXISTS (SELECT 1 FROM %s WHERE %s = %s AND (%s IS NULL OR %s = %s))",
+                    notMember,
+                    getFromClause(path),
+                    getInnerQueryIdField(path),
+                    getOuterQueryIdField(path, aliasGenerator),
+                    getInnerFilterFieldReference(path),
+                    getInnerFilterFieldReference(path),
+                    predicate.getParameters().get(0).getPlaceholder());
+        }
+
         //Creates JPQL like:
         //EXISTS (SELECT 1
         //FROM example.Book
