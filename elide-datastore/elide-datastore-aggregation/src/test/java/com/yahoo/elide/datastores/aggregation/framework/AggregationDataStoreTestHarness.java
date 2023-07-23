@@ -63,7 +63,7 @@ public abstract class AggregationDataStoreTestHarness implements DataStoreTestHa
     }
 
     protected MetaDataStore createMetaDataStore() {
-        ClassScanner scanner = DefaultClassScanner.getInstance();
+        ClassScanner scanner = new DefaultClassScanner();
 
         MetaDataStore metaDataStore;
         if (validator != null) {

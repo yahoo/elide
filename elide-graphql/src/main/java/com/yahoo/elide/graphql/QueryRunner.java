@@ -39,6 +39,8 @@ import graphql.GraphQLException;
 import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
+import graphql.validation.ValidationError;
+import graphql.validation.ValidationErrorType;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.Getter;
@@ -46,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -320,7 +323,7 @@ public class QueryRunner {
             if (isMutation) {
                 if (!result.getErrors().isEmpty()) {
                     HashMap<String, Object> abortedResponseObject = new HashMap<>();
-                    abortedResponseObject.put("errors", result.getErrors());
+                    abortedResponseObject.put("errors", mapErrors(result.getErrors()));
                     abortedResponseObject.put("data", null);
                     // Do not commit. Throw OK response to process tx.close correctly.
                     throw new GraphQLException(mapper.writeValueAsString(abortedResponseObject));
@@ -349,6 +352,42 @@ public class QueryRunner {
             elide.getTransactionRegistry().removeRunningTransaction(requestId);
             elide.getAuditLogger().clear();
         }
+    }
+
+    /**
+     * Generate more user friendly error messages.
+     *
+     * @param errors the errors to map
+     * @return the mapped errors
+     */
+    private List<GraphQLError> mapErrors(List<GraphQLError> errors) {
+        List<GraphQLError> result = new ArrayList<>(errors.size());
+        for (GraphQLError error : errors) {
+            if (error instanceof ValidationError validationError
+                    && ValidationErrorType.WrongType.equals(validationError.getValidationErrorType())) {
+                if (validationError.getDescription().contains("ElideRelationshipOp")) {
+                    String queryPath = String.join(" ", validationError.getQueryPath());
+                    RelationshipOp relationshipOp = Arrays.stream(RelationshipOp.values())
+                            .filter(op -> validationError.getDescription().contains(op.name()))
+                            .findFirst()
+                            .orElse(null);
+                    if (relationshipOp != null) {
+                        result.add(ValidationError.newValidationError()
+                                .description("Invalid operation: " + relationshipOp.name() + " is not permitted on "
+                                        + queryPath + ".")
+                                .extensions(validationError.getExtensions())
+                                .validationErrorType(validationError.getValidationErrorType())
+                                .sourceLocations(validationError.getLocations())
+                                .queryPath(validationError.getQueryPath())
+                                .build());
+                        continue;
+                    }
+                }
+            }
+            result.add(error);
+        }
+
+        return result;
     }
 
     public static ElideResponse handleNonRuntimeException(

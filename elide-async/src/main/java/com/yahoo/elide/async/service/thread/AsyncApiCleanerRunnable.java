@@ -6,10 +6,10 @@
 package com.yahoo.elide.async.service.thread;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -27,38 +27,38 @@ import java.time.Instant;
 import java.util.Date;
 
 /**
- * Runnable for updating AsyncAPIThread status.
+ * Runnable for updating AsyncApiThread status.
  * beyond the max run time and if not terminated by interrupt process
  * due to app/host crash or restart.
  */
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncAPICleanerRunnable implements Runnable {
+public class AsyncApiCleanerRunnable implements Runnable {
 
     private Duration queryMaxRunTime;
     private Elide elide;
     private Duration queryRetentionDuration;
-    private AsyncAPIDAO asyncAPIDao;
+    private AsyncApiDao asyncApiDao;
     private Clock clock;
 
     @Override
     public void run() {
-        deleteAsyncAPI(AsyncQuery.class);
-        timeoutAsyncAPI(AsyncQuery.class);
+        deleteAsyncApi(AsyncQuery.class);
+        timeoutAsyncApi(AsyncQuery.class);
     }
 
     /**
      * This method deletes the historical queries based on threshold.
-     * @param type AsyncAPI Type Implementation.
+     * @param type AsyncApi Type Implementation.
      */
-    protected <T extends AsyncAPI> void deleteAsyncAPI(Class<T> type) {
+    protected <T extends AsyncApi> void deleteAsyncApi(Class<T> type) {
 
         try {
             Date cleanupDate = Date.from(Instant.now(clock).plus(queryRetentionDuration));
             PathElement createdOnPathElement = new PathElement(type, Long.class, "createdOn");
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
-            asyncAPIDao.deleteAsyncAPIAndResultByFilter(fltDeleteExp, type);
+            asyncApiDao.deleteAsyncApiAndResultByFilter(fltDeleteExp, type);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e.toString());
         }
@@ -67,9 +67,9 @@ public class AsyncAPICleanerRunnable implements Runnable {
     /**
      * This method updates the status of long running async query which
      * were interrupted due to host crash/app shutdown to TIMEDOUT.
-     * @param type AsyncAPI Type Implementation.
+     * @param type AsyncApi Type Implementation.
      */
-    protected <T extends AsyncAPI> void timeoutAsyncAPI(Class<T> type) {
+    protected <T extends AsyncApi> void timeoutAsyncApi(Class<T> type) {
 
         try {
             Date filterDate = Date.from(Instant.now(clock).plus(queryMaxRunTime));
@@ -79,7 +79,7 @@ public class AsyncAPICleanerRunnable implements Runnable {
                     QueryStatus.QUEUED);
             FilterPredicate lePredicate = new LEPredicate(createdOnPathElement, filterDate);
             AndFilterExpression fltTimeoutExp = new AndFilterExpression(inPredicate, lePredicate);
-            asyncAPIDao.updateStatusAsyncAPIByFilter(fltTimeoutExp, QueryStatus.TIMEDOUT, type);
+            asyncApiDao.updateStatusAsyncApiByFilter(fltTimeoutExp, QueryStatus.TIMEDOUT, type);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e.toString());
         }

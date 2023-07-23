@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-public class CSVExportFormatterTest {
+public class CsvExportFormatterTest {
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
     private static final FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("GMT"));
     private HashMapDataStore dataStore;
@@ -49,7 +49,7 @@ public class CSVExportFormatterTest {
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
-        dataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), TableExport.class.getPackage());
+        dataStore = new HashMapDataStore(new DefaultClassScanner(), TableExport.class.getPackage());
         Map<String, Class<? extends Check>> map = new HashMap<>();
         elide = new Elide(
                     new ElideSettingsBuilder(dataStore)
@@ -62,7 +62,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testResourceToCSV() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType createdOn} } } }";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
@@ -100,7 +100,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testNullResourceToCSV() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
         PersistentResource persistentResource = null;
 
         String output = formatter.format(persistentResource, 1);
@@ -109,7 +109,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testNullProjectionHeader() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -122,7 +122,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testProjectionWithEmptyAttributeSetHeader() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -136,7 +136,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testProjectionWithNullAttributesHeader() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -150,7 +150,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testHeader() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -172,7 +172,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testHeaderWithNonmatchingAlias() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -194,7 +194,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testHeaderWithArguments() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, true);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -226,7 +226,7 @@ public class CSVExportFormatterTest {
 
     @Test
     public void testHeaderSkip() {
-        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        CsvExportFormatter formatter = new CsvExportFormatter(elide, false);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";

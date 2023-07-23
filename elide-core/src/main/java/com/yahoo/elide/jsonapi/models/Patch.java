@@ -10,6 +10,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+
+import java.io.IOException;
+import java.util.Locale;
 
 /**
  * POJO which represents a JSON API patch extension entity body.
@@ -50,6 +54,19 @@ public class Patch {
         @JsonValue
         public String getName() {
             return name;
+        }
+
+        public int getId() {
+            return this.id;
+        }
+
+        @JsonCreator
+        public static Operation fromName(String name) throws IOException {
+            try {
+                return name != null ? Operation.valueOf(name.toUpperCase(Locale.ENGLISH)) : null;
+            } catch (RuntimeException e) {
+                throw InvalidFormatException.from(null, e.getMessage(), name, Operation.class);
+            }
         }
     }
 
