@@ -1,5 +1,25 @@
 # Change Log
 
+## 7.0.0-pr6
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/7cb7875f6904821add653fd1d97872425e9e8686) Add support for `hasMember` predicate to evaluate `null` in collections (#3016) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/e4e77be852fae08b187f8abcc7465051ffe95d16) Rename classes for consistency. (#3009) 
+ * [view commit](https://github.com/yahoo/elide/commit/8ac2ca54e9aaa1e72185ba572801f879f83c7be2) Fix operation and operation code deserialization (#3012) 
+ * [view commit](https://github.com/yahoo/elide/commit/68ddf67f2d793bd64f195fd63d6fcf045a98aea4) Remove singleton DefaultClassScanner accessor (#3010) 
+ * [view commit](https://github.com/yahoo/elide/commit/ac3d8eace3c6cb56d39c7814086d522d8b3e56df) Filter operations on OpenAPI and GraphQL Schema (#3018) 
+ * [view commit](https://github.com/yahoo/elide/commit/e0dee239c9d9173565444be64092ff435d55cfdc) Calcluate duplicate paths correctly (#3022) (#3024) 
+ * [view commit](https://github.com/yahoo/elide/commit/00314e2c8d479310b6e2a2d7b8fbc3bad7846836) Elide 3025: Generate the correct schema in the OAS spec for embedded complex attributes.  (#3026) 
+ * [view commit](https://github.com/yahoo/elide/commit/aa4a13f99abae1c411f32600a8ea58609da7ccf6) Bump classgraph from 4.8.158 to 4.8.161 (#3029) 
+ * [view commit](https://github.com/yahoo/elide/commit/f16814c5bffdece827bdd4b4faae18d22ff80b2d) Bump hibernate.version from 6.1.7.Final to 6.2.4.Final (#3001) 
+ * [view commit](https://github.com/yahoo/elide/commit/8b5547d1d936a967516fb9f0bac6345dcbfc3f26) Bump guava from 31.1-jre to 32.1.1-jre (#3020) 
+ * [view commit](https://github.com/yahoo/elide/commit/737874222e625c550d14a9922809fffd0ce60f7d) Bump antlr4.version from 4.12.0 to 4.13.0 (#3006) 
+ * [view commit](https://github.com/yahoo/elide/commit/60bca126bdbf0fe2ea897f5b36003b23a78a3c3c) Bump h2 from 2.1.214 to 2.2.220 (#3027) 
+ * [view commit](https://github.com/yahoo/elide/commit/9f772ad4c1dc541806e00eb34f3fa61e12e6f568) Bump maven-failsafe-plugin from 2.22.2 to 3.1.2 (#3011) 
+ * [view commit](https://github.com/yahoo/elide/commit/7d9f0d384a7a9c564a5e56b0962d5e541f3cf23e) Bump metrics-bom from 4.2.18 to 4.2.19 (#3004) 
+ * [view commit](https://github.com/yahoo/elide/commit/123b46a9fd3d9f341f45f3390f72b70dcb1dbc09) Bump httpclient from 4.5.13 to 4.5.14 (#3005) 
+
 ## 7.0.0-pr5
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/855ab18b75a01ea145050f7424fbe93bec2ccb1f) Support multiple `JpaDataStore` (#2998) 
