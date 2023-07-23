@@ -118,7 +118,7 @@
         <jakarta-jms.version>3.1.0</jakarta-jms.version>
         <jakarta-persistence.version>3.1.0</jakarta-persistence.version>
         <jakarta-transaction.version>2.0.1</jakarta-transaction.version>
-        <jakarta-websocket.version>2.0.0</jakarta-websocket.version>
+        <jakarta-websocket.version>2.1.1</jakarta-websocket.version>
         <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
         <jakarta-validation.version>3.0.2</jakarta-validation.version>
         <javaassist.version>3.29.2-GA</javaassist.version>
