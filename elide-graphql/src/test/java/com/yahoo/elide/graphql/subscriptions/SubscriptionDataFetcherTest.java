@@ -102,7 +102,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         settings.getSerdes().forEach(CoerceUtil::register);
 
         NonEntityDictionary nonEntityDictionary =
-                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup);
 
         SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary,
                 new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);

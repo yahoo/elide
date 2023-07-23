@@ -18,7 +18,7 @@ import java.net.URL;
 @Embeddable
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class TableExportResult extends AsyncAPIResult {
+public class TableExportResult extends AsyncApiResult {
     private URL url;
 
     @Lob

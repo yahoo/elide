@@ -38,7 +38,7 @@ public class DimensionFormulaTest {
 
     @Test
     public void testReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(),
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(),
                 getClassType(Sets.newHashSet(DimensionLoop.class)), true);
 
         IllegalArgumentException exception = assertThrows(
@@ -49,7 +49,7 @@ public class DimensionFormulaTest {
 
     @Test
     public void testCrossClassReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(),
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(),
                         getClassType(Sets.newLinkedHashSet(Arrays.asList(LoopCountryA.class, LoopCountryB.class))),
                         true);
 

@@ -122,4 +122,38 @@ public class HasMemberJPQLGeneratorTest {
 
         assertEquals(expected, actual);
     }
+
+    @Test
+    void testHasMemberBookAuthorNameNull() throws Exception {
+        HasMemberJPQLGenerator generator = new HasMemberJPQLGenerator(dictionary);
+
+        FilterExpression expression = dialect.parseFilterExpression("authors.name=hasmember=null",
+                ClassType.of(Book.class),
+                true);
+
+        String actual = generator.generate((FilterPredicate) expression, aliasGenerator);
+        actual = actual.replaceFirst(":\\w+", ":XXX");
+
+        String expected = """
+                EXISTS (SELECT 1 FROM example.Book _INNER_example_Book LEFT JOIN _INNER_example_Book.authors _INNER_example_Book_authors WHERE _INNER_example_Book.id = example_Book.id AND (_INNER_example_Book_authors.name IS NULL OR _INNER_example_Book_authors.name = :XXX))""";
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void testHasNoMemberBookAuthorNameNull() throws Exception {
+        HasMemberJPQLGenerator generator = new HasMemberJPQLGenerator(dictionary, true);
+
+        FilterExpression expression = dialect.parseFilterExpression("authors.name=hasnomember=null",
+                ClassType.of(Book.class),
+                true);
+
+        String actual = generator.generate((FilterPredicate) expression, aliasGenerator);
+        actual = actual.replaceFirst(":\\w+", ":XXX");
+
+        String expected = """
+                NOT EXISTS (SELECT 1 FROM example.Book _INNER_example_Book LEFT JOIN _INNER_example_Book.authors _INNER_example_Book_authors WHERE _INNER_example_Book.id = example_Book.id AND (_INNER_example_Book_authors.name IS NULL OR _INNER_example_Book_authors.name = :XXX))""";
+
+        assertEquals(expected, actual);
+    }
 }

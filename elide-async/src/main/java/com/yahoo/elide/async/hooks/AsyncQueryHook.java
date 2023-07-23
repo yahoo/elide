@@ -7,12 +7,12 @@ package com.yahoo.elide.async.hooks;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
-import com.yahoo.elide.async.models.AsyncAPI;
-import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.AsyncApi;
+import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.operation.GraphQLAsyncQueryOperation;
-import com.yahoo.elide.async.operation.JSONAPIAsyncQueryOperation;
+import com.yahoo.elide.async.operation.JsonApiAsyncQueryOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
 /**
  * LifeCycle Hook for execution of AsyncQuery.
  */
-public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
+public class AsyncQueryHook extends AsyncApiHook<AsyncQuery> {
 
     public AsyncQueryHook (AsyncExecutorService asyncExecutorService, Duration maxAsyncAfter) {
         super(asyncExecutorService, maxAsyncAfter);
@@ -35,12 +35,12 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
     @Override
     public void execute(Operation operation, TransactionPhase phase, AsyncQuery query, RequestScope requestScope,
             Optional<ChangeSpec> changes) {
-        Callable<AsyncAPIResult> callable = getOperation(query, requestScope);
+        Callable<AsyncApiResult> callable = getOperation(query, requestScope);
         executeHook(operation, phase, query, requestScope, callable);
     }
 
     @Override
-    public void validateOptions(AsyncAPI query, RequestScope requestScope) {
+    public void validateOptions(AsyncApi query, RequestScope requestScope) {
         super.validateOptions(query, requestScope);
 
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
@@ -52,10 +52,10 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
     }
 
     @Override
-    public Callable<AsyncAPIResult> getOperation(AsyncAPI query, RequestScope requestScope) {
-        Callable<AsyncAPIResult> operation = null;
+    public Callable<AsyncApiResult> getOperation(AsyncApi query, RequestScope requestScope) {
+        Callable<AsyncApiResult> operation = null;
         if (query.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
-            operation = new JSONAPIAsyncQueryOperation(getAsyncExecutorService(), query,
+            operation = new JsonApiAsyncQueryOperation(getAsyncExecutorService(), query,
                     (com.yahoo.elide.core.RequestScope) requestScope);
         } else {
             operation = new GraphQLAsyncQueryOperation(getAsyncExecutorService(), query,

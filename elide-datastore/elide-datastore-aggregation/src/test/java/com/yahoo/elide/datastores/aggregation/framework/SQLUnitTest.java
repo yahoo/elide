@@ -548,8 +548,8 @@ public abstract class SQLUnitTest {
     }
 
     public static void init(SQLDialect dialect) {
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(),
-                getClassType(DefaultClassScanner.getInstance().getAnnotatedClasses("example",
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(),
+                getClassType(new DefaultClassScanner().getAnnotatedClasses("example",
                         Include.class)),
                 false);
         init(dialect, new HashSet<>(), metaDataStore);

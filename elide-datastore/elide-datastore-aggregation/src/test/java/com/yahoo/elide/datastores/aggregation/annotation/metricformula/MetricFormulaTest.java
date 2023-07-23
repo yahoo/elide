@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 public class MetricFormulaTest {
     @Test
     public void testReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(),
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(),
                 Sets.newHashSet(ClassType.of(MeasureLoop.class)), true);
 
         IllegalArgumentException exception = assertThrows(

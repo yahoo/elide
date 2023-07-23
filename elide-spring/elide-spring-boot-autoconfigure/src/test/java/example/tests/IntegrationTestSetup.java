@@ -17,7 +17,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
+import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -70,10 +70,10 @@ public class IntegrationTestSetup {
             String baseUrl = settings.getBaseUrl();
 
             if (StringUtils.isEmpty(baseUrl)) {
-                builder.withJSONApiLinks(new DefaultJSONApiLinks());
+                builder.withJsonApiLinks(new DefaultJsonApiLinks());
             } else {
                 String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
-                builder.withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl));
+                builder.withJsonApiLinks(new DefaultJsonApiLinks(jsonApiBaseUrl));
             }
         }
 

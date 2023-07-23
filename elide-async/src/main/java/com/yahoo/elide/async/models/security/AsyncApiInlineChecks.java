@@ -6,7 +6,7 @@
 package com.yahoo.elide.async.models.security;
 
 import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
@@ -28,7 +28,7 @@ import java.util.Optional;
 /**
  * Operation Checks on the Async API and Result objects.
  */
-public class AsyncAPIInlineChecks {
+public class AsyncApiInlineChecks {
     private static final String PRINCIPAL_NAME = "principalName";
 
     static private FilterPredicate getPredicateOfPrincipalName(String principalName, Type entityClass) {
@@ -45,8 +45,8 @@ public class AsyncAPIInlineChecks {
      * Filter for principalName == Owner.
      * @param <T> type parameter
      */
-    @SecurityCheck(AsyncAPIOwner.PRINCIPAL_IS_OWNER)
-    static public class AsyncAPIOwner<T> extends FilterExpressionCheck<T> {
+    @SecurityCheck(AsyncApiOwner.PRINCIPAL_IS_OWNER)
+    static public class AsyncApiOwner<T> extends FilterExpressionCheck<T> {
         public static final String PRINCIPAL_IS_OWNER = "Principal is Owner";
         /**
          * query principalName == owner.
@@ -61,8 +61,8 @@ public class AsyncAPIInlineChecks {
         }
     }
 
-    @SecurityCheck(AsyncAPIAdmin.PRINCIPAL_IS_ADMIN)
-    public static class AsyncAPIAdmin extends UserCheck {
+    @SecurityCheck(AsyncApiAdmin.PRINCIPAL_IS_ADMIN)
+    public static class AsyncApiAdmin extends UserCheck {
 
         public static final String PRINCIPAL_IS_ADMIN = "Principal is Admin";
 
@@ -75,22 +75,22 @@ public class AsyncAPIInlineChecks {
         }
     }
 
-    @SecurityCheck(AsyncAPIStatusValue.VALUE_IS_CANCELLED)
-    public static class AsyncAPIStatusValue extends OperationCheck<AsyncAPI> {
+    @SecurityCheck(AsyncApiStatusValue.VALUE_IS_CANCELLED)
+    public static class AsyncApiStatusValue extends OperationCheck<AsyncApi> {
 
         public static final String VALUE_IS_CANCELLED = "value is Cancelled";
 
         @Override
-        public boolean ok(AsyncAPI object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(AsyncApi object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.get().getModified().toString().equals(QueryStatus.CANCELLED.name());
         }
     }
 
-    @SecurityCheck(AsyncAPIStatusQueuedValue.VALUE_IS_QUEUED)
-    public static class AsyncAPIStatusQueuedValue extends OperationCheck<AsyncAPI> {
+    @SecurityCheck(AsyncApiStatusQueuedValue.VALUE_IS_QUEUED)
+    public static class AsyncApiStatusQueuedValue extends OperationCheck<AsyncApi> {
         public static final String VALUE_IS_QUEUED = "value is Queued";
         @Override
-        public boolean ok(AsyncAPI object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(AsyncApi object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.get().getModified().toString().equals(QueryStatus.QUEUED.name());
         }
     }

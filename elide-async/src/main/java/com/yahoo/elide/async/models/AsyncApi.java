@@ -28,7 +28,7 @@ import java.util.UUID;
  */
 @MappedSuperclass
 @Data
-public abstract class AsyncAPI implements PrincipalOwned {
+public abstract class AsyncApi implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
     @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -67,13 +67,13 @@ public abstract class AsyncAPI implements PrincipalOwned {
      * Set Async API Result.
      * @param result Base Result Object to persist.
      */
-    public abstract void setResult(AsyncAPIResult result);
+    public abstract void setResult(AsyncApiResult result);
 
     /**
      * Get Async API Result.
-     * @return AsyncAPIResult object.
+     * @return AsyncApiResult object.
      */
-    public abstract AsyncAPIResult getResult();
+    public abstract AsyncApiResult getResult();
 
     @PreUpdate
     public void preUpdate() {
@@ -87,6 +87,6 @@ public abstract class AsyncAPI implements PrincipalOwned {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof AsyncAPI && this.getClass() == obj.getClass() && id.equals(((AsyncAPI) obj).id);
+        return obj instanceof AsyncApi && this.getClass() == obj.getClass() && id.equals(((AsyncApi) obj).id);
     }
 }

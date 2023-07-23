@@ -16,7 +16,7 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.links.JSONApiLinks;
+import com.yahoo.elide.jsonapi.links.JsonApiLinks;
 import com.yahoo.elide.utils.HeaderUtils;
 
 import lombok.AllArgsConstructor;
@@ -40,7 +40,7 @@ public class ElideSettings {
     @Getter private final List<JoinFilterDialect> joinFilterDialects;
     @Getter private final List<SubqueryFilterDialect> subqueryFilterDialects;
     @Getter private final FilterDialect graphqlDialect;
-    @Getter private final JSONApiLinks jsonApiLinks;
+    @Getter private final JsonApiLinks jsonApiLinks;
     @Getter private final HeaderUtils.HeaderProcessor headerProcessor;
     @Getter private final int defaultMaxPageSize;
     @Getter private final int defaultPageSize;
