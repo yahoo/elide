@@ -109,6 +109,24 @@ class OpenApiBuilderTest {
     }
 
     @Test
+    void testComplexAttribute() throws Exception {
+        Map<String, Schema> schemas = openApi.getComponents().getSchemas();
+        assertTrue(schemas.containsKey("Address"));
+        Map<String, Schema> addressProperties = schemas.get("Address").getProperties();
+        assertEquals(5, addressProperties.size());
+        assertTrue(addressProperties.containsKey("street"));
+        assertTrue(addressProperties.get("street") instanceof StringSchema);
+        assertTrue(addressProperties.containsKey("city"));
+        assertTrue(addressProperties.get("city") instanceof StringSchema);
+        assertTrue(addressProperties.containsKey("state"));
+        assertTrue(addressProperties.get("state") instanceof StringSchema);
+        assertTrue(addressProperties.containsKey("zip"));
+        assertTrue(addressProperties.get("zip") instanceof StringSchema);
+        assertTrue(addressProperties.containsKey("hmmm"));
+        assertEquals("#/components/schemas/book", addressProperties.get("hmmm").get$ref());
+    }
+
+    @Test
     void testPathGeneration() throws Exception {
         assertTrue(openApi.getPaths().containsKey("/publisher"));
         assertTrue(openApi.getPaths().containsKey("/publisher/{publisherId}"));
