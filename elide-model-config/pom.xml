@@ -94,7 +94,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.java-json-tools</groupId>
+            <groupId>com.networknt</groupId>
             <artifactId>json-schema-validator</artifactId>
         </dependency>
         <dependency>
