@@ -110,7 +110,7 @@
         <hibernate-validator.version>8.0.0.Final</hibernate-validator.version>
         <hibernate-search.version>6.2.1.Final</hibernate-search.version>
         <hjson.version>3.0.1</hjson.version>
-        <httpclient.version>4.5.14</httpclient.version>
+        <httpclient5.version>5.2.1</httpclient5.version>
         <gson.version>2.10.1</gson.version>
         <h2.version>2.2.224</h2.version>
         <hikaricp.version>5.0.1</hikaricp.version>
@@ -148,6 +148,7 @@
         <system-lambda.version>1.2.1</system-lambda.version>
         <tomcat.version>10.1.13</tomcat.version>
         <mockito.version>5.6.0</mockito.version>
+
 
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
@@ -426,7 +427,7 @@
                 <groupId>org.owasp.encoder</groupId>
                 <artifactId>encoder</artifactId>
                 <version>${encoder.version}</version>
-            </dependency>            
+            </dependency>
             <dependency>
                 <groupId>org.fusesource.jansi</groupId>
                 <artifactId>jansi</artifactId>
@@ -462,9 +463,9 @@
                 <version>${handlebars.version}</version>
             </dependency>
             <dependency>
-               <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>${httpclient.version}</version>
+               <groupId>org.apache.httpcomponents.client5</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>${httpclient5.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.opendevl</groupId>
@@ -492,12 +493,12 @@
                 <groupId>org.skyscreamer</groupId>
                 <artifactId>jsonassert</artifactId>
                 <version>${jsonassert.version}</version>
-            </dependency>            
+            </dependency>
             <dependency>
                 <groupId>com.github.stefanbirkner</groupId>
                 <artifactId>system-lambda</artifactId>
                 <version>${system-lambda.version}</version>
-            </dependency>            
+            </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
