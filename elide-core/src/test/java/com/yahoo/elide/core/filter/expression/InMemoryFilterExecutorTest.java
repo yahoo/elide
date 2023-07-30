@@ -30,10 +30,12 @@ import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.predicates.NotInInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.NotInPredicate;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.filter.predicates.NotSupersetOfPredicate;
 import com.yahoo.elide.core.filter.predicates.PostfixInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
+import com.yahoo.elide.core.filter.predicates.SupersetOfPredicate;
 import com.yahoo.elide.core.filter.predicates.TruePredicate;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -516,6 +518,62 @@ public class InMemoryFilterExecutorTest {
         expression = new OrFilterExpression(
                 new InPredicate(authorIdElement, 0L),
                 new InPredicate(authorNameElement, "Fail"));
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+    }
+
+    @Test
+    public void supersetOfPredicateTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        // When name is empty and books are empty
+        author.setAwards(new HashSet<>());
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+
+        // When name and books are not empty
+        author.setAwards(Arrays.asList("Bookery prize"));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "National Book Awards");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize", "Test");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "National Book Awards", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        author.setAwards(Arrays.asList("Bookery prize", "National Book Awards"));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize", "National Book Awards");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "National Book Awards", "Bookery prize");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize", "National Book Awards", "Test");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "National Book Awards", "Bookery prize", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "Bookery prize");
         fn = expression.accept(visitor);
         assertFalse(fn.test(author));
     }

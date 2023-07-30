@@ -232,6 +232,21 @@ public enum Operator {
             return entity -> !hasMember(fieldPath, values, requestScope).test(entity);
         }
     },
+
+    SUPERSETOF("supersetof", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return supersetOf(fieldPath, values, requestScope);
+        }
+    },
+
+    NOTSUPERSETOF("notsupersetof", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return entity -> !supersetOf(fieldPath, values, requestScope).test(entity);
+        }
+    },
+
     BETWEEN("between", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
@@ -533,6 +548,33 @@ public enum Operator {
             }
 
             return false;
+        };
+    }
+
+    private static <T> Predicate<T> supersetOf(Path fieldPath, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            Type<?> valueClass = fieldPath.lastElement().get().getFieldType();
+
+            Object leftHandSide = getFieldValue(entity, fieldPath, requestScope);
+
+            BiPredicate<Object, Object> predicate = (a, b) -> a.equals(b);
+
+            List<?> rightHandSide = values.stream().map(value -> CoerceUtil.coerce(value, valueClass)).toList();
+
+            if (leftHandSide instanceof Collection<?> collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
+                for (Object right : rightHandSide) {
+                    if (!collection.stream().anyMatch(object -> predicate.test(right, object))) {
+                        return false;
+                    }
+                }
+            } else {
+                for (Object right : rightHandSide) {
+                    if (!predicate.test(right, leftHandSide)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         };
     }
 

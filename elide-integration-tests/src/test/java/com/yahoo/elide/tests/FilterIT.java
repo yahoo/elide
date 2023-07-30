@@ -1898,24 +1898,21 @@ public class FilterIT extends IntegrationTest {
                 }
             }
         }
-// Disabled for bug in Hibernate - https://hibernate.atlassian.net/browse/HHH-13990
-//        // Test Default filter type on NonRoot Entity
-//        when()
-//                .get(String.format("/author/%s/books?filter[book.awards][hasmember]=%s", nullNedId, filterString))
-//                .then()
-//                .body("data", hasSize(nullNedAwardBook.size()),
-//                        "data.id", contains(nullNedAwardBook.toArray())
-//                );
-//
-//
-//
-//        // Test RSQL type filter on NonRoot Entity
-//        when()
-//                .get(String.format("/author/%s/books?filter[book]=awards=hasmember=\"%s\"", nullNedId, filterString))
-//                .then()
-//                .body("data", hasSize(nullNedAwardBook.size()),
-//                        "data.id", contains(nullNedAwardBook.toArray())
-//                );
+        // Test Default filter type on NonRoot Entity
+        when()
+                .get(String.format("/author/%s/books?filter[book.awards][hasmember]=%s", nullNedId, filterString))
+                .then()
+                .body("data", hasSize(nullNedAwardBook.size()),
+                        "data.id", contains(nullNedAwardBook.toArray())
+                );
+
+        // Test RSQL type filter on NonRoot Entity
+        when()
+                .get(String.format("/author/%s/books?filter[book]=awards=hasmember=\"%s\"", nullNedId, filterString))
+                .then()
+                .body("data", hasSize(nullNedAwardBook.size()),
+                        "data.id", contains(nullNedAwardBook.toArray())
+                );
     }
 
     @Test
@@ -2119,6 +2116,259 @@ public class FilterIT extends IntegrationTest {
         assertEquals(
                 "Invalid Path: Last Path Element has to be a collection type\n"
                         + "Invalid query parameter: filter[book.title][hasmember]",
+                result.get("errors").get(0).get("detail").asText()
+        );
+    }
+
+    @Test
+    @Tag("excludeOnHibernate3")
+    void testSupersetOfOnAttributes() {
+        String filterString = "Booker Prize";
+        Set<String> awardBook = new HashSet<>();
+        Set<String> nullNedAwardBook = new HashSet<>();
+
+
+        // * Filter On Root Entity *
+        for (JsonNode book : books.get("data")) {
+            Iterator<JsonNode> awards = book.get("attributes").get("awards").elements();
+            while (awards.hasNext()) {
+                if (awards.next().asText().equals(filterString)) {
+                    awardBook.add(book.get("id").asText());
+                    break;
+                }
+            }
+        }
+        // Test Default filter type on Root Entity
+        when()
+                .get(String.format("/book?filter[book.awards][supersetof]=%s", filterString))
+                .then()
+                .body("data", hasSize(awardBook.size()),
+                        "data.id", contains(awardBook.toArray())
+                );
+
+
+        // Test RSQL type filter on Root Entity
+        when()
+                .get(String.format("/book?filter[book]=awards=supersetof=\"%s\"", filterString))
+                .then()
+                .body("data", hasSize(awardBook.size()),
+                        "data.id", contains(awardBook.toArray())
+                );
+
+
+        // * Filter On Non Root Entity *
+        for (JsonNode book : nullNedBooks.get("data")) {
+            Iterator<JsonNode> awards = book.get("attributes").get("awards").elements();
+            while (awards.hasNext()) {
+                if (awards.next().asText().equals(filterString)) {
+                    nullNedAwardBook.add(book.get("id").asText());
+                    break;
+                }
+            }
+        }
+        // Test Default filter type on NonRoot Entity
+        when()
+                .get(String.format("/author/%s/books?filter[book.awards][supersetof]=%s", nullNedId, filterString))
+                .then()
+                .body("data", hasSize(nullNedAwardBook.size()),
+                        "data.id", contains(nullNedAwardBook.toArray())
+                );
+
+        // Test RSQL type filter on NonRoot Entity
+        when()
+                .get(String.format("/author/%s/books?filter[book]=awards=supersetof=\"%s\"", nullNedId, filterString))
+                .then()
+                .body("data", hasSize(nullNedAwardBook.size()),
+                        "data.id", contains(nullNedAwardBook.toArray())
+                );
+    }
+
+    @Test
+    @Tag("excludeOnHibernate3")
+    void testSupersetOfToOneRelationships() {
+        String phoneNumber = "987-654-3210";
+        Set<String> publisherBook = new HashSet<>();
+
+
+        // * Filter On Root Entity *
+        for (JsonNode book : books.get("data")) {
+            int publisherId = book.get("relationships").get("publisher").get("data").get("id").asInt();
+            if (publisherId == 1) {
+                publisherBook.add(book.get("id").asText());
+                break;
+            }
+        }
+        // Test Default filter type on Root Entity
+        when()
+                .get(String.format("/book?filter[book.publisher.phoneNumbers][supersetof]=%s", phoneNumber))
+                .then()
+                .body("data", hasSize(publisherBook.size()),
+                        "data.id", contains(publisherBook.toArray())
+                );
+
+        // Test RSQL type filter on Root Entity
+        when()
+                .get(String.format("/book?filter[book]=publisher.phoneNumbers=supersetof=\"%s\"", phoneNumber))
+                .then()
+                .body("data", hasSize(publisherBook.size()),
+                        "data.id", contains(publisherBook.toArray())
+                );
+
+    }
+
+    @Test
+    void testRootSupersetOfToManyRelationshipConjunction() {
+        /* RSQL Global */
+        when()
+                .get("/book?filter=authors.id=supersetof=1;authors.id=supersetof=2")
+                .then()
+                .body("data", hasSize(1))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[0].data.id[1]", equalTo("2"));
+
+        when()
+                .get("/book?filter=authors.id=supersetof=(1,2)")
+                .then()
+                .body("data", hasSize(1))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[0].data.id[1]", equalTo("2"));
+    }
+
+    @Test
+    void testRootSupersetOfToManyRelationship() {
+        /* RSQL Global */
+        when()
+                .get("/book?filter=authors.id=supersetof=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+
+        /* RSQL Typed */
+        when()
+                .get("/book?filter[book]=authors.id=supersetof=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* Default */
+        when()
+                .get("/book?filter[book.authors.id][supersetof]=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+    }
+
+    @Test
+    void testRootSupersetOfAndNotSupersetOfToManyRelationship() {
+        /* RSQL Global */
+        when()
+                .get("/book?filter=authors.id=supersetof=1;authors.id=notsupersetof=3")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* RSQL Typed */
+        when()
+                .get("/book?filter[book]=authors.id=supersetof=1;authors.id=notsupersetof=3")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* Default */
+        when()
+                .get("/book?filter[book.authors.id][supersetof]=1&filter[book.authors.id][notsupersetof]=3")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+    }
+
+    @Test
+    void testSubcollectionSupersetOfToManyRelationship() {
+        /* RSQL Typed */
+        when()
+                .get("/author/5/books?filter[book]=chapters.title=supersetof='Mamma mia I wantz some pizza!'")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+
+        /* Default */
+        when()
+                .get("/author/5/books?filter[book.chapters.title][supersetof]=Mamma mia I wantz some pizza!")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+    }
+
+    @Test
+    void testSubcollectionSupersetOfToManyRelationshipConjunction() {
+        /* RSQL Typed */
+        when()
+                .get("/author/5/books?filter[book]=chapters.title=supersetof='Mamma mia I wantz some pizza!';chapters.title=notsupersetof='Foo'")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+
+        /* Default */
+        when()
+                .get("/author/5/books?filter[book.chapters.title][supersetof]=Mamma mia I wantz some pizza!&filter[book.chapters.title][notsupersetof]=Foo")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+    }
+
+    @Test
+    @Tag("excludeOnHibernate3")
+    void testExceptionOnSupersetOfOperator() throws JsonProcessingException {
+        JsonNode result;
+        // Typed Expression
+        result = getAsNode(String.format("/author/%s/books?filter[book.authors][supersetof]", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        assertEquals("""
+                Invalid predicate: book.authors SUPERSETOF []
+                Invalid query parameter: filter[book.authors][supersetof]
+                Invalid Path: Last Path Element cannot be a collection type
+                Invalid query parameter: filter[book.authors][supersetof]""",
+                result.get("errors").get(0).get("detail").asText()
+        );
+
+        //RSQL
+        result = getAsNode(String.format("/author/%s/books?filter[book]=authors=supersetof=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid Path: Last Path Element cannot be a collection type",
+                result.get("errors").get(0).get("detail").asText()
+        );
+
+
+        // Test RSQL type filter on Root Entity
+        result = getAsNode(String.format("/book?filter[book]=publisher.name=supersetof=\"%s\"", "Default publisher"), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid Path: Last Path Element has to be a collection type",
+                result.get("errors").get(0).get("detail").asText()
+        );
+        result = getAsNode(String.format("/book?filter[book]=title=notsupersetof=\"%s\"", "*The*"), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid Path: Last Path Element has to be a collection type",
+                result.get("errors").get(0).get("detail").asText()
+        );
+        result = getAsNode(String.format("/book?filter[book.title][supersetof]=\"%s\"", "*The*"), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "Invalid Path: Last Path Element has to be a collection type\n"
+                        + "Invalid query parameter: filter[book.title][supersetof]",
                 result.get("errors").get(0).get("detail").asText()
         );
     }
