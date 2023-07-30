@@ -90,7 +90,8 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
         options.put("jakarta.persistence.jdbc.url", JDBC);
         options.put("jakarta.persistence.jdbc.user", ROOT);
         options.put("jakarta.persistence.jdbc.password", ROOT);
-        options.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+        //options.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+        options.put("hibernate.dialect", "com.yahoo.elide.datastores.jpa.H2MySQLDialect");
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         this.entityManagerFactory = Persistence.createEntityManagerFactory("elide-tests", options);

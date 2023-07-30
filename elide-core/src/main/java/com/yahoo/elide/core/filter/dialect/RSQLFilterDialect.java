@@ -83,6 +83,9 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final ComparisonOperator HASNOMEMBER_OP = new ComparisonOperator("=hasnomember=", false);
     private static final ComparisonOperator BETWEEN_OP = new ComparisonOperator("=between=", true);
     private static final ComparisonOperator NOTBETWEEN_OP = new ComparisonOperator("=notbetween=", true);
+    private static final ComparisonOperator SUBSETOF_OP = new ComparisonOperator("=subsetof=", true);
+    private static final ComparisonOperator NOTSUBSETOF_OP = new ComparisonOperator("=notsubsetof=", true);
+
     private static final ComparisonOperator SUPERSETOF_OP = new ComparisonOperator("=supersetof=", true);
     private static final ComparisonOperator NOTSUPERSETOF_OP = new ComparisonOperator("=notsupersetof=", true);
 
@@ -97,6 +100,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     .put(HASNOMEMBER_OP, Operator.HASNOMEMBER)
                     .put(BETWEEN_OP, Operator.BETWEEN)
                     .put(NOTBETWEEN_OP, Operator.NOTBETWEEN)
+                    .put(SUBSETOF_OP, Operator.SUBSETOF)
+                    .put(NOTSUBSETOF_OP, Operator.NOTSUBSETOF)
                     .put(SUPERSETOF_OP, Operator.SUPERSETOF)
                     .put(NOTSUPERSETOF_OP, Operator.NOTSUPERSETOF)
                     .build();
@@ -139,6 +144,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         operators.add(HASNOMEMBER_OP);
         operators.add(BETWEEN_OP);
         operators.add(NOTBETWEEN_OP);
+        operators.add(SUBSETOF_OP);
+        operators.add(NOTSUBSETOF_OP);
         operators.add(SUPERSETOF_OP);
         operators.add(NOTSUPERSETOF_OP);
         return operators;
@@ -480,6 +487,16 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             }
 
             if (op.equals(HASMEMBER_OP) || op.equals(HASNOMEMBER_OP)) {
+                if (FilterPredicate.toManyInPath(dictionary, path)) {
+                    if (FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                        throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");
+                    }
+                } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                    throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                }
+            }
+
+            if (op.equals(SUBSETOF_OP) || op.equals(NOTSUBSETOF_OP)) {
                 if (FilterPredicate.toManyInPath(dictionary, path)) {
                     if (FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
                         throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");

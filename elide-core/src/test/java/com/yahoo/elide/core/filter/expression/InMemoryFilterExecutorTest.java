@@ -30,11 +30,13 @@ import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.predicates.NotInInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.NotInPredicate;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.filter.predicates.NotSubsetOfPredicate;
 import com.yahoo.elide.core.filter.predicates.NotSupersetOfPredicate;
 import com.yahoo.elide.core.filter.predicates.PostfixInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
+import com.yahoo.elide.core.filter.predicates.SubsetOfPredicate;
 import com.yahoo.elide.core.filter.predicates.SupersetOfPredicate;
 import com.yahoo.elide.core.filter.predicates.TruePredicate;
 import com.yahoo.elide.core.type.Type;
@@ -520,6 +522,63 @@ public class InMemoryFilterExecutorTest {
                 new InPredicate(authorNameElement, "Fail"));
         fn = expression.accept(visitor);
         assertFalse(fn.test(author));
+    }
+
+    @Test
+    public void subsetOfPredicateTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        // When name is empty and books are empty
+        author.setAwards(new HashSet<>());
+
+        // Empty set is a subset of all sets
+        expression = new SubsetOfPredicate(authorAwardsElement, "");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+
+        // When name and books are not empty
+        author.setAwards(Arrays.asList("Bookery prize"));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "National Book Awards");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "National Book Awards", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        author.setAwards(Arrays.asList("Bookery prize", "National Book Awards"));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize", "National Book Awards");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "National Book Awards", "Bookery prize");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize", "National Book Awards", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "National Book Awards", "Bookery prize", "Test");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
     }
 
     @Test
