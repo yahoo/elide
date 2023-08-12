@@ -6,10 +6,9 @@
 
 package com.yahoo.elide.graphql;
 
-import static graphql.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -139,11 +138,11 @@ public class ModelBuilderTest {
 
         GraphQLSchema schema = builder.build();
 
-        assertNotEquals(schema.getType(AUTHOR), null);
-        assertNotEquals(schema.getType(BOOK), null);
-        assertNotEquals(schema.getType(AUTHOR_INPUT), null);
-        assertNotEquals(schema.getType(BOOK_INPUT), null);
-        assertNotEquals(schema.getType("_root"), null);
+        assertNotNull(schema.getType(AUTHOR));
+        assertNotNull(schema.getType(BOOK));
+        assertNotNull(schema.getType(AUTHOR_INPUT));
+        assertNotNull(schema.getType(BOOK_INPUT));
+        assertNotNull(schema.getType("_root"));
 
         GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(BOOK), null);
         GraphQLObjectType authorType = getConnectedType((GraphQLObjectType) schema.getType(AUTHOR), null);
