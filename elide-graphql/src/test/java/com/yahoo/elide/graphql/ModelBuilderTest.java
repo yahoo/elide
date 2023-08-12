@@ -138,11 +138,11 @@ public class ModelBuilderTest {
 
         GraphQLSchema schema = builder.build();
 
-        assertNotNull(schema.getType(AUTHOR));
-        assertNotNull(schema.getType(BOOK));
-        assertNotNull(schema.getType(AUTHOR_INPUT));
-        assertNotNull(schema.getType(BOOK_INPUT));
-        assertNotNull(schema.getType("_root"));
+        assertNotNull(schema.getType(AUTHOR), AUTHOR);
+        assertNotNull(schema.getType(BOOK), BOOK);
+        assertNotNull(schema.getType(AUTHOR_INPUT), AUTHOR_INPUT);
+        assertNotNull(schema.getType(BOOK_INPUT), BOOK_INPUT);
+        assertNotNull(schema.getType("_root"), "_root");
 
         GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(BOOK), null);
         GraphQLObjectType authorType = getConnectedType((GraphQLObjectType) schema.getType(AUTHOR), null);
