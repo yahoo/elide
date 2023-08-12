@@ -840,7 +840,7 @@ public class GraphQLEndpointTest {
     }
 
     private static String extract200ResponseString(Response response) {
-        assertEquals(response.getStatus(), 200);
+        assertEquals(200, response.getStatus());
         return (String) response.getEntity();
     }
 

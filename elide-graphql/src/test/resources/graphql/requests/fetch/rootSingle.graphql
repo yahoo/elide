@@ -9,6 +9,7 @@
             node {
               id
               name
+              obj
             }
           }
         }

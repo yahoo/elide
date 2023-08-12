@@ -77,6 +77,8 @@ import javax.ws.rs.WebApplicationException;
 @SuppressWarnings("static-method")
 public class EntityDictionary {
 
+    public static final String NO_VERSION = "";
+
     protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();

@@ -32,6 +32,7 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.execution.AsyncSerialExecutionStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -69,7 +70,9 @@ public class QueryRunner {
                 nonEntityDictionary);
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), nonEntityDictionary, fetcher);
 
-        this.api = new GraphQL(builder.build());
+        api = GraphQL.newGraphQL(builder.build())
+                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
+                .build();
 
         // TODO - add serializers to allow for custom handling of ExecutionResult and GraphQLError objects
         GraphQLErrorSerializer errorSerializer =

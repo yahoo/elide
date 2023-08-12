@@ -18,6 +18,7 @@ import graphql.schema.GraphQLScalarType;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class GraphQLConversionUtilsTest {
 
@@ -25,10 +26,10 @@ public class GraphQLConversionUtilsTest {
     public void testGraphQLConversionUtilsClassToScalarType() {
         CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
         GraphQLConversionUtils graphQLConversionUtils =
-                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary());
-        GraphQLScalarType type = graphQLConversionUtils.classToScalarType(OffsetDateTime.class);
-        assertNotNull(type);
+                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary(), new HashSet<>());
+        GraphQLScalarType offsetDateTimeType = graphQLConversionUtils.classToScalarType(OffsetDateTime.class);
+        assertNotNull(offsetDateTimeType);
         String expected = "OffsetDateTime";
-        assertEquals(expected, type.getName());
+        assertEquals(expected, offsetDateTimeType.getName());
     }
 }
