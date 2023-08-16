@@ -23,16 +23,14 @@ import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import graphql.execution.SubscriptionExecutionStrategy;
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.OnOpen;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.Endpoint;
+import jakarta.websocket.EndpointConfig;
+import jakarta.websocket.MessageHandler;
 import jakarta.websocket.Session;
-import jakarta.websocket.server.ServerEndpoint;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -42,13 +40,22 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 
 /**
- * JSR-356 Implementation of a web socket endpoint for GraphQL subscriptions.  JSR-356 should allow
- * cross-platform use for Spring, Quarkus, and other containers.
+ * JSR-356 Implementation of a programmatic web socket endpoint for GraphQL
+ * subscriptions. JSR-356 should allow cross-platform use for Spring, Quarkus,
+ * and other containers.
+ * <p>
+ * This requires programmatic registration using a
+ * {@link jakarta.websocket.server.ServerEndpointConfig.Builder} with the
+ * graphql-transport-ws subprotocol as the
+ * {@link jakarta.websocket.server.ServerEndpoint} annotation requires that the
+ * annotated class have a public no-arg constructor.
  */
 @Slf4j
-@ServerEndpoint(value = "/", subprotocols = { "graphql-transport-ws" })
 @Builder
-public class SubscriptionWebSocket {
+public class SubscriptionWebSocket extends Endpoint {
+    public static final String SUBPROTOCOL_GRAPHQL_TRANSPORT_WS = "graphql-transport-ws";
+    public static final List<String> SUPPORTED_WEBSOCKET_SUBPROTOCOLS = List.of(SUBPROTOCOL_GRAPHQL_TRANSPORT_WS);
+
     private Elide elide;
     private ExecutorService executorService;
 
@@ -147,10 +154,9 @@ public class SubscriptionWebSocket {
     /**
      * Called on session open.
      * @param session The platform specific session object.
-     * @throws IOException If there is an underlying error.
      */
-    @OnOpen
-    public void onOpen(Session session) throws IOException {
+    @Override
+    public void onOpen(Session session, EndpointConfig config) {
         log.debug("Session Opening: {}", session.getId());
         SessionHandler subscriptionSession = createSessionHandler(session);
 
@@ -159,16 +165,21 @@ public class SubscriptionWebSocket {
         session.setMaxBinaryMessageBufferSize(maxMessageSize);
 
         openSessions.put(session, subscriptionSession);
+
+        session.addMessageHandler(new MessageHandler.Whole<String>() {
+            @Override
+            public void onMessage(String message) {
+                SubscriptionWebSocket.this.onMessage(session, message);
+            }
+        });
     }
 
     /**
      * Called on a new web socket message.
      * @param session The platform specific session object.
      * @param message The new message.
-     * @throws IOException If there is an underlying error.
      */
-    @OnMessage
-    public void onMessage(Session session, String message) throws IOException {
+    public void onMessage(Session session, String message) {
         log.debug("Session Message: {} {}", session.getId(), message);
 
         SessionHandler handler = findSession(session);
@@ -182,10 +193,9 @@ public class SubscriptionWebSocket {
     /**
      * Called on session close.
      * @param session The platform specific session object.
-     * @throws IOException If there is an underlying error.
      */
-    @OnClose
-    public void onClose(Session session) throws IOException {
+    @Override
+    public void onClose(Session session, CloseReason closeReason) {
         log.debug("Session Closing: {}", session.getId());
         SessionHandler handler = findSession(session);
 
@@ -200,7 +210,7 @@ public class SubscriptionWebSocket {
      * @param session The platform specific session object.
      * @param throwable The error that occurred.
      */
-    @OnError
+    @Override
     public void onError(Session session, Throwable throwable) {
         log.error("Session Error: {} {}", session.getId(), throwable.getMessage());
         SessionHandler handler = findSession(session);
