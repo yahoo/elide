@@ -56,6 +56,7 @@ import graphql.GraphQLError;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.websocket.CloseReason;
+import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.Session;
 import lombok.extern.slf4j.Slf4j;
@@ -83,6 +84,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     protected Elide elide;
     protected ExecutorService executorService = MoreExecutors.newDirectExecutorService();
     protected DataFetcherExceptionHandler dataFetcherExceptionHandler = spy(new SimpleDataFetcherExceptionHandler());
+    protected EndpointConfig endpointConfig;
 
     public SubscriptionWebSocketTest() {
         RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
@@ -143,12 +145,12 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .elide(elide).build();
 
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
-        endpoint.onClose(session);
+        endpoint.onClose(session, null);
 
         verify(remote, times(1)).sendText(message.capture());
         assertEquals("{\"type\":\"connection_ack\"}", message.getAllValues().get(0));
@@ -165,7 +167,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .elide(elide).build();
 
         String invalid = "{ \"id\": 123 }";
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, invalid);
 
         verify(remote, never()).sendText(any());
@@ -182,7 +184,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .elide(elide).build();
 
         String invalid = "{ \"type\": \"foo\", \"id\": 123 }";
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, invalid);
 
         verify(remote, never()).sendText(any());
@@ -201,7 +203,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         //Missing payload field
         String invalid = "{ \"type\": \"subscribe\"}";
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
         endpoint.onMessage(session, invalid);
 
@@ -221,7 +223,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .executorService(executorService)
                 .connectionTimeout(Duration.ZERO).elide(elide).build();
 
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
 
         ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
         verify(session, timeout(1000).times(1)).close(closeReason.capture());
@@ -235,7 +237,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .elide(elide).build();
 
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
@@ -255,7 +257,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .executorService(executorService)
                 .elide(elide).build();
 
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
 
         Subscribe subscribe = Subscribe.builder()
                 .id("1")
@@ -280,7 +282,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .elide(elide).build();
 
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
         Subscribe subscribe = Subscribe.builder()
@@ -330,7 +332,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .thenReturn(new DataStoreIterableBuilder(List.of(book1, book2)).build());
 
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
         Subscribe subscribe = Subscribe.builder()
@@ -365,7 +367,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         when(dataStoreTransaction.loadObjects(any(), any())).thenThrow(new BadRequestException("Bad Request"));
 
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
         Subscribe subscribe = Subscribe.builder()
@@ -406,7 +408,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .thenReturn(new DataStoreIterableBuilder(List.of(book1, book2)).build());
 
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
         Subscribe subscribe = Subscribe.builder()
@@ -453,7 +455,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                         + "}";
 
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
         Subscribe subscribe = Subscribe.builder()
@@ -483,7 +485,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .elide(elide).build();
 
         ConnectionInit init = new ConnectionInit();
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, endpointConfig);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
         Subscribe subscribe = Subscribe.builder()
