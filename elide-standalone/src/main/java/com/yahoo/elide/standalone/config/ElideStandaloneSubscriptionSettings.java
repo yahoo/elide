@@ -150,6 +150,7 @@ public interface ElideStandaloneSubscriptionSettings {
     ) {
         return ServerEndpointConfig.Builder
                 .create(SubscriptionWebSocket.class, getPath())
+                .subprotocols(SubscriptionWebSocket.SUPPORTED_WEBSOCKET_SUBPROTOCOLS)
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl(getPath())
                         .sendPingOnSubscribe(shouldSendPingOnSubscribe())
