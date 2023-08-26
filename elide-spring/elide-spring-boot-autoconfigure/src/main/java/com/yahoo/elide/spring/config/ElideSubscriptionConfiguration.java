@@ -44,6 +44,7 @@ public class ElideSubscriptionConfiguration {
     ) {
         return ServerEndpointConfig.Builder
                 .create(SubscriptionWebSocket.class, config.getGraphql().getSubscription().getPath())
+                .subprotocols(SubscriptionWebSocket.SUPPORTED_WEBSOCKET_SUBPROTOCOLS)
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl(config.getGraphql().getSubscription().getPath())
                         .sendPingOnSubscribe(config.getGraphql().getSubscription().isSendPingOnSubscribe())
