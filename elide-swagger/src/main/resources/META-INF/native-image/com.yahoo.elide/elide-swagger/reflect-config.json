@@ -79,7 +79,7 @@
     "condition": {
       "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
     },
-    "name":"io.swagger.v3.core.jackson.mixin.Discriminator31SchemaMixin",
+    "name":"io.swagger.v3.core.jackson.mixin.Discriminator31Mixin",
     "allDeclaredFields":true,
     "allDeclaredMethods":true,
     "allDeclaredConstructors":true
@@ -88,7 +88,7 @@
     "condition": {
       "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
     },
-    "name":"io.swagger.v3.core.jackson.mixin.DiscriminatorSchemaMixin",
+    "name":"io.swagger.v3.core.jackson.mixin.DiscriminatorMixin",
     "allDeclaredFields":true,
     "allDeclaredMethods":true,
     "allDeclaredConstructors":true
@@ -97,7 +97,7 @@
     "condition": {
       "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
     },
-    "name":"io.swagger.v3.core.jackson.mixin.ExampleSchemaMixin",
+    "name":"io.swagger.v3.core.jackson.mixin.ExampleMixin",
     "allDeclaredFields":true,
     "allDeclaredMethods":true,
     "allDeclaredConstructors":true
@@ -247,7 +247,7 @@
     "condition": {
       "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
     },
-    "name":"io.swagger.v3.core.util.EnocingPropertyStyleEnumDeserializer",
+    "name":"io.swagger.v3.core.util.EncodingPropertyStyleEnumDeserializer",
     "allDeclaredConstructors": true
   },
   {
@@ -408,7 +408,7 @@
     "condition": {
       "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
     },
-    "name":"io.swagger.v3.oas.annotations.headers.header",
+    "name":"io.swagger.v3.oas.annotations.headers.Header",
     "queryAllDeclaredMethods":true
   },
   {
@@ -679,7 +679,7 @@
     "condition": {
       "typeReachable": "io.swagger.v3.oas.models.OpenAPI"
     },
-    "name":"io.swagger.v3.oas.models.annotations.OpenAPI",
+    "name":"io.swagger.v3.oas.models.annotations.OpenAPI30",
     "queryAllDeclaredMethods":true
   },
   {
