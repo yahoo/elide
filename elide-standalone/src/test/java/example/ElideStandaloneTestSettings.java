@@ -75,7 +75,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
     }
 
     @Override
-    public boolean enableJSONAPI() {
+    public boolean enableJsonApi() {
         return true;
     }
 
