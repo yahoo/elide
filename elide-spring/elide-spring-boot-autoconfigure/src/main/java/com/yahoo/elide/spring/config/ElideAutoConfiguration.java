@@ -20,6 +20,10 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.request.route.BasicApiVersionValidator;
+import com.yahoo.elide.core.request.route.FlexibleRouteResolver;
+import com.yahoo.elide.core.request.route.NullRouteResolver;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
@@ -95,6 +99,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.function.SingletonSupplier;
 
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -147,6 +152,34 @@ public class ElideAutoConfiguration {
                 settings.getAggregationStore().getDynamicConfig().getPath());
         validator.readAndValidateConfigs();
         return validator;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RouteResolver routeResolver(RefreshableElide refreshableElide) {
+        Set<String> apiVersions = refreshableElide.getElide().getElideSettings().getDictionary().getApiVersions();
+        if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
+            return new NullRouteResolver();
+        } else {
+            return new FlexibleRouteResolver(new BasicApiVersionValidator(), () -> {
+                String baseUrl = refreshableElide.getElide().getElideSettings().getBaseUrl();
+                String prefix = refreshableElide.getElide().getElideSettings().getJsonApiPath();
+
+                if (StringUtils.isEmpty(baseUrl)) {
+                    baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                }
+
+                if (prefix.length() > 1) {
+                    if (baseUrl.endsWith("/")) {
+                        baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
+                    } else {
+                        baseUrl = baseUrl + prefix;
+                    }
+                }
+
+                return baseUrl;
+            });
+        }
     }
 
     @Bean
@@ -663,8 +696,8 @@ public class ElideAutoConfiguration {
             @RefreshScope
             @ConditionalOnMissingBean(name = "jsonApiController")
             public JsonApiController jsonApiController(RefreshableElide refreshableElide,
-                    ElideConfigProperties settings) {
-                return new JsonApiController(refreshableElide, settings);
+                    ElideConfigProperties settings, RouteResolver routeResolver) {
+                return new JsonApiController(refreshableElide, settings, routeResolver);
             }
         }
 
@@ -717,8 +750,9 @@ public class ElideAutoConfiguration {
             @RefreshScope
             @ConditionalOnMissingBean(name = "graphqlController")
             public GraphqlController graphqlController(QueryRunners runners, JsonApiMapper jsonApiMapper,
-                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings) {
-                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings);
+                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings,
+                    RouteResolver routeResolver) {
+                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings, routeResolver);
             }
         }
     }
@@ -751,8 +785,8 @@ public class ElideAutoConfiguration {
             @Bean
             @ConditionalOnMissingBean(name = "jsonApiController")
             public JsonApiController jsonApiController(RefreshableElide refreshableElide,
-                    ElideConfigProperties settings) {
-                return new JsonApiController(refreshableElide, settings);
+                    ElideConfigProperties settings, RouteResolver routeResolver) {
+                return new JsonApiController(refreshableElide, settings, routeResolver);
             }
         }
 
@@ -800,8 +834,9 @@ public class ElideAutoConfiguration {
             @Bean
             @ConditionalOnMissingBean(name = "graphqlController")
             public GraphqlController graphqlController(QueryRunners runners, JsonApiMapper jsonApiMapper,
-                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings) {
-                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings);
+                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings,
+                    RouteResolver routeResolver) {
+                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings, routeResolver);
             }
         }
     }
