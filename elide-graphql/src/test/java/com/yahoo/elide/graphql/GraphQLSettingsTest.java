@@ -5,8 +5,10 @@
  */
 package com.yahoo.elide.graphql;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
@@ -30,5 +32,17 @@ class GraphQLSettingsTest {
         EntityDictionary entityDictionary = EntityDictionary.builder().build();
         GraphQLSettings graphqlSettings = GraphQLSettingsBuilder.withDefaults(entityDictionary).build();
         assertNotNull(graphqlSettings.getFilterDialect());
+    }
+
+    @Test
+    void enabledTrue() {
+        GraphQLSettings graphqlSettings = GraphQLSettings.builder().enabled(true).build();
+        assertTrue(graphqlSettings.isEnabled());
+    }
+
+    @Test
+    void enabledFalse() {
+        GraphQLSettings graphqlSettings = GraphQLSettings.builder().enabled(false).build();
+        assertFalse(graphqlSettings.isEnabled());
     }
 }
