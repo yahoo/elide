@@ -143,7 +143,7 @@
 
         <spring-cloud-commons.version>4.0.2</spring-cloud-commons.version>
         <springdoc.version>2.1.0</springdoc.version>
-        <swagger-api.version>2.2.10</swagger-api.version>
+        <swagger-api.version>2.2.15</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
         <tomcat.version>10.1.9</tomcat.version>
         <mockito.version>5.3.1</mockito.version>
