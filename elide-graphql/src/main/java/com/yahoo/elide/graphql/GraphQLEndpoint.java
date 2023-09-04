@@ -122,6 +122,16 @@ public class GraphQLEndpoint {
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }
 
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response post(
+            @Context UriInfo uriInfo,
+            @Context HttpHeaders headers,
+            @Context SecurityContext securityContext,
+            String graphQLDocument) {
+        return post("", uriInfo, headers, securityContext, graphQLDocument);
+    }
+
     protected String getBaseUrlEndpoint(UriInfo uriInfo) {
         String baseUrl = elide.getElideSettings().getBaseUrl();
         if (StringUtils.isEmpty(baseUrl)) {
