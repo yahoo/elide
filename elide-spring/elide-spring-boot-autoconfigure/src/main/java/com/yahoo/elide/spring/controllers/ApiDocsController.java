@@ -203,15 +203,25 @@ public class ApiDocsController {
         }
     }
 
+    /**
+     * Determines the base url for the api docs controller. eg. http://www.example.org/api-docs.
+     *
+     * @param prefix the api docs path eg. /api-docs
+     * @return the base url for api docs
+     */
     protected String getBaseUrl(String prefix) {
+        // The base url of the application eg. http://www.example.org
         String baseUrl = elideConfigProperties.getBaseUrl();
 
         if (StringUtils.isEmpty(baseUrl)) {
+            // If not specified get from the current context path
+            // Ie. including server.servlet.context-path
             baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         }
 
         if (prefix.length() > 1) {
             if (baseUrl.endsWith("/")) {
+                // Remove trailing / from application base url before appending
                 baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
             } else {
                 baseUrl = baseUrl + prefix;
