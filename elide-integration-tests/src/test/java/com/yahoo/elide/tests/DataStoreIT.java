@@ -146,8 +146,8 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = jsonApi.get(route, goodUser, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -166,8 +166,8 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams)
                 .apiVersion(NO_VERSION).build();
-        ElideResponse response = jsonApi.get(route, goodUser, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -187,8 +187,8 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = jsonApi.get(route, goodUser, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(1, result.get(DATA).size());
@@ -204,8 +204,8 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams)
                 .apiVersion(NO_VERSION).build();
-        ElideResponse response = jsonApi.get(route, goodUser, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(1, result.get(DATA).size());
@@ -221,8 +221,8 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("sort", Arrays.asList("-chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = jsonApi.get(route, goodUser, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -242,8 +242,8 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("sort", Arrays.asList("-chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = jsonApi.get(route, goodUser, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -266,8 +266,8 @@ public class DataStoreIT extends IntegrationTest {
 
         Route route = Route.builder().baseUrl(BASEURL).path("filtered").apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = jsonApi.get(route, goodUser, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
         assertEquals(data.toJSON(), response.getBody());
     }
 
@@ -279,8 +279,8 @@ public class DataStoreIT extends IntegrationTest {
         );
         Route route = Route.builder().baseUrl(BASEURL).path("filtered").apiVersion(NO_VERSION)
                 .build();
-        ElideResponse response = jsonApi.get(route, badUser, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, badUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
         assertEquals(data.toJSON(), response.getBody());
     }
 }

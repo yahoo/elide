@@ -79,8 +79,8 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = jsonApi.get(route, user, UUID.randomUUID());
-                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+                ElideResponse<String> response = jsonApi.get(route, user, UUID.randomUUID());
+                return ResponseEntity.status(response.getStatus()).body(response.getBody());
             }
         };
     }
@@ -104,13 +104,13 @@ public class JsonApiController {
             public ResponseEntity<String> call() throws Exception {
                 if ("/operations".equals(route.getPath()) || "operations".equals(route.getPath())) {
                     // Atomic Operations
-                    ElideResponse response = jsonApi.operations(route, body, user, UUID.randomUUID());
-                    return ResponseEntity.status(response.getResponseCode())
+                    ElideResponse<String> response = jsonApi.operations(route, body, user, UUID.randomUUID());
+                    return ResponseEntity.status(response.getStatus())
                             .contentType(MediaType.valueOf(JsonApi.AtomicOperations.MEDIA_TYPE))
                             .body(response.getBody());
                 } else {
-                    ElideResponse response = jsonApi.post(route, body, user, UUID.randomUUID());
-                    return ResponseEntity.status(response.getResponseCode())
+                    ElideResponse<String> response = jsonApi.post(route, body, user, UUID.randomUUID());
+                    return ResponseEntity.status(response.getStatus())
                             .contentType(MediaType.valueOf(JsonApi.MEDIA_TYPE)).body(response.getBody());
                 }
             }
@@ -137,8 +137,8 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = jsonApi.patch(route, body, user, UUID.randomUUID());
-                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+                ElideResponse<String> response = jsonApi.patch(route, body, user, UUID.randomUUID());
+                return ResponseEntity.status(response.getStatus()).body(response.getBody());
             }
         };
     }
@@ -159,8 +159,8 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = jsonApi.delete(route, null, user, UUID.randomUUID());
-                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+                ElideResponse<String> response = jsonApi.delete(route, null, user, UUID.randomUUID());
+                return ResponseEntity.status(response.getStatus()).body(response.getBody());
             }
         };
     }
@@ -183,9 +183,9 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = jsonApi
+                ElideResponse<String> response = jsonApi
                         .delete(route, body, user, UUID.randomUUID());
-                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+                return ResponseEntity.status(response.getStatus()).body(response.getBody());
             }
         };
     }

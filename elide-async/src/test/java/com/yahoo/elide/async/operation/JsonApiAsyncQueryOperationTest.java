@@ -54,7 +54,7 @@ public class JsonApiAsyncQueryOperationTest {
                 + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                 + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}";
-        ElideResponse response = new ElideResponse(200, responseBody);
+        ElideResponse<String> response = new ElideResponse(200, responseBody);
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
@@ -73,7 +73,7 @@ public class JsonApiAsyncQueryOperationTest {
     public void testProcessQueryNonSuccessResponse() throws URISyntaxException {
         AsyncQuery queryObj = new AsyncQuery();
         String responseBody = "ResponseBody";
-        ElideResponse response = new ElideResponse(201, responseBody);
+        ElideResponse<String> response = new ElideResponse(201, responseBody);
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);

@@ -87,7 +87,7 @@ public class PaginationImplTest {
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings);
         assertEquals(PaginationImpl.DEFAULT_OFFSET, pageData.getOffset());
-        assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getLimit());
+        assertEquals(PaginationImpl.DEFAULT_PAGE_SIZE, pageData.getLimit());
     }
 
     @Test
@@ -96,7 +96,7 @@ public class PaginationImplTest {
                 1,
                 10,
                 elideSettings.getDefaultPageSize(),
-                elideSettings.getDefaultMaxPageSize(),
+                elideSettings.getMaxPageSize(),
                 false,
                 false);
 
@@ -112,7 +112,7 @@ public class PaginationImplTest {
                 10,
                 100000,
                 elideSettings.getDefaultPageSize(),
-                elideSettings.getDefaultMaxPageSize(),
+                elideSettings.getMaxPageSize(),
                 false,
                 false));
     }
@@ -125,7 +125,7 @@ public class PaginationImplTest {
                         -1,
                         1000,
                         elideSettings.getDefaultPageSize(),
-                        elideSettings.getDefaultMaxPageSize(),
+                        elideSettings.getMaxPageSize(),
                         false,
                         false));
     }
@@ -138,7 +138,7 @@ public class PaginationImplTest {
                         0,
                         -1,
                         elideSettings.getDefaultPageSize(),
-                        elideSettings.getDefaultMaxPageSize(),
+                        elideSettings.getMaxPageSize(),
                         false,
                         false));
     }
@@ -168,8 +168,8 @@ public class PaginationImplTest {
         add(queryParams, "page[number]", "2");
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImpl.class),
                 queryParams, elideSettings);
-        assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getLimit());
-        assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getOffset());
+        assertEquals(PaginationImpl.DEFAULT_PAGE_SIZE, pageData.getLimit());
+        assertEquals(PaginationImpl.DEFAULT_PAGE_SIZE, pageData.getOffset());
     }
 
     @Test
@@ -215,13 +215,13 @@ public class PaginationImplTest {
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, elideSettings);
         assertEquals(0, pageData.getOffset());
-        assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getLimit());
+        assertEquals(PaginationImpl.DEFAULT_PAGE_SIZE, pageData.getLimit());
 
         pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, ElideSettings.builder().dataStore(null)
                     .entityDictionary(EntityDictionary.builder().build())
                     .defaultPageSize(10)
-                    .defaultMaxPageSize(10)
+                    .maxPageSize(10)
                     .build());
         assertEquals(0, pageData.getOffset());
         assertEquals(10, pageData.getLimit());
@@ -229,7 +229,7 @@ public class PaginationImplTest {
 
     @Test
     public void testClassLevelOverride() {
-        @Paginate(maxLimit = 100000, defaultLimit = 10)
+        @Paginate(maxPageSize = 100000, defaultPageSize = 10)
         class PaginationOverrideTest { }
 
         Map<String, List<String>> queryParams = new LinkedHashMap<>();
@@ -238,7 +238,7 @@ public class PaginationImplTest {
                 ElideSettings.builder().dataStore(null)
                     .entityDictionary(EntityDictionary.builder().build())
                     .defaultPageSize(1)
-                    .defaultMaxPageSize(1)
+                    .maxPageSize(1)
                     .build());
 
         assertEquals(0, pageData.getOffset());

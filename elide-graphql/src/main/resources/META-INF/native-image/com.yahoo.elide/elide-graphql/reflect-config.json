@@ -1,18 +1,30 @@
 [
   {
-    "name": "com.yahoo.elide.graphql.ExecutionResultDeserializer",
+    "name": "com.yahoo.elide.graphql.models.GraphQLError",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.graphql.ExecutionResultSerializer",
+    "name": "com.yahoo.elide.graphql.models.GraphQLErrors",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.graphql.GraphQLErrorDeserializer",
+    "name": "com.yahoo.elide.graphql.serialization.ExecutionResultDeserializer",
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.graphql.GraphQLErrorSerializer",
+    "name": "com.yahoo.elide.graphql.serialization.ExecutionResultSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.graphql.serialization.GraphQLErrorDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.graphql.serialization.GraphQLErrorSerializer",
     "allDeclaredConstructors": true
   },
   {

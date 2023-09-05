@@ -14,16 +14,7 @@ import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.exceptions.CustomErrorException;
-import com.yahoo.elide.core.exceptions.ErrorObjects;
-import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.core.exceptions.HttpStatusException;
-import com.yahoo.elide.core.exceptions.InternalServerErrorException;
-import com.yahoo.elide.core.exceptions.InvalidURLException;
-import com.yahoo.elide.core.exceptions.JsonApiAtomicOperationsException;
-import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
-import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.extensions.JsonApiAtomicOperations;
@@ -38,22 +29,16 @@ import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.ws.rs.WebApplicationException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -74,7 +59,8 @@ public class JsonApi {
     private final JsonApiMapper mapper;
     private final TransactionRegistry transactionRegistry;
     private final AuditLogger auditLogger;
-    private boolean strictQueryParameters;
+    private final JsonApiExceptionHandler jsonApiExceptionHandler;
+    private final boolean strictQueryParameters;
 
     public JsonApi(RefreshableElide refreshableElide) {
         this(refreshableElide.getElide());
@@ -89,6 +75,7 @@ public class JsonApi {
         this.elideSettings = this.elide.getElideSettings();
         this.transactionRegistry = this.elide.getTransactionRegistry();
         this.auditLogger = this.elide.getAuditLogger();
+        this.jsonApiExceptionHandler = this.jsonApiSettings.getJsonApiExceptionHandler();
     }
 
     /**
@@ -103,7 +90,7 @@ public class JsonApi {
      * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse get(Route route, User opaqueUser,
+    public ElideResponse<String> get(Route route, User opaqueUser,
                              UUID requestId) {
         UUID requestUuid = requestId != null ? requestId : UUID.randomUUID();
 
@@ -111,7 +98,10 @@ public class JsonApi {
             try {
                 verifyQueryParams(route.getParameters());
             } catch (BadRequestException e) {
-                return buildErrorResponse(e, false);
+                JsonApiErrorContext errorContext = JsonApiErrorContext.builder().mapper(this.mapper).verbose(false)
+                        .build();
+                ElideResponse<?> errorResponse = jsonApiExceptionHandler.handleException(e, errorContext);
+                return toResponse(errorResponse.getStatus(), errorResponse.getBody());
             }
         }
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestUuid, (tx, user) -> {
@@ -126,7 +116,6 @@ public class JsonApi {
         });
     }
 
-
     /**
      * Handle POST.
      *
@@ -140,7 +129,7 @@ public class JsonApi {
      * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse post(Route route, String jsonApiDocument,
+    public ElideResponse<String> post(Route route, String jsonApiDocument,
                               User opaqueUser, UUID requestId) {
         UUID requestUuid = requestId != null ? requestId : UUID.randomUUID();
 
@@ -155,7 +144,6 @@ public class JsonApi {
             return visit(route.getPath(), requestScope, visitor);
         });
     }
-
 
     /**
      * Handle PATCH.
@@ -172,7 +160,7 @@ public class JsonApi {
      * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse patch(Route route, String jsonApiDocument, User opaqueUser, UUID requestId) {
+    public ElideResponse<String> patch(Route route, String jsonApiDocument, User opaqueUser, UUID requestId) {
         UUID requestUuid = requestId != null ? requestId : UUID.randomUUID();
 
         String accept = route.getHeaders().get("accept").stream().findFirst().orElse("");
@@ -220,7 +208,7 @@ public class JsonApi {
      * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse delete(Route route, String jsonApiDocument,
+    public ElideResponse<String> delete(Route route, String jsonApiDocument,
                                 User opaqueUser, UUID requestId) {
         UUID requestUuid = requestId != null ? requestId : UUID.randomUUID();
 
@@ -252,7 +240,7 @@ public class JsonApi {
      * @return Elide response object
      * @return
      */
-    public ElideResponse operations(Route route,
+    public ElideResponse<String> operations(Route route,
             String jsonApiDocument, User opaqueUser, UUID requestId) {
 
         UUID requestUuid = requestId != null ? requestId : UUID.randomUUID();
@@ -275,7 +263,7 @@ public class JsonApi {
                 }
             };
         } else {
-            return new ElideResponse(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type");
+            return ElideResponse.status(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE).body("Unsupported Media Type");
         }
 
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestUuid, handler);
@@ -301,15 +289,15 @@ public class JsonApi {
      * @param <T> The response type (JsonNode or JsonApiDocument)
      * @return the response
      */
-    protected <T> ElideResponse handleRequest(boolean isReadOnly, User user,
+    protected <T> ElideResponse<String> handleRequest(boolean isReadOnly, User user,
                                           Supplier<DataStoreTransaction> transaction, UUID requestId,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
-        boolean isVerbose = false;
+        JsonApiErrorContext errorContext = JsonApiErrorContext.builder().mapper(this.mapper)
+                .verbose(elideSettings.isVerboseErrors()).build();
         try (DataStoreTransaction tx = transaction.get()) {
             transactionRegistry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
             JsonApiRequestScope requestScope = result.getRequestScope();
-            isVerbose = requestScope.getPermissionExecutor().isVerbose();
             Supplier<Pair<Integer, T>> responder = result.getResponder();
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
@@ -322,7 +310,7 @@ public class JsonApi {
 
             requestScope.runQueuedPreCommitTriggers();
 
-            ElideResponse response = buildResponse(responder.get());
+            ElideResponse<String> response = buildResponse(responder.get());
 
             auditLogger.commit();
             tx.commit(requestScope);
@@ -333,120 +321,33 @@ public class JsonApi {
             }
 
             return response;
-        } catch (IOException e) {
-            return handleNonRuntimeException(e, isVerbose);
-        } catch (RuntimeException e) {
-            return handleRuntimeException(e, isVerbose);
+        } catch (Throwable e) {
+            ElideResponse<?> errorResponse = jsonApiExceptionHandler.handleException(e, errorContext);
+            return toResponse(errorResponse.getStatus(), errorResponse.getBody());
         } finally {
             transactionRegistry.removeRunningTransaction(requestId);
             auditLogger.clear();
         }
     }
 
-    protected ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
-        if (error instanceof InternalServerErrorException) {
-            log.error("Internal Server Error", error);
-        }
-
-        return buildResponse(isVerbose ? error.getVerboseErrorResponse()
-                : error.getErrorResponse());
-    }
-
-    private ElideResponse handleNonRuntimeException(Exception error, boolean isVerbose) {
-        CustomErrorException mappedException = getElide().mapError(error);
-        if (mappedException != null) {
-            return buildErrorResponse(mappedException, isVerbose);
-        }
-
-        if (error instanceof JacksonException jacksonException) {
-            String message = (jacksonException.getLocation() != null
-                    && jacksonException.getLocation().getSourceRef() != null)
-                    ? error.getMessage() //This will leak Java class info if the location isn't known.
-                    : jacksonException.getOriginalMessage();
-
-            return buildErrorResponse(new BadRequestException(message), isVerbose);
-        }
-
-        if (error instanceof IOException) {
-            log.error("IO Exception uncaught by Elide", error);
-            return buildErrorResponse(new TransactionException(error), isVerbose);
-        }
-
-        log.error("Error or exception uncaught by Elide", error);
-        throw new RuntimeException(error);
-    }
-
-    private ElideResponse handleRuntimeException(RuntimeException error, boolean isVerbose) {
-        CustomErrorException mappedException = getElide().mapError(error);
-
-        if (mappedException != null) {
-            return buildErrorResponse(mappedException, isVerbose);
-        }
-
-        if (error instanceof WebApplicationException) {
-            throw error;
-        }
-
-        if (error instanceof ForbiddenAccessException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}", e.getLoggedMessage());
+    protected ElideResponse<String> toResponse(int status, Object body) {
+        String result = null;
+        if (body instanceof String data) {
+            result = data;
+        } else {
+            try {
+                result = body != null ? this.mapper.writeJsonApiDocument(body) : null;
+            } catch (JsonProcessingException e) {
+                return ElideResponse.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body(e.toString());
             }
-            return buildErrorResponse(e, isVerbose);
         }
-
-        if (error instanceof JsonPatchExtensionException e) {
-            log.debug("JSON API Json Patch extension exception caught", e);
-            return buildErrorResponse(e, isVerbose);
-        }
-
-        if (error instanceof JsonApiAtomicOperationsException e) {
-            log.debug("JSON API Atomic Operations extension exception caught", e);
-            return buildErrorResponse(e, isVerbose);
-        }
-
-        if (error instanceof HttpStatusException e) {
-            log.debug("Caught HTTP status exception", e);
-            return buildErrorResponse(e, isVerbose);
-        }
-
-        if (error instanceof ParseCancellationException e) {
-            log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
-            return buildErrorResponse(new InvalidURLException(e), isVerbose);
-        }
-
-        if (error instanceof ConstraintViolationException e) {
-            log.debug("Constraint violation exception caught", e);
-            String message = "Constraint violation";
-            final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
-            for (ConstraintViolation<?> constraintViolation : e.getConstraintViolations()) {
-                errorObjectsBuilder.addError()
-                        .withDetail(constraintViolation.getMessage());
-                final String propertyPathString = constraintViolation.getPropertyPath().toString();
-                if (!propertyPathString.isEmpty()) {
-                    Map<String, Object> source = new HashMap<>(1);
-                    source.put("property", propertyPathString);
-                    errorObjectsBuilder.with("source", source);
-                }
-            }
-            return buildErrorResponse(
-                    new CustomErrorException(HttpStatus.SC_BAD_REQUEST, message, errorObjectsBuilder.build()),
-                    isVerbose
-            );
-        }
-
-        log.error("Error or exception uncaught by Elide", error);
-        throw error;
+        return ElideResponse.status(status).body(result);
     }
 
-    protected <T> ElideResponse buildResponse(Pair<Integer, T> response) {
-        try {
-            T responseNode = response.getRight();
-            Integer responseCode = response.getLeft();
-            String body = responseNode == null ? null : mapper.writeJsonApiDocument(responseNode);
-            return new ElideResponse(responseCode, body);
-        } catch (JsonProcessingException e) {
-            return new ElideResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString());
-        }
+    protected <T> ElideResponse<String> buildResponse(Pair<Integer, T> response) {
+        T responseNode = response.getRight();
+        Integer responseCode = response.getLeft();
+        return toResponse(responseCode, responseNode);
     }
 
     private void verifyQueryParams(Map<String, List<String>> queryParams) {

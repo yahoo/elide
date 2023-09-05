@@ -1,7 +1,10 @@
 {
   "errors":[
     {
-      "message": "Bad Request Body&#39;Can&#39;t parse query: {invoice(sort: &#34;&lt;script&gt;&#34;){edges{node{id}}}&#39;"
-    }
+      "message": "Bad Request Body&#39;Can&#39;t parse query: {invoice(sort: &#34;&lt;script&gt;&#34;){edges{node{id}}}&#39;",
+      "extensions": {
+        "classification": "DataFetchingException"
+      }
+   }
   ]
 }

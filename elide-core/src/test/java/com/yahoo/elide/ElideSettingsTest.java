@@ -6,6 +6,7 @@
 package com.yahoo.elide;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -15,10 +16,6 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
 import com.yahoo.elide.Settings.SettingsBuilder;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.security.PermissionExecutor;
-import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
-import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
 import com.yahoo.elide.utils.HeaderProcessor;
 
 import org.junit.jupiter.api.Test;
@@ -48,18 +45,14 @@ class ElideSettingsTest {
 
     @Test
     void verbose() {
-        RequestScope requestScope = mock(RequestScope.class);
-        PermissionExecutor permissionExecutor = ElideSettings.builder().verboseErrors(true).build()
-                .getPermissionExecutor().apply(requestScope);
-        assertTrue(permissionExecutor instanceof VerbosePermissionExecutor);
+        ElideSettings elideSettings = ElideSettings.builder().verboseErrors(true).build();
+        assertTrue(elideSettings.isVerboseErrors());
     }
 
     @Test
     void notVerbose() {
-        RequestScope requestScope = mock(RequestScope.class);
-        PermissionExecutor permissionExecutor = ElideSettings.builder().verboseErrors(false).build()
-                .getPermissionExecutor().apply(requestScope);
-        assertTrue(permissionExecutor instanceof ActivePermissionExecutor);
+        ElideSettings elideSettings = ElideSettings.builder().verboseErrors(false).build();
+        assertFalse(elideSettings.isVerboseErrors());
     }
 
     @Test

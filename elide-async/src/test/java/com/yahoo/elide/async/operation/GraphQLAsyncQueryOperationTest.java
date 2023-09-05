@@ -57,7 +57,7 @@ public class GraphQLAsyncQueryOperationTest {
         String responseBody = "{\"data\":{\"book\":{\"edges\":[{\"node\":{\"id\":\"1\",\"title\":\"Ender's Game\"}},"
                 + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"
                 + "{\"node\":{\"id\":\"3\",\"title\":\"For Whom the Bell Tolls\"}}]}}}";
-        ElideResponse response = new ElideResponse(200, responseBody);
+        ElideResponse response = ElideResponse.status(200).body(responseBody);
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
@@ -76,7 +76,7 @@ public class GraphQLAsyncQueryOperationTest {
     public void testProcessQueryGraphQlInvalidResponse() throws URISyntaxException {
         AsyncQuery queryObj = new AsyncQuery();
         String responseBody = "ResponseBody";
-        ElideResponse response = new ElideResponse(200, responseBody);
+        ElideResponse response = ElideResponse.status(200).body(responseBody);
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);

@@ -56,7 +56,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     private final Map<Triple<Class<? extends Annotation>, Type, ImmutableSet<String>>, ExpressionResult>
             userPermissionCheckCache;
     private final Map<String, Long> checkStats;
-    private final boolean verbose;
 
     /**
      * Constructor.
@@ -64,23 +63,12 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param requestScope Request scope
      */
     public ActivePermissionExecutor(final RequestScope requestScope) {
-        this(false, requestScope);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param verbose True if executor should produce verbose output to caller
-     * @param requestScope Request scope
-     */
-    public ActivePermissionExecutor(boolean verbose, final RequestScope requestScope) {
         ExpressionResultCache cache = new ExpressionResultCache();
 
         this.requestScope = requestScope;
         this.expressionBuilder = new PermissionExpressionBuilder(cache, requestScope.getDictionary());
         userPermissionCheckCache = new HashMap<>();
         checkStats = new HashMap<>();
-        this.verbose = verbose;
     }
 
     @Override
@@ -458,11 +446,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             String stats = sb.toString();
             log.trace(stats);
         }
-    }
-
-    @Override
-    public boolean isVerbose() {
-        return verbose;
     }
 
     /**

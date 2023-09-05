@@ -100,11 +100,6 @@ public class MultiplexPermissionExecutor implements PermissionExecutor {
     }
 
     @Override
-    public boolean isVerbose() {
-        return defaultPermissionExecutor.isVerbose();
-    }
-
-    @Override
     public ExpressionResult evaluateFilterJoinUserChecks(PersistentResource<?> resource,
                                                          FilterPredicate filterPredicate) {
         return getPermissionExecutor(resource.getResourceType())

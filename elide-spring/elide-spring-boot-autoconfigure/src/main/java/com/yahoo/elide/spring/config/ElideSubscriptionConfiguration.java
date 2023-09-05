@@ -9,9 +9,12 @@ import static com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSoc
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
-import com.yahoo.elide.core.audit.Slf4jLogger;
+import com.yahoo.elide.ElideMapper;
+import com.yahoo.elide.ElideSettingsBuilderCustomizer;
+import com.yahoo.elide.Serdes.SerdesBuilder;
+import com.yahoo.elide.Settings.SettingsBuilder;
+import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.dictionary.Injector;
-import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator.SubscriptionWebSocketConfiguratorBuilder;
@@ -91,11 +94,15 @@ public class ElideSubscriptionConfiguration {
             ElideConfigProperties config,
             SubscriptionWebSocket.UserFactory userFactory,
             ConnectionFactory connectionFactory,
-            ErrorMapper errorMapper,
             DataFetcherExceptionHandler dataFetcherExceptionHandler,
             RouteResolver routeResolver,
             ObjectProvider<SubscriptionWebSocketConfiguratorBuilderCustomizer> customizers,
-            Injector injector
+            Injector injector,
+            SerdesBuilder serdesBuilder,
+            ElideMapper elideMapper,
+            AuditLogger auditLogger,
+            ObjectProvider<SettingsBuilder> settingsProvider,
+            ObjectProvider<ElideSettingsBuilderCustomizer> customizerProvider
             ) {
         SubscriptionWebSocketConfiguratorBuilder builder = SubscriptionWebSocketConfigurator.builder()
                 .baseUrl(config.getGraphql().getSubscription().getPath())
@@ -106,9 +113,20 @@ public class ElideSubscriptionConfiguration {
                 .maxIdleTimeout(config.getGraphql().getSubscription().getIdleTimeout())
                 .connectionFactory(connectionFactory)
                 .userFactory(userFactory)
-                .auditLogger(new Slf4jLogger())
-                .verboseErrors(config.isVerboseErrors())
-                .errorMapper(errorMapper)
+                .elideSettingsBuilderCustomizer(elideSettingsBuilder -> {
+                    elideSettingsBuilder.serdes(serdes -> serdes.entries(entries -> {
+                        entries.clear();
+                        serdesBuilder.build().entrySet().stream().forEach(entry -> {
+                            entries.put(entry.getKey(), entry.getValue());
+                        });
+                    })).objectMapper(elideMapper.getObjectMapper()).auditLogger(auditLogger)
+                            .verboseErrors(config.isVerboseErrors())
+                            .maxPageSize(config.getMaxPageSize())
+                            .defaultPageSize(config.getDefaultPageSize());
+                    settingsProvider.orderedStream().forEach(elideSettingsBuilder::settings);
+                    customizerProvider.orderedStream()
+                            .forEach(customizer -> customizer.customize(elideSettingsBuilder));
+                })
                 .dataFetcherExceptionHandler(dataFetcherExceptionHandler)
                 .routeResolver(routeResolver)
                 .injector(injector);

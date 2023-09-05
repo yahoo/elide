@@ -38,6 +38,7 @@ public class PostV2 {
     private String text;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @SubscriptionField
     private Date date;
 
     @CreatePermission(expression = AdminCheck.USER_IS_ADMIN)

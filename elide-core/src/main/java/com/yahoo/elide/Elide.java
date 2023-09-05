@@ -10,8 +10,6 @@ import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.Injector;
-import com.yahoo.elide.core.exceptions.CustomErrorException;
-import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
@@ -39,7 +37,6 @@ public class Elide {
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
     @Getter private final ObjectMapper objectMapper;
-    @Getter private final ErrorMapper errorMapper;
     @Getter private final TransactionRegistry transactionRegistry;
     @Getter private final ClassScanner scanner;
     private boolean initialized = false;
@@ -87,7 +84,6 @@ public class Elide {
         this.auditLogger = elideSettings.getAuditLogger();
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
         this.objectMapper = elideSettings.getObjectMapper();
-        this.errorMapper = elideSettings.getErrorMapper();
         this.transactionRegistry = transactionRegistry;
 
         if (doScans) {
@@ -159,23 +155,6 @@ public class Elide {
 
     protected Set<Class<?>> registerCustomSerdeScan() {
         return scanner.getAnnotatedClasses(ElideTypeConverter.class);
-    }
-
-    public CustomErrorException mapError(Exception error) {
-        if (errorMapper != null) {
-            log.trace("Attempting to map unknown exception of type {}", error.getClass());
-            CustomErrorException customizedError = errorMapper.map(error);
-
-            if (customizedError != null) {
-                log.debug("Successfully mapped exception from type {} to {}",
-                        error.getClass(), customizedError.getClass());
-                return customizedError;
-            } else {
-                log.debug("No error mapping present for {}", error.getClass());
-            }
-        }
-
-        return null;
     }
 
     public <T extends Settings> T getSettings(Class<T> clazz) {
