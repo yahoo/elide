@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.graphql;
+package com.yahoo.elide.graphql.serialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,19 +20,13 @@ import java.util.Map;
  * Custom serializer used to generate response messages. Should closely mimic the
  * {@link ExecutionResult#toSpecification()} function which specifies which fields should be present in the result of
  * a GraphQL call. {@link GraphQLError} objects should be handed off to a {@link GraphQLErrorSerializer} to handle
- * optional encoding of the error message.
+ * optional encoding of the error message by having the {@link GraphQLErrorSerializer} registered on the ObjectMapper.
  */
-@Slf4j
 public class ExecutionResultSerializer extends StdSerializer<ExecutionResult> {
-    private final GraphQLErrorSerializer errorSerializer;
+    private static final long serialVersionUID = 1L;
 
     public ExecutionResultSerializer() {
-        this(new GraphQLErrorSerializer());
-    }
-
-    public ExecutionResultSerializer(GraphQLErrorSerializer errorSerializer) {
         super(ExecutionResult.class);
-        this.errorSerializer = errorSerializer;
     }
 
     @Override
@@ -49,8 +42,7 @@ public class ExecutionResultSerializer extends StdSerializer<ExecutionResult> {
             List<GraphQLError> errors = value.getErrors();
             gen.writeArrayFieldStart("errors");
             for (GraphQLError error : errors) {
-                // includes start object and end object
-                errorSerializer.serialize(error, gen, provider);
+                gen.writeObject(error);
             }
             gen.writeEndArray();
         }

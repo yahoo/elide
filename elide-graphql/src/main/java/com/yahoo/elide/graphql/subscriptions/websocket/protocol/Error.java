@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
-import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
+import com.yahoo.elide.graphql.serialization.GraphQLErrorDeserializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

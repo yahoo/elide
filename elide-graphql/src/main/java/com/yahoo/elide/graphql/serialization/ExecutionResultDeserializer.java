@@ -4,19 +4,16 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.graphql;
+package com.yahoo.elide.graphql.serialization;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import graphql.ExecutionResult;
 import graphql.ExecutionResultImpl;
 import graphql.GraphQLError;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,16 +24,11 @@ import java.util.Map;
 /**
  * Deserializes JSON into an Execution Result.
  */
-@Slf4j
 public class ExecutionResultDeserializer extends StdDeserializer<ExecutionResult> {
-
-    ObjectMapper mapper;
-    GraphQLErrorDeserializer errorDeserializer;
+    private static final long serialVersionUID = 1L;
 
     public ExecutionResultDeserializer() {
         super(ExecutionResult.class);
-        mapper = new ObjectMapper();
-        errorDeserializer = new GraphQLErrorDeserializer();
     }
 
     @Override
@@ -53,11 +45,12 @@ public class ExecutionResultDeserializer extends StdDeserializer<ExecutionResult
             Iterator<JsonNode> nodeIterator = errorsNode.iterator();
             while (nodeIterator.hasNext()) {
                 JsonNode errorNode = nodeIterator.next();
-                errors.add(errorDeserializer.deserialize(errorNode.traverse(parser.getCodec()), context));
+                errors.add(parser.getCodec().treeToValue(errorNode, GraphQLError.class));
             }
         }
 
-        Map<String, Object> data = mapper.convertValue(dataNode, new TypeReference<>() { });
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = parser.getCodec().treeToValue(dataNode, Map.class);
 
         return ExecutionResultImpl.newExecutionResult()
                 .errors(errors)

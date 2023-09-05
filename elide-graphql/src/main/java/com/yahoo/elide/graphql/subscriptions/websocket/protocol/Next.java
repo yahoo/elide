@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
-import com.yahoo.elide.graphql.ExecutionResultDeserializer;
-import com.yahoo.elide.graphql.ExecutionResultSerializer;
+import com.yahoo.elide.graphql.serialization.ExecutionResultDeserializer;
+import com.yahoo.elide.graphql.serialization.ExecutionResultSerializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

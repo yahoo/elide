@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.graphql;
+package com.yahoo.elide.graphql.serialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -20,6 +20,8 @@ import java.util.Map;
  * Supports encoding of the error's message field, making it safe for display in HTML.
  */
 public class GraphQLErrorSerializer extends StdSerializer<GraphQLError> {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Construct a new GraphQLErrorSerializer, optionally with error encoding enabled.
