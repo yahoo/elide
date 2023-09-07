@@ -8,6 +8,8 @@ package com.yahoo.elide.spring.controllers;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.RefreshableElide;
+import com.yahoo.elide.core.request.route.Route;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
@@ -15,6 +17,7 @@ import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.MultiValueMap;
@@ -51,16 +54,15 @@ public class JsonApiController {
     private final Elide elide;
     private final ElideConfigProperties settings;
     private final HeaderUtils.HeaderProcessor headerProcessor;
+    private final RouteResolver routeResolver;
 
-    public static final String JSON_API_CONTENT_TYPE = JsonApi.MEDIA_TYPE;
-    public static final String JSON_API_PATCH_CONTENT_TYPE = JsonApi.JsonPatch.MEDIA_TYPE;
-    public static final String JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE = JsonApi.AtomicOperations.MEDIA_TYPE;
-
-    public JsonApiController(RefreshableElide refreshableElide, ElideConfigProperties settings) {
+    public JsonApiController(RefreshableElide refreshableElide, ElideConfigProperties settings,
+            RouteResolver routeResolver) {
         log.debug("Started ~~");
         this.settings = settings;
         this.elide = refreshableElide.getElide();
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
+        this.routeResolver = routeResolver;
     }
 
     private <K, V> MultivaluedHashMap<K, V> convert(MultiValueMap<K, V> springMVMap) {
@@ -73,40 +75,58 @@ public class JsonApiController {
     public Callable<ResponseEntity<String>> elideGet(@RequestHeader HttpHeaders requestHeaders,
                                                      @RequestParam MultiValueMap<String, String> allRequestParams,
                                                      HttpServletRequest request, Authentication authentication) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
-        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final String prefix = settings.getJsonApi().getPath();
+        final String baseUrl = getBaseUrl(prefix);
+        final String pathname = getPath(request, prefix);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
         final User user = new AuthenticationUser(authentication);
-        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.get(baseUrl, pathname,
+                ElideResponse response = elide.get(route.getBaseUrl(), route.getPath(),
                         convert(allRequestParams), requestHeadersCleaned,
-                        user, apiVersion, UUID.randomUUID());
+                        user, route.getApiVersion(), UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
     }
 
-    @PostMapping(value = "/**", consumes = JsonApi.MEDIA_TYPE, produces = JsonApi.MEDIA_TYPE)
+    @PostMapping(value = "/**", consumes = { JsonApi.MEDIA_TYPE, JsonApi.AtomicOperations.MEDIA_TYPE }, produces = {
+            JsonApi.MEDIA_TYPE, JsonApi.AtomicOperations.MEDIA_TYPE })
     public Callable<ResponseEntity<String>> elidePost(@RequestHeader HttpHeaders requestHeaders,
                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
                                                       @RequestBody String body,
                                                       HttpServletRequest request, Authentication authentication) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
-        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        String prefix = settings.getJsonApi().getPath();
+        final String baseUrl = getBaseUrl(prefix);
+        final String pathname = getPath(request, prefix);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
         final User user = new AuthenticationUser(authentication);
-        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.post(baseUrl, pathname, body, convert(allRequestParams),
-                        requestHeadersCleaned, user, apiVersion, UUID.randomUUID());
-                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+                if ("/operations".equals(route.getPath())) {
+                    // Atomic Operations
+                    ElideResponse response = elide
+                            .operations(route.getBaseUrl(), request.getContentType(), request.getContentType(),
+                                    route.getPath(),
+                                    body,
+                                    convert(allRequestParams), requestHeadersCleaned, user, route.getApiVersion(),
+                                   UUID.randomUUID());
+                    return ResponseEntity.status(response.getResponseCode())
+                            .contentType(MediaType.valueOf(JsonApi.AtomicOperations.MEDIA_TYPE))
+                            .body(response.getBody());
+                } else {
+                    ElideResponse response = elide.post(route.getBaseUrl(), route.getPath(), body,
+                            convert(allRequestParams), requestHeadersCleaned, user, route.getApiVersion(),
+                            UUID.randomUUID());
+                    return ResponseEntity.status(response.getResponseCode())
+                            .contentType(MediaType.valueOf(JsonApi.MEDIA_TYPE)).body(response.getBody());
+                }
             }
         };
     }
@@ -120,19 +140,19 @@ public class JsonApiController {
                                                        @RequestParam MultiValueMap<String, String> allRequestParams,
                                                        @RequestBody String body,
                                                        HttpServletRequest request, Authentication authentication) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
-        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final String prefix = settings.getJsonApi().getPath();
+        final String baseUrl = getBaseUrl(prefix);
+        final String pathname = getPath(request, prefix);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
         final User user = new AuthenticationUser(authentication);
-        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide
-                        .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
-                               convert(allRequestParams), requestHeadersCleaned, user, apiVersion,
-                               UUID.randomUUID());
+                ElideResponse response = elide.patch(route.getBaseUrl(), request.getContentType(),
+                        request.getContentType(), route.getPath(), body, convert(allRequestParams),
+                        requestHeadersCleaned, user, route.getApiVersion(), UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -143,18 +163,19 @@ public class JsonApiController {
                                                         @RequestParam MultiValueMap<String, String> allRequestParams,
                                                         HttpServletRequest request,
                                                         Authentication authentication) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
-        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final String prefix = settings.getJsonApi().getPath();
+        final String baseUrl = getBaseUrl(prefix);
+        final String pathname = getPath(request, prefix);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
         final User user = new AuthenticationUser(authentication);
-        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.delete(baseUrl, pathname, null,
+                ElideResponse response = elide.delete(route.getBaseUrl(), route.getPath(), null,
                         convert(allRequestParams), requestHeadersCleaned,
-                        user, apiVersion, UUID.randomUUID());
+                        user, route.getApiVersion(), UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -167,62 +188,44 @@ public class JsonApiController {
             @RequestBody String body,
             HttpServletRequest request,
             Authentication authentication) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
-        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final String prefix = settings.getJsonApi().getPath();
+        final String baseUrl = getBaseUrl(prefix);
+        final String pathname = getPath(request, prefix);
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
         final User user = new AuthenticationUser(authentication);
-        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .delete(baseUrl, pathname, body, convert(allRequestParams),
-                                requestHeadersCleaned, user, apiVersion, UUID.randomUUID());
+                        .delete(route.getBaseUrl(), route.getPath(), body, convert(allRequestParams),
+                                requestHeadersCleaned, user, route.getApiVersion(), UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
     }
 
-    @PostMapping(
-            value = "/operations",
-            consumes = JsonApi.AtomicOperations.MEDIA_TYPE,
-            produces = JsonApi.AtomicOperations.MEDIA_TYPE
-    )
-    public Callable<ResponseEntity<String>> elideOperations(@RequestHeader HttpHeaders requestHeaders,
-                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
-                                                       @RequestBody String body,
-                                                       HttpServletRequest request, Authentication authentication) {
-        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
-        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-        final User user = new AuthenticationUser(authentication);
-        final String baseUrl = getBaseUrlEndpoint();
-
-        return new Callable<ResponseEntity<String>>() {
-            @Override
-            public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide
-                        .operations(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
-                               convert(allRequestParams), requestHeadersCleaned, user, apiVersion,
-                               UUID.randomUUID());
-                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
-            }
-        };
-    }
-
-    private String getJsonApiPath(HttpServletRequest request, String prefix) {
+    private String getPath(HttpServletRequest request, String prefix) {
         String pathname = (String) request
                 .getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
 
         return pathname.replaceFirst(prefix, "");
     }
 
-    protected String getBaseUrlEndpoint() {
+    protected String getBaseUrl(String prefix) {
         String baseUrl = elide.getElideSettings().getBaseUrl();
 
         if (StringUtils.isEmpty(baseUrl)) {
             baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        }
+
+        if (prefix.length() > 1) {
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
+            } else {
+                baseUrl = baseUrl + prefix;
+            }
         }
 
         return baseUrl;

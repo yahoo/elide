@@ -165,6 +165,14 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
     public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
         String downloadPath =  scope.getElideSettings().getExportApiPath();
         String baseURL = scope.getBaseUrlEndPoint();
+        String jsonApiPath = scope.getElideSettings().getJsonApiPath();
+        if (jsonApiPath != null && baseURL.endsWith(jsonApiPath)) {
+            baseURL = baseURL.substring(0, baseURL.length() - jsonApiPath.length());
+        }
+        String graphqlApiPath = scope.getElideSettings().getGraphQLApiPath();
+        if (graphqlApiPath != null && baseURL.endsWith(graphqlApiPath)) {
+            baseURL = baseURL.substring(0, baseURL.length() - graphqlApiPath.length());
+        }
         String extension = this.engine.isExtensionEnabled()
                 ? exportObj.getResultType().getFileExtensionType().getExtension()
                 : FileExtensionType.NONE.getExtension();

@@ -20,6 +20,7 @@ import com.yahoo.elide.spring.config.ElideConfigProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springdoc.core.models.GroupedOpenApi;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -29,11 +30,11 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 
 /**
- * Test for DefaultElideOpenApiCustomizer.
+ * Test for DefaultElideGroupedOpenApiCustomizer.
  */
-class DefaultElideOpenApiCustomizerTest {
+class DefaultElideGroupedOpenApiCustomizerTest {
 
-    DefaultElideOpenApiCustomizer customizer;
+    DefaultElideGroupedOpenApiCustomizer customizer;
 
     @BeforeEach
     void setup() {
@@ -45,22 +46,29 @@ class DefaultElideOpenApiCustomizerTest {
         RefreshableElide refreshableElide = new RefreshableElide(elide);
         ElideConfigProperties properties = new ElideConfigProperties();
 
-        customizer = new DefaultElideOpenApiCustomizer(refreshableElide, properties);
+        customizer = new DefaultElideGroupedOpenApiCustomizer(refreshableElide, properties);
     }
 
     @Test
     void shouldNotThrowForEmptyOpenApi() {
+        GroupedOpenApi groupedOpenApi = GroupedOpenApi.builder().group("default").pathsToMatch("/**").build();
+        customizer.customize(groupedOpenApi);
         OpenAPI openApi = new OpenAPI();
-        assertThatCode(() -> customizer.customise(openApi)).doesNotThrowAnyException();
+        assertThatCode(
+                () -> groupedOpenApi.getOpenApiCustomizers().forEach(customizer -> customizer.customise(openApi)))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void shouldRemovePaths() {
+        GroupedOpenApi groupedOpenApi = GroupedOpenApi.builder().group("default").pathsToMatch("/**").build();
+        customizer.customize(groupedOpenApi);
+
         OpenAPI openApi = new OpenAPI();
         openApi.path("/graphql", new PathItem().post(new Operation().addTagsItem("graphql-controller")));
         openApi.path("/json-api", new PathItem().get(new Operation().addTagsItem("json-api-controller")));
         openApi.path("/api-docs", new PathItem().get(new Operation().addTagsItem("api-docs-controller")));
-        customizer.customise(openApi);
+        groupedOpenApi.getOpenApiCustomizers().forEach(customizer -> customizer.customise(openApi));
         assertThat(openApi.getPaths()).isEmpty();
     }
 }

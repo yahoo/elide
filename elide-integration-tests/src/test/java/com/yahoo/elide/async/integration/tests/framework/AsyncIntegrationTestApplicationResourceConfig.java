@@ -108,6 +108,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .withExportApiPath("/export")
+                        .withGraphQLApiPath("/graphQL")
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 

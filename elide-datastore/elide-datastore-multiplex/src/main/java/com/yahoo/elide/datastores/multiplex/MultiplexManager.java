@@ -112,6 +112,7 @@ public final class MultiplexManager implements DataStore {
 
                 // bind to multiplex dictionary
                 dictionary.bindEntity(binding);
+                subordinateDictionary.getApiVersions().forEach(dictionary.getApiVersions()::add);
             }
 
             for (Map.Entry<Type<?>, Function<RequestScope, PermissionExecutor>> entry

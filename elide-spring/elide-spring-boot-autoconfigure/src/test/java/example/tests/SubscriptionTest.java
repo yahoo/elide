@@ -17,7 +17,7 @@ import static io.restassured.RestAssured.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
-import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.jsonapi.JsonApi;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +44,7 @@ public class SubscriptionTest extends IntegrationTest {
             client.waitOnSubscribe(10);
 
             given()
-                    .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                    .contentType(JsonApi.MEDIA_TYPE)
                     .body(
                             datum(
                                     resource(

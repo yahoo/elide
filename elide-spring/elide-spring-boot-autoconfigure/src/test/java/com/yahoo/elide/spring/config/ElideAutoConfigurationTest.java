@@ -16,7 +16,9 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.annotation.UserConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +37,8 @@ class ElideAutoConfigurationTest {
     private static final String SCOPE_REFRESH = "refresh";
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(ElideAutoConfiguration.class, DataSourceAutoConfiguration.class,
-                    HibernateJpaAutoConfiguration.class, TransactionAutoConfiguration.class, RefreshAutoConfiguration.class));
+                    HibernateJpaAutoConfiguration.class, TransactionAutoConfiguration.class,
+                    RefreshAutoConfiguration.class, ServerConfiguration.class));
 
     @Test
     void nonRefreshable() {
@@ -128,6 +131,11 @@ class ElideAutoConfigurationTest {
         public UserJsonApiController jsonApiController() {
             return new UserJsonApiController();
         }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @EnableConfigurationProperties(ServerProperties.class)
+    public static class ServerConfiguration {
     }
 
     enum OverrideControllerInput {
