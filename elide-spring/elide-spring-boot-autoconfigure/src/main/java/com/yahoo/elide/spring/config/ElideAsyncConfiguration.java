@@ -67,7 +67,7 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public AsyncExecutorService buildAsyncExecutorService(
+    public AsyncExecutorService asyncExecutorService(
             RefreshableElide elide,
             ElideConfigProperties settings,
             AsyncApiDao asyncQueryDao,
@@ -147,7 +147,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.cleanup", name = "enabled", matchIfMissing = false)
-    public AsyncCleanerService buildAsyncCleanerService(RefreshableElide elide,
+    public AsyncCleanerService asyncCleanerService(RefreshableElide elide,
                                                         ElideConfigProperties settings,
                                                         AsyncApiDao asyncQueryDao) {
         AsyncCleanerService.init(elide.getElide(), settings.getAsync().getCleanup().getQueryMaxRunTime(),
@@ -163,7 +163,7 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public AsyncApiDao buildAsyncApiDao(RefreshableElide elide) {
+    public AsyncApiDao asyncApiDao(RefreshableElide elide) {
         return new DefaultAsyncApiDao(elide.getElide().getElideSettings(), elide.getElide().getDataStore());
     }
 
@@ -175,7 +175,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
-    public ResultStorageEngine buildResultStorageEngine(ElideConfigProperties settings) {
+    public ResultStorageEngine resultStorageEngine(ElideConfigProperties settings) {
         FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(settings.getAsync().getExport()
                 .getStorageDestination(), settings.getAsync().getExport().isAppendFileExtension());
         return resultStorageEngine;

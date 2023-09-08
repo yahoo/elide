@@ -157,7 +157,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnExpression(
             "${elide.aggregation-store.enabled:false} and ${elide.aggregation-store.dynamic-config.enabled:false}")
-    public DynamicConfiguration buildDynamicConfiguration(ClassScanner scanner,
+    public DynamicConfiguration dynamicConfiguration(ClassScanner scanner,
                                                           ElideConfigProperties settings) throws IOException {
         DynamicConfigValidator validator = new DynamicConfigValidator(scanner,
                 settings.getAggregationStore().getDynamicConfig().getPath());
@@ -165,35 +165,53 @@ public class ElideAutoConfiguration {
         return validator;
     }
 
+    /**
+     * Creates the validator to determine if a string represents a valid api version.
+     *
+     * @return the validator
+     */
     @Bean
     @ConditionalOnMissingBean
-    public RouteResolver routeResolver(RefreshableElide refreshableElide, ElideConfigProperties config) {
+    public ApiVersionValidator apiVersionValidator() {
+        return new BasicApiVersionValidator();
+    }
+
+    /**
+     * Creates the route resolver to determine the api version of the route.
+     *
+     * @param refreshableElide Singleton elide instance.
+     * @param settings Config Settings.
+     * @return
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RouteResolver routeResolver(RefreshableElide refreshableElide, ElideConfigProperties settings,
+            ApiVersionValidator apiVersionValidator) {
         Set<String> apiVersions = refreshableElide.getElide().getElideSettings().getDictionary().getApiVersions();
         if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
             return new NullRouteResolver();
         } else {
             List<RouteResolver> routeResolvers = new ArrayList<>();
-            ApiVersionValidator apiVersionValidator = new BasicApiVersionValidator();
-            if (config.getApiVersioningStrategy().getPath().isEnabled()) {
-                routeResolvers.add(new PathRouteResolver(config.getApiVersioningStrategy().getPath().getVersionPrefix(),
-                        apiVersionValidator));
+            if (settings.getApiVersioningStrategy().getPath().isEnabled()) {
+                routeResolvers.add(new PathRouteResolver(
+                        settings.getApiVersioningStrategy().getPath().getVersionPrefix(), apiVersionValidator));
             }
-            if (config.getApiVersioningStrategy().getHeader().isEnabled()) {
+            if (settings.getApiVersioningStrategy().getHeader().isEnabled()) {
                 routeResolvers
-                        .add(new HeaderRouteResolver(config.getApiVersioningStrategy().getHeader().getHeaderName()));
+                        .add(new HeaderRouteResolver(settings.getApiVersioningStrategy().getHeader().getHeaderName()));
             }
-            if (config.getApiVersioningStrategy().getParameter().isEnabled()) {
+            if (settings.getApiVersioningStrategy().getParameter().isEnabled()) {
                 routeResolvers
                         .add(new ParameterRouteResolver(
-                                config.getApiVersioningStrategy().getParameter().getParameterName(),
+                                settings.getApiVersioningStrategy().getParameter().getParameterName(),
                                 apiVersionValidator));
             }
-            if (config.getApiVersioningStrategy().getMediaTypeProfile().isEnabled()) {
+            if (settings.getApiVersioningStrategy().getMediaTypeProfile().isEnabled()) {
                 routeResolvers.add(new MediaTypeProfileRouteResolver(
-                        config.getApiVersioningStrategy().getMediaTypeProfile().getVersionPrefix(), apiVersionValidator,
-                        () -> {
-                            if (!config.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix().isBlank()) {
-                                return config.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix();
+                        settings.getApiVersioningStrategy().getMediaTypeProfile().getVersionPrefix(),
+                        apiVersionValidator, () -> {
+                            if (!settings.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix().isBlank()) {
+                                return settings.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix();
                             }
 
                             String baseUrl = refreshableElide.getElide().getElideSettings().getBaseUrl();
@@ -224,7 +242,7 @@ public class ElideAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public TransactionRegistry createRegistry() {
+    public TransactionRegistry transactionRegistry() {
         return new TransactionRegistry();
     }
 
@@ -235,7 +253,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public DBPasswordExtractor getDBPasswordExtractor() {
+    public DBPasswordExtractor dbPasswordExtractor() {
         return config -> StringUtils.EMPTY;
     }
 
@@ -246,7 +264,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public DataSourceConfiguration getDataSourceConfiguration() {
+    public DataSourceConfiguration dataSourceConfiguration() {
         return new DataSourceConfiguration() {
         };
     }
@@ -257,7 +275,7 @@ public class ElideAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         @Scope(SCOPE_PROTOTYPE)
-        public DataFetcherExceptionHandler getGraphQLExceptionHandler() {
+        public DataFetcherExceptionHandler dataFetcherExceptionHandler() {
             return new SimpleDataFetcherExceptionHandler();
         }
     }
@@ -269,7 +287,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public HeaderUtils.HeaderProcessor getHeaderProcessor(ElideConfigProperties settings) {
+    public HeaderUtils.HeaderProcessor headerProcessor(ElideConfigProperties settings) {
         if (settings.isStripAuthorizationHeaders()) {
             return HeaderUtils::lowercaseAndRemoveAuthHeaders;
         } else {
@@ -285,7 +303,7 @@ public class ElideAutoConfiguration {
      */
     @Bean(name = "entitiesToExclude")
     @ConditionalOnMissingBean
-    public Set<Type<?>> getEntitiesToExclude(ElideConfigProperties settings) {
+    public Set<Type<?>> entitiesToExclude(ElideConfigProperties settings) {
         Set<Type<?>> entitiesToExclude = new HashSet<>();
 
         AsyncProperties asyncProperties = settings.getAsync();
@@ -311,7 +329,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public Injector buildInjector(AutowireCapableBeanFactory beanFactory) {
+    public Injector injector(AutowireCapableBeanFactory beanFactory) {
         return new Injector() {
             @Override
             public void inject(Object entity) {
@@ -337,7 +355,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public EntityDictionary buildDictionary(Injector injector,
+    public EntityDictionary entityDictionary(Injector injector,
                                             ClassScanner scanner,
                                             Optional<DynamicConfiguration> optionalDynamicConfig,
                                             ElideConfigProperties settings,
@@ -384,7 +402,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     @Scope(SCOPE_PROTOTYPE)
-    public QueryEngine buildQueryEngine(DataSource defaultDataSource,
+    public QueryEngine queryEngine(DataSource defaultDataSource,
                                         Optional<DynamicConfiguration> optionalDynamicConfig,
                                         ElideConfigProperties settings,
                                         ClassScanner scanner,
@@ -627,7 +645,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public Cache buildQueryCache(ElideConfigProperties settings, Optional<MeterRegistry> optionalMeterRegistry) {
+    public Cache queryCache(ElideConfigProperties settings, Optional<MeterRegistry> optionalMeterRegistry) {
         int maxCacheItems = settings.getAggregationStore().getQueryCache().getMaxSize();
         if (settings.getAggregationStore().getQueryCache().isEnabled() && maxCacheItems > 0) {
             final CaffeineCache cache = new CaffeineCache(maxCacheItems,
@@ -646,19 +664,19 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public QueryLogger buildQueryLogger() {
+    public QueryLogger queryLogger() {
         return new Slf4jQueryLogger();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public ClassScanner getClassScanner() {
+    public ClassScanner classScanner() {
         return new DefaultClassScanner();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public ErrorMapper getErrorMapper() {
+    public ErrorMapper errorMapper() {
         return error -> null;
     }
 
