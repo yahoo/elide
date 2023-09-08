@@ -15,11 +15,13 @@ import com.yahoo.elide.core.security.User;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -40,7 +42,7 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
         String apiVersion = scope.getApiVersion();
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         URIBuilder uri = new URIBuilder(queryObj.getQuery());
-        MultivaluedMap<String, String> queryParams = getQueryParams(uri);
+        Map<String, List<String>> queryParams = getQueryParams(uri);
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
@@ -53,14 +55,15 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
 
     /**
      * This method parses the url and gets the query params.
-     * And adds them into a MultivaluedMap to be used by underlying Elide.get method
+     * And adds them into a Map to be used by underlying Elide.get method
      * @param uri URIBuilder instance
-     * @return MultivaluedMap with query parameters
+     * @return Map with query parameters
      */
-    public static MultivaluedMap<String, String> getQueryParams(URIBuilder uri) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+    public static Map<String, List<String>> getQueryParams(URIBuilder uri) {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         for (NameValuePair queryParam : uri.getQueryParams()) {
-            queryParams.add(queryParam.getName(), queryParam.getValue());
+            queryParams.computeIfAbsent(queryParam.getName(), key -> new ArrayList<>())
+                    .add(queryParam.getValue());
         }
         return queryParams;
     }

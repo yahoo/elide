@@ -19,8 +19,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import jakarta.inject.Singleton;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -165,7 +166,7 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
         Object result = null;
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+            Map<String, List<String>> queryParams = new LinkedHashMap<>();
             RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
                     tx, null, queryParams, Collections.emptyMap(), UUID.randomUUID(), elideSettings);
             result = action.execute(tx, scope);

@@ -59,12 +59,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import jakarta.validation.ConstraintViolationException;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -237,7 +237,7 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
@@ -272,7 +272,7 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         ElideResponse response = elide.get(baseUrl, "/legacyTestModel/1", queryParams, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
@@ -314,8 +314,8 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.putSingle("fields[testModel]", "field");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        queryParams.put("fields[testModel]", List.of("field"));
         ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
@@ -342,16 +342,16 @@ public class LifeCycleTest {
         DataStore store = mock(DataStore.class);
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.putSingle("fields[testModel]", "field");
-        queryParams.putSingle("?filter", "field"); // Key starts with '?'
-        queryParams.putSingle("Sort", "field"); // Valid Key is sort
-        queryParams.putSingle("INCLUDE", "field"); // Valid Key is include
-        queryParams.putSingle("fields.testModel", "field"); // fields is not followed by [
-        queryParams.putSingle("page.size", "10"); // page is not followed by [
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        queryParams.put("fields[testModel]", List.of("field"));
+        queryParams.put("?filter", List.of("field")); // Key starts with '?'
+        queryParams.put("Sort", List.of("field")); // Valid Key is sort
+        queryParams.put("INCLUDE", List.of("field")); // Valid Key is include
+        queryParams.put("fields.testModel", List.of("field")); // fields is not followed by [
+        queryParams.put("page.size", List.of("10")); // page is not followed by [
         ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
-        assertEquals("{\"errors\":[{\"detail\":\"Found undefined keys in request: fields.testModel, ?filter, Sort, page.size, INCLUDE\"}]}",
+        assertEquals("{\"errors\":[{\"detail\":\"Found undefined keys in request: ?filter, Sort, INCLUDE, fields.testModel, page.size\"}]}",
                         response.getBody());
     }
 
@@ -369,7 +369,7 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         ElideResponse response = elide.get(baseUrl, "/testModel/1/relationships/models", queryParams, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 

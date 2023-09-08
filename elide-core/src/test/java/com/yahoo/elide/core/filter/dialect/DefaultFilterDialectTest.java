@@ -17,9 +17,9 @@ import example.Book;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,11 +38,15 @@ public class DefaultFilterDialectTest {
         dialect = new DefaultFilterDialect(dictionary);
     }
 
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
+
     @Test
     public void testGlobalExpressionParsingWithComplexAttribute() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.homeAddress.street1][infix]", "State"
         );
 
@@ -53,14 +57,14 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testGlobalExpressionParsing() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
@@ -75,9 +79,9 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testTypedExpressionParsingWithComplexAttribute() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.homeAddress.street1][infix]",
                 "State"
         );
@@ -93,25 +97,25 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testTypedExpressionParsing() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book.title][in]",
                 "foo,bar,baz"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book.genre]",
                 "scifi"
         );
 
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
@@ -120,15 +124,15 @@ public class DefaultFilterDialectTest {
 
         assertEquals(2, expressionMap.size());
         assertEquals("(book.title IN [foo, bar, baz] AND book.genre IN [scifi])", expressionMap.get("book").toString());
-        assertEquals("(author.books.title IN [foo, bar, baz] AND author.name INFIX [Hemingway])",
+        assertEquals("(author.name INFIX [Hemingway] AND author.books.title IN [foo, bar, baz])",
                 expressionMap.get("author").toString());
     }
 
     @Test
     public void testInvalidType() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[invalid.title][in]",
                 "foo,bar,baz"
         );
@@ -138,9 +142,9 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testInvalidAttribute() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book.invalid][in]",
                 "foo,bar,baz"
         );
@@ -150,10 +154,10 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testInvalidTypeQualifier() throws ParseException {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
         /* This is now OK for global and for subqueries */
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
@@ -166,9 +170,9 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testBetweenOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.id][between]",
                 "10,20"
         );
@@ -181,9 +185,9 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testEmptyOperatorException() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book.authors.name][isempty]",
                 ""
         );
@@ -194,8 +198,8 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testMemberOfOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add(
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams,
                 "filter[book.awards][hasnomember]",
                 "awards1"
         );
@@ -208,9 +212,9 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testMemberOfToManyRelationship() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book.authors.name][hasmember]",
                 "name"
         );
@@ -224,8 +228,8 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testMemberOfOperatorOnNonCollectionAttributeException() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add(
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams,
                 "filter[book.title][hasmember]",
                 "title"
         );
@@ -238,10 +242,10 @@ public class DefaultFilterDialectTest {
 
     @Test
     public void testMemberOfOperatorOnRelationshipException() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
         queryParams.clear();
-        queryParams.add(
+        add(queryParams,
                 "filter[book.authors][hasmember]",
                 "1"
         );

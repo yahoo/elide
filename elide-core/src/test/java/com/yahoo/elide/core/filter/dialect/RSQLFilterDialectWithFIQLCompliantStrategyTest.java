@@ -15,9 +15,9 @@ import example.Book;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,11 +38,15 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
                 .build();
     }
 
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
+
     @Test
     public void testTypedExpressionParsing() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book]",
                 "title==*foo*;title!=bar*;(genre=in=(sci-fi,action),publishDate>123)"
         );
@@ -59,9 +63,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testGlobalExpressionParsing() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title==*foo*;authors.name==Hemingway"
         );
@@ -73,9 +77,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testEqualOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title==Hemingway"
         );
@@ -87,9 +91,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testNotEqualOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title!=Hemingway"
         );
@@ -101,9 +105,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testInOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=in=Hemingway"
         );
@@ -115,9 +119,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testOutOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=out=Hemingway"
         );
@@ -129,9 +133,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testNumericComparisonOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "(publishDate=gt=5,publishDate=ge=5,publishDate=lt=10,publishDate=le=10);"
                         + "(publishDate>5,publishDate>=5,publishDate<10,publishDate<=10)"
@@ -151,9 +155,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testSubstringOperator() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title==*Hemingway*,title==*Hemingway,title==Hemingway*"
         );
@@ -168,9 +172,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testExpressionGrouping() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title==foo;(title==bar;title==baz)"
         );
@@ -182,9 +186,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testIsnullOperatorBool() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isnull=true"
         );
@@ -196,9 +200,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testIsnullOperatorInt() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isnull=1"
         );
@@ -210,9 +214,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testNotnullOperatorBool() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isnull=false"
         );
@@ -224,9 +228,9 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @Test
     public void testNotnullOperatorInt() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter",
                 "title=isnull=0"
         );

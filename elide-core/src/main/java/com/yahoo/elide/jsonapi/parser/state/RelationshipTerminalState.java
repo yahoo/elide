@@ -23,10 +23,9 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
@@ -55,7 +54,7 @@ public class RelationshipTerminalState extends BaseState {
     public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument doc = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
+        Map<String, List<String>> queryParams = requestScope.getQueryParams();
 
         Map<String, Relationship> relationships = record.toResource(parentProjection).getRelationships();
         if (relationships != null && relationships.containsKey(relationshipName)) {

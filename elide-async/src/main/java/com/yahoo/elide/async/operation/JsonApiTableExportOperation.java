@@ -20,7 +20,6 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import org.apache.http.client.utils.URIBuilder;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
@@ -57,7 +56,7 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             throw new BadRequestException(e.getMessage());
         }
 
-        MultivaluedMap<String, String> queryParams = JsonApiAsyncQueryOperation.getQueryParams(uri);
+        Map<String, List<String>> queryParams = JsonApiAsyncQueryOperation.getQueryParams(uri);
 
         // Call with additionalHeader alone
         if (scope.getRequestHeaders().isEmpty()) {

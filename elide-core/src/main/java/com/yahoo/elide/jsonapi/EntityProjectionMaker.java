@@ -28,12 +28,12 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -59,7 +59,7 @@ public class EntityProjectionMaker
     public static final String INCLUDE = "include";
 
     private EntityDictionary dictionary;
-    private MultivaluedMap<String, String> queryParams;
+    private Map<String, List<String>> queryParams;
     private Map<String, Set<String>> sparseFields;
     private RequestScope scope;
 

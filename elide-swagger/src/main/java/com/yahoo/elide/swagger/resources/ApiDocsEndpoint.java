@@ -106,9 +106,8 @@ public class ApiDocsEndpoint {
             @Context UriInfo uriInfo,
             @Context HttpHeaders headers
             ) {
-        Map<String, List<String>> queryParams = new HashMap<>(uriInfo.getQueryParameters());
         Route route = routeResolver.resolve(MediaType.APPLICATION_JSON, "", path, headers.getRequestHeaders(),
-                queryParams);
+                uriInfo.getQueryParameters());
         String name = route.getPath();
         if (name.startsWith("/")) {
             name = name.substring(1);
@@ -128,9 +127,8 @@ public class ApiDocsEndpoint {
             @Context UriInfo uriInfo,
             @Context HttpHeaders headers
     ) {
-        Map<String, List<String>> queryParams = new HashMap<>(uriInfo.getQueryParameters());
         Route route = routeResolver.resolve(MediaType.APPLICATION_YAML, "", path, headers.getRequestHeaders(),
-                queryParams);
+                uriInfo.getQueryParameters());
         String name = route.getPath();
         if (name.startsWith("/")) {
             name = name.substring(1);
