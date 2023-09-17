@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.Test;
 
@@ -69,7 +70,8 @@ class RequestScopeTest {
         dictionary.bindEntity(MyBaseClass.class);
         dictionary.bindEntity(MyInheritedClass.class);
 
-        RequestScope requestScope = new RequestScope(null, "/", NO_VERSION, null, null, null, null, null, UUID.randomUUID(),
+        Route route = Route.builder().path("/").apiVersion(NO_VERSION).build();
+        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());

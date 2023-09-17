@@ -16,6 +16,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
@@ -298,8 +299,10 @@ public class QueryRunner {
             //TODO - get API version.
             GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
                     apiVersion).make(queryText);
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrlEndPoint, tx, principal, apiVersion,
-                    elide.getElideSettings(), projectionInfo, requestId, requestHeaders);
+            Route route = Route.builder().baseUrl(baseUrlEndPoint).apiVersion(apiVersion).headers(requestHeaders)
+                    .build();
+            GraphQLRequestScope requestScope = new GraphQLRequestScope(route, tx, principal,
+                    elide.getElideSettings(), projectionInfo, requestId);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 

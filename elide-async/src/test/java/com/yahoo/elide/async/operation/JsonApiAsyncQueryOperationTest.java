@@ -18,6 +18,7 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ public class JsonApiAsyncQueryOperationTest {
         elide = mock(Elide.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
+        when(requestScope.getRoute()).thenReturn(Route.builder().build());
         when(asyncExecutorService.getElide()).thenReturn(elide);
     }
 
@@ -54,7 +56,7 @@ public class JsonApiAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
-        when(elide.get(any(), any(), any(), any(), any(), any(), any())).thenReturn(response);
+        when(elide.get(any(), any(), any())).thenReturn(response);
         JsonApiAsyncQueryOperation jsonOperation = new JsonApiAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());
@@ -73,7 +75,7 @@ public class JsonApiAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
-        when(elide.get(any(), any(), any(), any(), any(), any(), any())).thenReturn(response);
+        when(elide.get(any(), any(), any())).thenReturn(response);
         JsonApiAsyncQueryOperation jsonOperation = new JsonApiAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());

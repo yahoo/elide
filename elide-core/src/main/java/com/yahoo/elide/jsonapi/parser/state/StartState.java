@@ -27,7 +27,7 @@ public class StartState extends BaseState {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
 
-        Type<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
+        Type<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getRoute().getApiVersion());
 
         state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
                 state.getRequestScope().getEntityProjection()));
@@ -68,7 +68,7 @@ public class StartState extends BaseState {
         String id = entity.id().getText();
         String entityName = entity.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
-        Type<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
+        Type<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getRoute().getApiVersion());
 
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);

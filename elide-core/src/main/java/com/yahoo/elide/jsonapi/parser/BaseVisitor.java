@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.jsonapi.parser;
 
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.IdContext;
@@ -20,6 +19,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityConte
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.TermContext;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.parser.state.StartState;
 import com.yahoo.elide.jsonapi.parser.state.StateContext;
@@ -34,7 +34,7 @@ public abstract class BaseVisitor extends CoreBaseVisitor<Supplier<Pair<Integer,
 
     protected final StateContext state;
 
-    public BaseVisitor(RequestScope requestScope) {
+    public BaseVisitor(JsonApiRequestScope requestScope) {
         state = new StateContext(new StartState(), requestScope);
     }
 

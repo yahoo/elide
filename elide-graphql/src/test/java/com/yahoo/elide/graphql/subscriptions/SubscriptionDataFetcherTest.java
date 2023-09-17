@@ -23,6 +23,7 @@ import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -350,7 +351,8 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
 
         GraphQLProjectionInfo projectionInfo =
                 new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION).make(request);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID(), null);
+        Route route = Route.builder().baseUrl(baseUrl).apiVersion(NO_VERSION).build();
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(route, tx, null, settings, projectionInfo, UUID.randomUUID());
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(request)

@@ -54,7 +54,7 @@ public class RelationshipTerminalState extends BaseState {
     public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument doc = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        Map<String, List<String>> queryParams = requestScope.getQueryParams();
+        Map<String, List<String>> queryParams = requestScope.getRoute().getParameters();
 
         Map<String, Relationship> relationships = record.toResource(parentProjection).getRelationships();
         if (relationships != null && relationships.containsKey(relationshipName)) {

@@ -26,6 +26,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
@@ -239,7 +240,8 @@ public class PermissionToFilterExpressionVisitorTest {
     //
     public RequestScope newRequestScope() {
         User john = new TestUser("John");
-        return requestScope = new RequestScope(null, null, NO_VERSION, null, null, john, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        return requestScope = new RequestScope(route, null, john, UUID.randomUUID(), elideSettings);
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

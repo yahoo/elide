@@ -16,6 +16,8 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import jakarta.inject.Singleton;
@@ -24,11 +26,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -166,9 +164,9 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
         Object result = null;
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            Map<String, List<String>> queryParams = new LinkedHashMap<>();
-            RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
-                    tx, null, queryParams, Collections.emptyMap(), UUID.randomUUID(), elideSettings);
+            Route route = Route.builder().path("query").apiVersion(NO_VERSION).build();
+            RequestScope scope = new JsonApiRequestScope(route,
+                    tx, null, UUID.randomUUID(), elideSettings, jsonApiDoc);
             result = action.execute(tx, scope);
             tx.flush(scope);
             tx.commit(scope);
