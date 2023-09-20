@@ -70,6 +70,11 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     protected FilterExpression globalFilterExpression;
 
     /**
+     * Used to defer inline checks for the {@link PermissionExecutor}.
+     */
+    @Getter @Setter private boolean deferInlineChecks;
+
+    /**
      * Create a new RequestScope with specified update status code.
      *
      * @param baseUrlEndPoint base URL with prefix endpoint

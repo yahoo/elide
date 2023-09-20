@@ -456,6 +456,7 @@ public class JsonApiAtomicOperations {
      * @param requestScope request scope
      */
     private void postProcessRelationships(JsonApiAtomicOperationsRequestScope requestScope) {
+        requestScope.setDeferInlineChecks(true);
         actions.forEach(action -> action.postProcess(requestScope));
     }
 
