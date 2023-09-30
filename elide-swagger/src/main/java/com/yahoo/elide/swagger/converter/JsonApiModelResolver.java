@@ -116,7 +116,9 @@ public class JsonApiModelResolver extends ModelResolver {
                     context, next, requiredAttributes);
             entitySchema.addAttribute(attributeName, attribute);
         }
-        entitySchema.getAttributes().required(requiredAttributes);
+        if (!requiredAttributes.isEmpty()) {
+            entitySchema.getAttributes().required(requiredAttributes);
+        }
     }
 
     private void populateRelationships(final Resource entitySchema, final Type<?> clazzType) {
@@ -133,7 +135,33 @@ public class JsonApiModelResolver extends ModelResolver {
                 entitySchema.addRelationship(relationshipName, relationship);
             }
         }
-        entitySchema.getRelationships().required(requiredRelationships);
+        if (!requiredRelationships.isEmpty()) {
+            entitySchema.getRelationships().required(requiredRelationships);
+        }
+
+        entitySchema.name(getSchemaName(clazzType));
+
+        Include include = getInclude(clazzType);
+        if (include != null) {
+            if (!StringUtils.isBlank(include.friendlyName())) {
+                entitySchema.setTitle(include.friendlyName());
+            }
+        }
+        io.swagger.v3.oas.annotations.media.Schema schema = getSchema(clazzType);
+        if (schema != null) {
+            if (!StringUtils.isBlank(schema.title())) {
+                entitySchema.setTitle(schema.title());
+            }
+        }
+    }
+
+    protected String getSchemaName(Type<?> type) {
+        String schemaName = dictionary.getJsonAliasFor(type);
+        String apiVersion = EntityDictionary.getModelVersion(type);
+        if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+            schemaName = "v" + apiVersion + "_" + schemaName;
+        }
+        return schemaName;
     }
 
     @SuppressWarnings("rawtypes")

@@ -28,6 +28,7 @@ import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -39,7 +40,6 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -79,10 +79,9 @@ public class GraphQLTableExportOperationTest {
         asyncExecutorService = mock(AsyncExecutorService.class);
         engine = new FileResultStorageEngine(tempDir.toString(), false);
         when(asyncExecutorService.getElide()).thenReturn(elide);
-        when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
+        when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).baseUrl("https://elide.io").build());
         when(requestScope.getUser()).thenReturn(user);
         when(requestScope.getElideSettings()).thenReturn(elide.getElideSettings());
-        when(requestScope.getBaseUrlEndPoint()).thenReturn("https://elide.io");
     }
 
     @Test
@@ -213,7 +212,8 @@ public class GraphQLTableExportOperationTest {
     private void dataPrep() throws IOException {
         TableExport temp = new TableExport();
         DataStoreTransaction tx = dataStore.beginTransaction();
-        RequestScope scope = new RequestScope(null, null, NO_VERSION, null, tx, user, null, Collections.emptyMap(),
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope scope = new RequestScope(route, tx, user,
                 UUID.randomUUID(), elide.getElideSettings());
         tx.save(temp, scope);
         tx.commit(scope);

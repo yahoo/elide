@@ -28,12 +28,12 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -59,13 +59,13 @@ public class EntityProjectionMaker
     public static final String INCLUDE = "include";
 
     private EntityDictionary dictionary;
-    private MultivaluedMap<String, String> queryParams;
+    private Map<String, List<String>> queryParams;
     private Map<String, Set<String>> sparseFields;
     private RequestScope scope;
 
     public EntityProjectionMaker(EntityDictionary dictionary, RequestScope scope) {
         this.dictionary = dictionary;
-        this.queryParams = scope.getQueryParams();
+        this.queryParams = scope.getRoute().getParameters();
         sparseFields = RequestScope.parseSparseFields(queryParams);
         this.scope = scope;
     }
@@ -138,9 +138,9 @@ public class EntityProjectionMaker
             Type<?> entityClass = getEntityClass(parentClass, entityName);
             FilterExpression filter = scope.getExpressionForRelation(parentClass, entityName).orElse(null);
 
-            Sorting sorting = SortingImpl.parseQueryParams(scope.getQueryParams(), entityClass, dictionary);
+            Sorting sorting = SortingImpl.parseQueryParams(scope.getRoute().getParameters(), entityClass, dictionary);
             Pagination pagination = PaginationImpl.parseQueryParams(entityClass,
-                    scope.getQueryParams(), scope.getElideSettings());
+                    scope.getRoute().getParameters(), scope.getElideSettings());
 
             return NamedEntityProjection.builder()
                     .name(entityName)
@@ -277,9 +277,9 @@ public class EntityProjectionMaker
                 filter = scope.getExpressionForRelation(parentClass, collectionNameText).orElse(null);
             }
 
-            Sorting sorting = SortingImpl.parseQueryParams(scope.getQueryParams(), entityClass, dictionary);
+            Sorting sorting = SortingImpl.parseQueryParams(scope.getRoute().getParameters(), entityClass, dictionary);
             Pagination pagination = PaginationImpl.parseQueryParams(entityClass,
-                    scope.getQueryParams(), scope.getElideSettings());
+                    scope.getRoute().getParameters(), scope.getElideSettings());
 
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
@@ -301,7 +301,7 @@ public class EntityProjectionMaker
             //entityLabel represents a root collection.
             if (parentClass == null) {
 
-                Type<?> entityClass = dictionary.getEntityClass(entityLabel, scope.getApiVersion());
+                Type<?> entityClass = dictionary.getEntityClass(entityLabel, scope.getRoute().getApiVersion());
 
                 if (entityClass != null) {
                     return entityClass;

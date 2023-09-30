@@ -19,6 +19,7 @@ import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role;
@@ -192,6 +193,7 @@ public class AggregationStorePermissionExecutorTest {
     private com.yahoo.elide.core.RequestScope bindAndgetRequestScope(Class clz) {
         dictionary.bindEntity(clz);
         dictionary.bindPermissionExecutor(clz, AggregationStorePermissionExecutor::new);
-        return new com.yahoo.elide.core.RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        return new com.yahoo.elide.core.RequestScope(route, null, null, UUID.randomUUID(), elideSettings);
     }
 }

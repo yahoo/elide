@@ -15,6 +15,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -33,7 +34,7 @@ public class AsyncDelayStoreTransaction extends TransactionWrapper {
         try {
             log.debug("LoadObjects Sleep for delay test");
 
-            List<String> sleepTime = scope.getRequestHeaders().get("sleep");
+            List<String> sleepTime = scope.getRoute().getHeaders().getOrDefault("sleep", Collections.emptyList());
             if (CollectionUtils.isNotEmpty(sleepTime)) {
                 Thread.sleep(Integer.parseInt(sleepTime.get(0)));
             }

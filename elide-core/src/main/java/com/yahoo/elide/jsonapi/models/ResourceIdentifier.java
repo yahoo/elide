@@ -38,7 +38,7 @@ public class ResourceIdentifier {
     public PersistentResource toPersistentResource(RequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
 
-        Type<?> cls = requestScope.getDictionary().getEntityClass(type, requestScope.getApiVersion());
+        Type<?> cls = requestScope.getDictionary().getEntityClass(type, requestScope.getRoute().getApiVersion());
         return PersistentResource.loadRecord(EntityProjection.builder()
                 .type(cls)
                 .build(), id, requestScope);

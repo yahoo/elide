@@ -19,17 +19,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
-import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.core.request.route.Route;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,9 +35,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,29 +54,25 @@ import java.util.Map;
         properties = {
                 "elide.json-api.links.enabled=true",
                 "elide.async.export.enabled=false",
+                "spring.cloud.refresh.enabled=false"
         }
 )
 @ActiveProfiles("default")
 public class HeaderCleansingTest extends IntegrationTest {
     public static final String SORT_PARAM = "sort";
-    private String baseUrl;
 
     @SpyBean
-    private RefreshableElide elide;
-
-    @Autowired
-    private ApplicationContext applicationContext;
+    private JsonApi jsonApi;
 
     @BeforeAll
     @Override
     public void setUp() {
         super.setUp();
-        baseUrl = "https://elide.io/json/";
     }
 
     @BeforeEach
     public void resetMocks() {
-        reset(elide.getElide());
+        reset(jsonApi);
     }
 
     @Test
@@ -90,7 +82,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en-US")
                 .queryParam(SORT_PARAM, "name", "description")
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -107,16 +99,15 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide.getElide()).post(any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
+        verify(jsonApi).post(routeCaptor.capture(), any(), any(), any());
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 
     @Test
@@ -130,16 +121,15 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide.getElide()).get(any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
+        verify(jsonApi).get(routeCaptor.capture(), any(), any());
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 
     @Test
@@ -148,7 +138,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
                 .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
                 .queryParam(SORT_PARAM, "name", "description")
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -165,16 +155,15 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide.getElide()).patch(any(), any(), any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
+        verify(jsonApi).patch(routeCaptor.capture(), any(), any(), any());
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 
     @Test
@@ -188,25 +177,21 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide.getElide()).delete(
-                any(),
-                any(),
-                any(),
-                requestParamsCaptor.capture(),
-                requestHeadersCleanedCaptor.capture(),
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
+
+        verify(jsonApi).delete(
+                routeCaptor.capture(),
                 any(),
                 any(),
                 any()
         );
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 
     @Test
@@ -215,7 +200,7 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
                 .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
                 .queryParam(SORT_PARAM, "name", "description")
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(datum(
                         linkage(type("product"), id("foo"))
                 ))
@@ -224,24 +209,19 @@ public class HeaderCleansingTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
-        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(elide.getElide()).delete(
-                any(),
-                any(),
-                any(),
-                requestParamsCaptor.capture(),
-                requestHeadersCleanedCaptor.capture(),
+        ArgumentCaptor<Route> routeCaptor = ArgumentCaptor.forClass(Route.class);
+        verify(jsonApi).delete(
+                routeCaptor.capture(),
                 any(),
                 any(),
                 any()
         );
 
-        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> expectedRequestParams = new HashMap<>();
         expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
-        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+        assertEquals(expectedRequestParams, routeCaptor.getValue().getParameters());
 
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
-        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("authorization"));
+        assertFalse(routeCaptor.getValue().getHeaders().containsKey("proxy-authorization"));
     }
 }

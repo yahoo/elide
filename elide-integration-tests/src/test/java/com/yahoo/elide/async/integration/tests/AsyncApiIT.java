@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.integration.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
@@ -21,6 +20,7 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -103,8 +103,8 @@ public abstract class AsyncApiIT extends IntegrationTest {
     public void init() {
         //Create Book: Ender's Game
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(ENDERS_GAME).toJSON()
                 )
@@ -113,8 +113,8 @@ public abstract class AsyncApiIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(GAME_OF_THRONES).toJSON()
                 )
@@ -123,8 +123,8 @@ public abstract class AsyncApiIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(FOR_WHOM_THE_BELL_TOLLS).toJSON()
                 )

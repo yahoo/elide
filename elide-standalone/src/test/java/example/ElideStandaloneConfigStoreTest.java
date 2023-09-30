@@ -6,7 +6,6 @@
 
 package example;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
@@ -33,6 +32,7 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.standalone.ElideStandalone;
@@ -153,7 +153,7 @@ public class ElideStandaloneConfigStoreTest {
     @Test
     public void testEmptyConfiguration() {
         when()
-                .get("/api/v1/config?fields[config]=path,type")
+                .get("/api/config?fields[config]=path,type")
                 .then()
                 .body(equalTo("{\"data\":[]}"))
                 .statusCode(HttpStatus.SC_OK);
@@ -181,7 +181,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 ).toQuery() + "\" }")
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo("{\"errors\":[{\"message\":\"Null or empty file content for models/tables/table1.hjson\"}]}"))
                 .log().all()
@@ -196,7 +196,7 @@ public class ElideStandaloneConfigStoreTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .body(query)
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo(
                         GraphQLDSL.document(
@@ -238,7 +238,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 ).toQuery() + "\" }")
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo("{\"data\":{\"config\":{\"edges\":[]}}}"))
                 .statusCode(200);
@@ -274,7 +274,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 ).toQuery() + "\" }")
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo(
                         GraphQLDSL.document(
@@ -315,7 +315,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 ).toQuery() + "\" }")
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo("{\"data\":{\"config\":{\"edges\":[]}}}"))
                 .statusCode(200);
@@ -366,7 +366,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 ).toQuery() + "\" }")
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo(
                         GraphQLDSL.document(
@@ -400,7 +400,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 ).toQuery() + "\" }")
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo(
                         GraphQLDSL.document(
@@ -437,7 +437,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 ).toQuery() + "\" }")
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo("{\"data\":{\"config\":{\"edges\":[]}}}"))
                 .statusCode(200);
@@ -456,7 +456,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 ).toQuery() + "\" }")
                 .when()
-                .post("/graphql/api/v1")
+                .post("/graphql/api")
                 .then()
                 .body(equalTo("{\"data\":{\"config\":{\"edges\":[]}}}"))
                 .statusCode(200);
@@ -487,7 +487,7 @@ public class ElideStandaloneConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -501,12 +501,12 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 )
                 .when()
-                .post("/api/v1/config")
+                .post("/api/config")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         when()
-                .get("/api/v1/config?fields[config]=content")
+                .get("/api/config?fields[config]=content")
                 .then()
                 .body(equalTo(data(
                         resource(
@@ -516,25 +516,25 @@ public class ElideStandaloneConfigStoreTest {
                                         attr("content", hjson)
                                 ),
                                 links(
-                                        attr("self", "https://elide.io/api/v1/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                                        attr("self", "https://elide.io/api/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
                                 )
                         )
                 ).toJSON()))
                 .statusCode(HttpStatus.SC_OK);
 
         when()
-                .delete("/api/v1/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .delete("/api/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         when()
-                .get("/api/v1/config?fields[config]=path,type")
+                .get("/api/config?fields[config]=path,type")
                 .then()
                 .body(equalTo("{\"data\":[]}"))
                 .statusCode(HttpStatus.SC_OK);
 
         when()
-                .get("/api/v1/json/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .get("/api/json/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }
@@ -564,7 +564,7 @@ public class ElideStandaloneConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -578,7 +578,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 )
                 .when()
-                .post("/api/v1/config")
+                .post("/api/config")
                 .then()
                 .body(equalTo("{\"errors\":[{\"detail\":\"Failed to verify column arguments for column: measure in table: Test. Argument &#39;missing&#39; is not defined but found &#39;{{$$column.args.missing}}&#39;.\"}]}"))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -589,7 +589,7 @@ public class ElideStandaloneConfigStoreTest {
         String hjson = "#!/bin/sh ...";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -603,7 +603,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 )
                 .when()
-                .post("/api/v1/config")
+                .post("/api/config")
                 .then()
                 .body(equalTo("{\"errors\":[{\"detail\":\"Unrecognized File: foo\"}]}"))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -634,7 +634,7 @@ public class ElideStandaloneConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -648,7 +648,7 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 )
                 .when()
-                .post("/api/v1/config")
+                .post("/api/config")
                 .then()
                 .body(equalTo("{\"errors\":[{\"detail\":\"Parent directory traversal not allowed: ../../../../../tmp/models/tables/table1.hjson\"}]}"))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -679,7 +679,7 @@ public class ElideStandaloneConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -693,12 +693,12 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 )
                 .when()
-                .post("/api/v1/config")
+                .post("/api/config")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -713,12 +713,12 @@ public class ElideStandaloneConfigStoreTest {
                         )
                 )
                 .when()
-                .patch("/api/v1/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .patch("/api/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
 
         when()
-                .delete("/api/v1/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
+                .delete("/api/config/bW9kZWxzL3RhYmxlcy90YWJsZTEuaGpzb24=")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
     }

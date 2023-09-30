@@ -20,6 +20,15 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.request.route.ApiVersionValidator;
+import com.yahoo.elide.core.request.route.BasicApiVersionValidator;
+import com.yahoo.elide.core.request.route.DelegatingRouteResolver;
+import com.yahoo.elide.core.request.route.HeaderRouteResolver;
+import com.yahoo.elide.core.request.route.MediaTypeProfileRouteResolver;
+import com.yahoo.elide.core.request.route.NullRouteResolver;
+import com.yahoo.elide.core.request.route.ParameterRouteResolver;
+import com.yahoo.elide.core.request.route.PathRouteResolver;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
@@ -44,6 +53,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBe
 import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.graphql.QueryRunners;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
@@ -52,7 +62,9 @@ import com.yahoo.elide.modelconfig.store.ConfigDataStore;
 import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.spring.api.BasicOpenApiDocumentCustomizer;
+import com.yahoo.elide.spring.api.DefaultElideGroupedOpenApiCustomizer;
 import com.yahoo.elide.spring.api.DefaultElideOpenApiCustomizer;
+import com.yahoo.elide.spring.api.ElideGroupedOpenApiCustomizer;
 import com.yahoo.elide.spring.api.ElideOpenApiCustomizer;
 import com.yahoo.elide.spring.api.OpenApiDocumentCustomizer;
 import com.yahoo.elide.spring.controllers.ApiDocsController;
@@ -74,6 +86,7 @@ import com.yahoo.elide.utils.HeaderUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -83,6 +96,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.ApplicationContext;
@@ -95,12 +109,15 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.function.SingletonSupplier;
 
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -141,7 +158,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnExpression(
             "${elide.aggregation-store.enabled:false} and ${elide.aggregation-store.dynamic-config.enabled:false}")
-    public DynamicConfiguration buildDynamicConfiguration(ClassScanner scanner,
+    public DynamicConfiguration dynamicConfiguration(ClassScanner scanner,
                                                           ElideConfigProperties settings) throws IOException {
         DynamicConfigValidator validator = new DynamicConfigValidator(scanner,
                 settings.getAggregationStore().getDynamicConfig().getPath());
@@ -149,9 +166,84 @@ public class ElideAutoConfiguration {
         return validator;
     }
 
+    /**
+     * Creates the validator to determine if a string represents a valid api version.
+     *
+     * @return the validator
+     */
     @Bean
     @ConditionalOnMissingBean
-    public TransactionRegistry createRegistry() {
+    public ApiVersionValidator apiVersionValidator() {
+        return new BasicApiVersionValidator();
+    }
+
+    /**
+     * Creates the route resolver to determine the api version of the route.
+     *
+     * @param refreshableElide Singleton elide instance.
+     * @param settings Config Settings.
+     * @return
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RouteResolver routeResolver(RefreshableElide refreshableElide, ElideConfigProperties settings,
+            ApiVersionValidator apiVersionValidator) {
+        Set<String> apiVersions = refreshableElide.getElide().getElideSettings().getDictionary().getApiVersions();
+        if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
+            return new NullRouteResolver();
+        } else {
+            List<RouteResolver> routeResolvers = new ArrayList<>();
+            if (settings.getApiVersioningStrategy().getPath().isEnabled()) {
+                routeResolvers.add(new PathRouteResolver(
+                        settings.getApiVersioningStrategy().getPath().getVersionPrefix(), apiVersionValidator));
+            }
+            if (settings.getApiVersioningStrategy().getHeader().isEnabled()) {
+                routeResolvers
+                        .add(new HeaderRouteResolver(settings.getApiVersioningStrategy().getHeader().getHeaderName()));
+            }
+            if (settings.getApiVersioningStrategy().getParameter().isEnabled()) {
+                routeResolvers
+                        .add(new ParameterRouteResolver(
+                                settings.getApiVersioningStrategy().getParameter().getParameterName(),
+                                apiVersionValidator));
+            }
+            if (settings.getApiVersioningStrategy().getMediaTypeProfile().isEnabled()) {
+                routeResolvers.add(new MediaTypeProfileRouteResolver(
+                        settings.getApiVersioningStrategy().getMediaTypeProfile().getVersionPrefix(),
+                        apiVersionValidator, () -> {
+                            if (!settings.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix().isBlank()) {
+                                return settings.getApiVersioningStrategy().getMediaTypeProfile().getUriPrefix();
+                            }
+
+                            String baseUrl = refreshableElide.getElide().getElideSettings().getBaseUrl();
+                            String prefix = refreshableElide.getElide().getElideSettings().getJsonApiPath();
+
+                            if (StringUtils.isEmpty(baseUrl)) {
+                                baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                            }
+
+                            if (prefix.length() > 1) {
+                                if (baseUrl.endsWith("/")) {
+                                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
+                                } else {
+                                    baseUrl = baseUrl + prefix;
+                                }
+                            }
+
+                            return baseUrl;
+                        }));
+            }
+            if (!routeResolvers.isEmpty()) {
+                return new DelegatingRouteResolver(routeResolvers);
+            } else {
+                return new NullRouteResolver();
+            }
+        }
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public TransactionRegistry transactionRegistry() {
         return new TransactionRegistry();
     }
 
@@ -162,7 +254,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public DBPasswordExtractor getDBPasswordExtractor() {
+    public DBPasswordExtractor dbPasswordExtractor() {
         return config -> StringUtils.EMPTY;
     }
 
@@ -173,7 +265,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public DataSourceConfiguration getDataSourceConfiguration() {
+    public DataSourceConfiguration dataSourceConfiguration() {
         return new DataSourceConfiguration() {
         };
     }
@@ -184,7 +276,7 @@ public class ElideAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         @Scope(SCOPE_PROTOTYPE)
-        public DataFetcherExceptionHandler getGraphQLExceptionHandler() {
+        public DataFetcherExceptionHandler dataFetcherExceptionHandler() {
             return new SimpleDataFetcherExceptionHandler();
         }
     }
@@ -196,7 +288,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public HeaderUtils.HeaderProcessor getHeaderProcessor(ElideConfigProperties settings) {
+    public HeaderUtils.HeaderProcessor headerProcessor(ElideConfigProperties settings) {
         if (settings.isStripAuthorizationHeaders()) {
             return HeaderUtils::lowercaseAndRemoveAuthHeaders;
         } else {
@@ -212,7 +304,7 @@ public class ElideAutoConfiguration {
      */
     @Bean(name = "entitiesToExclude")
     @ConditionalOnMissingBean
-    public Set<Type<?>> getEntitiesToExclude(ElideConfigProperties settings) {
+    public Set<Type<?>> entitiesToExclude(ElideConfigProperties settings) {
         Set<Type<?>> entitiesToExclude = new HashSet<>();
 
         AsyncProperties asyncProperties = settings.getAsync();
@@ -238,7 +330,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public Injector buildInjector(AutowireCapableBeanFactory beanFactory) {
+    public Injector injector(AutowireCapableBeanFactory beanFactory) {
         return new Injector() {
             @Override
             public void inject(Object entity) {
@@ -264,7 +356,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public EntityDictionary buildDictionary(Injector injector,
+    public EntityDictionary entityDictionary(Injector injector,
                                             ClassScanner scanner,
                                             Optional<DynamicConfiguration> optionalDynamicConfig,
                                             ElideConfigProperties settings,
@@ -311,7 +403,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     @Scope(SCOPE_PROTOTYPE)
-    public QueryEngine buildQueryEngine(DataSource defaultDataSource,
+    public QueryEngine queryEngine(DataSource defaultDataSource,
                                         Optional<DynamicConfiguration> optionalDynamicConfig,
                                         ElideConfigProperties settings,
                                         ClassScanner scanner,
@@ -554,7 +646,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public Cache buildQueryCache(ElideConfigProperties settings, Optional<MeterRegistry> optionalMeterRegistry) {
+    public Cache queryCache(ElideConfigProperties settings, Optional<MeterRegistry> optionalMeterRegistry) {
         int maxCacheItems = settings.getAggregationStore().getQueryCache().getMaxSize();
         if (settings.getAggregationStore().getQueryCache().isEnabled() && maxCacheItems > 0) {
             final CaffeineCache cache = new CaffeineCache(maxCacheItems,
@@ -573,19 +665,19 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public QueryLogger buildQueryLogger() {
+    public QueryLogger queryLogger() {
         return new Slf4jQueryLogger();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public ClassScanner getClassScanner() {
+    public ClassScanner classScanner() {
         return new DefaultClassScanner();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public ErrorMapper getErrorMapper() {
+    public ErrorMapper errorMapper() {
         return error -> null;
     }
 
@@ -627,8 +719,27 @@ public class ElideAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         @Scope(SCOPE_PROTOTYPE)
-        public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide) {
-            return new DefaultElideOpenApiCustomizer(elide, EntityDictionary.NO_VERSION);
+        public ElideOpenApiCustomizer elideOpenApiCustomizer(RefreshableElide elide, ElideConfigProperties properties) {
+            return new DefaultElideOpenApiCustomizer(elide, properties);
+        }
+
+        @Bean
+        @Scope(SCOPE_PROTOTYPE)
+        public ElideGroupedOpenApiCustomizer elideGroupedOpenApiCustomizer(RefreshableElide elide,
+                ElideConfigProperties properties) {
+            return new DefaultElideGroupedOpenApiCustomizer(elide, properties);
+        }
+
+        @Configuration
+        public static class ElideGroupedOpenApiConfiguration {
+            public ElideGroupedOpenApiConfiguration(Optional<List<GroupedOpenApi>> optionalGroupedOpenApis,
+                    ObjectProvider<ElideGroupedOpenApiCustomizer> customizerProvider) {
+                optionalGroupedOpenApis.ifPresent(groupedOpenApis -> {
+                    for (GroupedOpenApi groupedOpenApi : groupedOpenApis) {
+                        customizerProvider.orderedStream().forEach(customizer -> customizer.customize(groupedOpenApi));
+                    }
+                });
+            }
         }
     }
 
@@ -662,9 +773,16 @@ public class ElideAutoConfiguration {
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean(name = "jsonApiController")
-            public JsonApiController jsonApiController(RefreshableElide refreshableElide,
-                    ElideConfigProperties settings) {
-                return new JsonApiController(refreshableElide, settings);
+            public JsonApiController jsonApiController(JsonApi jsonApi, ElideConfigProperties settings,
+                    RouteResolver routeResolver) {
+                return new JsonApiController(jsonApi, settings, routeResolver);
+            }
+
+            @Bean
+            @RefreshScope
+            @ConditionalOnMissingBean
+            public JsonApi jsonApi(RefreshableElide refreshableElide) {
+                return new JsonApi(refreshableElide);
             }
         }
 
@@ -683,15 +801,18 @@ public class ElideAutoConfiguration {
             @RefreshScope
             @ConditionalOnMissingBean
             public ApiDocsController.ApiDocsRegistrations apiDocsRegistrations(RefreshableElide elide,
-                    ElideConfigProperties settings, OpenApiDocumentCustomizer customizer) {
-                return buildApiDocsRegistrations(elide, settings, customizer);
+                    ElideConfigProperties settings, ServerProperties serverProperties,
+                    OpenApiDocumentCustomizer customizer) {
+                return buildApiDocsRegistrations(elide, settings, serverProperties.getServlet().getContextPath(),
+                        customizer);
             }
 
             @Bean
             @RefreshScope
             @ConditionalOnMissingBean(name = "apiDocsController")
-            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs) {
-                return new ApiDocsController(docs);
+            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs,
+                    RouteResolver routeResolver, ElideConfigProperties elideConfigProperties) {
+                return new ApiDocsController(docs, routeResolver, elideConfigProperties);
             }
 
             @Bean
@@ -717,8 +838,9 @@ public class ElideAutoConfiguration {
             @RefreshScope
             @ConditionalOnMissingBean(name = "graphqlController")
             public GraphqlController graphqlController(QueryRunners runners, JsonApiMapper jsonApiMapper,
-                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings) {
-                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings);
+                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings,
+                    RouteResolver routeResolver) {
+                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings, routeResolver);
             }
         }
     }
@@ -750,9 +872,15 @@ public class ElideAutoConfiguration {
         public static class JsonApiConfiguration {
             @Bean
             @ConditionalOnMissingBean(name = "jsonApiController")
-            public JsonApiController jsonApiController(RefreshableElide refreshableElide,
-                    ElideConfigProperties settings) {
-                return new JsonApiController(refreshableElide, settings);
+            public JsonApiController jsonApiController(JsonApi jsonApi, ElideConfigProperties settings,
+                    RouteResolver routeResolver) {
+                return new JsonApiController(jsonApi, settings, routeResolver);
+            }
+
+            @Bean
+            @ConditionalOnMissingBean
+            public JsonApi jsonApi(RefreshableElide refreshableElide) {
+                return new JsonApi(refreshableElide);
             }
         }
 
@@ -770,14 +898,17 @@ public class ElideAutoConfiguration {
             @Bean
             @ConditionalOnMissingBean
             public ApiDocsController.ApiDocsRegistrations apiDocsRegistrations(RefreshableElide elide,
-                    ElideConfigProperties settings, OpenApiDocumentCustomizer customizer) {
-                return buildApiDocsRegistrations(elide, settings, customizer);
+                    ElideConfigProperties settings, ServerProperties serverProperties,
+                    OpenApiDocumentCustomizer customizer) {
+                return buildApiDocsRegistrations(elide, settings, serverProperties.getServlet().getContextPath(),
+                        customizer);
             }
 
             @Bean
             @ConditionalOnMissingBean(name = "apiDocsController")
-            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs) {
-                return new ApiDocsController(docs);
+            public ApiDocsController apiDocsController(ApiDocsController.ApiDocsRegistrations docs,
+                    RouteResolver routeResolver, ElideConfigProperties elideConfigProperties) {
+                return new ApiDocsController(docs, routeResolver, elideConfigProperties);
             }
 
             @Bean
@@ -800,8 +931,9 @@ public class ElideAutoConfiguration {
             @Bean
             @ConditionalOnMissingBean(name = "graphqlController")
             public GraphqlController graphqlController(QueryRunners runners, JsonApiMapper jsonApiMapper,
-                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings) {
-                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings);
+                    HeaderUtils.HeaderProcessor headerProcessor, ElideConfigProperties settings,
+                    RouteResolver routeResolver) {
+                return new GraphqlController(runners, jsonApiMapper, headerProcessor, settings, routeResolver);
             }
         }
     }
@@ -857,8 +989,8 @@ public class ElideAutoConfiguration {
     }
 
     public static ApiDocsController.ApiDocsRegistrations buildApiDocsRegistrations(RefreshableElide elide,
-            ElideConfigProperties settings, OpenApiDocumentCustomizer customizer) {
-        String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : null;
+            ElideConfigProperties settings, String contextPath, OpenApiDocumentCustomizer customizer) {
+        String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : "";
 
         EntityDictionary dictionary = elide.getElide().getElideSettings().getDictionary();
 
@@ -867,9 +999,30 @@ public class ElideAutoConfiguration {
             Supplier<OpenAPI> document = () -> {
                 OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
                         .supportLegacyFilterDialect(false);
+                if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                    if (settings.getApiVersioningStrategy().getPath().isEnabled()) {
+                        // Path needs to be set
+                        builder.basePath(
+                                "/" + settings.getApiVersioningStrategy().getPath().getVersionPrefix() + apiVersion);
+                    } else if (settings.getApiVersioningStrategy().getHeader().isEnabled()) {
+                        // Header needs to be set
+                        builder.globalParameter(new Parameter().in("header")
+                                .name(settings.getApiVersioningStrategy().getHeader().getHeaderName()[0]).required(true)
+                                .schema(new StringSchema().addEnumItem(apiVersion)));
+                    } else if (settings.getApiVersioningStrategy().getParameter().isEnabled()) {
+                        // Header needs to be set
+                        builder.globalParameter(new Parameter().in("query")
+                                .name(settings.getApiVersioningStrategy().getParameter().getParameterName())
+                                .required(true).schema(new StringSchema().addEnumItem(apiVersion)));
+                    }
+                }
+                String url = contextPath != null ? contextPath : "";
+                url = url + jsonApiPath;
+                if (url.isBlank()) {
+                    url = "/";
+                }
                 OpenAPI openApi = builder.build();
-                openApi.addServersItem(new Server().url(jsonApiPath));
-                customizer.customize(openApi);
+                openApi.addServersItem(new Server().url(url));
                 if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
                     Info info = openApi.getInfo();
                     if (info == null) {
@@ -878,10 +1031,12 @@ public class ElideAutoConfiguration {
                     }
                     info.setVersion(apiVersion);
                 }
+                customizer.customize(openApi);
                 return openApi;
             };
             registrations.add(new ApiDocsRegistration("", SingletonSupplier.of(document),
-                    settings.getApiDocs().getVersion().getValue(), apiVersion));        });
+                    settings.getApiDocs().getVersion().getValue(), apiVersion));
+        });
         return new ApiDocsController.ApiDocsRegistrations(registrations);
     }
 

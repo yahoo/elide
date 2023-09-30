@@ -86,7 +86,7 @@ public abstract class AsyncApiHook<T extends AsyncApi> implements LifeCycleHook<
      * @param requestScope RequestScope object.
      */
     protected void completeAsync(AsyncApi query, RequestScope requestScope) {
-        asyncExecutorService.completeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
+        asyncExecutorService.completeQuery(query, requestScope.getUser(), requestScope.getRoute().getApiVersion());
     }
 
     /**

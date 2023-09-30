@@ -51,6 +51,7 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
         mapStore = new HashMapDataStore(new DefaultClassScanner(), beanPackages);
         asyncStore = new HashMapDataStore(new DefaultClassScanner(), asyncBeanPackages);
         memoryStore = new InMemoryDataStore(new MultiplexManager(mapStore, asyncStore));
+
     }
 
     @Override

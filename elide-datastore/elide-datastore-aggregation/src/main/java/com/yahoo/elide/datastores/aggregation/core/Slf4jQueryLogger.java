@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -48,7 +47,7 @@ public class Slf4jQueryLogger implements QueryLogger {
 
     @Override
     public void acceptQuery(UUID queryId, User user, Map<String, String> headers, String apiVer,
-                            MultivaluedMap<String, String> queryParams, String path) {
+            Map<String, List<String>> queryParams, String path) {
         ObjectNode rootNode = mapper.createObjectNode();
 
         rootNode.put(ID, queryId.toString());

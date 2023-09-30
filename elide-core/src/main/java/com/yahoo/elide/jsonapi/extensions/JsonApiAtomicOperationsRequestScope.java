@@ -6,70 +6,53 @@
 package com.yahoo.elide.jsonapi.extensions;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.jsonapi.EntityProjectionMaker;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
  * The request scope for the JSON API Atomic Operations extension.
  */
-public class JsonApiAtomicOperationsRequestScope extends RequestScope {
+public class JsonApiAtomicOperationsRequestScope extends JsonApiRequestScope {
 
     /**
      * Outer RequestScope constructor for use by Atomic Extension.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param path the URL path
-     * @param apiVersion client requested API version
-     * @param transaction current database transaction
-     * @param user        request user
-     * @param requestId   request ID
-     * @param queryParams request query parameters
-     * @param requestHeaders request headers
+     * @param route         the route
+     * @param transaction   current transaction
+     * @param user          request user
+     * @param requestId     request ID
      * @param elideSettings Elide settings object
      */
     public JsonApiAtomicOperationsRequestScope(
-            String baseUrlEndPoint,
-            String path,
-            String apiVersion,
+            Route route,
             DataStoreTransaction transaction,
             User user,
             UUID requestId,
-            MultivaluedMap<String, String> queryParams,
-            Map<String, List<String>> requestHeaders,
             ElideSettings elideSettings) {
         super(
-                baseUrlEndPoint,
-                path,
-                apiVersion,
-                (JsonApiDocument) null,
+                route,
                 transaction,
                 user,
-                queryParams,
-                requestHeaders,
                 requestId,
-                elideSettings
+                elideSettings,
+                null
         );
     }
 
     /**
      * Inner RequestScope copy constructor for use by Atomic Extension actions.
      *
-     * @param path the URL path
+     * @param path            the URL path
      * @param jsonApiDocument document
      * @param scope           outer request scope
      */
     public JsonApiAtomicOperationsRequestScope(String path, JsonApiDocument jsonApiDocument,
             JsonApiAtomicOperationsRequestScope scope) {
-        super(path, scope.getApiVersion(), jsonApiDocument, scope);
-        this.setEntityProjection(new EntityProjectionMaker(dictionary, this).parsePath(path));
+        super(scope.getRoute().mutate().path(path).build(), jsonApiDocument, scope);
     }
 }

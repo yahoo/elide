@@ -244,6 +244,7 @@ public class MetaDataStore implements DataStore {
             metadataModelClasses.forEach(
                 cls -> dictionary.bindEntity(cls, IS_FIELD_HIDDEN)
             );
+            this.metadataDictionary.getApiVersions().forEach(dictionary.getApiVersions()::add);
         }
     }
 

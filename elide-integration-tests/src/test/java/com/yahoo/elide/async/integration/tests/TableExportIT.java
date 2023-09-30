@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.integration.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.UNQUOTED_VALUE;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
@@ -40,7 +39,9 @@ import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.test.graphql.EnumFieldSerializer;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -53,7 +54,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import io.restassured.response.Response;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.SecurityContext;
 import lombok.Data;
 
@@ -114,7 +114,7 @@ public class TableExportIT extends AsyncApiIT {
 
         //Create Table Export Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .header("sleep", "1000")
                 .body(
                         data(
@@ -176,7 +176,7 @@ public class TableExportIT extends AsyncApiIT {
 
         //Create TableExport Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .header("sleep", "1000")
                 .body(
                         data(
@@ -587,7 +587,7 @@ public class TableExportIT extends AsyncApiIT {
     @Test
     public void jsonApiUnknownRequestTests() throws InterruptedException {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -632,7 +632,7 @@ public class TableExportIT extends AsyncApiIT {
     @Test
     public void jsonApiBadExportQueryTests() throws InterruptedException {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -783,7 +783,7 @@ public class TableExportIT extends AsyncApiIT {
     public void jsonAPIRelationshipFetchTests() throws InterruptedException {
         //Create Table Export Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -1064,8 +1064,8 @@ public class TableExportIT extends AsyncApiIT {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(noRead).toJSON()
                 )
@@ -1075,7 +1075,7 @@ public class TableExportIT extends AsyncApiIT {
 
         //Create Table Export Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -1146,7 +1146,7 @@ public class TableExportIT extends AsyncApiIT {
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
                         .withEntityDictionary(dictionary)
                         .withAuditLogger(new TestAuditLogger()).build());
-
+        JsonApi jsonApi = new JsonApi(elide);
         User ownerUser = new User(() -> "owner-user");
         SecurityContextUser securityContextAdminUser = new SecurityContextUser(new SecurityContext() {
             @Override
@@ -1187,15 +1187,16 @@ public class TableExportIT extends AsyncApiIT {
 
         String baseUrl = "/";
         // Principal is Owner
-        response = elide.get(baseUrl, "/tableExport/" + id, new MultivaluedHashMap<>(), ownerUser, NO_VERSION);
+        Route route = Route.builder().baseUrl(baseUrl).path("/tableExport/" + id).apiVersion(NO_VERSION).build();
+        response = jsonApi.get(route, ownerUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         // Principal has Admin Role
-        response = elide.get(baseUrl, "/tableExport/" + id, new MultivaluedHashMap<>(), securityContextAdminUser, NO_VERSION);
+        response = jsonApi.get(route, securityContextAdminUser, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         // Principal without Admin Role
-        response = elide.get(baseUrl, "/tableExport/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
+        response = jsonApi.get(route, securityContextNonAdminUser, null);
         assertEquals(HttpStatus.SC_NOT_FOUND, response.getResponseCode());
     }
 
@@ -1210,7 +1211,7 @@ public class TableExportIT extends AsyncApiIT {
 
         //Create Async Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .header("sleep", "1000")
                 .body(
                         data(

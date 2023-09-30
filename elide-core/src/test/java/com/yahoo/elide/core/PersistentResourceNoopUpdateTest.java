@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import example.Child;
@@ -31,8 +32,8 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
     private final User goodUser;
     PersistentResourceNoopUpdateTest() {
         goodUser = new TestUser("1");
-        goodUserScope = new RequestScope(null, null, NO_VERSION, null,
-                mock(DataStoreTransaction.class), goodUser, null, null, UUID.randomUUID(), elideSettings);
+        goodUserScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(),
+                mock(DataStoreTransaction.class), goodUser, UUID.randomUUID(), elideSettings);
         initDictionary();
         reset(goodUserScope.getTransaction());
     }
@@ -45,7 +46,8 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), tx, goodUser,
+                UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, "1", goodScope);
 
@@ -64,7 +66,8 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), tx, goodUser,
+                UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, "1", goodScope);
         funResource.addRelation("relation3", childResource);
@@ -82,7 +85,8 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), tx, goodUser,
+                UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, goodScope);
         //We do not want the update to one method to be called when we add the existing entity to the relation
@@ -97,7 +101,8 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(Route.builder().apiVersion(NO_VERSION).build(), tx, goodUser,
+                UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, goodScope);
         funResource.addRelation("relation1", childResource);

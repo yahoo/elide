@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.errorEncodingTests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
@@ -17,6 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.initialization.VerboseEncodedErrorResponsesTestApplicationResourceConfig;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import org.apache.http.HttpStatus;
@@ -41,8 +40,8 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/InvalidAttributeException.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidAttributeException.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+            .accept(JsonApi.JsonPatch.MEDIA_TYPE)
             .body(request)
             .patch("/parent")
             .then()
@@ -65,8 +64,8 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyException.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyException.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+            .accept(JsonApi.JsonPatch.MEDIA_TYPE)
             .body(request)
             .patch("/parent")
             .then()
@@ -78,8 +77,8 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
     public void invalidObjectIdentifierException() {
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidObjectIdentifierException.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .get("/parent/100")
             .then()
             .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -95,8 +94,8 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
 
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueExceptionVerbose.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(datum(requestBody))
             .post("/invoice")
             .then()
@@ -109,8 +108,8 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionException.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionException.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+            .accept(JsonApi.JsonPatch.MEDIA_TYPE)
             .body(request).patch()
             .then()
             .statusCode(HttpStatus.SC_BAD_REQUEST)
@@ -123,8 +122,8 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
         String request = "{\"data\": {\"type\": \"invoice\" \"id\": 100}}";
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/transactionException.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(request).post("/invoice")
             .then()
             .statusCode(HttpStatus.SC_BAD_REQUEST)

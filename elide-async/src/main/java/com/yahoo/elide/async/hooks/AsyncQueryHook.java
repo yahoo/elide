@@ -44,7 +44,7 @@ public class AsyncQueryHook extends AsyncApiHook<AsyncQuery> {
         super.validateOptions(query, requestScope);
 
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            QueryRunner runner = getAsyncExecutorService().getRunners().get(requestScope.getApiVersion());
+            QueryRunner runner = getAsyncExecutorService().getRunners().get(requestScope.getRoute().getApiVersion());
             if (runner == null) {
                 throw new InvalidOperationException("Invalid API Version");
             }

@@ -14,12 +14,11 @@ import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Lists;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,7 +35,7 @@ public class IncludedProcessor implements DocumentProcessor {
      */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, RequestScope scope, PersistentResource resource,
-                        MultivaluedMap<String, String> queryParams) {
+            Map<String, List<String>> queryParams) {
         if (isPresent(queryParams, INCLUDE)) {
             addIncludedResources(jsonApiDocument, resource, queryParams.get(INCLUDE));
         }
@@ -51,7 +50,7 @@ public class IncludedProcessor implements DocumentProcessor {
             JsonApiDocument jsonApiDocument,
             RequestScope scope,
             LinkedHashSet<PersistentResource> resources,
-            MultivaluedMap<String, String> queryParams
+            Map<String, List<String>> queryParams
     ) {
         if (isPresent(queryParams, INCLUDE)) {
 
@@ -112,7 +111,7 @@ public class IncludedProcessor implements DocumentProcessor {
         });
     }
 
-    private static boolean isPresent(MultivaluedMap<String, String> queryParams, String key) {
+    private static boolean isPresent(Map<String, List<String>> queryParams, String key) {
         return queryParams != null && queryParams.get(key) != null;
     }
 }

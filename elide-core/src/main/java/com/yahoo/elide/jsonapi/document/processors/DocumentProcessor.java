@@ -9,9 +9,9 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An interface for building and processing a response document.
@@ -31,7 +31,7 @@ public interface DocumentProcessor {
     void execute(JsonApiDocument jsonApiDocument,
                  RequestScope scope,
                  PersistentResource resource,
-                 MultivaluedMap<String, String> queryParams);
+                 Map<String, List<String>> queryParams);
 
     /**
      * A method for making transformations to the JsonApiDocument.
@@ -44,7 +44,7 @@ public interface DocumentProcessor {
     void execute(JsonApiDocument jsonApiDocument,
                  RequestScope scope,
                  LinkedHashSet<PersistentResource> resources,
-                 MultivaluedMap<String, String> queryParams);
+                 Map<String, List<String>> queryParams);
 
     //TODO Possibly add a something like a 'afterExecute' method to process after the first round of execution
 }
