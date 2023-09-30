@@ -19,17 +19,21 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import org.junit.jupiter.api.Test;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Tests MultipleFilterDialect
  */
 public class MultipleFilterDialectTest {
+
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
 
     /**
      * Verify that all dialects are iterated over.
@@ -45,14 +49,14 @@ public class MultipleFilterDialectTest {
                 Collections.emptyList()
         );
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
@@ -82,14 +86,14 @@ public class MultipleFilterDialectTest {
                 Arrays.asList(dialect1, dialect2)
         );
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
@@ -116,14 +120,14 @@ public class MultipleFilterDialectTest {
                 Collections.emptyList()
         );
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
@@ -142,14 +146,14 @@ public class MultipleFilterDialectTest {
                 Collections.emptyList()
         );
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
@@ -170,14 +174,14 @@ public class MultipleFilterDialectTest {
                 Collections.emptyList()
         );
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
@@ -205,14 +209,14 @@ public class MultipleFilterDialectTest {
                 Arrays.asList(dialect1, dialect2)
         );
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );

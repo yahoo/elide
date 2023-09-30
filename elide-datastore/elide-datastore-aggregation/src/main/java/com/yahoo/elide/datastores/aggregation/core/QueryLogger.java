@@ -8,8 +8,6 @@ package com.yahoo.elide.datastores.aggregation.core;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,7 +27,7 @@ public interface QueryLogger {
      * @param path The apiQuery endpoint path for the incoming query
      */
     void acceptQuery(UUID queryId, User user, Map<String, String> headers, String apiVer,
-                     MultivaluedMap<String, String> queryParams, String path);
+            Map<String, List<String>> queryParams, String path);
 
     /**
      * Processes and logs all the queries from QueryDetail.

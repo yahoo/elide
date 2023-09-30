@@ -49,7 +49,6 @@ import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Builder;
 import lombok.NonNull;
 
@@ -60,6 +59,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -148,14 +148,14 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     }
 
     @Override
-    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams,
+    public FilterExpression parseGlobalExpression(String path, Map<String, List<String>> filterParams,
                                                   String apiVersion)
             throws ParseException {
         if (filterParams.size() != 1) {
             throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
-        MultivaluedMap.Entry<String, List<String>> entry = CollectionUtils.get(filterParams, 0);
+        Entry<String, List<String>> entry = CollectionUtils.get(filterParams, 0);
         String queryParamName = entry.getKey();
 
         if (!"filter".equals(queryParamName)) {
@@ -190,13 +190,13 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     }
 
     @Override
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams,
+    public Map<String, FilterExpression> parseTypedExpression(String path, Map<String, List<String>> filterParams,
                                                               String apiVersion)
             throws ParseException {
 
         Map<String, FilterExpression> expressionByType = new HashMap<>();
 
-        for (MultivaluedMap.Entry<String, List<String>> entry : filterParams.entrySet()) {
+        for (Entry<String, List<String>> entry : filterParams.entrySet()) {
 
             String paramName = entry.getKey();
             List<String> paramValues = entry.getValue();

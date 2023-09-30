@@ -20,6 +20,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.JsonApiAtomicOperationsException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.Results;
@@ -32,14 +33,12 @@ import example.Company;
 import example.Person;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.glassfish.jersey.internal.util.collection.ImmutableMultivaluedMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -63,8 +62,9 @@ public class JsonApiAtomicOperationsTest {
     Supplier<Pair<Integer, JsonNode>> doInTransaction(
             Function<JsonApiAtomicOperationsRequestScope, Supplier<Pair<Integer, JsonNode>>> callback) {
         try (DataStoreTransaction transaction = this.dataStore.beginTransaction()) {
-            JsonApiAtomicOperationsRequestScope scope = new JsonApiAtomicOperationsRequestScope("https://elide.io", "", "", transaction, null,
-                    UUID.randomUUID(), ImmutableMultivaluedMap.empty(), new HashMap<>(), settings);
+            Route route = Route.builder().baseUrl("https://elide.io").build();
+            JsonApiAtomicOperationsRequestScope scope = new JsonApiAtomicOperationsRequestScope(route, transaction, null,
+                    UUID.randomUUID(), settings);
             Supplier<Pair<Integer, JsonNode>> result = callback.apply(scope);
 
             scope.saveOrCreateObjects();

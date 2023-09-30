@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.auditTests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
@@ -22,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.audit.InMemoryLogger;
 import com.yahoo.elide.initialization.AuditIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.yahoo.elide.test.jsonapi.elements.ResourceLinkage;
@@ -139,8 +139,8 @@ public class AuditIT extends IntegrationTest {
 
         // update auditEntity 1 directly
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(AUDIT_1_RELATIONSHIP).toJSON()
                 )
@@ -160,8 +160,8 @@ public class AuditIT extends IntegrationTest {
 
         // update auditEntity 1 through the relationship of auditEntity 2
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -186,8 +186,8 @@ public class AuditIT extends IntegrationTest {
         createAuditEntity(AUDIT_1);
         createAuditEntity(AUDIT_2);
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(AUDIT_1_RELATIONSHIP).toJSON()
                 )
@@ -198,8 +198,8 @@ public class AuditIT extends IntegrationTest {
         assertFalse(logger.logMessages.contains("Inverse entities: [Value: updated value relationship: 2]"));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -231,8 +231,8 @@ public class AuditIT extends IntegrationTest {
         logger.logMessages.remove("Inverse entities: []");
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body("{\"data\":[]}")
                 .patch("/auditEntity/1/relationships/inverses")
                 .then()
@@ -244,8 +244,8 @@ public class AuditIT extends IntegrationTest {
 
     private String createAuditEntity(Resource auditEntity) {
         return given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(auditEntity).toJSON()
                 )

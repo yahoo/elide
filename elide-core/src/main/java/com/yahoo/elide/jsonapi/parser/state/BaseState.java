@@ -17,6 +17,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionC
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.document.processors.PopulateMetaProcessor;
@@ -25,8 +26,8 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import org.apache.commons.lang3.tuple.Pair;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -170,7 +171,7 @@ public abstract class BaseState {
     protected static Supplier<Pair<Integer, JsonApiDocument>> constructPatchResponse(
             PersistentResource record,
             StateContext stateContext) {
-        RequestScope requestScope = stateContext.getRequestScope();
+        JsonApiRequestScope requestScope = stateContext.getRequestScope();
         int updateStatusCode = requestScope.getUpdateStatusCode();
         return () -> Pair.of(
                 updateStatusCode,
@@ -179,7 +180,7 @@ public abstract class BaseState {
     }
 
     protected static JsonApiDocument getResponseBody(PersistentResource resource, RequestScope requestScope) {
-        MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
+        Map<String, List<String>> queryParams = requestScope.getRoute().getParameters();
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         //TODO Make this a document processor

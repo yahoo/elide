@@ -8,7 +8,7 @@ package example.tests;
 import static io.restassured.RestAssured.given;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.jsonapi.JsonApiDSL;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ public class Update200StatusTest extends IntegrationTest {
     @Test
     public void jsonApiPatchTest() {
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         JsonApiDSL.datum(
                                 JsonApiDSL.resource(
@@ -55,7 +55,7 @@ public class Update200StatusTest extends IntegrationTest {
                 .when()
                 .patch("/json/group/com.example.repository")
                 .then()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .statusCode(HttpStatus.SC_OK);
     }
 }

@@ -13,13 +13,13 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableMap;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -173,7 +173,7 @@ public class PaginationImpl implements Pagination {
      * @throws InvalidValueException invalid query parameter
      */
     public static PaginationImpl parseQueryParams(Type<?> entityClass,
-                                                  final MultivaluedMap<String, String> queryParams,
+                                                  final Map<String, List<String>> queryParams,
                                                   ElideSettings elideSettings)
             throws InvalidValueException {
 

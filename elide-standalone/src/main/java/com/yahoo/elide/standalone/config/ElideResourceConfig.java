@@ -32,6 +32,7 @@ import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -233,6 +234,9 @@ public class ElideResourceConfig extends ResourceConfig {
                         asyncProperties.enabled())).to(Set.class).named("elideAllModels");
                 bind(settings.getDataFetcherExceptionHandler()).to(DataFetcherExceptionHandler.class)
                         .named("dataFetcherExceptionHandler");
+                if (settings.getRouteResolver() != null) {
+                    bind(settings.getRouteResolver()).to(RouteResolver.class).named("routeResolver");
+                }
             }
         });
 

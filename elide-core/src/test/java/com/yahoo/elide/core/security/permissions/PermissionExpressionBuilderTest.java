@@ -17,6 +17,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
@@ -127,7 +128,8 @@ public class PermissionExpressionBuilderTest {
      }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(), elideSettings);
         return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 }

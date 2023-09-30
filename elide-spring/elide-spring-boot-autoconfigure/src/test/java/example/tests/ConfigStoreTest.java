@@ -23,8 +23,8 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType;
-import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -432,7 +432,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -506,7 +506,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -525,7 +525,7 @@ public class ConfigStoreTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -575,7 +575,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -620,7 +620,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -639,7 +639,7 @@ public class ConfigStoreTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -667,7 +667,7 @@ public class ConfigStoreTest {
         String hjson = "#!/bin/sh ...";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -712,7 +712,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(

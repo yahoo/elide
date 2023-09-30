@@ -13,7 +13,6 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -24,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Generates a simple wrapper around the sort fields from the JSON-API GET Query.
@@ -162,7 +160,7 @@ public class SortingImpl implements Sorting {
      * @param queryParams The query params on the request.
      * @return The Sorting instance (default or specific).
      */
-    public static Sorting parseQueryParams(final MultivaluedMap<String, String> queryParams,
+    public static Sorting parseQueryParams(final Map<String, List<String>> queryParams,
                                            Type<?> type, EntityDictionary dictionary) {
 
         if (queryParams.isEmpty()) {
@@ -172,7 +170,7 @@ public class SortingImpl implements Sorting {
         List<String> sortRules = queryParams.entrySet().stream()
                 .filter(entry -> entry.getKey().equals("sort"))
                 .map(entry -> entry.getValue().get(0))
-                .collect(Collectors.toList());
+                .toList();
         return parseSortRules(sortRules, type, Collections.emptySet(), dictionary);
     }
 

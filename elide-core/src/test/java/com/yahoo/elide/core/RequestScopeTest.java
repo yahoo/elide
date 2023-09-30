@@ -13,38 +13,40 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.Test;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-public class RequestScopeTest {
+class RequestScopeTest {
     @Test
-    public void testFilterQueryParams() throws Exception {
-        Method method = RequestScope.class.getDeclaredMethod("getFilterParams", MultivaluedMap.class);
+    void testFilterQueryParams() throws Exception {
+        Method method = RequestScope.class.getDeclaredMethod("getFilterParams", Map.class);
         method.setAccessible(true);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("foo", Collections.singletonList("bar"));
         queryParams.put("filter", Collections.singletonList("baz"));
         queryParams.put("filter[xyz]", Collections.singletonList("buzz"));
         queryParams.put("bar", Collections.singletonList("foo"));
 
-        MultivaluedMap<String, String> filtered = (MultivaluedMap<String, String>) method.invoke(null, queryParams);
+        Map<String, List<String>> filtered = (Map<String, List<String>>) method.invoke(null, queryParams);
         assertEquals(2, filtered.size());
         assertTrue(filtered.containsKey("filter"));
         assertTrue(filtered.containsKey("filter[xyz]"));
     }
 
     @Test
-    public void testNewObjectsForInheritedTypes() throws Exception {
+    void testNewObjectsForInheritedTypes() throws Exception {
         // NOTE: This tests that inherited types are properly accounted for during a patch extension request.
         //       otherwise it is possible to create an inherited type and when performing introspection on a
         //       superclass we will miss that the object is newly created and then we'll attempt to query
@@ -68,7 +70,8 @@ public class RequestScopeTest {
         dictionary.bindEntity(MyBaseClass.class);
         dictionary.bindEntity(MyInheritedClass.class);
 
-        RequestScope requestScope = new RequestScope(null, "/", NO_VERSION, null, null, null, null, null, UUID.randomUUID(),
+        Route route = Route.builder().path("/").apiVersion(NO_VERSION).build();
+        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());

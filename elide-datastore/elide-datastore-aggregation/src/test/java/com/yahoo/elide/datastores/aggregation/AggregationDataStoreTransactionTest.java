@@ -30,6 +30,7 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -209,6 +210,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
 
+        when(scope.getRoute()).thenReturn(Route.builder().build());
         assertEquals(DATA, Lists.newArrayList(transaction.loadObjects(entityProjection, scope)));
 
         String cacheKey = "foo;" + queryKey;
@@ -240,6 +242,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
 
+        when(scope.getRoute()).thenReturn(Route.builder().build());
         assertEquals(DATA, Lists.newArrayList(transaction.loadObjects(entityProjection, scope)));
 
         Mockito.verify(queryEngine, never()).executeQuery(any(), any());
@@ -272,6 +275,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         EntityProjection entityProjection = EntityProjection.builder()
                 .type(PlayerStats.class).pagination(pagination).build();
 
+        when(scope.getRoute()).thenReturn(Route.builder().build());
         assertEquals(DATA, Lists.newArrayList(transaction.loadObjects(entityProjection, scope)));
         assertEquals(314L, entityProjection.getPagination().getPageTotals());
 
@@ -304,7 +308,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         AggregationDataStoreTransaction transaction =
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
-
+        when(scope.getRoute()).thenReturn(Route.builder().build());
         transaction.loadObjects(entityProjection, scope);
 
         String cacheKey = ";" + queryKey;
@@ -335,6 +339,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
 
+        when(scope.getRoute()).thenReturn(Route.builder().build());
         assertEquals(DATA, Lists.newArrayList(transaction.loadObjects(entityProjection, scope)));
 
         Mockito.verify(queryEngine, never()).getTableVersion(any(), any());
@@ -359,6 +364,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
             AggregationDataStoreTransaction transaction =
                     new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
             EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
+            when(scope.getRoute()).thenReturn(Route.builder().build());
             transaction.loadObjects(entityProjection, scope);
         } catch (Exception e) {
                 assertEquals(nullPointerExceptionMessage, e.getMessage());

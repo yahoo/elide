@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
@@ -17,6 +16,7 @@ import static io.restassured.RestAssured.given;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Tests for UserType
+ * Tests for UserType.
  */
 class UserTypeIT extends IntegrationTest {
 
@@ -70,16 +70,16 @@ class UserTypeIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(datum(resource))
             .post("/person")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .get("/person/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
@@ -126,24 +126,24 @@ class UserTypeIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(datum(original))
             .post("/person")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(datum(modified))
             .patch("/person/2")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT);
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .get("/person/2")
             .then()
             .statusCode(HttpStatus.SC_OK)
@@ -173,16 +173,16 @@ class UserTypeIT extends IntegrationTest {
 
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(datum(resource))
             .post("/person")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .get("/person/3")
             .then()
             .statusCode(HttpStatus.SC_OK)
@@ -229,16 +229,16 @@ class UserTypeIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(datum(resource))
             .post("/person")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .get("/person/4")
             .then()
             .statusCode(HttpStatus.SC_OK)

@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.contains;
@@ -20,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,40 +63,40 @@ public class FilterIT extends IntegrationTest {
     void setup() throws JsonProcessingException {
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/FilterIT/book_author_publisher_patch1.json"))
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/FilterIT/book_author_publisher_patch2.json"))
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/FilterIT/book_author_publisher_patch3.json"))
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/FilterIT/book_author_publisher_patch4.json"))
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(jsonParser.getJson("/FilterIT/book_author_publisher_patch5.json"))
                 .patch("/")
                 .then()
@@ -2127,12 +2127,12 @@ public class FilterIT extends IntegrationTest {
     void cleanUp() {
         for (int id : authorIds) {
             given()
-                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                    .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                     .delete("/author/" + id);
         }
         for (int id : bookIds) {
             given()
-                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                    .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                     .delete("/book/" + id);
         }
     }

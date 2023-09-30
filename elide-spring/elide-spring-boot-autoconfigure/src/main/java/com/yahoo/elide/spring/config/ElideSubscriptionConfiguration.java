@@ -73,7 +73,7 @@ public class ElideSubscriptionConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnExpression("${elide.graphql.subscription.enabled:false}")
-    SubscriptionWebSocket.UserFactory getUserFactory() {
+    SubscriptionWebSocket.UserFactory userFactory() {
         return DEFAULT_USER_FACTORY;
     }
 }

@@ -8,7 +8,8 @@ package com.yahoo.elide.core.filter.dialect.jsonapi;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
-import jakarta.ws.rs.core.MultivaluedMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Parses a filter for one or more entity types that results in a join between them.
@@ -31,6 +32,6 @@ public interface JoinFilterDialect {
      */
     public FilterExpression parseGlobalExpression(
             String path,
-            MultivaluedMap<String, String> filterParams,
+            Map<String, List<String>> filterParams,
             String apiVersion) throws ParseException;
 }

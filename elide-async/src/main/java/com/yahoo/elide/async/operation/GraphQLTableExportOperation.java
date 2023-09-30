@@ -15,6 +15,7 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -49,9 +50,10 @@ public class GraphQLTableExportOperation extends TableExportOperation {
             Map<String, List<String>> additionalRequestHeaders) {
         UUID requestId = UUID.fromString(export.getRequestId());
         User user = scope.getUser();
-        String apiVersion = scope.getApiVersion();
-        return new GraphQLRequestScope("", tx, user, apiVersion, getService().getElide().getElideSettings(),
-                null, requestId, additionalRequestHeaders);
+        String apiVersion = scope.getRoute().getApiVersion();
+        Route route = Route.builder().baseUrl("").apiVersion(apiVersion).headers(additionalRequestHeaders).build();
+        return new GraphQLRequestScope(route, tx, user, getService().getElide().getElideSettings(),
+                null, requestId);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class GraphQLTableExportOperation extends TableExportOperation {
             String queryString = QueryRunner.extractQuery(node);
 
             projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
-                            scope.getApiVersion()).make(queryString);
+                            scope.getRoute().getApiVersion()).make(queryString);
 
         } catch (IOException e) {
             throw new IllegalStateException(e);

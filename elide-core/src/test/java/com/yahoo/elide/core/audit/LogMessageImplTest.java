@@ -16,6 +16,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.TestUser;
 import com.google.common.collect.Sets;
 import example.Child;
@@ -51,8 +52,9 @@ public class LogMessageImplTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null,
-                new TestUser("aaron"), null, null,
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        final RequestScope requestScope = new RequestScope(route, null,
+                new TestUser("aaron"),
                 UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withAuditLogger(new TestAuditLogger())

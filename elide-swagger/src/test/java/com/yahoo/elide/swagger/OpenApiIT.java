@@ -28,7 +28,7 @@ class OpenApiIT extends AbstractApiResourceInitializer {
     @Test
     void testDocumentFetchJsonIndex() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_JSON).get("/doc").asString());
+        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_JSON).get("/").asString());
         // Since there is only 1 document it is fetched
         assertTrue(node.get("paths").size() > 1);
     }
@@ -36,7 +36,7 @@ class OpenApiIT extends AbstractApiResourceInitializer {
     @Test
     void testDocumentFetchYamlIndex() throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_YAML).get("/doc").asString());
+        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_YAML).get("/").asString());
         // Since there is only 1 document it is fetched
         assertTrue(node.get("paths").size() > 1);
     }
@@ -44,7 +44,7 @@ class OpenApiIT extends AbstractApiResourceInitializer {
     @Test
     void testDocumentFetchJson() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_JSON).get("/doc/test").asString());
+        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_JSON).get("/test").asString());
         assertTrue(node.get("paths").size() > 1);
         assertNotNull(node.get("paths").get("/book"));
         assertNotNull(node.get("paths").get("/publisher"));
@@ -56,7 +56,17 @@ class OpenApiIT extends AbstractApiResourceInitializer {
     void testVersion2DocumentFetchJson() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(
-                given().accept(MediaType.APPLICATION_JSON).header("ApiVersion", "1.0").get("/doc/test").asString());
+                given().accept(MediaType.APPLICATION_JSON).header("ApiVersion", "1.0").get("/test").asString());
+        assertEquals(2, node.get("paths").size());
+        assertNotNull(node.get("paths").get("/book"));
+        assertNotNull(node.get("paths").get("/book/{bookId}"));
+    }
+
+    @Test
+    void testVersion2DocumentFetchJsonPath() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readTree(
+                given().accept(MediaType.APPLICATION_JSON).get("/v1.0/test").asString());
         assertEquals(2, node.get("paths").size());
         assertNotNull(node.get("paths").get("/book"));
         assertNotNull(node.get("paths").get("/book/{bookId}"));
@@ -65,7 +75,7 @@ class OpenApiIT extends AbstractApiResourceInitializer {
     @Test
     void testDocumentFetchYaml() throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_YAML).get("/doc/test").asString());
+        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_YAML).get("/test").asString());
         assertTrue(node.get("paths").size() > 1);
         assertNotNull(node.get("paths").get("/book"));
         assertNotNull(node.get("paths").get("/publisher"));
@@ -77,7 +87,7 @@ class OpenApiIT extends AbstractApiResourceInitializer {
     void testVersion2DocumentFetchYaml() throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         JsonNode node = mapper.readTree(
-                given().accept(MediaType.APPLICATION_YAML).header("ApiVersion", "1.0").get("/doc/test").asString());
+                given().accept(MediaType.APPLICATION_YAML).header("ApiVersion", "1.0").get("/test").asString());
         assertEquals(2, node.get("paths").size());
         assertNotNull(node.get("paths").get("/book"));
         assertNotNull(node.get("paths").get("/book/{bookId}"));
@@ -85,6 +95,6 @@ class OpenApiIT extends AbstractApiResourceInitializer {
 
     @Test
     void testUnknownVersionDocumentFetchYaml() throws Exception {
-        given().accept(MediaType.APPLICATION_YAML).header("ApiVersion", "2.0").get("/doc/test").then().statusCode(404);
+        given().accept(MediaType.APPLICATION_YAML).header("ApiVersion", "2.0").get("/test").then().statusCode(404);
     }
 }

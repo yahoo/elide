@@ -20,6 +20,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.document.processors.PopulateMetaProcessor;
@@ -34,7 +35,6 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import io.reactivex.Observable;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class CollectionTerminalState extends BaseState {
     public Supplier<Pair<Integer, JsonApiDocument>> handleGet(StateContext state) {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
+        Map<String, List<String>> queryParams = requestScope.getRoute().getParameters();
 
         LinkedHashSet<PersistentResource> collection =
                 getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
@@ -119,8 +119,7 @@ public class CollectionTerminalState extends BaseState {
 
     @Override
     public Supplier<Pair<Integer, JsonApiDocument>> handlePost(StateContext state) {
-        RequestScope requestScope = state.getRequestScope();
-        JsonApiMapper mapper = requestScope.getMapper();
+        JsonApiRequestScope requestScope = state.getRequestScope();
 
         newObject = createObject(requestScope);
         parent.ifPresent(persistentResource -> persistentResource.addRelation(relationName.get(), newObject));
@@ -129,7 +128,7 @@ public class CollectionTerminalState extends BaseState {
             returnDoc.setData(new Data<>(newObject.toResource()));
 
             PopulateMetaProcessor metaProcessor = new PopulateMetaProcessor();
-            metaProcessor.execute(returnDoc, requestScope, newObject, requestScope.getQueryParams());
+            metaProcessor.execute(returnDoc, requestScope, newObject, requestScope.getRoute().getParameters());
 
             return Pair.of(HttpStatus.SC_CREATED, returnDoc);
         };
@@ -168,7 +167,7 @@ public class CollectionTerminalState extends BaseState {
         return new Data<>(resources);
     }
 
-    private PersistentResource createObject(RequestScope requestScope)
+    private PersistentResource createObject(JsonApiRequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
         JsonApiDocument doc = requestScope.getJsonApiDocument();
         JsonApiMapper mapper = requestScope.getMapper();
@@ -192,7 +191,7 @@ public class CollectionTerminalState extends BaseState {
         String id = resource.getId();
 
         Type<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType(),
-                requestScope.getApiVersion());
+                requestScope.getRoute().getApiVersion());
 
         if (newObjectClass == null) {
             throw new UnknownEntityException("Entity " + resource.getType() + " not found");

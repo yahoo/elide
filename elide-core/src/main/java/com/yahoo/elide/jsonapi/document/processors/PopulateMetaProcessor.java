@@ -11,10 +11,10 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -27,7 +27,7 @@ public class PopulateMetaProcessor implements DocumentProcessor {
             JsonApiDocument jsonApiDocument,
             RequestScope scope,
             PersistentResource persistentResource,
-            MultivaluedMap<String, String> queryParams
+            Map<String, List<String>> queryParams
     ) {
 
         addDocumentMeta(jsonApiDocument, scope);
@@ -55,7 +55,7 @@ public class PopulateMetaProcessor implements DocumentProcessor {
             JsonApiDocument jsonApiDocument,
             RequestScope scope,
             LinkedHashSet<PersistentResource> resources,
-            MultivaluedMap<String, String> queryParams
+            Map<String, List<String>> queryParams
     ) {
         addDocumentMeta(jsonApiDocument, scope);
     }

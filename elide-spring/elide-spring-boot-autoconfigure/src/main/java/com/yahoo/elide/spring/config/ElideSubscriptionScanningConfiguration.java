@@ -8,7 +8,6 @@ package com.yahoo.elide.spring.config;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
@@ -31,7 +30,6 @@ public class ElideSubscriptionScanningConfiguration {
     private RefreshableElide refreshableElide;
     private ConnectionFactory connectionFactory;
 
-    @Autowired
     public ElideSubscriptionScanningConfiguration(
             RefreshableElide refreshableElide,
             ConnectionFactory connectionFactory
