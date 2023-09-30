@@ -31,6 +31,8 @@ import com.yahoo.elide.core.lifecycle.LegacyTestModel;
 import com.yahoo.elide.core.lifecycle.PropertyTestModel;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.jsonapi.JsonApi;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -73,6 +75,7 @@ public class ErrorMapperTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, null);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
@@ -81,7 +84,7 @@ public class ErrorMapperTest {
         doThrow(EXPECTED_EXCEPTION).when(tx).preCommit(any());
 
         Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
-        RuntimeException result = assertThrows(RuntimeException.class, () -> elide.post(route, body, null, null));
+        RuntimeException result = assertThrows(RuntimeException.class, () -> jsonApi.post(route, body, null, null));
         assertEquals(EXPECTED_EXCEPTION, result);
 
         verify(tx).close();
@@ -94,6 +97,7 @@ public class ErrorMapperTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, null);
+        JsonApi jsonApi = new JsonApi(elide);
 
         //Invalid JSON
         String body = "{\"data\": {\"type\":\"testModel\"\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
@@ -102,7 +106,7 @@ public class ErrorMapperTest {
         when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
         Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
-        ElideResponse response = elide.post(route, body, null, null);
+        ElideResponse response = jsonApi.post(route, body, null, null);
         assertEquals(400, response.getResponseCode());
         assertEquals(
                 "{\"errors\":[{\"detail\":\"Unexpected character (&#39;&#34;&#39; (code 34)): was expecting comma to separate Object entries\\n at [Source: (String)&#34;{&#34;data&#34;: {&#34;type&#34;:&#34;testModel&#34;&#34;id&#34;:&#34;1&#34;,&#34;attributes&#34;: {&#34;field&#34;:&#34;Foo&#34;}}}&#34;; line: 1, column: 30]\"}]}",
@@ -118,6 +122,7 @@ public class ErrorMapperTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_ERROR_MAPPER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
@@ -126,7 +131,7 @@ public class ErrorMapperTest {
         doThrow(EXPECTED_EXCEPTION).when(tx).preCommit(any());
 
         Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
-        RuntimeException result = assertThrows(RuntimeException.class, () -> elide.post(route, body, null, null));
+        RuntimeException result = assertThrows(RuntimeException.class, () -> jsonApi.post(route, body, null, null));
         assertEquals(EXPECTED_EXCEPTION, result);
 
         verify(tx).close();
@@ -139,6 +144,7 @@ public class ErrorMapperTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_ERROR_MAPPER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         //Invalid JSON
         String body = "{\"data\": {\"type\":\"testModel\"\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
@@ -147,7 +153,7 @@ public class ErrorMapperTest {
         when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
         Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
-        ElideResponse response = elide.post(route, body, null, null);
+        ElideResponse response = jsonApi.post(route, body, null, null);
         assertEquals(400, response.getResponseCode());
         assertEquals(
                 "{\"errors\":[{\"detail\":\"Unexpected character (&#39;&#34;&#39; (code 34)): was expecting comma to separate Object entries\\n at [Source: (String)&#34;{&#34;data&#34;: {&#34;type&#34;:&#34;testModel&#34;&#34;id&#34;:&#34;1&#34;,&#34;attributes&#34;: {&#34;field&#34;:&#34;Foo&#34;}}}&#34;; line: 1, column: 30]\"}]}",
@@ -163,6 +169,7 @@ public class ErrorMapperTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_ERROR_MAPPER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
@@ -172,7 +179,7 @@ public class ErrorMapperTest {
         when(MOCK_ERROR_MAPPER.map(EXPECTED_EXCEPTION)).thenReturn(MAPPED_EXCEPTION);
 
         Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
-        ElideResponse response = elide.post(route, body, null, null);
+        ElideResponse response = jsonApi.post(route, body, null, null);
         assertEquals(422, response.getResponseCode());
         assertEquals(
                 "{\"errors\":[{\"code\":\"SOME_ERROR\"}]}",
@@ -188,6 +195,7 @@ public class ErrorMapperTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_ERROR_MAPPER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         //Invalid JSON:
         String body = "{\"data\": {\"type\":\"testModel\"\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
@@ -198,7 +206,7 @@ public class ErrorMapperTest {
         when(MOCK_ERROR_MAPPER.map(isA(IOException.class))).thenReturn(MAPPED_EXCEPTION);
 
         Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
-        ElideResponse response = elide.post(route, body, null, null);
+        ElideResponse response = jsonApi.post(route, body, null, null);
         assertEquals(422, response.getResponseCode());
         assertEquals(
                 "{\"errors\":[{\"code\":\"SOME_ERROR\"}]}",

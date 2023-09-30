@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.targetEntity;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
@@ -22,6 +21,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +32,8 @@ public class TargetEntityIT extends IntegrationTest {
     @Test
     public void testEmployeeHierarchy() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -51,8 +51,8 @@ public class TargetEntityIT extends IntegrationTest {
                 .body("data.id", equalTo("1"));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -73,7 +73,7 @@ public class TargetEntityIT extends IntegrationTest {
                 .body("data.id", equalTo("1"));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .when()
                 .get("/boss/1")
                 .then()
@@ -85,7 +85,7 @@ public class TargetEntityIT extends IntegrationTest {
                 );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .when()
                 .get("/swe/1")
                 .then()

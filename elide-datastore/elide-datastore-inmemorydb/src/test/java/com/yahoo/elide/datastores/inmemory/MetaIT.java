@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.inmemory;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
@@ -16,6 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -38,8 +38,8 @@ public class MetaIT extends IntegrationTest {
     @Test
     public void testCreateAndFetch() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(
                         resource(
                                 type("widget"),

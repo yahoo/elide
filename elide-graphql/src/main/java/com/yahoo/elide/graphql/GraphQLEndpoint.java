@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.graphql;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
 
 import com.yahoo.elide.Elide;
@@ -18,6 +17,7 @@ import com.yahoo.elide.core.request.route.NullRouteResolver;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.utils.ResourceUtils;
@@ -106,7 +106,7 @@ public class GraphQLEndpoint {
 
         String baseUrl = getBaseUrlEndpoint(uriInfo);
         String pathname = path;
-        Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
         QueryRunner runner = runners.getOrDefault(route.getApiVersion(), null);

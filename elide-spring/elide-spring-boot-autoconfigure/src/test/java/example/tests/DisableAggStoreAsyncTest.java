@@ -5,7 +5,6 @@
  */
 package example.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -18,6 +17,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -48,7 +48,7 @@ public class DisableAggStoreAsyncTest extends IntegrationTest {
     public void testAsyncApiFunctionDisabledAggStore() throws InterruptedException {
         //Create Async Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(

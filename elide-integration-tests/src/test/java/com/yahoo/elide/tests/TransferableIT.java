@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
@@ -23,6 +21,7 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import example.Left;
@@ -32,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import io.restassured.response.Response;
 
 /**
- * @NonTransferable annotation integration tests
+ * Tests @NonTransferable annotation integration tests.
  */
 class TransferableIT extends IntegrationTest {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -51,8 +50,8 @@ class TransferableIT extends IntegrationTest {
     public void testNonTransferableForbiddenAccess() {
         // Create container
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -66,8 +65,8 @@ class TransferableIT extends IntegrationTest {
 
         // Create untransferable
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -81,8 +80,8 @@ class TransferableIT extends IntegrationTest {
 
         // Fail to add untransferable to container's untransferables (untransferable is not transferable)
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -97,8 +96,8 @@ class TransferableIT extends IntegrationTest {
 
         // Fail to replace container's untransferables collection (untransferable is not transferable)
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -113,8 +112,8 @@ class TransferableIT extends IntegrationTest {
 
         // Fail to update untransferables's container (container is not transferable)
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -129,8 +128,8 @@ class TransferableIT extends IntegrationTest {
 
         // Fail to set untransferable's container (container is not transferable)
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -148,8 +147,8 @@ class TransferableIT extends IntegrationTest {
     public void testTransferableForbiddenAccess() {
         // Create container
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -164,8 +163,8 @@ class TransferableIT extends IntegrationTest {
 
         // Create transferable
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -180,8 +179,8 @@ class TransferableIT extends IntegrationTest {
 
         // Fail to update transferable's container (container is not transferable)
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -196,8 +195,8 @@ class TransferableIT extends IntegrationTest {
 
         // Fail to set transferable's container (container is not transferable)
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -215,8 +214,8 @@ class TransferableIT extends IntegrationTest {
     public void testTransferablePost() {
         // Create container
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -231,8 +230,8 @@ class TransferableIT extends IntegrationTest {
 
         // Create transferable
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -247,8 +246,8 @@ class TransferableIT extends IntegrationTest {
 
         // Add transferable to container's transferables
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -262,8 +261,8 @@ class TransferableIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/container/1")
                 .then().statusCode(HttpStatus.SC_OK)
                 .body(equalTo(datum(
@@ -284,8 +283,8 @@ class TransferableIT extends IntegrationTest {
     public void testTransferablePatch() {
         // Create container
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(
                         resource(
                                 type("container"),
@@ -297,8 +296,8 @@ class TransferableIT extends IntegrationTest {
 
         // Create transferable
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(
                         resource(
                                 type("transferable"),
@@ -310,8 +309,8 @@ class TransferableIT extends IntegrationTest {
 
         // Add transferable to container's transferables
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(
                         resource(
                                 type("transferable"),
@@ -323,8 +322,8 @@ class TransferableIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/container/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -345,8 +344,8 @@ class TransferableIT extends IntegrationTest {
     @Test
     public void testCreateContainerAndNonTransferable() throws Exception {
         Response response = given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body("    [\n"
                         + "      {\n"
                         + "        \"op\": \"add\",\n"
@@ -407,8 +406,8 @@ class TransferableIT extends IntegrationTest {
     @Test
     public void testCreateContainerAndTransferables() throws Exception {
         Response patchResponse = given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body("    [\n"
                         + "      {\n"
                         + "        \"op\": \"add\",\n"
@@ -469,8 +468,8 @@ class TransferableIT extends IntegrationTest {
     @Test
     public void addNonTransferableRelationship() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(

@@ -5,7 +5,14 @@
  */
 package com.yahoo.elide.swagger;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.audit.Slf4jLogger;
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 import example.models.Author;
@@ -22,6 +29,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -31,21 +39,22 @@ public class ApiDocsResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
+                EntityDictionary dictionary = EntityDictionary.builder().serdeLookup(clazz -> {
+                    if (TimeZone.class.equals(clazz)) {
+                        return new TimeZoneSerde();
+                    }
+                    return null;
+                }).build();
+
+                dictionary.bindEntity(Book.class);
+                dictionary.bindEntity(BookV2.class);
+                dictionary.bindEntity(Author.class);
+                dictionary.bindEntity(Publisher.class);
+
                 bindFactory(new Factory<List<ApiDocsEndpoint.ApiDocsRegistration>>() {
 
                     @Override
                     public List<ApiDocsEndpoint.ApiDocsRegistration> provide() {
-                        EntityDictionary dictionary = EntityDictionary.builder().serdeLookup(clazz -> {
-                            if (TimeZone.class.equals(clazz)) {
-                                return new TimeZoneSerde();
-                            }
-                            return null;
-                        }).build();
-
-                        dictionary.bindEntity(Book.class);
-                        dictionary.bindEntity(BookV2.class);
-                        dictionary.bindEntity(Author.class);
-                        dictionary.bindEntity(Publisher.class);
                         Info info1 = new Info().title("Test Service");
 
                         OpenApiBuilder builder1 = new OpenApiBuilder(dictionary).apiVersion(info1.getVersion())
@@ -68,6 +77,22 @@ public class ApiDocsResourceConfig extends ResourceConfig {
                     }
                 }).to(new TypeLiteral<List<ApiDocsEndpoint.ApiDocsRegistration>>() {
                 }).named("apiDocs");
+
+                Elide elide = new Elide(new ElideSettingsBuilder(
+                        new HashMapDataStore(Arrays.asList(Book.class, BookV2.class, Author.class, Publisher.class)))
+                        .withAuditLogger(new Slf4jLogger())
+                        .withEntityDictionary(dictionary)
+                        .withVerboseErrors()
+                        .withDefaultMaxPageSize(PaginationImpl.MAX_PAGE_LIMIT)
+                        .withDefaultPageSize(PaginationImpl.DEFAULT_PAGE_LIMIT)
+                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
+                        .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                        .withJoinFilterDialect(new DefaultFilterDialect(dictionary))
+                        .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                        .withSubqueryFilterDialect(new DefaultFilterDialect(dictionary))
+                        .build());
+
+                bind(elide).to(Elide.class).named("elide");
             }
         });
     }

@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
@@ -18,6 +16,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import org.junit.jupiter.api.Test;
 
@@ -43,8 +42,8 @@ class MapEnumIT extends IntegrationTest {
                 )
         );
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(resource))
                 .post("/mapColorShape")
                 .then()
@@ -56,14 +55,14 @@ class MapEnumIT extends IntegrationTest {
 
         // Update MapColorShape using Patch
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(resource))
                 .patch("/mapColorShape/1")
                 .then().statusCode(HttpStatus.SC_NO_CONTENT);
 
         given()
-                .accept(JSONAPI_CONTENT_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/mapColorShape/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -85,8 +84,8 @@ class MapEnumIT extends IntegrationTest {
         );
         // Create MapColorShape using Patch extension
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body("[\n"
                         + "{\n"
                         + "  \"op\": \"add\",\n"
@@ -107,7 +106,7 @@ class MapEnumIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK);
 
         given()
-                .accept(JSONAPI_CONTENT_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/mapColorShape/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)

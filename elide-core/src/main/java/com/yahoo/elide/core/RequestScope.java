@@ -70,17 +70,12 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     protected FilterExpression globalFilterExpression;
 
     /**
-     * Create a new RequestScope with specified update status code.
+     * Create a new RequestScope.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param path the URL path
-     * @param apiVersion the API version.
-     * @param jsonApiDocument the document for this request
-     * @param transaction the transaction for this request
-     * @param user the user making this request
-     * @param queryParams the query parameters
-     * @param requestHeaders the requestHeaders
-     * @param elideSettings Elide settings object
+     * @param route         the route
+     * @param transaction   current transaction
+     * @param user          request user
+     * @param requestId     request ID
      */
     public RequestScope(Route route,
                         DataStoreTransaction transaction,

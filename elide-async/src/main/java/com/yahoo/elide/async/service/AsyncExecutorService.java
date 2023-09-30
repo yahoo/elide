@@ -13,6 +13,7 @@ import com.yahoo.elide.async.operation.AsyncApiUpdateOperation;
 import com.yahoo.elide.async.service.dao.AsyncApiDao;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.jsonapi.JsonApi;
 
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
@@ -45,6 +46,7 @@ public class AsyncExecutorService {
     public static final int DEFAULT_THREAD_POOL_SIZE = 6;
 
     private Elide elide;
+    private JsonApi jsonApi;
     private Map<String, QueryRunner> runners;
     private ExecutorService executor;
     private ExecutorService updater;
@@ -71,6 +73,7 @@ public class AsyncExecutorService {
                     optionalDataFetcherExceptionHandler.orElseGet(SimpleDataFetcherExceptionHandler::new)));
         }
 
+        this.jsonApi = new JsonApi(this.elide);
         this.executor = executor;
         this.updater = updater;
         this.asyncApiDao = asyncApiDao;

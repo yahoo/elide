@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.jsonapi.resources;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
@@ -48,10 +46,11 @@ import java.util.UUID;
  * Default endpoint/servlet for using Elide and JSONAPI.
  */
 @Singleton
-@Produces(JSONAPI_CONTENT_TYPE)
+@Produces(JsonApi.MEDIA_TYPE)
 @Path("/")
 public class JsonApiEndpoint {
     protected final Elide elide;
+    protected final JsonApi jsonApi;
     protected final HeaderUtils.HeaderProcessor headerProcessor;
     protected final RouteResolver routeResolver;
 
@@ -59,6 +58,7 @@ public class JsonApiEndpoint {
     public JsonApiEndpoint(
             @Named("elide") Elide elide, Optional<RouteResolver> optionalRouteResolver) {
         this.elide = elide;
+        this.jsonApi = new JsonApi(this.elide);
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
         this.routeResolver = optionalRouteResolver.orElseGet(() -> {
             Set<String> apiVersions = elide.getElideSettings().getDictionary().getApiVersions();
@@ -94,15 +94,15 @@ public class JsonApiEndpoint {
 
         String baseUrl = getBaseUrlEndpoint(uriInfo);
         String pathname = path;
-        Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
         if ("operations".equals(route.getPath())) {
             // Atomic Operations
-            return build(elide.operations(route, jsonapiDocument, user, UUID.randomUUID()));
+            return build(jsonApi.operations(route, jsonapiDocument, user, UUID.randomUUID()));
         }
 
-        return build(elide.post(route, jsonapiDocument, user, UUID.randomUUID()));
+        return build(jsonApi.post(route, jsonapiDocument, user, UUID.randomUUID()));
     }
 
     /**
@@ -126,10 +126,10 @@ public class JsonApiEndpoint {
 
         String baseUrl = getBaseUrlEndpoint(uriInfo);
         String pathname = path;
-        Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.get(route, user, UUID.randomUUID()));
+        return build(jsonApi.get(route, user, UUID.randomUUID()));
     }
 
     /**
@@ -158,10 +158,10 @@ public class JsonApiEndpoint {
 
         String baseUrl = getBaseUrlEndpoint(uriInfo);
         String pathname = path;
-        Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.patch(route, jsonapiDocument, user, UUID.randomUUID()));
+        return build(jsonApi.patch(route, jsonapiDocument, user, UUID.randomUUID()));
     }
 
     /**
@@ -188,10 +188,10 @@ public class JsonApiEndpoint {
 
         String baseUrl = getBaseUrlEndpoint(uriInfo);
         String pathname = path;
-        Route route = routeResolver.resolve(JSONAPI_CONTENT_TYPE, baseUrl, pathname, requestHeaders,
+        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        return build(elide.delete(route, jsonApiDocument, user, UUID.randomUUID()));
+        return build(jsonApi.delete(route, jsonApiDocument, user, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {

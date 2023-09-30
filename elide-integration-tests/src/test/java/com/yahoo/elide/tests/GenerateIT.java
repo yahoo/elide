@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
@@ -15,12 +14,13 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for UserType
+ * Tests for UserType.
  */
 class GenerateIT extends IntegrationTest {
 
@@ -34,8 +34,8 @@ class GenerateIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
+            .accept(JsonApi.MEDIA_TYPE)
             .body(datum(resource))
             .post("/generate")
             .then()

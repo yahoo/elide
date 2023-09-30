@@ -5,7 +5,6 @@
  */
 package example;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -21,6 +20,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
@@ -137,8 +137,8 @@ public class ElideStandaloneExportTest {
     public void testExportDynamicModel() throws InterruptedException {
         // Load Test data in Post Table
         given()
-        .contentType(JSONAPI_CONTENT_TYPE)
-        .accept(JSONAPI_CONTENT_TYPE)
+        .contentType(JsonApi.MEDIA_TYPE)
+        .accept(JsonApi.MEDIA_TYPE)
         .body(
             datum(
                 resource(
@@ -158,7 +158,7 @@ public class ElideStandaloneExportTest {
 
         //Create Table Export
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(

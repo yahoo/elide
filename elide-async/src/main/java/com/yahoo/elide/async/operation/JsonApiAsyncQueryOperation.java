@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.operation;
 
-import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -13,6 +12,7 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.JsonApi;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 
@@ -38,7 +38,7 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
     @Override
     public ElideResponse execute(AsyncApi queryObj, RequestScope scope)
             throws URISyntaxException {
-        Elide elide = getService().getElide();
+        JsonApi jsonApi = getService().getJsonApi();
         User user = scope.getUser();
         String apiVersion = scope.getRoute().getApiVersion();
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
@@ -49,7 +49,7 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
         Route route = Route.builder().baseUrl(scope.getRoute().getBaseUrl()).path(getPath(uri)).parameters(queryParams)
                 .headers(scope.getRoute().getHeaders()).apiVersion(apiVersion).build();
-        ElideResponse response = elide.get(route, user, requestUUID);
+        ElideResponse response = jsonApi.get(route, user, requestUUID);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;
