@@ -102,73 +102,85 @@ public class FilterTranslator implements FilterOperation<String> {
         GLOBAL_OPERATOR_GENERATORS.put(PREFIX, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT(%s, '%%')",
                 CaseAwareJPQLGenerator.Case.NONE,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(NOT_PREFIX, new CaseAwareJPQLGenerator(
                 "%s NOT LIKE CONCAT(%s, '%%')",
                 CaseAwareJPQLGenerator.Case.NONE,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(PREFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT(%s, '%%')",
                 CaseAwareJPQLGenerator.Case.LOWER,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(NOT_PREFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s NOT LIKE CONCAT(%s, '%%')",
                 CaseAwareJPQLGenerator.Case.LOWER,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(POSTFIX, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT('%%', %s)",
                 CaseAwareJPQLGenerator.Case.NONE,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(NOT_POSTFIX, new CaseAwareJPQLGenerator(
                 "%s NOT LIKE CONCAT('%%', %s)",
                 CaseAwareJPQLGenerator.Case.NONE,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(POSTFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT('%%', %s)",
                 CaseAwareJPQLGenerator.Case.LOWER,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(NOT_POSTFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s NOT LIKE CONCAT('%%', %s)",
                 CaseAwareJPQLGenerator.Case.LOWER,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(INFIX, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.NONE,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(NOT_INFIX, new CaseAwareJPQLGenerator(
                 "%s NOT LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.NONE,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(INFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.LOWER,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(NOT_INFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s NOT LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.LOWER,
-                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+                CaseAwareJPQLGenerator.ArgumentCount.ONE,
+                true)
         );
 
         GLOBAL_OPERATOR_GENERATORS.put(LT, (predicate, aliasGenerator) -> {
