@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jpql.filter;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.type.ClassType;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,6 +31,7 @@ public class CaseAwareJPQLGenerator implements JPQLPredicateGenerator {
     private Case upperOrLower;
     private String jpqlTemplate;
     private ArgumentCount argumentCount;
+    private boolean castFieldAsString;
 
     /**
      * Whether to use uppercase, lowercase, or not transformation for case insensitive queries.
@@ -68,9 +70,15 @@ public class CaseAwareJPQLGenerator implements JPQLPredicateGenerator {
      * @param argumentCount ZERO, ONE, or MANY
      */
     public CaseAwareJPQLGenerator(String jpqlTemplate, Case upperOrLower, ArgumentCount argumentCount) {
+        this(jpqlTemplate, upperOrLower, argumentCount, false);
+    }
+
+    public CaseAwareJPQLGenerator(String jpqlTemplate, Case upperOrLower, ArgumentCount argumentCount,
+            boolean castFieldAsString) {
         this.upperOrLower = upperOrLower;
         this.jpqlTemplate = jpqlTemplate;
         this.argumentCount = argumentCount;
+        this.castFieldAsString = castFieldAsString;
     }
 
     @Override
@@ -91,6 +99,14 @@ public class CaseAwareJPQLGenerator implements JPQLPredicateGenerator {
             if (StringUtils.isEmpty(parameters.get(0).getPlaceholder())) {
                 log.error("One non-null, non-empty argument was expected.");
                 throw new IllegalStateException(FILTER_ALIAS_NOT_NULL);
+            }
+        }
+
+        if (castFieldAsString) {
+            // In JPQL the like operator can only be used on string operands
+            // @see https://github.com/hibernate/hibernate-orm/commit/935ac494dd19fc84672f64f5bd40b2b9ed7c76c3
+            if (!ClassType.of(String.class).isAssignableFrom(predicate.getFieldType())) {
+                columnAlias = "CONCAT(" + columnAlias + ",'')";
             }
         }
 
