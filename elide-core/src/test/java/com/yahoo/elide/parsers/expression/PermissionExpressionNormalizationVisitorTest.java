@@ -9,7 +9,6 @@ package com.yahoo.elide.parsers.expression;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
@@ -36,11 +35,12 @@ public class PermissionExpressionNormalizationVisitorTest {
     @BeforeAll
     public void setUp() {
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
-        ElideSettings elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null)
+                .entityDictionary(dictionary)
                 .build();
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope requestScope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
 
         permissionExpressionVisitor = new PermissionExpressionVisitor(dictionary,
                 (check -> new CheckExpression(check, null, requestScope, null, null)));

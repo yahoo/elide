@@ -31,7 +31,7 @@ public class SubscriptionScannerTest {
 
         SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
                 .connectionFactory(connectionFactory)
-                .dictionary(dictionary)
+                .entityDictionary(dictionary)
                 .scanner(classScanner)
                 .build();
 

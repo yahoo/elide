@@ -7,7 +7,6 @@ package com.yahoo.elide.jsonapi.resources;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.route.BasicApiVersionValidator;
 import com.yahoo.elide.core.request.route.FlexibleRouteResolver;
@@ -16,7 +15,7 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
-import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.HeaderProcessor;
 import com.yahoo.elide.utils.ResourceUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,6 +25,7 @@ import jakarta.inject.Singleton;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -51,7 +51,7 @@ import java.util.UUID;
 public class JsonApiEndpoint {
     protected final Elide elide;
     protected final JsonApi jsonApi;
-    protected final HeaderUtils.HeaderProcessor headerProcessor;
+    protected final HeaderProcessor headerProcessor;
     protected final RouteResolver routeResolver;
 
     @Inject
@@ -61,7 +61,7 @@ public class JsonApiEndpoint {
         this.jsonApi = new JsonApi(this.elide);
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
         this.routeResolver = optionalRouteResolver.orElseGet(() -> {
-            Set<String> apiVersions = elide.getElideSettings().getDictionary().getApiVersions();
+            Set<String> apiVersions = elide.getElideSettings().getEntityDictionary().getApiVersions();
             if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
                 return new NullRouteResolver();
             } else {
@@ -97,7 +97,7 @@ public class JsonApiEndpoint {
         Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
-        if ("operations".equals(route.getPath())) {
+        if ("/operations".equals(route.getPath()) || "operations".equals(route.getPath())) {
             // Atomic Operations
             return build(jsonApi.operations(route, jsonapiDocument, user, UUID.randomUUID()));
         }

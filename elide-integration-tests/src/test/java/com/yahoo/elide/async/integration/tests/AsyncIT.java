@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.core.audit.TestAuditLogger;
@@ -39,6 +39,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.test.graphql.EnumFieldSerializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -492,12 +493,14 @@ public class AsyncIT extends AsyncApiIT {
         tx.commit(null);
         tx.close();
 
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(
-                                EntityDictionary.builder()
-                                        .checks(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS)
-                                        .build())
-                        .withAuditLogger(new TestAuditLogger()).build());
+        EntityDictionary entityDictionary = EntityDictionary.builder()
+                .checks(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS)
+                .build();
+
+        Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore).entityDictionary(entityDictionary)
+                .auditLogger(new TestAuditLogger())
+                .settings(JsonApiSettingsBuilder.withDefaults(entityDictionary))
+                .build());
 
         elide.doScans();
         JsonApi jsonApi = new JsonApi(elide);

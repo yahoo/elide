@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -23,6 +23,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,9 +77,11 @@ public class DataStoreIT extends IntegrationTest {
         checks.put("filterCheck", Filtered.FilterCheck.class);
         checks.put("filterCheck3", Filtered.FilterCheck3.class);
 
-        elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withAuditLogger(new TestAuditLogger())
-                .withEntityDictionary(EntityDictionary.builder().checks(checks).build())
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(checks).build();
+        elide = new Elide(ElideSettings.builder().dataStore(dataStore)
+                .auditLogger(new TestAuditLogger())
+                .entityDictionary(entityDictionary)
+                .settings(JsonApiSettingsBuilder.withDefaults(entityDictionary))
                 .build());
 
         elide.doScans();

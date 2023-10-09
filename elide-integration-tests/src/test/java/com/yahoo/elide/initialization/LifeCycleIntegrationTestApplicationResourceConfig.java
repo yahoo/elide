@@ -10,12 +10,14 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.InMemoryLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import example.TestCheckMappings;
 import example.models.triggers.Invoice;
 import example.models.triggers.InvoiceCompletionHook;
@@ -50,13 +52,15 @@ public class LifeCycleIntegrationTestApplicationResourceConfig extends ResourceC
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
+                JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                        .joinFilterDialect(multipleFilterStrategy)
+                        .subqueryFilterDialect(multipleFilterStrategy);
 
-                Elide elide = new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
-                        .withAuditLogger(LOGGER)
-                        .withJoinFilterDialect(multipleFilterStrategy)
-                        .withSubqueryFilterDialect(multipleFilterStrategy)
-                        .withEntityDictionary(dictionary)
-                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                Elide elide = new Elide(ElideSettings.builder().dataStore(IntegrationTest.getDataStore())
+                        .auditLogger(LOGGER)
+                        .entityDictionary(dictionary)
+                        .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
+                        .settings(jsonApiSettings)
                         .build());
                 elide.doScans();
                 bind(elide).to(Elide.class).named("elide");

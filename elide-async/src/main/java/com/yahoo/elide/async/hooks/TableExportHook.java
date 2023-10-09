@@ -7,6 +7,7 @@ package com.yahoo.elide.async.hooks;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncApiResult;
@@ -52,6 +53,10 @@ public class TableExportHook extends AsyncApiHook<TableExport> {
 
     @Override
     public void validateOptions(AsyncApi export, RequestScope requestScope) {
+        AsyncSettings asyncSettings = requestScope.getElideSettings().getSettings(AsyncSettings.class);
+        if (!asyncSettings.getExport().isEnabled()) {
+            throw new InvalidOperationException("TableExport is not supported.");
+        }
         super.validateOptions(export, requestScope);
     }
 

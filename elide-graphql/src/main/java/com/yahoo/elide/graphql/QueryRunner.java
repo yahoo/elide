@@ -64,7 +64,6 @@ public class QueryRunner {
     @Getter
     private final Elide elide;
     private GraphQL api;
-    private ObjectMapper mapper;
 
     @Getter
     private String apiVersion;
@@ -91,16 +90,15 @@ public class QueryRunner {
     public QueryRunner(Elide elide, String apiVersion, DataFetcherExceptionHandler exceptionHandler) {
         this.elide = elide;
         this.apiVersion = apiVersion;
-        this.mapper = elide.getMapper().getObjectMapper();
 
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+        EntityDictionary dictionary = elide.getElideSettings().getEntityDictionary();
 
         NonEntityDictionary nonEntityDictionary = new NonEntityDictionary(
                 dictionary.getScanner(),
                 dictionary.getSerdeLookup());
 
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(nonEntityDictionary);
-        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(),
+        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getEntityDictionary(),
                 nonEntityDictionary, elide.getElideSettings(), fetcher, apiVersion);
 
         api = GraphQL.newGraphQL(builder.build())
@@ -113,7 +111,7 @@ public class QueryRunner {
         SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
         module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
         module.addSerializer(GraphQLError.class, errorSerializer);
-        elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
+        elide.getElideSettings().getObjectMapper().registerModule(module);
     }
 
     /**
@@ -186,7 +184,7 @@ public class QueryRunner {
      */
     public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId,
                              Map<String, List<String>> requestHeaders) {
-        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getObjectMapper();
 
         List<GraphQLQuery> queries;
         try {
@@ -299,10 +297,19 @@ public class QueryRunner {
             //TODO - get API version.
             GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
                     apiVersion).make(queryText);
-            Route route = Route.builder().baseUrl(baseUrlEndPoint).apiVersion(apiVersion).headers(requestHeaders)
+            Route route = Route.builder()
+                    .baseUrl(baseUrlEndPoint)
+                    .apiVersion(apiVersion)
+                    .headers(requestHeaders)
                     .build();
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(route, tx, principal,
-                    elide.getElideSettings(), projectionInfo, requestId);
+            GraphQLRequestScope requestScope = GraphQLRequestScope.builder()
+                    .route(route)
+                    .dataStoreTransaction(tx)
+                    .user(principal)
+                    .requestId(requestId)
+                    .elideSettings(elide.getElideSettings())
+                    .projectionInfo(projectionInfo)
+                    .build();
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
@@ -400,7 +407,7 @@ public class QueryRunner {
             boolean isVerbose
     ) {
         CustomErrorException mappedException = elide.mapError(error);
-        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getObjectMapper();
 
         if (mappedException != null) {
             return buildErrorResponse(mapper, mappedException, isVerbose);
@@ -422,7 +429,7 @@ public class QueryRunner {
 
     public static ElideResponse handleRuntimeException(Elide elide, RuntimeException error, boolean isVerbose) {
         CustomErrorException mappedException = elide.mapError(error);
-        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getObjectMapper();
 
         if (mappedException != null) {
             return buildErrorResponse(mapper, mappedException, isVerbose);

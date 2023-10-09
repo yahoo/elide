@@ -19,7 +19,7 @@ import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
-import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.HeaderProcessor;
 import com.yahoo.elide.utils.ResourceUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,7 +58,7 @@ import java.util.UUID;
 public class GraphQLEndpoint {
     private final Map<String, QueryRunner> runners;
     private final Elide elide;
-    private final HeaderUtils.HeaderProcessor headerProcessor;
+    private final HeaderProcessor headerProcessor;
     protected final RouteResolver routeResolver;
 
     @Inject
@@ -70,12 +70,12 @@ public class GraphQLEndpoint {
         this.elide = elide;
         this.headerProcessor = elide.getElideSettings().getHeaderProcessor();
         this.runners = new HashMap<>();
-        for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
+        for (String apiVersion : elide.getElideSettings().getEntityDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion,
                     optionalDataFetcherExceptionHandler.orElseGet(SimpleDataFetcherExceptionHandler::new)));
         }
         this.routeResolver = optionalRouteResolver.orElseGet(() -> {
-            Set<String> apiVersions = elide.getElideSettings().getDictionary().getApiVersions();
+            Set<String> apiVersions = elide.getElideSettings().getEntityDictionary().getApiVersions();
             if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
                 return new NullRouteResolver();
             } else {
@@ -113,13 +113,23 @@ public class GraphQLEndpoint {
 
         ElideResponse response;
         if (runner == null) {
-            response = buildErrorResponse(elide.getMapper().getObjectMapper(),
+            response = buildErrorResponse(elide.getObjectMapper(),
                     new InvalidOperationException("Invalid API Version"), false);
         } else {
             response = runner.run(route.getBaseUrl(),
                                   graphQLDocument, user, UUID.randomUUID(), requestHeaders);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response post(
+            @Context UriInfo uriInfo,
+            @Context HttpHeaders headers,
+            @Context SecurityContext securityContext,
+            String graphQLDocument) {
+        return post("", uriInfo, headers, securityContext, graphQLDocument);
     }
 
     protected String getBaseUrlEndpoint(UriInfo uriInfo) {

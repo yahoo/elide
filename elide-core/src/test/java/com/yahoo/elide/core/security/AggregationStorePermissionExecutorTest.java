@@ -9,7 +9,6 @@ package com.yahoo.elide.core.security;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.Path;
@@ -42,7 +41,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * test Aggregation Store Permission Executor
+ * Test Aggregation Store Permission Executor.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AggregationStorePermissionExecutorTest {
@@ -66,8 +65,7 @@ public class AggregationStorePermissionExecutorTest {
         checks.put("user none", Role.NONE.class);
         checks.put("filter check", FilterCheck.class);
         dictionary = TestDictionary.getTestDictionary(checks);
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
+        elideSettings = ElideSettings.builder().entityDictionary(dictionary)
                 .build();
     }
 
@@ -194,6 +192,7 @@ public class AggregationStorePermissionExecutorTest {
         dictionary.bindEntity(clz);
         dictionary.bindPermissionExecutor(clz, AggregationStorePermissionExecutor::new);
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        return new com.yahoo.elide.core.RequestScope(route, null, null, UUID.randomUUID(), elideSettings);
+        return com.yahoo.elide.core.RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
     }
 }

@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -106,14 +106,9 @@ public class JMSDataStoreTest {
         try (DataStoreTransaction tx = store.beginReadTransaction()) {
 
             Route route = Route.builder().baseUrl("/json").path("/").apiVersion(NO_VERSION).build();
-            RequestScope scope = new RequestScope(
-                    route,
-                    tx,
-                    null,
-                    UUID.randomUUID(),
-                    new ElideSettingsBuilder(store)
-                            .withEntityDictionary(dictionary)
-                            .build());
+            ElideSettings elideSettings = ElideSettings.builder().dataStore(store).entityDictionary(dictionary).build();
+            RequestScope scope = RequestScope.builder().route(route).dataStoreTransaction(tx)
+                    .requestId(UUID.randomUUID()).elideSettings(elideSettings).build();
 
             Iterable<Book> books = tx.loadObjects(
                     EntityProjection.builder()

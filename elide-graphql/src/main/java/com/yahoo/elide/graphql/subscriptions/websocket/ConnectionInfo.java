@@ -42,5 +42,5 @@ public class ConnectionInfo {
     /**
      * Gets the API version associated with this websocket.
      */
-    private String getApiVersion;
+    private String apiVersion;
 }

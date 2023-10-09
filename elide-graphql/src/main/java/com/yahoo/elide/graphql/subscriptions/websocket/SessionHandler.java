@@ -94,7 +94,7 @@ public class SessionHandler {
         this.elide = elide;
         this.api = api;
         this.connectionInfo = connectionInfo;
-        this.mapper = elide.getMapper().getObjectMapper();
+        this.mapper = elide.getObjectMapper();
         this.activeRequests = new ConcurrentHashMap<>();
         this.connectionTimeoutMs = connectionTimeout.toMillis();
         this.maxSubscriptions = maxSubscriptions;
@@ -252,7 +252,7 @@ public class SessionHandler {
     }
 
     protected void safeSendConnectionAck() {
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         ConnectionAck ack = new ConnectionAck();
 
         try {
@@ -264,7 +264,7 @@ public class SessionHandler {
     }
 
     protected void safeSendPong() {
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Pong pong = new Pong();
 
         try {

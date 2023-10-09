@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -515,7 +514,8 @@ public class PermissionExecutorTest {
         EntityDictionary dictionary = EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build();
         dictionary.bindEntity(cls);
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(), getElideSettings(dictionary));
+        RequestScope requestScope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(getElideSettings(dictionary)).build();
         PersistentResource resource = new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
         if (markNew) {
             requestScope.getNewPersistentResources().add(resource);
@@ -533,8 +533,8 @@ public class PermissionExecutorTest {
     }
 
     private ElideSettings getElideSettings(EntityDictionary dictionary) {
-        return new ElideSettingsBuilder(null)
-                    .withEntityDictionary(dictionary)
+        return ElideSettings.builder().dataStore(null)
+                    .entityDictionary(dictionary)
                     .build();
     }
 

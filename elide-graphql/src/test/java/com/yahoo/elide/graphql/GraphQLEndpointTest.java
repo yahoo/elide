@@ -18,6 +18,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.toJson;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -25,19 +26,20 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
-
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import example.models.versioned.BookV2;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -138,11 +140,13 @@ public class GraphQLEndpointTest {
         checkMappings.put(UserChecks.IS_USER_2, UserChecks.IsUserId.Two.class);
         checkMappings.put(CommitChecks.IS_NOT_USER_3, CommitChecks.IsNotUser3.class);
 
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(checkMappings).build();
         elide = spy(
                 new Elide(
-                    new ElideSettingsBuilder(inMemoryStore)
-                            .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
-                            .withAuditLogger(audit)
+                    ElideSettings.builder().dataStore(inMemoryStore)
+                            .entityDictionary(entityDictionary)
+                            .auditLogger(audit)
+                            .settings(GraphQLSettingsBuilder.withDefaults(entityDictionary))
                             .build())
 
                 );
@@ -1060,6 +1064,22 @@ public class GraphQLEndpointTest {
 
         Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest, variables));
         assert200EqualBody(response, graphQLResponse);
+    }
+
+    @Test
+    public void testInvalidApiVersion() throws IOException {
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
+        entityDictionary.bindEntity(BookV2.class);
+        Elide elide = new Elide(
+                ElideSettings.builder().entityDictionary(entityDictionary).settings(GraphQLSettings.builder()).build());
+        GraphQLEndpoint graphqlEndpoint = new GraphQLEndpoint(elide, Optional.empty(), Optional.empty());
+        Response response = graphqlEndpoint.post("/v1", uriInfo, requestHeaders, user1, null);
+        Object entity = response.getEntity();
+        assertEquals(400, response.getStatus());
+        assertInstanceOf(String.class, entity);
+        if (entity instanceof String value) {
+            assertTrue(value.contains("Invalid API Version"));
+        }
     }
 
     private static String graphQLRequestToJSON(String request) {

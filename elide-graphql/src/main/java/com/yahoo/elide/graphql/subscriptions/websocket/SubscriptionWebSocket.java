@@ -133,7 +133,7 @@ public class SubscriptionWebSocket extends Endpoint {
         this.verboseErrors = verboseErrors;
         this.dataFetcherExceptionHandler = dataFetcherExceptionHandler;
 
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+        EntityDictionary dictionary = elide.getElideSettings().getEntityDictionary();
         for (String apiVersion : dictionary.getApiVersions()) {
             NonEntityDictionary nonEntityDictionary =
                     new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup);
@@ -243,7 +243,7 @@ public class SubscriptionWebSocket extends Endpoint {
                         .user(user)
                         .baseUrl(session.getRequestURI().getPath())
                         .parameters(session.getRequestParameterMap())
-                        .getApiVersion(apiVersion).build(),
+                        .apiVersion(apiVersion).build(),
                 sendPingOnSubscribe,
                 verboseErrors,
                 executorService);

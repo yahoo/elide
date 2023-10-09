@@ -15,7 +15,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreIterableBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -28,11 +27,13 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;
@@ -93,11 +94,14 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 .type(ClassType.of(TopicType.class))
                 .build());
 
-        settings = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withJoinFilterDialect(filterDialect)
-                .withSubqueryFilterDialect(filterDialect)
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+        JsonApiSettingsBuilder jsonApiSettings = JsonApiSettingsBuilder.withDefaults(dictionary)
+                .joinFilterDialect(filterDialect)
+                .subqueryFilterDialect(filterDialect);
+        GraphQLSettingsBuilder graphqlSettings = GraphQLSettingsBuilder.withDefaults(dictionary);
+
+        settings = ElideSettings.builder().dataStore(dataStore).entityDictionary(dictionary)
+                .settings(jsonApiSettings, graphqlSettings)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
                 .build();
 
         settings.getSerdes().forEach(CoerceUtil::register);
@@ -349,10 +353,16 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         InMemoryDataStore inMemoryDataStore = new InMemoryDataStore(dataStore);
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
 
-        GraphQLProjectionInfo projectionInfo =
-                new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION).make(request);
+        GraphQLProjectionInfo projectionInfo = new SubscriptionEntityProjectionMaker(settings, new HashMap<>(),
+                NO_VERSION).make(request);
         Route route = Route.builder().baseUrl(baseUrl).apiVersion(NO_VERSION).build();
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(route, tx, null, settings, projectionInfo, UUID.randomUUID());
+        GraphQLRequestScope requestScope = GraphQLRequestScope.builder()
+                .route(route)
+                .dataStoreTransaction(tx)
+                .requestId(UUID.randomUUID())
+                .elideSettings(settings)
+                .projectionInfo(projectionInfo)
+                .build();
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(request)

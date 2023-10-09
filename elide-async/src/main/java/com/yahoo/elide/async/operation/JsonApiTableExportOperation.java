@@ -66,8 +66,8 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
                     .apiVersion(apiVersion).headers(additionalRequestHeaders).parameters(queryParams).build();
 
-            return new JsonApiRequestScope(route, tx, user,
-                    requestId, getService().getElide().getElideSettings(), null);
+            return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(requestId)
+                    .elideSettings(getService().getElide().getElideSettings()).build();
         }
 
         // Combine additionalRequestHeaders and existing scope's request headers
@@ -79,7 +79,8 @@ public class JsonApiTableExportOperation extends TableExportOperation {
 
         Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
                 .apiVersion(apiVersion).headers(scope.getRoute().getHeaders()).parameters(queryParams).build();
-        return new JsonApiRequestScope(route, tx, user, requestId, getService().getElide().getElideSettings(), null);
+        return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(requestId)
+                .elideSettings(getService().getElide().getElideSettings()).build();
     }
 
     @Override
@@ -88,7 +89,7 @@ public class JsonApiTableExportOperation extends TableExportOperation {
         try {
             URIBuilder uri = new URIBuilder(export.getQuery());
             Elide elide = getService().getElide();
-            projection = new EntityProjectionMaker(elide.getElideSettings().getDictionary(),
+            projection = new EntityProjectionMaker(elide.getElideSettings().getEntityDictionary(),
                     scope).parsePath(JsonApiAsyncQueryOperation.getPath(uri));
 
         } catch (URISyntaxException e) {

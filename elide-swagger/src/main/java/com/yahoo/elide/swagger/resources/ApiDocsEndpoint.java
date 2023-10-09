@@ -89,7 +89,7 @@ public class ApiDocsEndpoint {
         });
 
         this.routeResolver = optionalRouteResolver.orElseGet(() -> {
-            Set<String> apiVersions = elide.getElideSettings().getDictionary().getApiVersions();
+            Set<String> apiVersions = elide.getElideSettings().getEntityDictionary().getApiVersions();
             if (apiVersions.size() == 1 && apiVersions.contains(EntityDictionary.NO_VERSION)) {
                 return new NullRouteResolver();
             } else {
@@ -120,6 +120,15 @@ public class ApiDocsEndpoint {
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listJson(
+            @Context UriInfo uriInfo,
+            @Context HttpHeaders headers
+            ) {
+        return listJson("", uriInfo, headers);
+    }
+
+    @GET
     @Path("{path:.*}")
     @Produces(MediaType.APPLICATION_YAML)
     public Response listYaml(
@@ -138,6 +147,15 @@ public class ApiDocsEndpoint {
         } else {
             return get(route.getApiVersion(), name, MediaType.APPLICATION_YAML);
         }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_YAML)
+    public Response listYaml(
+            @Context UriInfo uriInfo,
+            @Context HttpHeaders headers
+            ) {
+        return listYaml("", uriInfo, headers);
     }
 
     public Response list(String apiVersion, String mediaType) {

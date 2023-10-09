@@ -31,7 +31,7 @@ public class JsonExportFormatter implements TableExportFormatter {
     private ObjectMapper mapper;
 
     public JsonExportFormatter(Elide elide) {
-        this.mapper = elide.getMapper().getObjectMapper();
+        this.mapper = elide.getObjectMapper();
     }
 
     @Override

@@ -11,10 +11,10 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +40,9 @@ class DefaultElideGroupedOpenApiCustomizerTest {
     void setup() {
         EntityDictionary entityDictionary = Mockito.mock(EntityDictionary.class);
         DataStore dataStore = Mockito.mock(DataStore.class);
-        ElideSettings settings = new ElideSettingsBuilder(dataStore).withEntityDictionary(entityDictionary).withJsonApiPath("/").build();
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().path("/");
+        ElideSettings settings = ElideSettings.builder().dataStore(dataStore).entityDictionary(entityDictionary)
+                .settings(jsonApiSettings).build();
         when(entityDictionary.getApiVersions()).thenReturn(new LinkedHashSet<>(Arrays.asList(EntityDictionary.NO_VERSION, "1", "2")));
         Elide elide = new Elide(settings);
         RefreshableElide refreshableElide = new RefreshableElide(elide);

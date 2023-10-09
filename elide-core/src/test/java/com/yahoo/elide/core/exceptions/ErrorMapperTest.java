@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -32,6 +31,7 @@ import com.yahoo.elide.core.lifecycle.PropertyTestModel;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -217,14 +217,17 @@ public class ErrorMapperTest {
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, ErrorMapper errorMapper) {
         ElideSettings settings = getElideSettings(dataStore, dictionary, errorMapper);
-        return new Elide(settings, new TransactionRegistry(), settings.getDictionary().getScanner(), false);
+        return new Elide(settings, new TransactionRegistry(), settings.getEntityDictionary().getScanner(), false);
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, ErrorMapper errorMapper) {
-        return new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withErrorMapper(errorMapper)
-                .withVerboseErrors()
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder();
+        return ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .errorMapper(errorMapper)
+                .verboseErrors(true)
+                .settings(jsonApiSettings)
+                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
                 .build();
     }
 }

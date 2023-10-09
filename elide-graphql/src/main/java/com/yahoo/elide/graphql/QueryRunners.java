@@ -29,7 +29,7 @@ public class QueryRunners {
         this.runners = new HashMap<>();
         Elide elide = refreshableElide.getElide();
 
-        for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
+        for (String apiVersion : elide.getElideSettings().getEntityDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion, exceptionHandler));
         }
     }

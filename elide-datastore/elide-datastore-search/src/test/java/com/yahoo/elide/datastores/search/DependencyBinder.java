@@ -7,7 +7,7 @@
 package com.yahoo.elide.datastores.search;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -16,6 +16,8 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
@@ -58,17 +60,20 @@ public class DependencyBinder extends ResourceConfig {
                 jpaStore.populateEntityDictionary(dictionary);
                 searchStore.populateEntityDictionary(dictionary);
 
-                Elide elide = new Elide(new ElideSettingsBuilder(searchStore)
-                        .withAuditLogger(new Slf4jLogger())
-                        .withEntityDictionary(dictionary)
-                        .withVerboseErrors()
-                        .withDefaultMaxPageSize(PaginationImpl.MAX_PAGE_LIMIT)
-                        .withDefaultPageSize(PaginationImpl.DEFAULT_PAGE_LIMIT)
-                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
-                        .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                        .withJoinFilterDialect(new DefaultFilterDialect(dictionary))
-                        .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                        .withSubqueryFilterDialect(new DefaultFilterDialect(dictionary))
+                JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                        .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                        .joinFilterDialect(new DefaultFilterDialect(dictionary))
+                        .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                        .subqueryFilterDialect(new DefaultFilterDialect(dictionary));
+
+                Elide elide = new Elide(ElideSettings.builder().dataStore(searchStore)
+                        .auditLogger(new Slf4jLogger())
+                        .entityDictionary(dictionary)
+                        .verboseErrors(true)
+                        .defaultMaxPageSize(PaginationImpl.MAX_PAGE_LIMIT)
+                        .defaultPageSize(PaginationImpl.DEFAULT_PAGE_LIMIT)
+                        .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC")))
+                        .settings(jsonApiSettings)
                         .build());
 
                 bind(elide).to(Elide.class).named("elide");

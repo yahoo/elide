@@ -65,6 +65,10 @@
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
 
         <!--Jackson CSV generator does not support Object values for properties (nested Objects)-->
         <dependency>
@@ -72,8 +76,8 @@
             <artifactId>json2flat</artifactId>
             <exclusions>
                 <exclusion>
-                	<groupId>com.fasterxml.jackson.core</groupId>
-                	<artifactId>jackson-databind</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

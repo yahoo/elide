@@ -165,8 +165,8 @@ public class DefaultAsyncApiDao implements AsyncApiDao {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             Route route = Route.builder().path("query").apiVersion(NO_VERSION).build();
-            RequestScope scope = new JsonApiRequestScope(route,
-                    tx, null, UUID.randomUUID(), elideSettings, jsonApiDoc);
+            RequestScope scope = JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx)
+                    .requestId(UUID.randomUUID()).elideSettings(elideSettings).jsonApiDocument(jsonApiDoc).build();
             result = action.execute(tx, scope);
             tx.flush(scope);
             tx.commit(scope);

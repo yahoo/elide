@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -108,8 +107,8 @@ public class PermissionToFilterExpressionVisitorTest {
         checks.put(GE_FILTER, Permissions.GreaterThanOrEqualFilterExpression.class);
 
         dictionary = TestDictionary.getTestDictionary(checks);
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
+        elideSettings = ElideSettings.builder().dataStore(null)
+                .entityDictionary(dictionary)
                 .build();
 
         requestScope = newRequestScope();
@@ -241,7 +240,8 @@ public class PermissionToFilterExpressionVisitorTest {
     public RequestScope newRequestScope() {
         User john = new TestUser("John");
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        return requestScope = new RequestScope(route, null, john, UUID.randomUUID(), elideSettings);
+        return requestScope = RequestScope.builder().route(route).user(john).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

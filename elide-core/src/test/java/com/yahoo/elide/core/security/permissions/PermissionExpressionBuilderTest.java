@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -49,8 +48,7 @@ public class PermissionExpressionBuilderTest {
         ExpressionResultCache cache = new ExpressionResultCache();
         builder = new PermissionExpressionBuilder(cache, dictionary);
 
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
+        elideSettings = ElideSettings.builder().entityDictionary(dictionary)
                 .build();
     }
 
@@ -129,7 +127,8 @@ public class PermissionExpressionBuilderTest {
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         Route route = Route.builder().apiVersion(NO_VERSION).build();
-        RequestScope requestScope = new RequestScope(route, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope requestScope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
         return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 }

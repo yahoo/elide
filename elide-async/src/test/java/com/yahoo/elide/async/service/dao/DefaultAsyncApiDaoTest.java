@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
@@ -26,6 +25,8 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -58,11 +59,14 @@ public class DefaultAsyncApiDaoTest {
         dictionary.bindEntity(AsyncQuery.class);
         dictionary.bindEntity(AsyncQueryResult.class);
 
-        ElideSettings elideSettings = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build());
+
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .settings(jsonApiSettings)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
                 .build();
 
         elide = new Elide(elideSettings);

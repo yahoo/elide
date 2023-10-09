@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.audit.TestAuditLogger;
@@ -49,6 +49,7 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -2567,9 +2568,11 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build())
-                .withAuditLogger(new TestAuditLogger())
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build();
+        Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(entityDictionary)
+                .auditLogger(new TestAuditLogger())
+                .settings(JsonApiSettingsBuilder.withDefaults(entityDictionary))
                 .build());
 
         elide.doScans();

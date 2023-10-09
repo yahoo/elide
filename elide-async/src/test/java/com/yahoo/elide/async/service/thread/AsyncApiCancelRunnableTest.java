@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
@@ -26,6 +26,8 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -53,9 +55,10 @@ public class AsyncApiCancelRunnableTest {
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
         elide = new Elide(
-                new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
-                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                ElideSettings.builder().dataStore(inMemoryStore)
+                        .entityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                        .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
+                        .settings(JsonApiSettings.builder())
                         .build());
 
         asyncApiDao = mock(DefaultAsyncApiDao.class);

@@ -48,6 +48,7 @@ import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Meta;
@@ -1551,8 +1552,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 : dictionary.getId(obj));
         resource.setRelationships(relationships);
         resource.setAttributes(attributes);
-        if (requestScope.getElideSettings().isEnableJsonLinks()) {
-            resource.setLinks(requestScope.getElideSettings().getJsonApiLinks().getResourceLevelLinks(this));
+
+        JsonApiSettings jsonApiSettings = requestScope.getElideSettings().getSettings(JsonApiSettings.class);
+        if (jsonApiSettings != null && jsonApiSettings.getLinks().isEnabled()) {
+            resource.setLinks(jsonApiSettings.getLinks().getJsonApiLinks().getResourceLevelLinks(this));
         }
 
         if (! (getObject() instanceof WithMetadata)) {
@@ -1639,10 +1642,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 data = new Data<>(resources);
             }
             Map<String, String> links = null;
-            if (requestScope.getElideSettings().isEnableJsonLinks()) {
-                links = requestScope.getElideSettings()
-                        .getJsonApiLinks()
-                        .getRelationshipLinks(this, field);
+            JsonApiSettings jsonApiSettings = requestScope.getElideSettings().getSettings(JsonApiSettings.class);
+            if (jsonApiSettings != null && jsonApiSettings.getLinks().isEnabled()) {
+                links = jsonApiSettings.getLinks().getJsonApiLinks().getRelationshipLinks(this, field);
             }
             relationshipMap.put(field, new Relationship(links, data));
         }

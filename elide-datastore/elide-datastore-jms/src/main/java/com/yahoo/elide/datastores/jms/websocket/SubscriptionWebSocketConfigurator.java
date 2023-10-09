@@ -9,7 +9,7 @@ package com.yahoo.elide.datastores.jms.websocket;
 import static com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket.DEFAULT_USER_FACTORY;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -21,7 +21,9 @@ import com.yahoo.elide.graphql.ExecutionResultDeserializer;
 import com.yahoo.elide.graphql.ExecutionResultSerializer;
 import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
 import com.yahoo.elide.graphql.GraphQLErrorSerializer;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import graphql.ExecutionResult;
@@ -98,17 +100,24 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     protected Elide buildElide(DataStore store, EntityDictionary dictionary) {
         RSQLFilterDialect rsqlFilterStrategy = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
-        ElideSettingsBuilder builder = new ElideSettingsBuilder(store)
-                .withAuditLogger(auditLogger)
-                .withErrorMapper(errorMapper)
-                .withBaseUrl(baseUrl)
-                .withJoinFilterDialect(rsqlFilterStrategy)
-                .withSubqueryFilterDialect(rsqlFilterStrategy)
-                .withEntityDictionary(dictionary)
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone());
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                .joinFilterDialect(rsqlFilterStrategy)
+                .subqueryFilterDialect(rsqlFilterStrategy);
+
+        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder();
+
+        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(store)
+                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
+                .auditLogger(auditLogger)
+                .errorMapper(errorMapper)
+                .baseUrl(baseUrl)
+                .settings(jsonApiSettings, graphqlSettings)
+                .entityDictionary(dictionary)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'",
+                        Calendar.getInstance().getTimeZone()));
 
         if (verboseErrors) {
-            builder = builder.withVerboseErrors();
+            builder = builder.verboseErrors(true);
         }
 
         Elide elide = new Elide(builder.build());
@@ -125,7 +134,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     }
 
     protected SubscriptionWebSocket buildWebSocket(Elide elide) {
-        elide.getMapper().getObjectMapper().registerModule(new SimpleModule("ExecutionResult")
+        elide.getObjectMapper().registerModule(new SimpleModule("ExecutionResult")
             .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())
             .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())
             .addSerializer(GraphQLError.class, new GraphQLErrorSerializer())

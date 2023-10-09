@@ -128,14 +128,14 @@ Reasons for doing this might include:
     public Elide initializeElide(EntityDictionary dictionary,
                           DataStore dataStore, ElideConfigProperties settings) {
 
-        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withDefaultMaxPageSize(settings.getMaxPageSize())
-                .withDefaultPageSize(settings.getPageSize())
+        ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .defaultMaxPageSize(settings.getMaxPageSize())
+                .defaultPageSize(settings.getPageSize())
                 .withUseFilterExpressions(true)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
-                .withAuditLogger(new Slf4jLogger())
+                .auditLogger(new Slf4jLogger())
                 .withEncodeErrorResponses(true)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
 

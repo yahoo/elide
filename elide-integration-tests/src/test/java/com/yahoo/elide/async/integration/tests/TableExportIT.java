@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
@@ -42,6 +42,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.test.graphql.EnumFieldSerializer;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -1143,9 +1144,10 @@ public class TableExportIT extends AsyncApiIT {
         tx.commit(null);
         tx.close();
 
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(dictionary)
-                        .withAuditLogger(new TestAuditLogger()).build());
+        Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore)
+                        .entityDictionary(dictionary)
+                        .settings(JsonApiSettingsBuilder.withDefaults(dictionary))
+                        .auditLogger(new TestAuditLogger()).build());
         JsonApi jsonApi = new JsonApi(elide);
         User ownerUser = new User(() -> "owner-user");
         SecurityContextUser securityContextAdminUser = new SecurityContextUser(new SecurityContext() {
