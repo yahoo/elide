@@ -73,4 +73,47 @@ public class SubscriptionTest extends IntegrationTest {
                     .statusCode(HttpStatus.SC_NO_CONTENT);
         }
     }
+
+    @Test
+    public void testSubscriptionApiVersion() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {group(topic: ADDED) {name title}}"));
+
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:" + port + "/subscription/v1.0"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .body(
+                            datum(
+                                    resource(
+                                            type("group"),
+                                            id("com.example.repository2.v1.0"),
+                                            attributes(
+                                                    attr("title", "New group.")
+                                            )
+                                    )
+                            )
+                    )
+                    .when()
+                    .post("/json/v1.0/group")
+                    .then()
+                    .statusCode(HttpStatus.SC_CREATED);
+
+
+            List<ExecutionResult> results = client.waitOnClose(10);
+
+            assertEquals(1, results.size());
+            assertEquals(0, results.get(0).getErrors().size());
+
+            when()
+                    .delete("/json/v1.0/group/com.example.repository2.v1.0")
+                    .then()
+                    .statusCode(HttpStatus.SC_NO_CONTENT);
+        }
+    }
 }

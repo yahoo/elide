@@ -14,8 +14,10 @@ import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.datastores.jms.JMSDataStore;
 import com.yahoo.elide.graphql.ExecutionResultDeserializer;
 import com.yahoo.elide.graphql.ExecutionResultSerializer;
@@ -31,13 +33,19 @@ import graphql.GraphQLError;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.jms.ConnectionFactory;
+import jakarta.websocket.HandshakeResponse;
+import jakarta.websocket.server.HandshakeRequest;
 import jakarta.websocket.server.ServerEndpointConfig;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
+import java.net.URI;
+import java.security.Principal;
 import java.time.Duration;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Initializes and configures the subscription web socket.
@@ -81,20 +89,66 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     @Builder.Default
     protected DataFetcherExceptionHandler dataFetcherExceptionHandler = new SimpleDataFetcherExceptionHandler();
 
+    @Builder.Default
+    protected RouteResolver routeResolver = null;
+
+    @Builder.Default
+    protected Injector injector = null;
+
     @Override
     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
         if (endpointClass.equals(SubscriptionWebSocket.class)) {
 
-            EntityDictionary dictionary = EntityDictionary.builder().build();
+            EntityDictionary dictionary = EntityDictionary.builder().injector(injector).build();
 
             DataStore store = buildDataStore(dictionary);
 
             Elide elide = buildElide(store, dictionary);
 
-            return (T) buildWebSocket(elide);
+            return endpointClass.cast(buildWebSocket(elide));
         }
 
         return super.getEndpointInstance(endpointClass);
+    }
+
+    @Override
+    public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
+        Map<String, Object> userProperties = sec.getUserProperties();
+        URI requestURI = request.getRequestURI();
+        if (requestURI != null)
+        {
+            userProperties.put("requestURI", requestURI);
+        }
+
+        Map<String, List<String>> headers = request.getHeaders();
+        if (headers != null)
+        {
+            userProperties.put("headers", headers);
+        }
+
+        Map<String, List<String>> parameterMap = request.getParameterMap();
+        if (parameterMap != null)
+        {
+            userProperties.put("parameterMap", parameterMap);
+        }
+
+        String queryString = request.getQueryString();
+        if (queryString != null)
+        {
+            userProperties.put("queryString", queryString);
+        }
+
+        Object httpSession = request.getHttpSession();
+        if (httpSession != null)
+        {
+            userProperties.put("session", httpSession);
+        }
+
+        Principal userPrincipal = request.getUserPrincipal();
+        if (userPrincipal != null)
+        {
+            userProperties.put("userPrincipal", userPrincipal);
+        }
     }
 
     protected Elide buildElide(DataStore store, EntityDictionary dictionary) {
@@ -150,6 +204,13 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
                 .sendPingOnSubscribe(sendPingOnSubscribe)
                 .verboseErrors(verboseErrors)
                 .dataFetcherExceptionHandler(dataFetcherExceptionHandler)
+                .routeResolver(routeResolver)
                 .build();
+    }
+
+    /**
+     * A mutable builder for building {@link SubscriptionWebSocketConfigurator}.
+     */
+    public static class SubscriptionWebSocketConfiguratorBuilder {
     }
 }

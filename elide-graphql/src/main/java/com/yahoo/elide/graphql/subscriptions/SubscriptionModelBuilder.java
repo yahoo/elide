@@ -54,7 +54,7 @@ public class SubscriptionModelBuilder {
     private GraphQLConversionUtils generator;   //Converts attributes (non Elide models) to GraphQL types.
     private GraphQLNameUtils nameUtils;         //Generates type names
     private EntityDictionary entityDictionary;  //Client provided model dictionary
-    private DataFetcher dataFetcher;        //Client provided data fetcher
+    private DataFetcher<?> dataFetcher;        //Client provided data fetcher
     private GraphQLArgument filterArgument;
     private Set<Type<?>> excludedEntities;  //Client controlled models to skip.
     private Set<Type<?>> relationshipTypes; //Keeps track of which relationship models need to be built.
@@ -69,7 +69,7 @@ public class SubscriptionModelBuilder {
      */
     public SubscriptionModelBuilder(EntityDictionary entityDictionary,
                         NonEntityDictionary nonEntityDictionary,
-                        DataFetcher dataFetcher, String apiVersion) {
+                        DataFetcher<?> dataFetcher, String apiVersion) {
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
         this.entityDictionary = entityDictionary;
         this.nameUtils = new GraphQLNameUtils(entityDictionary);

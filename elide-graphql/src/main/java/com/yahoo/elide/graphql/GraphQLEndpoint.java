@@ -17,7 +17,6 @@ import com.yahoo.elide.core.request.route.NullRouteResolver;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.utils.HeaderProcessor;
 import com.yahoo.elide.utils.ResourceUtils;
@@ -106,7 +105,7 @@ public class GraphQLEndpoint {
 
         String baseUrl = getBaseUrlEndpoint(uriInfo);
         String pathname = path;
-        Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeaders,
+        Route route = routeResolver.resolve(MediaType.APPLICATION_JSON, baseUrl, pathname, requestHeaders,
                 uriInfo.getQueryParameters());
 
         QueryRunner runner = runners.getOrDefault(route.getApiVersion(), null);

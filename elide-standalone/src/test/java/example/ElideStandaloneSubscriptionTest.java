@@ -128,4 +128,44 @@ public class ElideStandaloneSubscriptionTest extends ElideStandaloneTest {
             assertEquals(0, results.get(0).getErrors().size());
         }
     }
+
+    @Test
+    public void testSubscriptionApiVersion() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {post(topic: ADDED) {id text}}"));
+
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:" + settings.getPort() + "/subscription/v1.0"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
+                    .body(
+                            datum(
+                                    resource(
+                                            type("post"),
+                                            id("99"),
+                                            attributes(
+                                                    attr("text", "This is my first post. woot."),
+                                                    attr("date", "2019-01-01T00:00Z")
+                                            )
+                                    )
+                            )
+                    )
+                    .post("/api/v1.0/post")
+                    .then()
+                    .statusCode(HttpStatus.SC_CREATED);
+
+            List<ExecutionResult> results = client.waitOnClose(10);
+
+            client.sendClose();
+
+            assertEquals(1, results.size());
+            assertEquals(0, results.get(0).getErrors().size());
+        }
+    }
 }

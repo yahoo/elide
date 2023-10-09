@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
@@ -23,6 +24,8 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.websocket.server.ServerEndpointConfig;
+
+import java.util.List;
 
 /**
  * Test for ElideSubscriptionConfiguration.
@@ -50,9 +53,11 @@ class ElideSubscriptionConfigurationTest {
     void configured() {
         contextRunner.withPropertyValues("elide.graphql.subscription.enabled=true", "elide.graphql.enabled=true")
                 .withUserConfiguration(JmsConfiguration.class).run(context -> {
-                    ServerEndpointConfig config = context
-                            .getBean(ServerEndpointConfig.class);
-                    assertThat(config).isNotNull();
+                    ObjectProvider<ServerEndpointConfig> provider = context
+                            .getBeanProvider(ServerEndpointConfig.class);
+                    // 2 configurations to handle path api versioning strategy
+                    List<ServerEndpointConfig> config = provider.orderedStream().toList();
+                    assertThat(config).hasSize(2);
                 });
     }
 

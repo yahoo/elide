@@ -6,13 +6,11 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket;
 
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 
 import lombok.Builder;
 import lombok.Value;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Information about the sessions/connection passed to the request handler.
@@ -26,21 +24,11 @@ public class ConnectionInfo {
      */
     private User user;
 
-
     /**
-     * Return the URL path for this request.
-     * @return URL path.
+     * Returns the {@link Route} of the request which contains the base url, path,
+     * headers, parameters and api version of the request.
+     *
+     * @return the route of the request
      */
-    private String baseUrl;
-
-    /**
-     * Get a map of parameters for the session.
-     * @return map of parameters.
-     */
-    private Map<String, List<String>> parameters;
-
-    /**
-     * Gets the API version associated with this websocket.
-     */
-    private String apiVersion;
+    private Route route;
 }

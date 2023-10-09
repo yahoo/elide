@@ -146,6 +146,7 @@ public class ControllerTest extends IntegrationTest {
                                         type("group"),
                                         id("com.example.repository"),
                                         attributes(
+                                                attr("deprecated", false),
                                                 attr("title", "Example Repository")
                                         ),
                                         links(
@@ -169,6 +170,7 @@ public class ControllerTest extends IntegrationTest {
                                         type("group"),
                                         id("com.example.repository"),
                                         attributes(
+                                                attr("deprecated", false),
                                                 attr("title", "Example Repository")
                                         ),
                                         links(
