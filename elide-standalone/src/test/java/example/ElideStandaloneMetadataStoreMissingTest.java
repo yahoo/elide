@@ -13,7 +13,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
-import org.eclipse.jetty.util.MultiException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import jakarta.servlet.ServletException;
 
 import java.util.Optional;
 
@@ -87,7 +87,7 @@ public class ElideStandaloneMetadataStoreMissingTest {
 
         try {
             setLoggingLevel(Level.OFF);
-            assertThrows(MultiException.class, () -> elide.start(false));
+            assertThrows(ServletException.class, () -> elide.start(false));
         } finally {
             setLoggingLevel(old);
         }

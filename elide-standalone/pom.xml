@@ -44,7 +44,7 @@
     </scm>
 
     <properties>
-        <metrics.version>4.2.19</metrics.version>
+        <metrics.version>4.2.20</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -122,17 +122,10 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
             <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <!-- CVE-2017-7658(9.8), CVE-2017-7657(9.8), CVE-2017-7656(7.5), CVE-2017-9735(7.5), CVE-2020-27216(7.0), CVE-2009-5045(7.5) -->
-                    <groupId>org.eclipse.jetty.toolchain</groupId>
-                    <artifactId>jetty-servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-servlet</artifactId>
             <scope>compile</scope>
         </dependency>
 
@@ -183,7 +176,7 @@
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-jetty11</artifactId>
+            <artifactId>metrics-jetty12-ee10</artifactId>
         </dependency>
 
 
@@ -196,13 +189,13 @@
 
         <!-- dependencies for native jetty websocket -->
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jakarta-server</artifactId>
+            <groupId>org.eclipse.jetty.ee10.websocket</groupId>
+            <artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-servlet</artifactId>
+            <groupId>org.eclipse.jetty.ee10.websocket</groupId>
+            <artifactId>jetty-ee10-websocket-servlet</artifactId>
         </dependency>
 
         <!-- Test -->
@@ -264,8 +257,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jakarta-client</artifactId>
+            <groupId>org.eclipse.jetty.ee10.websocket</groupId>
+            <artifactId>jetty-ee10-websocket-jakarta-client</artifactId>
             <scope>test</scope>
         </dependency>
 
