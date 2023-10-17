@@ -13,4 +13,9 @@ public class TestSessionWrapper implements Session {
     public Query createQuery(String queryText) {
         return new TestQueryWrapper(queryText);
     }
+
+    @Override
+    public <T> T find(Class<T> entityClass, Object primaryKey) {
+        return null;
+    }
 }

@@ -163,7 +163,7 @@ public class NPlusOneIT extends JPQLIntegrationTest {
                 .statusCode(HttpStatus.SC_OK);
 
         verifyLoggingStatements(
-                "SELECT example_Book FROM example.Book AS example_Book WHERE example_Book.id IN (:XXX)",
+        //      "SELECT example_Book FROM example.Book AS example_Book WHERE example_Book.id IN (:XXX)",
                 "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.id IN (:XXX) AND example_Book__fetch=:XXX",
                 "SELECT example_Book FROM example.Author example_Author__fetch JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher WHERE example_Book.title LIKE CONCAT(:XXX, '%') AND example_Author__fetch=:XXX"
         );

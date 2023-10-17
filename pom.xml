@@ -90,7 +90,7 @@
         <artemis.version>2.28.0</artemis.version>
         <atomikos.version>6.0.0</atomikos.version>
         <calcite.version>1.35.0</calcite.version>
-        <caffeine.version>3.1.6</caffeine.version>
+        <caffeine.version>3.1.8</caffeine.version>
         <classgraph.version>4.8.162</classgraph.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-cli.version>1.5.0</commons-cli.version>
@@ -214,6 +214,11 @@
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>jcache</artifactId>
                 <version>${caffeine.version}</version>
             </dependency>
             <dependency>
@@ -509,6 +514,11 @@
                 <version>${jersey.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-jcache</artifactId>
+                <version>${hibernate.version}</version>
             </dependency>
 
             <!-- JUnit -->

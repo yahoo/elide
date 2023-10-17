@@ -12,13 +12,16 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jpql.filter.FilterTranslator;
 import com.yahoo.elide.datastores.jpql.porting.Query;
 import com.yahoo.elide.datastores.jpql.porting.Session;
+import com.yahoo.elide.datastores.jpql.porting.SingleResultQuery;
 
 import java.util.Collection;
+import java.util.function.Supplier;
 
 /**
  * Constructs a HQL query to fetch a root collection.
@@ -45,16 +48,32 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
         Query query;
         FilterExpression filterExpression = entityProjection.getFilterExpression();
         if (filterExpression != null) {
+            //Build the JOIN clause
+            String joinClause = getJoinClauseFromFilters(filterExpression)
+                    + getJoinClauseFromSort(entityProjection.getSorting())
+                    + extractToOneMergeJoins(entityClass, entityAlias);
+
+            if (joinClause.isEmpty() && filterExpression instanceof InPredicate inPredicate
+                    && entityProjection.getSorting() == null
+                    && inPredicate.getField().equals(dictionary.getIdFieldName(entityClass))
+                    && inPredicate.getValues().size() == 1) {
+                // This is used to utilize the second-level cache
+                // Otherwise for JPQL queries the second-level cache is used only if the query result cache is used
+                // The query result cache is only used if
+                // - Setting hibernate.cache.use_query_cache is true
+                // - Query hint org.hibernate.cacheable is true
+                // - scroll is not used but list
+                // @see org.hibernate.sql.results.spi.ScrollableResultsConsumer#canResultsBeCached
+                Supplier<Object> result = () -> session.find(entityClass.getUnderlyingClass().get(),
+                        inPredicate.getValues().get(0));
+                return new SingleResultQuery(result);
+            }
+
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
             Collection<FilterPredicate> predicates = filterExpression.accept(extractor);
 
             //Build the WHERE clause
             String filterClause = WHERE + new FilterTranslator(dictionary).apply(filterExpression, USE_ALIAS);
-
-            //Build the JOIN clause
-            String joinClause = getJoinClauseFromFilters(filterExpression)
-                    + getJoinClauseFromSort(entityProjection.getSorting())
-                    + extractToOneMergeJoins(entityClass, entityAlias);
 
             boolean requiresDistinct = containsOneToMany(filterExpression);
 

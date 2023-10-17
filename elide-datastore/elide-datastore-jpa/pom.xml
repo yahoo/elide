@@ -184,6 +184,17 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Second level cache testing -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-jcache</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>jcache</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
