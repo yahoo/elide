@@ -9,6 +9,9 @@ package example.models.v2;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
+import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
+
 import example.checks.AdminCheck;
 
 import jakarta.persistence.Column;
@@ -25,11 +28,13 @@ import java.util.Date;
 @Include(name = "post")
 @Data
 @Table(name = "Post")
+@Subscription
 public class PostV2 {
     @Id
     private long id;
 
     @Column(nullable = false, name = "content")
+    @SubscriptionField
     private String text;
 
     @Temporal(TemporalType.TIMESTAMP)
