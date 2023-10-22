@@ -146,10 +146,17 @@ public interface ElideStandaloneSubscriptionSettings {
      * @return Web socket configuration.
      */
     default ServerEndpointConfig serverEndpointConfig(
-            ElideStandaloneSettings settings
+            ElideStandaloneSettings settings, boolean pathParameter
     ) {
+        String path = getPath();
+        if (pathParameter) {
+            if (!path.endsWith("/")) {
+                path = path + "/";
+            }
+            path += "{path}";
+        }
         return ServerEndpointConfig.Builder
-                .create(SubscriptionWebSocket.class, getPath())
+                .create(SubscriptionWebSocket.class, path)
                 .subprotocols(SubscriptionWebSocket.SUPPORTED_WEBSOCKET_SUBPROTOCOLS)
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl(getPath())

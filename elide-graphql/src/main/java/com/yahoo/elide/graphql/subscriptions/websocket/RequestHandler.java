@@ -154,17 +154,12 @@ public class RequestHandler implements Closeable {
         elide.getTransactionRegistry().addRunningTransaction(requestID, transaction);
 
         ElideSettings settings = elide.getElideSettings();
+        Route route = connectionInfo.getRoute();
 
         GraphQLProjectionInfo projectionInfo =
             new SubscriptionEntityProjectionMaker(settings,
                                 subscribeRequest.getPayload().getVariables(),
-                                connectionInfo.getApiVersion()).make(subscribeRequest.getPayload().getQuery());
-
-        Route route = Route.builder()
-                .baseUrl(connectionInfo.getBaseUrl())
-                .apiVersion(connectionInfo.getApiVersion())
-                .parameters(connectionInfo.getParameters())
-                .build();
+                                route.getApiVersion()).make(subscribeRequest.getPayload().getQuery());
 
         GraphQLRequestScope requestScope = GraphQLRequestScope.builder()
                 .route(route)

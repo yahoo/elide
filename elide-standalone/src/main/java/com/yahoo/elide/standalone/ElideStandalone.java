@@ -116,9 +116,11 @@ public class ElideStandalone {
         if (elideStandaloneSettings.enableGraphQL() && subscriptionSettings.enabled()) {
             // GraphQL subscription endpoint
             JakartaWebSocketServletContainerInitializer.configure(context, (servletContext, serverContainer) -> {
-                        serverContainer.addEndpoint(subscriptionSettings.serverEndpointConfig(elideStandaloneSettings));
+                serverContainer.addEndpoint(subscriptionSettings.serverEndpointConfig(elideStandaloneSettings, false));
             });
-
+            JakartaWebSocketServletContainerInitializer.configure(context, (servletContext, serverContainer) -> {
+                serverContainer.addEndpoint(subscriptionSettings.serverEndpointConfig(elideStandaloneSettings, true));
+            });
         }
 
         if (elideStandaloneSettings.getAsyncProperties().enableExport()) {
