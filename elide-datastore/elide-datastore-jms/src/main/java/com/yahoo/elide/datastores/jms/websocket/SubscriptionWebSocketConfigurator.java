@@ -19,17 +19,11 @@ import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.datastores.jms.JMSDataStore;
-import com.yahoo.elide.graphql.ExecutionResultDeserializer;
-import com.yahoo.elide.graphql.ExecutionResultSerializer;
-import com.yahoo.elide.graphql.GraphQLErrorDeserializer;
-import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.GraphQLSettings;
+import com.yahoo.elide.graphql.serialization.GraphQLModule;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import graphql.ExecutionResult;
-import graphql.GraphQLError;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.jms.ConnectionFactory;
@@ -188,11 +182,7 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
     }
 
     protected SubscriptionWebSocket buildWebSocket(Elide elide) {
-        elide.getObjectMapper().registerModule(new SimpleModule("ExecutionResult")
-            .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())
-            .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())
-            .addSerializer(GraphQLError.class, new GraphQLErrorSerializer())
-            .addSerializer(ExecutionResult.class, new ExecutionResultSerializer(new GraphQLErrorSerializer())));
+        elide.getObjectMapper().registerModule(new GraphQLModule());
 
         return SubscriptionWebSocket.builder()
                 .elide(elide)

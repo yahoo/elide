@@ -6,21 +6,17 @@
 
 package com.yahoo.elide.datastores.jms.websocket;
 
-import com.yahoo.elide.graphql.ExecutionResultSerializer;
-import com.yahoo.elide.graphql.GraphQLErrorSerializer;
+import com.yahoo.elide.graphql.serialization.GraphQLModule;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
-import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import graphql.ExecutionResult;
-import graphql.GraphQLError;
 import jakarta.websocket.ClientEndpoint;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.OnClose;
@@ -66,11 +62,7 @@ public class SubscriptionWebSocketTestClient {
         this.expectedNumberOfMessages = expectedNumberOfMessages;
         this.expectedNumberOfSubscribes = queries.size();
         this.mapper = new ObjectMapper();
-        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
-        SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
-        module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
-        module.addSerializer(GraphQLError.class, errorSerializer);
-        mapper.registerModule(module);
+        mapper.registerModule(new GraphQLModule());
     }
 
 

@@ -7,7 +7,7 @@ package com.yahoo.elide.graphql.models;
 
 import static graphql.Assert.assertNotNull;
 
-import com.yahoo.elide.graphql.GraphQLErrorSerializer;
+import com.yahoo.elide.graphql.serialization.GraphQLErrorSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
