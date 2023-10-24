@@ -40,7 +40,8 @@ public class EntityManagerWrapper implements Session {
     }
 
     @Override
-    public <T> T find(Class<T> entityClass, Object primaryKey) {
+    public <T> T find(String queryText, Class<T> entityClass, Object primaryKey) {
+        logger.log(String.format("Query Hash: %d\tHQL Query: %s", queryText.hashCode(), queryText));
         return entityManager.find(entityClass, primaryKey);
     }
 }

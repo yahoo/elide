@@ -10,5 +10,5 @@ package com.yahoo.elide.datastores.jpql.porting;
  */
 public interface Session {
     public Query createQuery(String queryText);
-    public <T> T find(Class<T> entityClass, Object primaryKey);
+    public <T> T find(String queryText, Class<T> entityClass, Object primaryKey);
 }

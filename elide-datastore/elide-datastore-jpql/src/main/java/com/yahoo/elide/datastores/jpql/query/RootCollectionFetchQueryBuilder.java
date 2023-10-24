@@ -53,6 +53,9 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(entityClass, entityAlias);
 
+            //Build the WHERE clause
+            String filterClause = WHERE + new FilterTranslator(dictionary).apply(filterExpression, USE_ALIAS);
+
             if (joinClause.isEmpty() && filterExpression instanceof InPredicate inPredicate
                     && entityProjection.getSorting() == null
                     && inPredicate.getField().equals(dictionary.getIdFieldName(entityClass))
@@ -64,16 +67,14 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                 // - Query hint org.hibernate.cacheable is true
                 // - scroll is not used but list
                 // @see org.hibernate.sql.results.spi.ScrollableResultsConsumer#canResultsBeCached
-                Supplier<Object> result = () -> session.find(entityClass.getUnderlyingClass().get(),
+                String queryText = SELECT + entityAlias + FROM + entityName + AS + entityAlias + filterClause;
+                Supplier<Object> result = () -> session.find(queryText, entityClass.getUnderlyingClass().get(),
                         inPredicate.getValues().get(0));
                 return new SingleResultQuery(result);
             }
 
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
             Collection<FilterPredicate> predicates = filterExpression.accept(extractor);
-
-            //Build the WHERE clause
-            String filterClause = WHERE + new FilterTranslator(dictionary).apply(filterExpression, USE_ALIAS);
 
             boolean requiresDistinct = containsOneToMany(filterExpression);
 

@@ -58,7 +58,7 @@ public abstract class JPQLIntegrationTest extends IntegrationTest {
     }
 
     private static String normalizeQuery(String query) {
-        String normalized = query.replaceAll("Query Hash: \\d+\tHQL Query: ", "");
+        String normalized = query.replaceAll("Query Hash: -?\\d+\tHQL Query: ", "");
         normalized = normalized.replaceAll(":\\w+", ":XXX");
         normalized = normalized.trim();
         normalized = normalized.replaceAll("\\s+", " ");

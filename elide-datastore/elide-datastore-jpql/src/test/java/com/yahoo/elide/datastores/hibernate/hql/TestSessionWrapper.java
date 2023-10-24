@@ -15,7 +15,7 @@ public class TestSessionWrapper implements Session {
     }
 
     @Override
-    public <T> T find(Class<T> entityClass, Object primaryKey) {
+    public <T> T find(String queryText, Class<T> entityClass, Object primaryKey) {
         return null;
     }
 }
