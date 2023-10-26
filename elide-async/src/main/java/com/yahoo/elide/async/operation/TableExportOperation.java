@@ -30,6 +30,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 /**
  * TableExport Execute Operation Interface.
@@ -95,21 +98,24 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
                 observableResults = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
             }
 
-            Observable<String> results = Observable.empty();
             TableExportFormatterContext context = formatter.createContext(projection, exportObj,
                     () -> this.recordNumber);
-            String preResult = formatter.preFormat(context);
-            results = observableResults.map(resource -> {
-                this.recordNumber++;
-                return formatter.format(context, resource);
-            });
-            String postResult = formatter.postFormat(context);
 
-            // Stitch together Pre-Formatted, Formatted, Post-Formatted results of Formatter in single observable.
-            Observable<String> interimResults = concatStringWithObservable(preResult, results, true);
-            Observable<String> finalResults = concatStringWithObservable(postResult, interimResults, false);
+            Observable<PersistentResource> results = observableResults;
+            Consumer<OutputStream> data = outputStream -> {
+                try {
+                    formatter.preFormat(context, outputStream);
+                    results.subscribe(resource -> {
+                        this.recordNumber++;
+                        formatter.format(context, resource, outputStream);
+                    });
+                    formatter.postFormat(context, outputStream);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            };
 
-            TableExportResult result = storeResults(exportObj, engine, finalResults);
+            TableExportResult result = storeResults(exportObj, engine, data);
 
             if (result != null && result.getMessage() != null) {
                 throw new IllegalStateException(result.getMessage());
@@ -200,7 +206,7 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      * @return TableExportResult object.
      */
     protected TableExportResult storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
-            Observable<String> result) {
+            Consumer<OutputStream> result) {
         return resultStorageEngine.storeResults(exportObj, result);
     }
 

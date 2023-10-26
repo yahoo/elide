@@ -19,11 +19,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 
-import io.reactivex.Observable;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.core.Response;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +56,13 @@ public class ExportApiEndpointTest {
         String queryId = "1";
         int maxDownloadTimeSeconds = 1;
         int maxDownloadTimeMilliSeconds = (int) TimeUnit.SECONDS.toMillis(maxDownloadTimeSeconds);
-        when(engine.getResultsByID(queryId)).thenReturn(Observable.just("result"));
+        when(engine.getResultsByID(queryId)).thenReturn(outputStream -> {
+            try {
+                outputStream.write("result".getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
 
         exportApiProperties = new ExportApiProperties(Executors.newFixedThreadPool(1), Duration.ofSeconds(maxDownloadTimeSeconds));
         endpoint = new ExportApiEndpoint(engine, exportApiProperties);

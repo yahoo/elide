@@ -35,6 +35,10 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import io.restassured.response.Response;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+
 /**
  * Basic functional tests to test Async service setup, JSONAPI and GRAPHQL endpoints.
  */
@@ -70,8 +74,9 @@ public class AsyncTest extends IntegrationTest {
 
         public static class MyTableExportFormatter implements TableExportFormatter {
             @Override
-            public String format(TableExportFormatterContext context, PersistentResource<?> resource) {
-                return resource.getId();
+            public void format(TableExportFormatterContext context, PersistentResource<?> resource,
+                    OutputStream outputStream) throws IOException {
+                outputStream.write(resource.getId().getBytes(StandardCharsets.UTF_8));
             }
         }
 

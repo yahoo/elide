@@ -14,6 +14,9 @@ import com.github.opendevl.JFlat;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CsvExportFormatter implements TableExportFormatter {
     private static final String COMMA = ",";
-    private static final String DOUBLE_QUOTES = "\"";
+    private static final String LINE_SEPARATOR = "\r\n"; // CRLF rfc4180
 
     private boolean writeHeader = true;
     private ObjectMapper mapper;
@@ -35,9 +38,10 @@ public class CsvExportFormatter implements TableExportFormatter {
     }
 
     @Override
-    public String format(TableExportFormatterContext context, PersistentResource resource) {
+    public void format(TableExportFormatterContext context, PersistentResource resource, OutputStream outputStream)
+            throws IOException {
         if (resource == null) {
-            return null;
+            return;
         }
 
         StringBuilder str = new StringBuilder();
@@ -65,12 +69,13 @@ public class CsvExportFormatter implements TableExportFormatter {
                 //The arrays.toString returns o/p with [ and ] at the beginning and end. So need to exclude them.
                 objString = objString.substring(1, objString.length() - 1);
                 str.append(objString);
+                str.append(LINE_SEPARATOR);
             }
         } catch (Exception e) {
             log.error("Exception while converting to CSV: {}", e.getMessage());
             throw new IllegalStateException(e);
         }
-        return str.toString();
+        outputStream.write(str.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -83,18 +88,21 @@ public class CsvExportFormatter implements TableExportFormatter {
             return "";
         }
 
-        return projection.getAttributes().stream()
+        String header = projection.getAttributes().stream()
                 .map(this::toHeader)
                 .collect(Collectors.joining(COMMA));
+        if (!"".equals(header)) {
+            return header + LINE_SEPARATOR;
+        }
+        return header;
     }
 
     @Override
-    public String preFormat(TableExportFormatterContext context) {
+    public void preFormat(TableExportFormatterContext context, OutputStream outputStream) throws IOException {
         if (context.getEntityProjection() == null || !writeHeader) {
-            return null;
+            return;
         }
-
-        return generateCSVHeader(context.getEntityProjection());
+        outputStream.write(generateCSVHeader(context.getEntityProjection()).getBytes(StandardCharsets.UTF_8));
     }
 
     private String toHeader(Attribute attribute) {

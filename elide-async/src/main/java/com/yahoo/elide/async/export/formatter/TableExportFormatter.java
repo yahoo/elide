@@ -9,6 +9,8 @@ import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.EntityProjection;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.function.Supplier;
 
 /**
@@ -25,7 +27,7 @@ public interface TableExportFormatter {
      * @param entityProjection the projection
      * @param tableExport the query
      * @param recordNumberSupplier the record number processed
-     * @return
+     * @return the context
      */
     default TableExportFormatterContext createContext(EntityProjection entityProjection, TableExport tableExport,
             Supplier<Integer> recordNumberSupplier) {
@@ -36,27 +38,26 @@ public interface TableExportFormatter {
      * Format PersistentResource.
      * @param context the TableExportFormatterContext.
      * @param resource PersistentResource to format
-     * @return output string
+     * @param outputStream to write
      */
-    String format(TableExportFormatterContext context, PersistentResource<?> resource);
+    void format(TableExportFormatterContext context, PersistentResource<?> resource, OutputStream outputStream)
+            throws IOException;
 
     /**
      * Pre Format Action.
      * Example: Generate Header, Metadata etc.
      * @param context the TableExportFormatterContext.
-     * @return output string
+     * @param outputStream to write
      */
-    default String preFormat(TableExportFormatterContext context) {
-        return null;
+    default void preFormat(TableExportFormatterContext context, OutputStream outputStream) throws IOException {
     }
 
     /**
      * Post Format Action.
      * Example: Generate Metadata, Stats etc.
      * @param context the TableExportFormatterContext.
-     * @return output string
+     * @param outputStream to write
      */
-    default String postFormat(TableExportFormatterContext context) {
-        return null;
+    default void postFormat(TableExportFormatterContext context, OutputStream outputStream) throws IOException {
     }
 }

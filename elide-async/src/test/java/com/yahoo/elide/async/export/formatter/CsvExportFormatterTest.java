@@ -6,7 +6,6 @@
 package com.yahoo.elide.async.export.formatter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -32,6 +31,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,6 +43,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Consumer;
 
 public class CsvExportFormatterTest {
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
@@ -58,6 +63,35 @@ public class CsvExportFormatterTest {
                         .build());
         elide.doScans();
         scope = mock(RequestScope.class);
+    }
+
+    public String stringValueOf(Consumer<OutputStream> sink) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            sink.accept(outputStream);
+            return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public String format(TableExportFormatter formatter, TableExportFormatterContext context, PersistentResource resource) {
+        return stringValueOf(outputStream -> {
+            try {
+                formatter.format(context, resource, outputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
+
+    public String preFormat(TableExportFormatter formatter, TableExportFormatterContext context) {
+        return stringValueOf(outputStream -> {
+            try {
+                formatter.preFormat(context, outputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
     }
 
     @Test
@@ -94,7 +128,13 @@ public class CsvExportFormatterTest {
         when(persistentResource.toResource(any(), any())).thenReturn(resource);
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource);
+        String output = stringValueOf(outputStream -> {
+            try {
+                formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource, outputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         assertTrue(output.contains(row));
     }
 
@@ -102,9 +142,8 @@ public class CsvExportFormatterTest {
     public void testNullResourceToCSV() {
         CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
         PersistentResource persistentResource = null;
-
-        String output = formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource);
-        assertNull(output);
+        String output = format(formatter, new TableExportFormatterContext(null, null, () -> 1), persistentResource);
+        assertEquals("", output);
     }
 
     @Test
@@ -116,8 +155,8 @@ public class CsvExportFormatterTest {
         // Prepare EntityProjection
         EntityProjection projection = null;
 
-        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
-        assertNull(output);
+        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        assertEquals("", output);
     }
 
     @Test
@@ -130,7 +169,7 @@ public class CsvExportFormatterTest {
         Set<Attribute> attributes = new LinkedHashSet<>();
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertEquals("", output);
     }
 
@@ -144,7 +183,7 @@ public class CsvExportFormatterTest {
         Set<Attribute> attributes = null;
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertEquals("", output);
     }
 
@@ -166,8 +205,8 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
-        assertEquals("\"query\",\"queryType\"", output);
+        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        assertEquals("\"query\",\"queryType\"\r\n", output);
     }
 
     @Test
@@ -188,8 +227,8 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
-        assertEquals("\"query\",\"queryType\"", output);
+        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        assertEquals("\"query\",\"queryType\"\r\n", output);
     }
 
     @Test
@@ -220,8 +259,8 @@ public class CsvExportFormatterTest {
                 .build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
-        assertEquals("\"query(foo=bar)\",\"queryType(foo=bar baz=boo)\"", output);
+        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        assertEquals("\"query(foo=bar)\",\"queryType(foo=bar baz=boo)\"\r\n", output);
     }
 
     @Test
@@ -242,7 +281,7 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
-        assertNull(output);
+        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        assertEquals("", output);
     }
 }

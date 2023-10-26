@@ -10,7 +10,8 @@ import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 
-import io.reactivex.Observable;
+import java.io.OutputStream;
+import java.util.function.Consumer;
 
 /**
  * Utility interface used for storing the results of AsyncQuery for downloads.
@@ -25,14 +26,14 @@ public interface ResultStorageEngine {
      * @param result is the observable result obtained by running the query
      * @return TableExportResult.
      */
-    public TableExportResult storeResults(TableExport tableExport, Observable<String> result);
+    public TableExportResult storeResults(TableExport tableExport, Consumer<OutputStream> result);
 
     /**
      * Searches for the async query results by ID and returns the record.
      * @param tableExportID is the ID of the TableExport. It may include extension too if enabled.
      * @return returns the result associated with the tableExportID
      */
-    public Observable<String> getResultsByID(String tableExportID);
+    public Consumer<OutputStream> getResultsByID(String tableExportID);
 
     /**
      * Whether the result storage engine has enabled extensions for attachments.

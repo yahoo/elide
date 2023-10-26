@@ -210,7 +210,7 @@ public class TableExportIT extends AsyncApiIT {
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"Ender's Game\"}\n"
                 + "]\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf831a"));
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf831a"));
 
     }
 
@@ -348,7 +348,7 @@ public class TableExportIT extends AsyncApiIT {
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"For Whom the Bell Tolls\"}\n"
                 + "]\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf829e"));
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf829e"));
     }
 
     /**
@@ -485,7 +485,7 @@ public class TableExportIT extends AsyncApiIT {
                 + ",{\"bookName\":\"Song of Ice and Fire\"}\n"
                 + ",{\"bookName\":\"For Whom the Bell Tolls\"}\n"
                 + "]\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab29e"));
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab29e"));
     }
 
     /**

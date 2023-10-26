@@ -10,19 +10,19 @@ import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 
-import io.reactivex.Observable;
 import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Iterator;
+import java.util.function.Consumer;
 
 /**
  * Default implementation of ResultStorageEngine that stores results on local filesystem.
@@ -46,80 +46,44 @@ public class FileResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public TableExportResult storeResults(TableExport tableExport, Observable<String> result) {
+    public TableExportResult storeResults(TableExport tableExport, Consumer<OutputStream> result) {
         log.debug("store TableExportResults for Download");
         String extension = resultTypeFileExtensionMapper != null
                 ? resultTypeFileExtensionMapper.getFileExtension(tableExport.getResultType())
                 : "";
-
        TableExportResult exportResult = new TableExportResult();
-        try (BufferedWriter writer = getWriter(tableExport.getId(), extension)) {
-            result
-                .map(record -> record.concat(System.lineSeparator()))
-                .subscribe(
-                        recordCharArray -> {
-                            writer.write(recordCharArray);
-                            writer.flush();
-                        },
-                        throwable -> {
-                            StringBuilder message = new StringBuilder();
-                            message.append(throwable.getClass().getCanonicalName()).append(" : ");
-                            message.append(throwable.getMessage());
-                            exportResult.setMessage(message.toString());
-
-                            throw new IllegalStateException(STORE_ERROR, throwable);
-                        },
-                        writer::flush
-                );
-        } catch (IOException e) {
-            throw new IllegalStateException(STORE_ERROR, e);
-        }
-
-        return exportResult;
+       try (OutputStream writer = newOutputStream(tableExport.getId(), extension)) {
+           result.accept(writer);
+       } catch (IOException e) {
+           throw new IllegalStateException(STORE_ERROR, e);
+       }
+       return exportResult;
     }
 
     @Override
-    public Observable<String> getResultsByID(String tableExportID) {
+    public Consumer<OutputStream> getResultsByID(String tableExportID) {
         log.debug("getTableExportResultsByID");
-
-        return Observable.using(
-                () -> getReader(tableExportID),
-                reader -> Observable.fromIterable(() -> new Iterator<String>() {
-                    private String record = null;
-
-                    @Override
-                    public boolean hasNext() {
-                        try {
-                            record = reader.readLine();
-                            return record != null;
-                        } catch (IOException e) {
-                            throw new IllegalStateException(RETRIEVE_ERROR, e);
-                        }
-                    }
-
-                    @Override
-                    public String next() {
-                        if (record != null) {
-                            return record;
-                        }
-                        throw new IllegalStateException("null line found.");
-                    }
-                }),
-                BufferedReader::close);
+        return outputStream -> {
+            try {
+                newInputStream(tableExportID).transferTo(outputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        };
     }
 
-    private BufferedReader getReader(String tableExportID) {
+    private InputStream newInputStream(String tableExportID) {
         try {
-            return Files.newBufferedReader(Paths.get(basePath + File.separator + tableExportID));
+            return Files.newInputStream(Paths.get(basePath + File.separator + tableExportID));
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new IllegalStateException(RETRIEVE_ERROR, e);
         }
     }
 
-    private BufferedWriter getWriter(String tableExportID, String extension) {
+    private OutputStream newOutputStream(String tableExportID, String extension) {
         try {
-            return Files.newBufferedWriter(Paths.get(basePath + File.separator + tableExportID + extension));
+            return Files.newOutputStream(Paths.get(basePath + File.separator + tableExportID + extension));
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new IllegalStateException(STORE_ERROR, e);

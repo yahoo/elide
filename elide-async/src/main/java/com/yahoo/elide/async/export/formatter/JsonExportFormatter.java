@@ -15,6 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,9 +36,10 @@ public class JsonExportFormatter implements TableExportFormatter {
     }
 
     @Override
-    public String format(TableExportFormatterContext context, PersistentResource<?> resource) {
+    public void format(TableExportFormatterContext context, PersistentResource<?> resource, OutputStream outputStream)
+            throws IOException {
         if (resource == null) {
-            return null;
+            return;
         }
 
         StringBuilder str = new StringBuilder();
@@ -45,7 +49,8 @@ public class JsonExportFormatter implements TableExportFormatter {
         }
 
         str.append(resourceToJSON(mapper, resource));
-        return str.toString();
+        str.append('\n');
+        outputStream.write(str.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     public static String resourceToJSON(ObjectMapper mapper, PersistentResource<?> resource) {
@@ -82,12 +87,12 @@ public class JsonExportFormatter implements TableExportFormatter {
     }
 
     @Override
-    public String preFormat(TableExportFormatterContext context) {
-        return "[";
+    public void preFormat(TableExportFormatterContext context, OutputStream outputStream) throws IOException {
+        outputStream.write("[\n".getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    public String postFormat(TableExportFormatterContext context) {
-        return "]";
+    public void postFormat(TableExportFormatterContext context, OutputStream outputStream) throws IOException {
+        outputStream.write("]\n".getBytes(StandardCharsets.UTF_8));
     }
 }

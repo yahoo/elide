@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -30,6 +30,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -37,6 +42,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Consumer;
 
 public class JsonExportFormatterTest {
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
@@ -56,6 +62,35 @@ public class JsonExportFormatterTest {
                         .build());
         elide.doScans();
         scope = mock(RequestScope.class);
+    }
+
+    public String stringValueOf(Consumer<OutputStream> sink) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            sink.accept(outputStream);
+            return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public String format(TableExportFormatter formatter, TableExportFormatterContext context, PersistentResource resource) {
+        return stringValueOf(outputStream -> {
+            try {
+                formatter.format(context, resource, outputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
+
+    public String preFormat(TableExportFormatter formatter, TableExportFormatterContext context) {
+        return stringValueOf(outputStream -> {
+            try {
+                formatter.preFormat(context, outputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
     }
 
     @Test
@@ -91,7 +126,7 @@ public class JsonExportFormatterTest {
         when(persistentResource.toResource(any(), any())).thenReturn(resource);
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource);
+        String output = format(formatter, new TableExportFormatterContext(null, null, () -> 1), persistentResource);
         assertTrue(output.contains(start));
     }
 
@@ -131,7 +166,7 @@ public class JsonExportFormatterTest {
         JsonExportFormatter formatter = new JsonExportFormatter(elide);
         PersistentResource persistentResource = null;
 
-        String output = formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource);
-        assertNull(output);
+        String output = format(formatter, new TableExportFormatterContext(null, null, () -> 1), persistentResource);
+        assertEquals("", output);
     }
 }
