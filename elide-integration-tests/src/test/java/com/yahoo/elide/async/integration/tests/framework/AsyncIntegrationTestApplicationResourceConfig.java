@@ -135,10 +135,10 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 // Create ResultStorageEngine
                 Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
                 if (storageDestination != null) { // TableExport is enabled
-                    ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString(), false);
+                    ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString(), null);
                     bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
-                    Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
+                    Map<String, TableExportFormatter> supportedFormatters = new HashMap<>();
                     supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide, true));
                     supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
 

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.DefaultResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.models.ArtifactGroup;
 import com.yahoo.elide.async.models.QueryType;
@@ -82,7 +83,7 @@ public class JsonApiTableExportOperationTest {
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
-        engine = new FileResultStorageEngine(tempDir.toString(), true);
+        engine = new FileResultStorageEngine(tempDir.toString(), new DefaultResultTypeFileExtensionMapper());
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).baseUrl("https://elide.io").build());
         when(requestScope.getUser()).thenReturn(user);

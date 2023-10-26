@@ -8,6 +8,7 @@ package com.yahoo.elide.async.service.storageengine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.models.TableExport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +35,7 @@ public class RedisResultStorageEngineTest {
     private static final int PORT = 6379;
     private static final int EXPIRATION_SECONDS = 120;
     private static final int BATCH_SIZE = 2;
-    private static final boolean EXTENSION_SUPPORT = false;
+    private static final ResultTypeFileExtensionMapper EXTENSION_SUPPORT = null;
     private JedisPooled jedisPool;
     private RedisServer redisServer;
     RedisResultStorageEngine engine;

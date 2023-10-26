@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  * Use the static factory {@link #builder()} method to prepare an instance.
  *
  */
-public class TableExportFormatters extends LinkedHashMap<ResultType, TableExportFormatter> {
+public class TableExportFormatters extends LinkedHashMap<String, TableExportFormatter> {
 
     private static final long serialVersionUID = 1L;
 
@@ -58,16 +58,16 @@ public class TableExportFormatters extends LinkedHashMap<ResultType, TableExport
     }
 
     public abstract static class TableExportFormattersBuilderSupport<S> {
-        protected Map<ResultType, TableExportFormatter> entries = new LinkedHashMap<>();
+        protected Map<String, TableExportFormatter> entries = new LinkedHashMap<>();
 
         public abstract S self();
 
-        public S entries(Consumer<Map<ResultType, TableExportFormatter>> entries) {
+        public S entries(Consumer<Map<String, TableExportFormatter>> entries) {
             entries.accept(this.entries);
             return self();
         }
 
-        public S entry(ResultType key, TableExportFormatter value) {
+        public S entry(String key, TableExportFormatter value) {
             this.entries.put(key, value);
             return self();
         }

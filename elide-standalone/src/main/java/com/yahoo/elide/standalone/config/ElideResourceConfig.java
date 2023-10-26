@@ -16,7 +16,6 @@ import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
@@ -168,7 +167,8 @@ public class ElideResourceConfig extends ResourceConfig {
                 ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                 if (resultStorageEngine == null) {
                     resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination(),
-                            asyncProperties.appendFileExtension());
+                            asyncProperties.appendFileExtension() ? asyncProperties.getResultTypeFileExtensionMapper()
+                                    : null);
                 }
                 bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
@@ -305,7 +305,7 @@ public class ElideResourceConfig extends ResourceConfig {
     }
 
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
-            ElideStandaloneAsyncSettings asyncProperties, Map<ResultType, TableExportFormatter> supportedFormatters,
+            ElideStandaloneAsyncSettings asyncProperties, Map<String, TableExportFormatter> supportedFormatters,
             ResultStorageEngine engine) {
         return new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
                     supportedFormatters, engine);

@@ -13,7 +13,6 @@ import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
 import com.yahoo.elide.async.export.validator.Validator;
 import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncApiResult;
-import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -187,9 +186,9 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
                 baseURL = baseURL.substring(0, baseURL.length() - graphqlApiPath.length());
             }
         }
-        String extension = this.engine.isExtensionEnabled()
-                ? exportObj.getResultType().getFileExtensionType().getExtension()
-                : FileExtensionType.NONE.getExtension();
+        String extension = this.engine.getResultTypeFileExtensionMapper() != null
+                ? this.engine.getResultTypeFileExtensionMapper().getFileExtension(exportObj.getResultType())
+                : "";
         return baseURL + downloadPath + "/" + exportObj.getId() + extension;
     }
 

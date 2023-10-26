@@ -72,7 +72,6 @@ public class TableExportIT extends AsyncApiIT {
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String queryType;
         private Integer asyncAfterSeconds;
-        @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String resultType;
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String status;
@@ -578,7 +577,7 @@ public class TableExportIT extends AsyncApiIT {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body(containsString("errors"))
-                .body(containsString("Validation error (WrongType@[tableExport]) : argument &#39;data.resultType&#39;"));
+                .body(containsString("Formatter unavailable for XLS"));
     }
 
     /**

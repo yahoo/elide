@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 
@@ -35,7 +36,7 @@ public interface ResultStorageEngine {
 
     /**
      * Whether the result storage engine has enabled extensions for attachments.
-     * @return returns whether the file extensions are enabled
+     * @return the mapping for result type to file extension
      */
-    public boolean isExtensionEnabled();
+    public ResultTypeFileExtensionMapper getResultTypeFileExtensionMapper();
 }

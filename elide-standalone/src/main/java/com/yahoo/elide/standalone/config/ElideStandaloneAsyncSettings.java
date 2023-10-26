@@ -6,6 +6,8 @@
 package com.yahoo.elide.standalone.config;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.DefaultResultTypeFileExtensionMapper;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatters;
@@ -181,5 +183,13 @@ public interface ElideStandaloneAsyncSettings {
         builder.entry(ResultType.CSV, new CsvExportFormatter(elide, csvWriteHeader()));
         builder.entry(ResultType.JSON, new JsonExportFormatter(elide));
         return builder;
+    }
+
+    /**
+     * Configure the mapping of result type file extension.
+     * @return the ResultTypeFileExtensionMapper
+     */
+    default ResultTypeFileExtensionMapper getResultTypeFileExtensionMapper() {
+        return new DefaultResultTypeFileExtensionMapper();
     }
 }

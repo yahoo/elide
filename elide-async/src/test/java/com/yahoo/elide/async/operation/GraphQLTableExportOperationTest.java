@@ -81,7 +81,7 @@ public class GraphQLTableExportOperationTest {
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
-        engine = new FileResultStorageEngine(tempDir.toString(), false);
+        engine = new FileResultStorageEngine(tempDir.toString(), null);
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).baseUrl("https://elide.io").build());
         when(requestScope.getUser()).thenReturn(user);

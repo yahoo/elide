@@ -69,7 +69,7 @@ public class FileResultStorageEngineTest {
     }
 
     private String readResultsFile(String path, String queryId) {
-        FileResultStorageEngine engine = new FileResultStorageEngine(path, false);
+        FileResultStorageEngine engine = new FileResultStorageEngine(path, null);
 
         return engine.getResultsByID(queryId).collect(() -> new StringBuilder(),
                 (resultBuilder, tempResult) -> {
@@ -82,7 +82,7 @@ public class FileResultStorageEngineTest {
     }
 
     private void storeResultsFile(String path, String queryId, Observable<String> storable) {
-        FileResultStorageEngine engine = new FileResultStorageEngine(path, false);
+        FileResultStorageEngine engine = new FileResultStorageEngine(path, null);
         TableExport query = new TableExport();
         query.setId(queryId);
 

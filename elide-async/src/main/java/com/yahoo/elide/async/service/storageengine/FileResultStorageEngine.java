@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
-import com.yahoo.elide.async.models.FileExtensionType;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 
@@ -33,24 +33,24 @@ import java.util.Iterator;
 @Getter
 public class FileResultStorageEngine implements ResultStorageEngine {
     @Setter private String basePath;
-    @Setter private boolean enableExtension;
+    @Setter private ResultTypeFileExtensionMapper resultTypeFileExtensionMapper;
 
     /**
      * Constructor.
      * @param basePath basePath for storing the files. Can be absolute or relative.
-     * @param enableExtension Enable file extensions.
+     * @param resultTypeFileExtensionMapper Enable file extensions.
      */
-    public FileResultStorageEngine(String basePath, boolean enableExtension) {
+    public FileResultStorageEngine(String basePath, ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
         this.basePath = basePath;
-        this.enableExtension = enableExtension;
+        this.resultTypeFileExtensionMapper = resultTypeFileExtensionMapper;
     }
 
     @Override
     public TableExportResult storeResults(TableExport tableExport, Observable<String> result) {
         log.debug("store TableExportResults for Download");
-        String extension = this.isExtensionEnabled()
-                ? tableExport.getResultType().getFileExtensionType().getExtension()
-                : FileExtensionType.NONE.getExtension();
+        String extension = resultTypeFileExtensionMapper != null
+                ? resultTypeFileExtensionMapper.getFileExtension(tableExport.getResultType())
+                : "";
 
        TableExportResult exportResult = new TableExportResult();
         try (BufferedWriter writer = getWriter(tableExport.getId(), extension)) {
@@ -127,7 +127,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public boolean isExtensionEnabled() {
-        return this.enableExtension;
+    public ResultTypeFileExtensionMapper getResultTypeFileExtensionMapper() {
+        return this.resultTypeFileExtensionMapper;
     }
 }

@@ -18,9 +18,17 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.async.DefaultResultTypeFileExtensionMapper;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
+import com.yahoo.elide.async.export.formatter.TableExportFormatter;
+import com.yahoo.elide.async.export.formatter.TableExportFormatterContext;
+import com.yahoo.elide.async.export.formatter.TableExportFormattersBuilderCustomizer;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -46,6 +54,114 @@ import io.restassured.response.Response;
                     + "\t\t(1, 'IND');"
 })
 public class AsyncTest extends IntegrationTest {
+    @TestConfiguration
+    public static class TableExportFormatterConfiguration {
+        public static class MyResultTypeFileExtensionMapper extends DefaultResultTypeFileExtensionMapper {
+            @Override
+            public String getFileExtension(String resultType) {
+                switch (resultType) {
+                case "XLSX":
+                    return ".xlsx";
+                default:
+                    return super.getFileExtension(resultType);
+                }
+            }
+        }
+
+        public static class MyTableExportFormatter implements TableExportFormatter {
+            @Override
+            public String format(TableExportFormatterContext context, PersistentResource<?> resource) {
+                return resource.getId();
+            }
+        }
+
+        @Bean
+        public TableExportFormattersBuilderCustomizer customTableExportFormatter() {
+            return builder -> builder.entry("XLSX", new MyTableExportFormatter());
+        }
+
+        @Bean
+        public ResultTypeFileExtensionMapper resultTypeFileExtensionMapper() {
+            return new MyResultTypeFileExtensionMapper();
+        }
+    }
+
+    @Test
+    public void testExportJsonApiCustom() throws InterruptedException {
+        //Create Table Export
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("tableExport"),
+                                        id("011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac"),
+                                        attributes(
+                                                attr("query", "/group?fields%5Bgroup%5D=deprecated,commonName,description"),
+                                                attr("queryType", "JSONAPI_V1_0"),
+                                                attr("status", "QUEUED"),
+                                                attr("asyncAfterSeconds", "10"),
+                                                attr("resultType", "XLSX")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/json/tableExport")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED);
+
+        int i = 0;
+        while (i < 1000) {
+            Thread.sleep(10);
+            Response response = given()
+                    .accept("application/vnd.api+json")
+                    .get("/json/tableExport/011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac");
+
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
+             //If Async Query is created and completed then validate results
+            if (outputResponse.equals("COMPLETE")) {
+
+                // Validate AsyncQuery Response
+                response
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .body("data.id", equalTo("011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac"))
+                        .body("data.type", equalTo("tableExport"))
+                        .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                        .body("data.attributes.status", equalTo("COMPLETE"))
+                        .body("data.attributes.result.message", equalTo(null))
+                        .body("data.attributes.result.url",
+                                equalTo("https://elide.io" + "/export/011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac.xlsx"));
+
+                // Validate GraphQL Response
+                String responseGraphQL = given()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .body("{\"query\":\"{ tableExport(ids: [\\\"011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac\\\"]) "
+                                + "{ edges { node { id queryType status resultType result "
+                                + "{ url httpStatus recordCount } } } } }\","
+                                + "\"variables\":null }")
+                        .post("/graphql")
+                        .asString();
+
+                String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac\","
+                        + "\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"XLSX\","
+                        + "\"result\":{\"url\":\"https://elide.io/export/011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac.xlsx\",\"httpStatus\":200,\"recordCount\":1}}}]}}}";
+
+                assertEquals(expectedResponse, responseGraphQL);
+                break;
+            }
+            assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
+        }
+        String expected = "com.example.repository";
+        String response = when()
+                .get("/export/011f99aa-cc41-4c5b-bbb0-d3478aa9d8ac.xlsx")
+                .asString();
+        assertEquals(expected.replaceAll("\r", "").replaceAll("\n", ""),
+                response.replaceAll("\r", "").replaceAll("\n", ""));
+    }
+
 
     @Test
     public void testAsyncApiEndpointOrdered() throws InterruptedException {

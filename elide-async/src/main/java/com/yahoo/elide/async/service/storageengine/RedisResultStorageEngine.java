@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
-import com.yahoo.elide.async.models.FileExtensionType;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 
@@ -28,21 +28,21 @@ import java.util.Iterator;
 @Getter
 public class RedisResultStorageEngine implements ResultStorageEngine {
     @Setter private UnifiedJedis jedis;
-    @Setter private boolean enableExtension;
+    @Setter private ResultTypeFileExtensionMapper resultTypeFileExtensionMapper;
     @Setter private long expirationSeconds;
     @Setter private long batchSize;
 
     /**
      * Constructor.
      * @param jedis Jedis Connection Pool to Redis clusteer.
-     * @param enableExtension Enable file extensions.
+     * @param resultTypeFileExtensionMapper Enable file extensions.
      * @param expirationSeconds Expiration Time for results on Redis.
      * @param batchSize Batch Size for retrieving from Redis.
      */
-    public RedisResultStorageEngine(UnifiedJedis jedis, boolean enableExtension, long expirationSeconds,
-            long batchSize) {
+    public RedisResultStorageEngine(UnifiedJedis jedis, ResultTypeFileExtensionMapper resultTypeFileExtensionMapper,
+            long expirationSeconds, long batchSize) {
         this.jedis = jedis;
-        this.enableExtension = enableExtension;
+        this.resultTypeFileExtensionMapper = resultTypeFileExtensionMapper;
         this.expirationSeconds = expirationSeconds;
         this.batchSize = batchSize;
     }
@@ -50,9 +50,9 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
     @Override
     public TableExportResult storeResults(TableExport tableExport, Observable<String> result) {
         log.debug("store TableExportResults for Download");
-        String extension = this.isExtensionEnabled()
-                ? tableExport.getResultType().getFileExtensionType().getExtension()
-                : FileExtensionType.NONE.getExtension();
+        String extension = resultTypeFileExtensionMapper != null
+                ? resultTypeFileExtensionMapper.getFileExtension(tableExport.getResultType())
+                : "";
 
         TableExportResult exportResult = new TableExportResult();
         String key = tableExport.getId() + extension;
@@ -120,7 +120,7 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public boolean isExtensionEnabled() {
-        return this.enableExtension;
+    public ResultTypeFileExtensionMapper getResultTypeFileExtensionMapper() {
+        return this.resultTypeFileExtensionMapper;
     }
 }

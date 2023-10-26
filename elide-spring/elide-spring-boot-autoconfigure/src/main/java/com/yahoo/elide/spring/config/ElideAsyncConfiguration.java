@@ -12,6 +12,8 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 import com.yahoo.elide.RefreshableElide;
+import com.yahoo.elide.async.DefaultResultTypeFileExtensionMapper;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
@@ -43,7 +45,6 @@ import org.springframework.context.annotation.Scope;
 
 import graphql.execution.DataFetcherExceptionHandler;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -82,9 +83,8 @@ public class ElideAsyncConfiguration {
         // Initialize the Formatters.
         boolean writeCSVHeader = asyncProperties.getExport() != null
                 && asyncProperties.getExport().getFormat().getCsv().isWriteHeader();
-        Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-        supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide.getElide(), writeCSVHeader));
-        supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide.getElide()));
+        builder.entry(ResultType.CSV, new CsvExportFormatter(elide.getElide(), writeCSVHeader));
+        builder.entry(ResultType.JSON, new JsonExportFormatter(elide.getElide()));
         customizerProvider.orderedStream().forEach(customizer -> customizer.customize(builder));
         return builder;
     }
@@ -140,7 +140,7 @@ public class ElideAsyncConfiguration {
     }
 
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
-            ElideConfigProperties settings, Map<ResultType, TableExportFormatter> supportedFormatters,
+            ElideConfigProperties settings, Map<String, TableExportFormatter> supportedFormatters,
             ResultStorageEngine resultStorageEngine) {
         return new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfter(), supportedFormatters,
                 resultStorageEngine);
@@ -184,9 +184,21 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
-    public ResultStorageEngine resultStorageEngine(ElideConfigProperties settings) {
-        FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(settings.getAsync().getExport()
-                .getStorageDestination(), settings.getAsync().getExport().isAppendFileExtension());
+    public ResultStorageEngine resultStorageEngine(ElideConfigProperties settings,
+            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
+        FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(
+                settings.getAsync().getExport().getStorageDestination(),
+                settings.getAsync().getExport().isAppendFileExtension() ? resultTypeFileExtensionMapper : null);
         return resultStorageEngine;
+    }
+
+    /**
+     * Configure the mapping of result type file extension.
+     * @return the ResultTypeFileExtensionMapper
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ResultTypeFileExtensionMapper resultTypeFileExtensionMapper() {
+        return new DefaultResultTypeFileExtensionMapper();
     }
 }
