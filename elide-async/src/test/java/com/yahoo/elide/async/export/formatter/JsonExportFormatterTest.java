@@ -91,7 +91,7 @@ public class JsonExportFormatterTest {
         when(persistentResource.toResource(any(), any())).thenReturn(resource);
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = formatter.format(persistentResource, 1);
+        String output = formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource);
         assertTrue(output.contains(start));
     }
 
@@ -131,7 +131,7 @@ public class JsonExportFormatterTest {
         JsonExportFormatter formatter = new JsonExportFormatter(elide);
         PersistentResource persistentResource = null;
 
-        String output = formatter.format(persistentResource, 1);
+        String output = formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource);
         assertNull(output);
     }
 }

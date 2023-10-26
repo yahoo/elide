@@ -6,10 +6,8 @@
 package com.yahoo.elide.async.export.formatter;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.Attribute;
-import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,13 +33,13 @@ public class JsonExportFormatter implements TableExportFormatter {
     }
 
     @Override
-    public String format(PersistentResource resource, Integer recordNumber) {
+    public String format(TableExportFormatterContext context, PersistentResource<?> resource) {
         if (resource == null) {
             return null;
         }
 
         StringBuilder str = new StringBuilder();
-        if (recordNumber > 1) {
+        if (context.getRecordNumber() > 1) {
             // Add "," to separate individual json rows within the array
             str.append(COMMA);
         }
@@ -50,7 +48,7 @@ public class JsonExportFormatter implements TableExportFormatter {
         return str.toString();
     }
 
-    public static String resourceToJSON(ObjectMapper mapper, PersistentResource resource) {
+    public static String resourceToJSON(ObjectMapper mapper, PersistentResource<?> resource) {
         if (resource == null || resource.getObject() == null) {
             return null;
         }
@@ -67,7 +65,7 @@ public class JsonExportFormatter implements TableExportFormatter {
         return str.toString();
     }
 
-    private static Map<String, Object> getAttributes(PersistentResource resource) {
+    private static Map<String, Object> getAttributes(PersistentResource<?> resource) {
         final Map<String, Object> attributes = new LinkedHashMap<>();
         final Set<Attribute> attrFields = resource.getRequestScope().getEntityProjection().getAttributes();
 
@@ -79,17 +77,17 @@ public class JsonExportFormatter implements TableExportFormatter {
         return attributes;
     }
 
-    private static Map<String, Object> getRelationships(PersistentResource resource) {
+    private static <K, V> Map<K, V> getRelationships(PersistentResource<?> resource) {
         return Collections.emptyMap();
     }
 
     @Override
-    public String preFormat(EntityProjection projection, TableExport query) {
+    public String preFormat(TableExportFormatterContext context) {
         return "[";
     }
 
     @Override
-    public String postFormat(EntityProjection projection, TableExport query) {
+    public String postFormat(TableExportFormatterContext context) {
         return "]";
     }
 }

@@ -8,6 +8,7 @@ package com.yahoo.elide.async.operation;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
+import com.yahoo.elide.async.export.formatter.TableExportFormatterContext;
 import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
 import com.yahoo.elide.async.export.validator.Validator;
 import com.yahoo.elide.async.models.AsyncApi;
@@ -96,12 +97,14 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
             }
 
             Observable<String> results = Observable.empty();
-            String preResult = formatter.preFormat(projection, exportObj);
+            TableExportFormatterContext context = formatter.createContext(projection, exportObj,
+                    () -> this.recordNumber);
+            String preResult = formatter.preFormat(context);
             results = observableResults.map(resource -> {
                 this.recordNumber++;
-                return formatter.format(resource, recordNumber);
+                return formatter.format(context, resource);
             });
-            String postResult = formatter.postFormat(projection, exportObj);
+            String postResult = formatter.postFormat(context);
 
             // Stitch together Pre-Formatted, Formatted, Post-Formatted results of Formatter in single observable.
             Observable<String> interimResults = concatStringWithObservable(preResult, results, true);

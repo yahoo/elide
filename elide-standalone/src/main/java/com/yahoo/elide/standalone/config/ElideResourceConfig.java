@@ -12,8 +12,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
-import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
@@ -57,7 +55,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -175,15 +172,10 @@ public class ElideResourceConfig extends ResourceConfig {
                 }
                 bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
-                // Initialize the Formatters.
-                Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-                supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide,
-                        asyncProperties.csvWriteHeader()));
-                supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
-
                 // Binding TableExport LifeCycleHook
                 TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
-                        asyncProperties, supportedFormatters, resultStorageEngine);
+                        asyncProperties, asyncProperties.getTableExportFormattersBuilder(elide).build(),
+                        resultStorageEngine);
                 dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
                 dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                 dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);

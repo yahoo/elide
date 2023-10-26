@@ -94,7 +94,7 @@ public class CsvExportFormatterTest {
         when(persistentResource.toResource(any(), any())).thenReturn(resource);
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = formatter.format(persistentResource, 1);
+        String output = formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource);
         assertTrue(output.contains(row));
     }
 
@@ -103,7 +103,7 @@ public class CsvExportFormatterTest {
         CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
         PersistentResource persistentResource = null;
 
-        String output = formatter.format(persistentResource, 1);
+        String output = formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource);
         assertNull(output);
     }
 
@@ -116,7 +116,7 @@ public class CsvExportFormatterTest {
         // Prepare EntityProjection
         EntityProjection projection = null;
 
-        String output = formatter.preFormat(projection, queryObj);
+        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertNull(output);
     }
 
@@ -130,7 +130,7 @@ public class CsvExportFormatterTest {
         Set<Attribute> attributes = new LinkedHashSet<>();
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(projection, queryObj);
+        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertEquals("", output);
     }
 
@@ -144,7 +144,7 @@ public class CsvExportFormatterTest {
         Set<Attribute> attributes = null;
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(projection, queryObj);
+        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertEquals("", output);
     }
 
@@ -166,7 +166,7 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(projection, queryObj);
+        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertEquals("\"query\",\"queryType\"", output);
     }
 
@@ -188,7 +188,7 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(projection, queryObj);
+        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertEquals("\"query\",\"queryType\"", output);
     }
 
@@ -220,7 +220,7 @@ public class CsvExportFormatterTest {
                 .build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(projection, queryObj);
+        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertEquals("\"query(foo=bar)\",\"queryType(foo=bar baz=boo)\"", output);
     }
 
@@ -242,7 +242,7 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = formatter.preFormat(projection, queryObj);
+        String output = formatter.preFormat(new TableExportFormatterContext(projection, queryObj, () -> 0));
         assertNull(output);
     }
 }

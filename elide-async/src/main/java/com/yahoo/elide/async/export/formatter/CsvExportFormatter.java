@@ -6,7 +6,6 @@
 package com.yahoo.elide.async.export.formatter;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -36,7 +35,7 @@ public class CsvExportFormatter implements TableExportFormatter {
     }
 
     @Override
-    public String format(PersistentResource resource, Integer recordNumber) {
+    public String format(TableExportFormatterContext context, PersistentResource resource) {
         if (resource == null) {
             return null;
         }
@@ -90,17 +89,12 @@ public class CsvExportFormatter implements TableExportFormatter {
     }
 
     @Override
-    public String preFormat(EntityProjection projection, TableExport query) {
-        if (projection == null || !writeHeader) {
+    public String preFormat(TableExportFormatterContext context) {
+        if (context.getEntityProjection() == null || !writeHeader) {
             return null;
         }
 
-        return generateCSVHeader(projection);
-    }
-
-    @Override
-    public String postFormat(EntityProjection projection, TableExport query) {
-        return null;
+        return generateCSVHeader(context.getEntityProjection());
     }
 
     private String toHeader(Attribute attribute) {

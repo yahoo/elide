@@ -9,34 +9,54 @@ import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.EntityProjection;
 
+import java.util.function.Supplier;
+
 /**
  * Interface which is used to format PersistentResource to output format.
  */
 public interface TableExportFormatter {
 
     /**
+     * Creates context for storing state during the table export.
+     * <p>
+     * The context can be sub-classed to store additional state needed by the table
+     * export formatter during processing.
+     *
+     * @param entityProjection the projection
+     * @param tableExport the query
+     * @param recordNumberSupplier the record number processed
+     * @return
+     */
+    default TableExportFormatterContext createContext(EntityProjection entityProjection, TableExport tableExport,
+            Supplier<Integer> recordNumberSupplier) {
+        return new TableExportFormatterContext(entityProjection, tableExport, recordNumberSupplier);
+    }
+
+    /**
      * Format PersistentResource.
+     * @param context the TableExportFormatterContext.
      * @param resource PersistentResource to format
-     * @param recordNumber Record Number being processed.
      * @return output string
      */
-    public String format(PersistentResource resource, Integer recordNumber);
+    String format(TableExportFormatterContext context, PersistentResource<?> resource);
 
     /**
      * Pre Format Action.
      * Example: Generate Header, Metadata etc.
-     * @param projection Entity projection.
-     * @param query TableExport type object.
+     * @param context the TableExportFormatterContext.
      * @return output string
      */
-    public String preFormat(EntityProjection projection, TableExport query);
+    default String preFormat(TableExportFormatterContext context) {
+        return null;
+    }
 
     /**
      * Post Format Action.
      * Example: Generate Metadata, Stats etc.
-     * @param projection Entity projection.
-     * @param query TableExport type object.
+     * @param context the TableExportFormatterContext.
      * @return output string
      */
-    public String postFormat(EntityProjection projection, TableExport query);
+    default String postFormat(TableExportFormatterContext context) {
+        return null;
+    }
 }
