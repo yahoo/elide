@@ -28,14 +28,13 @@ import java.util.Set;
  * {@link ResourceWriter} that writes in JSON format.
  */
 @Slf4j
-public class JsonResourceWriter implements ResourceWriter {
+public class JsonResourceWriter extends ResourceWriterSupport {
     private static final String COMMA = ",";
     private final ObjectMapper objectMapper;
-    private final OutputStream outputStream;
     private int recordCount = 0;
 
     public JsonResourceWriter(OutputStream outputStream, ObjectMapper objectMapper) {
-        this.outputStream = outputStream;
+        super(outputStream);
         this.objectMapper = objectMapper;
     }
 
@@ -45,6 +44,7 @@ public class JsonResourceWriter implements ResourceWriter {
            preFormat(this.outputStream);
         }
         recordCount++;
+        format(resource, this.outputStream);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class JsonResourceWriter implements ResourceWriter {
 
         str.append(resourceToJSON(objectMapper, resource));
         str.append('\n');
-        outputStream.write(str.toString().getBytes(StandardCharsets.UTF_8));
+        write(str.toString());
     }
 
     public static String resourceToJSON(ObjectMapper mapper, PersistentResource<?> resource) {

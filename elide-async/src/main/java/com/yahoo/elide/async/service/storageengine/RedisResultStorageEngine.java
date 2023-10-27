@@ -17,6 +17,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.UnifiedJedis;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
@@ -31,6 +32,7 @@ import java.util.function.Consumer;
 @Slf4j
 @Getter
 public class RedisResultStorageEngine implements ResultStorageEngine {
+    private static final int DEFAULT_BUFFER_SIZE = 8192;
     @Setter
     private UnifiedJedis jedis;
     @Setter
@@ -39,6 +41,8 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
     private long expirationSeconds;
     @Setter
     private long batchSize;
+    @Setter
+    private int bufferSize = DEFAULT_BUFFER_SIZE;
 
     /**
      * Constructor.
@@ -65,21 +69,37 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
 
         TableExportResult exportResult = new TableExportResult();
         String key = tableExport.getId() + extension;
-        ByteSinkOutputStream byteSinkOutputStream = new ByteSinkOutputStream(data -> {
-            jedis.rpush(key.getBytes(StandardCharsets.UTF_8), data);
-        });
-        try {
-            result.accept(byteSinkOutputStream);
+        try (OutputStream outputStream = newBufferedOutputStream(key, bufferSize)) {
+            result.accept(outputStream);
+        } catch (IOException e) {
+            setMessage(exportResult, e);
+            throw new UncheckedIOException(STORE_ERROR, e);
+        } catch (UncheckedIOException e) {
+            setMessage(exportResult, e);
+            throw e;
         } catch (RuntimeException e) {
-            StringBuilder message = new StringBuilder();
-            message.append(e.getClass().getCanonicalName()).append(" : ");
-            message.append(e.getMessage());
-            exportResult.setMessage(message.toString());
-
-            throw new IllegalStateException(STORE_ERROR, e);
+            setMessage(exportResult, e);
+            throw new UncheckedIOException(STORE_ERROR, new IOException(e));
         }
         jedis.expire(key, expirationSeconds);
         return exportResult;
+    }
+
+    protected void setMessage(TableExportResult exportResult, Exception e) {
+        StringBuilder message = new StringBuilder();
+        message.append(e.getClass().getCanonicalName()).append(" : ");
+        message.append(e.getMessage());
+        exportResult.setMessage(message.toString());
+    }
+
+    protected OutputStream newBufferedOutputStream(String key, int size) {
+        return new BufferedOutputStream(newOutputStream(key), size);
+    }
+
+    protected OutputStream newOutputStream(String key) {
+        return new RedisOutputStream(data -> {
+            jedis.rpush(key.getBytes(StandardCharsets.UTF_8), data);
+        }, () -> jedis.rpush(key.getBytes(StandardCharsets.UTF_8), new byte[] {}));
     }
 
     @Override
@@ -116,5 +136,41 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
     @Override
     public ResultTypeFileExtensionMapper getResultTypeFileExtensionMapper() {
         return this.resultTypeFileExtensionMapper;
+    }
+
+    public static class RedisOutputStream extends ByteSinkOutputStream {
+        private final Runnable onEmpty;
+        private boolean empty = true;
+
+        public RedisOutputStream(Consumer<byte[]> byteSink, Runnable onEmpty) {
+            super(byteSink);
+            this.onEmpty = onEmpty;
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            this.empty = false;
+            super.write(b);
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            this.empty = false;
+            super.write(b);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            this.empty = false;
+            super.write(b, off, len);
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            if (this.empty && onEmpty != null) {
+                onEmpty.run();
+            }
+        }
     }
 }

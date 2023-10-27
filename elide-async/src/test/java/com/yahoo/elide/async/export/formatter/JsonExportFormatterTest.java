@@ -73,20 +73,11 @@ public class JsonExportFormatterTest {
         }
     }
 
-    public String format(TableExportFormatter formatter, TableExportFormatterContext context, PersistentResource resource) {
+    public String format(TableExportFormatter formatter,  EntityProjection entityProjection,
+            TableExport tableExport, PersistentResource resource) {
         return stringValueOf(outputStream -> {
-            try {
-                formatter.format(context, resource, outputStream);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
-    }
-
-    public String preFormat(TableExportFormatter formatter, TableExportFormatterContext context) {
-        return stringValueOf(outputStream -> {
-            try {
-                formatter.preFormat(context, outputStream);
+            try (ResourceWriter writer = formatter.newResourceWriter(outputStream, entityProjection, tableExport)) {
+                writer.write(resource);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -126,7 +117,7 @@ public class JsonExportFormatterTest {
         when(persistentResource.toResource(any(), any())).thenReturn(resource);
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = format(formatter, new TableExportFormatterContext(null, null, () -> 1), persistentResource);
+        String output = format(formatter, null, null, persistentResource);
         assertTrue(output.contains(start));
     }
 
@@ -157,7 +148,7 @@ public class JsonExportFormatterTest {
         when(persistentResource.toResource(any(), any())).thenReturn(resource);
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = formatter.resourceToJSON(elide.getObjectMapper(), persistentResource);
+        String output = JsonResourceWriter.resourceToJSON(elide.getObjectMapper(), persistentResource);
         assertTrue(output.contains(start));
     }
 
@@ -166,7 +157,7 @@ public class JsonExportFormatterTest {
         JsonExportFormatter formatter = new JsonExportFormatter(elide);
         PersistentResource persistentResource = null;
 
-        String output = format(formatter, new TableExportFormatterContext(null, null, () -> 1), persistentResource);
-        assertEquals("", output);
+        String output = format(formatter, null, null, persistentResource);
+        assertEquals("[\n]\n", output);
     }
 }

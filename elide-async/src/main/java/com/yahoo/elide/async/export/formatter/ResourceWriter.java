@@ -15,7 +15,4 @@ import java.io.IOException;
  */
 public interface ResourceWriter extends Closeable {
     void write(PersistentResource<?> resource) throws IOException;
-
-    default void close() throws IOException {
-    }
 }

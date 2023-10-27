@@ -7,8 +7,8 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.export.formatter.ResourceWriter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
-import com.yahoo.elide.async.export.formatter.TableExportFormatterContext;
 import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
 import com.yahoo.elide.async.export.validator.Validator;
 import com.yahoo.elide.async.models.AsyncApi;
@@ -98,18 +98,13 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
                 observableResults = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
             }
 
-            TableExportFormatterContext context = formatter.createContext(projection, exportObj,
-                    () -> this.recordNumber);
-
             Observable<PersistentResource> results = observableResults;
             Consumer<OutputStream> data = outputStream -> {
-                try {
-                    formatter.preFormat(context, outputStream);
+                try (ResourceWriter writer = formatter.newResourceWriter(outputStream, projection, exportObj)) {
                     results.subscribe(resource -> {
                         this.recordNumber++;
-                        formatter.format(context, resource, outputStream);
+                        writer.write(resource);
                     });
-                    formatter.postFormat(context, outputStream);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }

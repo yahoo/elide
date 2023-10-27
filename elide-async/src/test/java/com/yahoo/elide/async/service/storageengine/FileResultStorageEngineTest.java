@@ -57,7 +57,7 @@ public class FileResultStorageEngineTest {
 
     @Test
     public void testReadNonExistentFile() {
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(UncheckedIOException.class, () ->
                 readResultsFile(BASE_PATH , "nonexisting_results")
         );
     }
@@ -81,7 +81,7 @@ public class FileResultStorageEngineTest {
     // O/P Directory does not exist.
     @Test
     public void testStoreResultsFail(@TempDir File tempDir) {
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(UncheckedIOException.class, () ->
                 storeResultsFile(tempDir.toString() + "invalid", "store_results_fail",
                        outputStream -> write(outputStream, new String[]{"hi", "hello"}))
         );

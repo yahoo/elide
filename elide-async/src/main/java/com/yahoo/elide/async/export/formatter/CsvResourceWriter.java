@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,21 +23,20 @@ import java.util.stream.Collectors;
  * {@link ResourceWriter} that writes in CSV format.
  */
 @Slf4j
-public class CsvResourceWriter implements ResourceWriter {
+public class CsvResourceWriter extends ResourceWriterSupport {
     private static final String COMMA = ",";
     private static final String LINE_SEPARATOR = "\r\n"; // CRLF rfc4180
 
     private boolean writeHeader = true;
     private ObjectMapper objectMapper;
-    private OutputStream outputStream;
     private EntityProjection entityProjection;
     private int recordCount = 0;
 
     public CsvResourceWriter(OutputStream outputStream, ObjectMapper objectMapper, boolean writeHeader,
             EntityProjection entityProjection) {
+        super(outputStream);
         this.writeHeader = writeHeader;
         this.objectMapper = objectMapper;
-        this.outputStream = outputStream;
         this.entityProjection = entityProjection;
     }
 
@@ -48,6 +46,7 @@ public class CsvResourceWriter implements ResourceWriter {
             preFormat(this.outputStream);
         }
         recordCount++;
+        format(resource);
     }
 
     @Override
@@ -55,6 +54,7 @@ public class CsvResourceWriter implements ResourceWriter {
         if (recordCount == 0) {
             preFormat(this.outputStream);
         }
+        super.close();
     }
 
     public void format(PersistentResource<?> resource) throws IOException {
@@ -67,7 +67,7 @@ public class CsvResourceWriter implements ResourceWriter {
         List<Object[]> json2Csv;
 
         try {
-            String jsonStr = JsonExportFormatter.resourceToJSON(objectMapper, resource);
+            String jsonStr = JsonResourceWriter.resourceToJSON(objectMapper, resource);
 
             JFlat flat = new JFlat(jsonStr);
 
@@ -94,7 +94,7 @@ public class CsvResourceWriter implements ResourceWriter {
             log.error("Exception while converting to CSV: {}", e.getMessage());
             throw new IllegalStateException(e);
         }
-        outputStream.write(str.toString().getBytes(StandardCharsets.UTF_8));
+        write(str.toString());
     }
 
     /**
@@ -119,7 +119,7 @@ public class CsvResourceWriter implements ResourceWriter {
         if (this.entityProjection == null || !writeHeader) {
             return;
         }
-        outputStream.write(generateCSVHeader(this.entityProjection).getBytes(StandardCharsets.UTF_8));
+        write(generateCSVHeader(this.entityProjection));
     }
 
     private String toHeader(Attribute attribute) {

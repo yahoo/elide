@@ -55,7 +55,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
        try (OutputStream writer = newOutputStream(tableExport.getId(), extension)) {
            result.accept(writer);
        } catch (IOException e) {
-           throw new IllegalStateException(STORE_ERROR, e);
+           throw new UncheckedIOException(STORE_ERROR, e);
        }
        return exportResult;
     }
@@ -77,7 +77,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             return Files.newInputStream(Paths.get(basePath + File.separator + tableExportID));
         } catch (IOException e) {
             log.debug(e.getMessage());
-            throw new IllegalStateException(RETRIEVE_ERROR, e);
+            throw new UncheckedIOException(RETRIEVE_ERROR, e);
         }
     }
 
@@ -86,7 +86,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             return Files.newOutputStream(Paths.get(basePath + File.separator + tableExportID + extension));
         } catch (IOException e) {
             log.debug(e.getMessage());
-            throw new IllegalStateException(STORE_ERROR, e);
+            throw new UncheckedIOException(STORE_ERROR, e);
         }
     }
 

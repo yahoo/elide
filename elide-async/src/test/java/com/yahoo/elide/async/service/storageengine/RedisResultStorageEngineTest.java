@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.async.service.storageengine;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -18,6 +19,7 @@ import io.reactivex.plugins.RxJavaPlugins;
 import redis.clients.jedis.JedisPooled;
 import redis.embedded.RedisServer;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,6 +28,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Test cases for RedisResultStorageEngine.
@@ -99,6 +105,36 @@ public class RedisResultStorageEngineTest {
         verifyResults("store_results_success", Arrays.asList(validOutput));
     }
 
+    @Test
+    public void testStoreBinaryResults() throws IOException {
+        String queryId = "store_results_binary";
+        byte[] data;
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            for (int x = 0; x < 1000; x++) {
+                outputStream.write("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8));
+            }
+            data = outputStream.toByteArray();
+        }
+        storeResults(queryId, outputStream -> {
+           try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
+               zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
+               zipOutputStream.putNextEntry(new ZipEntry("test.txt"));
+               zipOutputStream.write(data);
+               zipOutputStream.closeEntry();
+           } catch (IOException e) {
+               throw new UncheckedIOException(e);
+           }
+        });
+
+        byte[] results = readResultBytes(queryId);
+        try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(results))) {
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
+            assertEquals("test.txt", zipEntry.getName());
+            byte[] result = zipInputStream.readAllBytes();
+            assertArrayEquals(data, result);
+        }
+    }
+
     // Redis server does not exist.
     @Test
     public void testStoreResultsFail() throws IOException {
@@ -110,7 +146,7 @@ public class RedisResultStorageEngineTest {
             });
 
             destroy();
-            assertThrows(IllegalStateException.class, () ->
+            assertThrows(UncheckedIOException.class, () ->
                     storeResults("store_results_fail",
                             outputStream -> write(outputStream, new String[]{"hi", "hello"}))
             );
@@ -149,9 +185,13 @@ public class RedisResultStorageEngineTest {
     }
 
     private String readResults(String queryId) {
+        return new String(readResultBytes(queryId), StandardCharsets.UTF_8);
+    }
+
+    private byte[] readResultBytes(String queryId) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             engine.getResultsByID(queryId).accept(outputStream);
-            return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+            return outputStream.toByteArray();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

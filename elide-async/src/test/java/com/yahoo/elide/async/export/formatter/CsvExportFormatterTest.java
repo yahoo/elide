@@ -74,20 +74,13 @@ public class CsvExportFormatterTest {
         }
     }
 
-    public String format(TableExportFormatter formatter, TableExportFormatterContext context, PersistentResource resource) {
+    public String format(TableExportFormatter formatter,  EntityProjection entityProjection,
+            TableExport tableExport, PersistentResource resource) {
         return stringValueOf(outputStream -> {
-            try {
-                formatter.format(context, resource, outputStream);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
-    }
-
-    public String preFormat(TableExportFormatter formatter, TableExportFormatterContext context) {
-        return stringValueOf(outputStream -> {
-            try {
-                formatter.preFormat(context, outputStream);
+            try (ResourceWriter writer = formatter.newResourceWriter(outputStream, entityProjection, tableExport)) {
+                if (resource != null) {
+                    writer.write(resource);
+                }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -128,13 +121,7 @@ public class CsvExportFormatterTest {
         when(persistentResource.toResource(any(), any())).thenReturn(resource);
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = stringValueOf(outputStream -> {
-            try {
-                formatter.format(new TableExportFormatterContext(null, null, () -> 1), persistentResource, outputStream);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+        String output = format(formatter, null, null, persistentResource);
         assertTrue(output.contains(row));
     }
 
@@ -142,7 +129,7 @@ public class CsvExportFormatterTest {
     public void testNullResourceToCSV() {
         CsvExportFormatter formatter = new CsvExportFormatter(elide, true);
         PersistentResource persistentResource = null;
-        String output = format(formatter, new TableExportFormatterContext(null, null, () -> 1), persistentResource);
+        String output = format(formatter, null, null, persistentResource);
         assertEquals("", output);
     }
 
@@ -155,7 +142,7 @@ public class CsvExportFormatterTest {
         // Prepare EntityProjection
         EntityProjection projection = null;
 
-        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = format(formatter, projection, queryObj, null);
         assertEquals("", output);
     }
 
@@ -169,7 +156,7 @@ public class CsvExportFormatterTest {
         Set<Attribute> attributes = new LinkedHashSet<>();
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = format(formatter, projection, queryObj, null);
         assertEquals("", output);
     }
 
@@ -183,7 +170,7 @@ public class CsvExportFormatterTest {
         Set<Attribute> attributes = null;
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = format(formatter, projection, queryObj, null);
         assertEquals("", output);
     }
 
@@ -205,7 +192,7 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = format(formatter, projection, queryObj, null);
         assertEquals("\"query\",\"queryType\"\r\n", output);
     }
 
@@ -227,7 +214,7 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = format(formatter, projection, queryObj, null);
         assertEquals("\"query\",\"queryType\"\r\n", output);
     }
 
@@ -259,7 +246,7 @@ public class CsvExportFormatterTest {
                 .build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = format(formatter, projection, queryObj, null);
         assertEquals("\"query(foo=bar)\",\"queryType(foo=bar baz=boo)\"\r\n", output);
     }
 
@@ -281,7 +268,7 @@ public class CsvExportFormatterTest {
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
-        String output = preFormat(formatter, new TableExportFormatterContext(projection, queryObj, () -> 0));
+        String output = format(formatter, projection, queryObj, null);
         assertEquals("", output);
     }
 }

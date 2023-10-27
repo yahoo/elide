@@ -20,11 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.async.DefaultResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
+import com.yahoo.elide.async.export.formatter.ResourceWriter;
+import com.yahoo.elide.async.export.formatter.ResourceWriterSupport;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
-import com.yahoo.elide.async.export.formatter.TableExportFormatterContext;
 import com.yahoo.elide.async.export.formatter.TableExportFormattersBuilderCustomizer;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -37,7 +40,6 @@ import io.restassured.response.Response;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Basic functional tests to test Async service setup, JSONAPI and GRAPHQL endpoints.
@@ -72,11 +74,23 @@ public class AsyncTest extends IntegrationTest {
             }
         }
 
-        public static class MyTableExportFormatter implements TableExportFormatter {
+        public static class MyResourceWriter extends ResourceWriterSupport {
+            public MyResourceWriter(OutputStream outputStream) {
+                super(outputStream);
+            }
+
             @Override
-            public void format(TableExportFormatterContext context, PersistentResource<?> resource,
-                    OutputStream outputStream) throws IOException {
-                outputStream.write(resource.getId().getBytes(StandardCharsets.UTF_8));
+            public void write(PersistentResource<?> resource) throws IOException {
+                write(resource.getId());
+            }
+        }
+
+        public static class MyTableExportFormatter implements TableExportFormatter {
+
+            @Override
+            public ResourceWriter newResourceWriter(OutputStream outputStream, EntityProjection entityProjection,
+                    TableExport tableExport) {
+                return new MyResourceWriter(outputStream);
             }
         }
 
