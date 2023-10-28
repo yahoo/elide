@@ -72,8 +72,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -85,6 +83,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Resource wrapper around Entity bean.
@@ -341,7 +340,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             newResources = requestScope.getNewPersistentResources().stream()
                     .filter(resource -> typeAlias.equals(resource.getTypeName())
                             && ids.contains(resource.getUUID().orElse("")))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
             FilterExpression idExpression = buildIdFilterExpression(ids, loadClass, dictionary, requestScope);
 
             // Combine filters if necessary
@@ -379,7 +378,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Observable<PersistentResource> allResources =
                 Observable.fromIterable(newResources).mergeWith(existingResources);
 
-        Set<String> foundIds = new HashSet<>();
+        Set<String> foundIds = new LinkedHashSet<>();
 
         allResources = allResources.doOnNext((resource) -> {
             String id = (String) resource.getUUID().orElseGet(resource::getId);
@@ -389,7 +388,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         });
 
         allResources = allResources.doOnComplete(() -> {
-            Set<String> missedIds = Sets.difference(new HashSet<>(ids), foundIds);
+            Set<String> missedIds = Sets.difference(new LinkedHashSet<>(ids), foundIds);
             if (!missedIds.isEmpty()) {
                 throw new InvalidObjectIdentifierException(missedIds.toString(), dictionary.getJsonAliasFor(loadClass));
             }
@@ -502,19 +501,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             Class<A> annotationClass, Object obj, RequestScope requestScope, Set<String> requestedFields) {
         return requestScope.getPermissionExecutor()
                 .checkUserPermissions(getType(obj), annotationClass, requestedFields);
-    }
-
-    protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
-                                                     String fieldName) {
-        if (!sparseFields.isEmpty()) {
-            if (!sparseFields.containsKey(type)) {
-                return false;
-            }
-
-            return sparseFields.get(type).contains(fieldName);
-        }
-
-        return true;
     }
 
     /**
@@ -870,7 +856,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 getRelationUncheckedUnfiltered(relationName)).toList(LinkedHashSet::new).blockingGet();
 
         checkFieldAwareDeferPermissions(UpdatePermission.class, relationName, Collections.emptySet(),
-                mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
+                mine.stream().map(PersistentResource::getObject).collect(Collectors.toCollection(LinkedHashSet::new)));
 
         if (mine.isEmpty()) {
             return false;
@@ -1157,7 +1143,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             newResources = requestScope.getNewPersistentResources().stream()
                     .filter(resource -> entityType.isAssignableFrom(resource.getResourceType())
                             && ids.contains(resource.getUUID().orElse("")))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
 
             FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
 
@@ -1184,7 +1170,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Observable<PersistentResource> allResources =
                 Observable.fromIterable(newResources).mergeWith(existingResources);
 
-        Set<String> foundIds = new HashSet<>();
+        Set<String> foundIds = new LinkedHashSet<>();
 
         allResources = allResources.doOnNext((resource) -> {
             String id = (String) (resource.getUUID().orElseGet(resource::getId));
@@ -1194,7 +1180,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         });
 
         allResources = allResources.doOnComplete(() -> {
-            Set<String> missedIds = Sets.difference(new HashSet<>(ids), foundIds);
+            Set<String> missedIds = Sets.difference(new LinkedHashSet<>(ids), foundIds);
             if (!missedIds.isEmpty()) {
                 throw new InvalidObjectIdentifierException(missedIds.toString(), relationship.getName());
             }
@@ -1569,7 +1555,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             return resource;
         }
 
-        Meta meta = new Meta(new HashMap<>());
+        Meta meta = new Meta(new LinkedHashMap<>());
 
         for (String field : fields) {
             meta.getMetaMap().put(field, withMetadata.getMetadataField(field).get());
@@ -1889,17 +1875,28 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     protected Set<String> filterFields(Collection<String> fields) {
         Set<String> filteredSet = new LinkedHashSet<>();
-        for (String field : fields) {
+        Map<String, Set<String>> sparseFields = requestScope.getSparseFields();
+        Stream<String> stream;
+        if (sparseFields.isEmpty()) {
+            // If sparse fields is not set return all fields
+            stream = fields.stream();
+        } else {
+            // If sparse fields is set return those fields
+            Set<String> byType = sparseFields.get(typeName);
+            if (byType == null || fields == null || byType.isEmpty() || fields.isEmpty()) {
+                stream = Stream.empty();
+            } else {
+                stream = byType.stream().filter(fields::contains);
+            }
+        }
+        stream.forEach(field -> {
             try {
-
-                if (checkIncludeSparseField(requestScope.getSparseFields(), typeName, field)) {
-                    checkFieldAwareReadPermissions(field);
-                    filteredSet.add(field);
-                }
+                checkFieldAwareReadPermissions(field);
+                filteredSet.add(field);
             } catch (ForbiddenAccessException e) {
                 // Do nothing. Filter from set.
             }
-        }
+        });
         return filteredSet;
     }
 

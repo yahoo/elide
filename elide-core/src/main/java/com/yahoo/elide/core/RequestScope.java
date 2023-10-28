@@ -29,7 +29,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -96,13 +95,13 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.elideSettings = elideSettings;
 
         this.globalFilterExpression = null;
-        this.expressionsByType = new HashMap<>();
+        this.expressionsByType = new LinkedHashMap<>();
         this.objectEntityCache = new ObjectEntityCache();
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
-        this.metadata = new HashMap<>();
+        this.metadata = new LinkedHashMap<>();
 
         this.sparseFields = parseSparseFields(getRoute().getParameters());
 
@@ -161,7 +160,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @return Parsed sparseFields map
      */
     public static Map<String, Set<String>> parseSparseFields(Map<String, List<String>> queryParams) {
-        Map<String, Set<String>> result = new HashMap<>();
+        Map<String, Set<String>> result = new LinkedHashMap<>();
 
         for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
             String key = kv.getKey();
