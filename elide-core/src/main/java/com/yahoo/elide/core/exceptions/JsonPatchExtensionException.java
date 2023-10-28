@@ -5,27 +5,28 @@
  */
 package com.yahoo.elide.core.exceptions;
 
+import com.yahoo.elide.ElideErrorResponse;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Exception describing error caused from Json Patch Extension request.
  */
 public class JsonPatchExtensionException extends HttpStatusException {
-    private final Pair<Integer, JsonNode> response;
+    private final ElideErrorResponse<JsonNode> response;
 
     public JsonPatchExtensionException(int status, final JsonNode errorNode) {
         super(status, "");
-        response = Pair.of(status, errorNode);
+        response = ElideErrorResponse.status(status).body(errorNode);
     }
 
     @Override
-    public Pair<Integer, JsonNode> getErrorResponse() {
+    public ElideErrorResponse<JsonNode> getErrorResponse() {
         return response;
     }
 
     @Override
-    public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-        return response;
+    public ElideErrorResponse<JsonNode> getVerboseErrorResponse() {
+        return getErrorResponse();
     }
 }

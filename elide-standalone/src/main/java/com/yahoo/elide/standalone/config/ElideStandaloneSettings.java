@@ -9,6 +9,8 @@ import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
+import com.yahoo.elide.Serdes;
+import com.yahoo.elide.Serdes.SerdesBuilder;
 import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -18,8 +20,11 @@ import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
-import com.yahoo.elide.core.exceptions.ErrorMapper;
+import com.yahoo.elide.core.exceptions.ExceptionLogger;
+import com.yahoo.elide.core.exceptions.ExceptionMappers;
+import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
@@ -45,7 +50,15 @@ import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.graphql.DefaultGraphQLErrorMapper;
+import com.yahoo.elide.graphql.DefaultGraphQLExceptionHandler;
+import com.yahoo.elide.graphql.GraphQLErrorMapper;
+import com.yahoo.elide.graphql.GraphQLExceptionHandler;
 import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.jsonapi.DefaultJsonApiErrorMapper;
+import com.yahoo.elide.jsonapi.DefaultJsonApiExceptionHandler;
+import com.yahoo.elide.jsonapi.JsonApiErrorMapper;
+import com.yahoo.elide.jsonapi.JsonApiExceptionHandler;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
@@ -93,6 +106,8 @@ import java.util.function.Function;
  * Interface for configuring an ElideStandalone application.
  */
 public interface ElideStandaloneSettings {
+    public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
+
     /**
      * The OpenAPI Specification Version.
      */
@@ -165,7 +180,8 @@ public interface ElideStandaloneSettings {
                 .path(getJsonApiPathSpec().replace("/*", ""))
                 .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .jsonApiMapper(mapper);
+                .jsonApiMapper(mapper)
+                .jsonApiExceptionHandler(getJsonApiExceptionHandler());
     }
 
     /**
@@ -176,7 +192,8 @@ public interface ElideStandaloneSettings {
      */
     default GraphQLSettingsBuilder getGraphQLSettingsBuilder(EntityDictionary dictionary) {
         return GraphQLSettingsBuilder.withDefaults(dictionary)
-                .path(getGraphQLApiPathSpec().replace("/*", ""));
+                .path(getGraphQLApiPathSpec().replace("/*", ""))
+                .graphqlExceptionHandler(getGraphQLExceptionHandler());
     }
 
     /**
@@ -193,13 +210,13 @@ public interface ElideStandaloneSettings {
     /**
      * Override this to customize the {@link ElideSettingsBuilder}.
      * <p>
-     * The following example only customizes the {@link ElideSettingsBuilder#defaultMaxPageSize}.
+     * The following example only customizes the {@link ElideSettingsBuilder#maxPageSize}.
      *
      * <pre>
      * public ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary, DataStore dataStore,
      *         JsonApiMapper mapper) {
      *     return ElideStandaloneSettings.super.getElideSettingsBuilder(dictionary, dataStore, mapper)
-     *           .defaultMaxPageSize(1000);
+     *           .maxPageSize(1000);
      * }
      * </pre>
      *
@@ -216,10 +233,11 @@ public interface ElideStandaloneSettings {
             JsonApiMapper mapper) {
         ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
-                .errorMapper(getErrorMapper())
                 .baseUrl(getBaseUrl())
                 .objectMapper(mapper.getObjectMapper())
-                .auditLogger(getAuditLogger());
+                .auditLogger(getAuditLogger())
+                .maxPageSize(getMaxPageSize())
+                .defaultPageSize(getDefaultPageSize());
 
         if (verboseErrors()) {
             builder.verboseErrors(true);
@@ -237,10 +255,26 @@ public interface ElideStandaloneSettings {
             builder.settings(getAsyncSettingsBuilder());
         }
 
-        if (enableISO8601Dates()) {
-            builder.serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")));
-        }
+        builder.serdes(serdes -> serdes.entries(entries -> {
+            entries.clear();
+            getSerdesBuilder().build().entrySet().stream().forEach(entry -> {
+                entries.put(entry.getKey(), entry.getValue());
+            });
+        }));
         return builder;
+    }
+
+    /**
+     * Override this to customize the {@link SerdesBuilder}.
+     *
+     * @return the SerdesBuilder
+     */
+    default SerdesBuilder getSerdesBuilder() {
+        SerdesBuilder serdesBuilder = Serdes.builder().withDefaults();
+        if (enableISO8601Dates()) {
+            serdesBuilder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+        }
+        return serdesBuilder;
     }
 
     /**
@@ -706,12 +740,59 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Get the error mapper for this Elide instance. By default no errors will be mapped.
+     * Get the exception mappers for this Elide instance. By default no exceptions will be mapped.
      *
-     * @return error mapper implementation
+     * @return the exception mappers.
      */
-    default ErrorMapper getErrorMapper() {
-        return error -> null;
+    default ExceptionMappers getExceptionMappers() {
+        return null;
+    }
+
+    /**
+     * Gets the json api error mapper.
+     *
+     * @return the json api error mapper.
+     */
+    default JsonApiErrorMapper getJsonApiErrorMapper() {
+        return new DefaultJsonApiErrorMapper();
+    }
+
+    /**
+     * Gets the json api exception handler.
+     *
+     * @return the json api exception handler.
+     */
+    default JsonApiExceptionHandler getJsonApiExceptionHandler() {
+        return new DefaultJsonApiExceptionHandler(getExceptionLogger(), getExceptionMappers(),
+                getJsonApiErrorMapper());
+    }
+
+    /**
+     * Gets the graphql error mapper.
+     *
+     * @return the graphql error mapper.
+     */
+    default GraphQLErrorMapper getGraphQLErrorMapper() {
+        return new DefaultGraphQLErrorMapper();
+    }
+
+    /**
+     * Gets the graphql exception handler.
+     *
+     * @return the graphql exception handler.
+     */
+    default GraphQLExceptionHandler getGraphQLExceptionHandler() {
+        return new DefaultGraphQLExceptionHandler(getExceptionLogger(), getExceptionMappers(),
+                getGraphQLErrorMapper());
+    }
+
+    /**
+     * Gets the exception logger.
+     *
+     * @return the exception logger.
+     */
+    default ExceptionLogger getExceptionLogger() {
+        return new Slf4jExceptionLogger();
     }
 
     /**
@@ -729,7 +810,7 @@ public interface ElideStandaloneSettings {
      * @return object mapper.
      */
     default ObjectMapper getObjectMapper() {
-        return new ObjectMapper();
+        return DEFAULT_OBJECT_MAPPER;
     }
 
     /**
@@ -748,5 +829,29 @@ public interface ElideStandaloneSettings {
      */
     default RouteResolver getRouteResolver() {
         return null;
+    }
+
+    /**
+     * The maximum pagination size a client can request.
+     * <p>
+     * The {@link com.yahoo.elide.annotation.Paginate#maxPageSize()} annotation
+     * takes precendence.
+     *
+     * @return the max page size
+     */
+    default int getMaxPageSize() {
+        return Pagination.MAX_PAGE_SIZE;
+    }
+
+    /**
+     * Default pagination size for collections if the client doesn't paginate.
+     * <p>
+     * The {@link com.yahoo.elide.annotation.Paginate#defaultPageSize()} annotation
+     * takes precendence.
+     *
+     * @return the default page size
+     */
+    default int getDefaultPageSize() {
+        return Pagination.DEFAULT_PAGE_SIZE;
     }
 }

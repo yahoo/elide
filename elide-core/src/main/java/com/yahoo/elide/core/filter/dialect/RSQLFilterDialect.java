@@ -276,19 +276,27 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(allowNestedToManyAssociations,
                     coerceValues, attributes);
             return ast.accept(visitor, entityType);
+        } catch (RSQLParseException e) {
+            throw new ParseException(e.getMessage(), e);
         } catch (RSQLParserException e) {
-            throw new ParseException(e.getMessage());
+            throw new ParseException(
+                    String.format("Filter expression is not in expected format at: %s", expressionText), e);
         }
     }
 
     /**
-     * Allows base RSQLParseException to carry a parametrized message.
+     * Allows base RSQLParseException to carry a parameterized message.
      */
     public static class RSQLParseException extends RSQLParserException {
         private String message;
 
         RSQLParseException(String message) {
             super(null);
+            this.message = message;
+        }
+
+        RSQLParseException(String message, Throwable cause) {
+            super(cause);
             this.message = message;
         }
 
@@ -581,8 +589,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     return new IsNullPredicate(path);
                 }
                 return new NotNullPredicate(path);
-            } catch (InvalidValueException ignored) {
-                throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
+            } catch (InvalidValueException exception) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg), exception);
             }
         }
 
@@ -601,8 +609,9 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     return new IsEmptyPredicate(path);
                 }
                 return new NotEmptyPredicate(path);
-            } catch (InvalidValueException ignored) {
-                throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg));
+            } catch (InvalidValueException exception) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg),
+                        exception);
             }
         }
     }

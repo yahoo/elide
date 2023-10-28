@@ -107,6 +107,8 @@ public class ConfigStoreTest {
 
     @Test
     public void testGraphQLNullContent() {
+        String expected = """
+                {"errors":[{"message":"Null or empty file content for models/tables/table1.hjson","extensions":{"classification":"DataFetchingException"}}]}""";
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -129,7 +131,7 @@ public class ConfigStoreTest {
                 .when()
                 .post("http://localhost:" + port + "/graphql")
                 .then()
-                .body(equalTo("{\"errors\":[{\"message\":\"Null or empty file content for models/tables/table1.hjson\"}]}"))
+                .body(equalTo(expected))
                 .statusCode(200);
     }
 

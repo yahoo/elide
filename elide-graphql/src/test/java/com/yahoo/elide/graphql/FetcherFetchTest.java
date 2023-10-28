@@ -286,7 +286,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     public void testFederationServiceIntrospection() throws Exception {
         String graphQLRequest = "{ _service { sdl }}";
 
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
         assertTrue(! response.getBody().contains("errors"));
     }
@@ -301,7 +301,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}"
                 + "}";
 
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
         assertTrue(! response.getBody().contains("errors"));
     }
@@ -318,7 +318,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
             + "}"
             + "}";
 
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
         assertTrue(! response.getBody().contains("errors"));
     }

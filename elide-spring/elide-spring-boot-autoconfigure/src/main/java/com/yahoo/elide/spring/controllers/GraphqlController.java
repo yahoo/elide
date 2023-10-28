@@ -5,10 +5,9 @@
  */
 package com.yahoo.elide.spring.controllers;
 
-import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
-
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.exceptions.InvalidApiVersionException;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
@@ -17,8 +16,6 @@ import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderProcessor;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
@@ -52,25 +49,25 @@ import java.util.concurrent.Callable;
 @RequestMapping(value = "${elide.graphql.path}")
 public class GraphqlController {
 
+    private final Elide elide;
     private final ElideConfigProperties settings;
     private final QueryRunners runners;
-    private final ObjectMapper mapper;
     private final HeaderProcessor headerProcessor;
     private final RouteResolver routeResolver;
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     public GraphqlController(
+            Elide elide,
             QueryRunners runners,
-            ObjectMapper objectMapper,
             HeaderProcessor headerProcessor,
             ElideConfigProperties settings,
             RouteResolver routeResolver) {
         log.debug("Started ~~");
+        this.elide = elide;
         this.runners = runners;
         this.settings = settings;
         this.headerProcessor = headerProcessor;
-        this.mapper = objectMapper;
         this.routeResolver = routeResolver;
     }
 
@@ -99,16 +96,17 @@ public class GraphqlController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response;
+                ElideResponse<String> response;
 
                 if (runner == null) {
-                    response = buildErrorResponse(mapper, new InvalidOperationException("Invalid API Version"), false);
+                    response = QueryRunner.handleRuntimeException(elide,
+                            new InvalidApiVersionException("Invalid API Version"));
                 } else {
                     response = runner.run(route.getBaseUrl(), graphQLDocument, user, UUID.randomUUID(),
                             requestHeadersCleaned);
                 }
 
-                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+                return ResponseEntity.status(response.getStatus()).body(response.getBody());
             }
         };
     }

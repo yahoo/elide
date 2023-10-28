@@ -7,47 +7,40 @@ package com.yahoo.elide.core.exceptions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.lang3.tuple.Pair;
+import com.yahoo.elide.ElideErrorResponse;
+import com.yahoo.elide.ElideErrors;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
 
-public class HttpStatusExceptionTest {
+class HttpStatusExceptionTest {
 
     @Test
-    public void testGetEncodedResponse() {
-        String expected = "{\"errors\":[{\"detail\":\"test&lt;script&gt;encoding\"}]}";
+    void testGetResponse() {
+        String expected = "test<script>encoding";
         HttpStatusException exception =  new HttpStatusException(500, "test<script>encoding") { };
-        Pair<Integer, JsonNode> res = exception.getErrorResponse();
-        assertEquals(expected, res.getRight().toString());
+        ElideErrorResponse<?> res = exception.getErrorResponse();
+        assertEquals(expected, res.getBody(ElideErrors.class).getErrors().get(0).getMessage());
     }
 
     @Test
-    public void testGetEncodedVerboseResponse() {
-        String expected = "{\"errors\":[{\"detail\":\"test&lt;script&gt;encoding\"}]}";
+    void testGetVerboseResponse() {
+        String expected = "test<script>encoding";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding") { };
-        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
-        assertEquals(expected, res.getRight().toString());
+        ElideErrorResponse<?> res = exception.getVerboseErrorResponse();
+        assertEquals(expected, res.getBody(ElideErrors.class).getErrors().get(0).getMessage());
     }
 
     @Test
-    public void testGetEncodedVerboseResponseWithSupplier() {
-        String expected = "{\"errors\":[{\"detail\":\"test&lt;script&gt;encoding\\na more verbose &lt;script&gt; encoding test\"}]}";
+    void testGetVerboseResponseWithSupplier() {
+        String expected = """
+                test<script>encoding
+                a more verbose <script> encoding test""";
         Supplier<String> supplier = () -> "a more verbose <script> encoding test";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding",
                 new RuntimeException("runtime exception"), supplier) { };
-        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
-        assertEquals(expected, res.getRight().toString());
-    }
-
-    @Test
-    public void testGetVerboseResponseWithSupplier() {
-        String expected = "{\"errors\":[{\"detail\":\"test&lt;script&gt;encoding\\na more verbose &lt;script&gt; encoding test\"}]}";
-        Supplier<String> supplier = () -> "a more verbose <script> encoding test";
-        HttpStatusException exception = new HttpStatusException(500, "test<script>encoding",
-                new RuntimeException("runtime exception"), supplier) { };
-        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
-        assertEquals(expected, res.getRight().toString());
+        ElideErrorResponse<?> res = exception.getVerboseErrorResponse();
+        assertEquals(expected, res.getBody(ElideErrors.class).getErrors().get(0).getMessage());
     }
 }

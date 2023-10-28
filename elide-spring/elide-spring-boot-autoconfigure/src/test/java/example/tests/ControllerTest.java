@@ -1049,7 +1049,8 @@ public class ControllerTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "{\"errors\":[{\"message\":\"Invalid operation: Invalid API Version\"}]}";
+        String expected = """
+                {"errors":[{"message":"Invalid operation: Invalid API Version","extensions":{"classification":"DataFetchingException"}}]}""";
 
         given()
                 .contentType(MediaType.APPLICATION_JSON)

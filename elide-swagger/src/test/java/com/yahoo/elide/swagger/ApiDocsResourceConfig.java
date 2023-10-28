@@ -12,7 +12,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
-import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
@@ -89,8 +89,8 @@ public class ApiDocsResourceConfig extends ResourceConfig {
                         .auditLogger(new Slf4jLogger())
                         .entityDictionary(dictionary)
                         .verboseErrors(true)
-                        .defaultMaxPageSize(PaginationImpl.MAX_PAGE_LIMIT)
-                        .defaultPageSize(PaginationImpl.DEFAULT_PAGE_LIMIT)
+                        .maxPageSize(Pagination.MAX_PAGE_SIZE)
+                        .defaultPageSize(Pagination.DEFAULT_PAGE_SIZE)
                         .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC")))
                         .settings(jsonApiSettings)
                         .build());

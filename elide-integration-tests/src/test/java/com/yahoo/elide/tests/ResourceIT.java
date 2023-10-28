@@ -2580,8 +2580,8 @@ public class ResourceIT extends IntegrationTest {
 
         com.yahoo.elide.core.security.User user = new com.yahoo.elide.core.security.User(() -> "-1");
         Route route = Route.builder().baseUrl(baseUrl).path("parent/1/children").apiVersion(NO_VERSION).build();
-        ElideResponse response = jsonApi.get(route, user, null);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        ElideResponse<String> response = jsonApi.get(route, user, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
         assertEquals("{\"data\":[]}", response.getBody());
     }
 
