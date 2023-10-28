@@ -86,7 +86,7 @@
 
         <!-- dependency versions -->
         <ant.version>1.10.13</ant.version>
-        <antlr4.version>4.13.0</antlr4.version>
+        <antlr4.version>4.13.1</antlr4.version>
         <artemis.version>2.28.0</artemis.version>
         <atomikos.version>6.0.0</atomikos.version>
         <calcite.version>1.35.0</calcite.version>
