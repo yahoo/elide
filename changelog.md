@@ -1,5 +1,56 @@
 # Change Log
 
+## 7.0.0
+Official 7.0 release.  This version includes major refactoring of settings, configuration, and error handling.
+
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/aaffa80065311d19907dbe62fdf271caf8664cfb) Support api versioning for subscriptions (#3085) 
+ * [view commit](https://github.com/yahoo/elide/commit/a12bb646c3080738c8a205d9063504b14213262e) Add error mappers and refactor serializers (#3093) 
+ * [view commit](https://github.com/yahoo/elide/commit/8ebd6ca2d2ac5e00c512c8768316819fca867a68) Refactor exception handling (#3098)
+ * [view commit](https://github.com/yahoo/elide/commit/d7a7ede7b668e49e9ec1524ccb9c914311ab77ad) Add resolvers (#3057) 
+ * [view commit](https://github.com/yahoo/elide/commit/b4a0e77c8bacfa350afd846c32504682aa2c3045) Translate readme into Chinese (#3056) 
+ * [view commit](https://github.com/yahoo/elide/commit/62510cc48d96fa6945aeafdd74d90d3bceb54f9c) Add api version handling to controllers (#3059) 
+ * [view commit](https://github.com/yahoo/elide/commit/bdd6e715c82b158730f3b76e85847cd08431cec6) Refactor parameters (#3067) 
+ * [view commit](https://github.com/yahoo/elide/commit/20eb7fba8fe1d6b4e291a7df6eb3cf405b05c70d) Refactor request scope (#3068) 
+ * [view commit](https://github.com/yahoo/elide/commit/d5a5cd691e6c2790723abceb8abd2146f4d07a44) Refactor JSON API (#3071)
+ * [view commit](https://github.com/yahoo/elide/commit/d6309661b04fa251bd7133a088e473d4aa19685b) Refactor settings and config (#3076) 
+ * [view commit](https://github.com/yahoo/elide/commit/71eb07b8d68caa6d651bda3351f1a34a55e6d5fa) Add generic, json api and graphql errors (#3088) 
+   
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/190b4e2f52172d3fcadd566180f5be3db847650c) Fix SubscriptionWebSocket for war deployments (#3046) 
+ * [view commit](https://github.com/yahoo/elide/commit/35f4f3b3a230732db12cc7426845ff450b82513f) Fix swagger native hints (#3043) 
+ * [view commit](https://github.com/yahoo/elide/commit/f4ad64a0e08a61827e6392031aa18aa2ccfc8d1c) Update swagger jersey-hk2 dependency to test (#3041) 
+ * [view commit](https://github.com/yahoo/elide/commit/f57c1754588e667788707b2c9f4414778dba7fc3) Bump org.projectlombok:lombok from 1.18.26 to 1.18.28 (#3034) 
+ * [view commit](https://github.com/yahoo/elide/commit/b05592b1f1126cdf2ac25054e8f3aedce5dff8dd) Bump hibernate-search.version from 6.1.8.Final to 6.2.0.Final (#3035) 
+ * [view commit](https://github.com/yahoo/elide/commit/9b3994e54fe52e8301b0446434a4adf312ab2550) Bump hibernate.version from 6.2.4.Final to 6.2.7.Final (#3036) 
+ * [view commit](https://github.com/yahoo/elide/commit/8c4cffd1b6050218834d76dce05d8d295ddccb5f) Bump com.fasterxml.jackson:jackson-bom from 2.15.1 to 2.15.2 (#3038) 
+ * [view commit](https://github.com/yahoo/elide/commit/11b68dbb6cebd9492c5a458900836dd8a2adf077) Bump spring-framework.version from 6.0.9 to 6.0.11 (#3039) 
+ * [view commit](https://github.com/yahoo/elide/commit/d0f90fb2b3e3cac0d15366cf55299d84c4830f5c) Bump spring-boot.version from 3.1.0 to 3.1.2 (#3037) 
+ * [view commit](https://github.com/yahoo/elide/commit/413262180ea92991adb6bf7be350e51974b66d58) Bump hibernate-search.version from 6.2.0.Final to 6.2.1.Final (#3049) 
+ * [view commit](https://github.com/yahoo/elide/commit/b0ac41b0bd0eb1771e401fce9d3949101c5894de) Bump io.swagger.core.v3:swagger-core-jakarta from 2.2.10 to 2.2.15 (#3052) 
+ * [view commit](https://github.com/yahoo/elide/commit/561a454467129e530ebfe0320a0565c6a93e676e) Bump org.apache.calcite:calcite-core from 1.34.0 to 1.35.0 (#3054) 
+ * [view commit](https://github.com/yahoo/elide/commit/326a47b5f40402bb86c38c9029094f574350c77f) Bump org.glassfish.jersey:jersey-bom from 3.1.2 to 3.1.3 (#3053) 
+ * [view commit](https://github.com/yahoo/elide/commit/a4e3749f7eae04eab2c82ed9421e451303e72575) Bump com.puppycrawl.tools:checkstyle from 10.8.0 to 10.12.3 (#3051) 
+ * [view commit](https://github.com/yahoo/elide/commit/6a08f89cefec72a0997baf60323b388f8aaa496f) Bump org.apache.maven.plugins:maven-enforcer-plugin from 3.3.0 to 3.4.0 (#3050) 
+ * [view commit](https://github.com/yahoo/elide/commit/f02e2a298deddb2ac63ade1276c6a4cf0f03e901) Bump hjson.version from 3.0.0 to 3.0.1 (#3055) 
+ * [view commit](https://github.com/yahoo/elide/commit/57e73fbe97ec9e1405772ca047449a4006a58541) Bump slf4j.version from 2.0.7 to 2.0.9 (#3060) 
+ * [view commit](https://github.com/yahoo/elide/commit/648ebdba1039899055def219b86093468e30c128) Bump spring-boot.version from 3.1.2 to 3.1.3 (#3061) 
+ * [view commit](https://github.com/yahoo/elide/commit/61f9f5d30a541a7e58c8e163b8466a0b2fdde37f) Bump io.github.classgraph:classgraph from 4.8.161 to 4.8.162 (#3065) 
+ * [view commit](https://github.com/yahoo/elide/commit/e731f4f1d33b07aa5fda9d731999217895f66929) Bump com.apollographql.federation:federation-graphql-java-support (#3072) 
+ * [view commit](https://github.com/yahoo/elide/commit/0da128f468f0906d5bd666537e62c0f3ec0a59be) Bump com.h2database:h2 from 2.2.220 to 2.2.224 (#3073) 
+ * [view commit](https://github.com/yahoo/elide/commit/044c1f3802830685233692b3391d084c46438937) Bump org.apache.commons:commons-compress from 1.23.0 to 1.24.0 (#3070) 
+ * [view commit](https://github.com/yahoo/elide/commit/dfc55e82606a872c317e85bf091b01d0012aa7ec) Bump org.graalvm.sdk:graal-sdk from 22.3.2 to 23.1.0 (#3074) 
+ * [view commit](https://github.com/yahoo/elide/commit/c84fa2ad1c30164dedd61d35fd936bd189672db9) Bump org.apache.tomcat.embed:tomcat-embed-core from 10.1.9 to 10.1.13 (#3075) 
+ * [view commit](https://github.com/yahoo/elide/commit/e9e743863745e748516e16ba3d09add5e8172587) Bump hibernate.version from 6.2.7.Final to 6.3.1.Final (#3083) 
+ * [view commit](https://github.com/yahoo/elide/commit/ef08c7d2712894ea2b3d7ba9deda55fc32002496) Bump jakarta.websocket-api from 2.0.0 to 2.1.1 (#3089) 
+ * [view commit](https://github.com/yahoo/elide/commit/0816d60be9aaf1fb76682708df98c7984f6c3d15) Ensure attribute ordering (#3099) 
+ * [view commit](https://github.com/yahoo/elide/commit/c7069e0f569b6ac9d588f56bab46f3bc5fe7378f) Bump antlr4.version from 4.13.0 to 4.13.1 (#3077) 
+ * [view commit](https://github.com/yahoo/elide/commit/dfa42ad7faaffde07ac39c68fc3b559650e651b7) Bump com.puppycrawl.tools:checkstyle from 10.12.3 to 10.12.4 (#3087) 
+ * [view commit](https://github.com/yahoo/elide/commit/519c5e12e829aca60fed9bce176872891ff560dd) Bump org.junit:junit-bom from 5.9.3 to 5.10.0 (#3081) 
+ * [view commit](https://github.com/yahoo/elide/commit/b8726aabfec63968ceb43b9f9dbabb58a579ecce) Bump io.rest-assured:rest-assured-bom from 5.3.0 to 5.3.2 (#3080) 
+ * [view commit](https://github.com/yahoo/elide/commit/bc1a42cf3228e2d4a37f73a68dc03365106cdc06) Bump mockito.version from 5.3.1 to 5.6.0 (#3084) 
+
+
 ## 7.0.0-pr6
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/7cb7875f6904821add653fd1d97872425e9e8686) Add support for `hasMember` predicate to evaluate `null` in collections (#3016) 
