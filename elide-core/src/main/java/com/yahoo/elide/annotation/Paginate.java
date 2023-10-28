@@ -30,11 +30,11 @@ public @interface Paginate {
      * For limiting the number of entities which can be returned from a query.
      * @return the default limit
      */
-    int defaultLimit() default 500;
+    int defaultPageSize() default 500;
 
     /**
      * For setting an upper bound on the limit that can be specified as request parameter when fetching entities.
      * @return the maximum limit
      */
-    int maxLimit() default 10000;
+    int maxPageSize() default 10000;
 }

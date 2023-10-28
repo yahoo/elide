@@ -87,9 +87,6 @@ public class SubscriptionWebSocket extends Endpoint {
     private boolean sendPingOnSubscribe = false;
 
     @Builder.Default
-    private boolean verboseErrors = false;
-
-    @Builder.Default
     private DataFetcherExceptionHandler dataFetcherExceptionHandler = new SimpleDataFetcherExceptionHandler();
 
     @Builder.Default
@@ -119,7 +116,6 @@ public class SubscriptionWebSocket extends Endpoint {
      * @param maxIdleTimeout Max idle time on the websocket before disconnect.
      * @param maxMessageSize Maximum message size allowed on this websocket.
      * @param sendPingOnSubscribe testing option to ping the client when subscribe is ready.
-     * @param verboseErrors whether or not to send verbose errors.
      */
     protected SubscriptionWebSocket(
             Elide elide,
@@ -130,7 +126,6 @@ public class SubscriptionWebSocket extends Endpoint {
             Duration maxIdleTimeout,
             int maxMessageSize,
             boolean sendPingOnSubscribe,
-            boolean verboseErrors,
             DataFetcherExceptionHandler dataFetcherExceptionHandler,
             RouteResolver routeResolver
     ) {
@@ -142,7 +137,6 @@ public class SubscriptionWebSocket extends Endpoint {
         this.sendPingOnSubscribe = sendPingOnSubscribe;
         this.maxIdleTimeout = maxIdleTimeout;
         this.maxMessageSize = maxMessageSize;
-        this.verboseErrors = verboseErrors;
         this.dataFetcherExceptionHandler = dataFetcherExceptionHandler;
         this.routeResolver = routeResolver;
 
@@ -289,7 +283,6 @@ public class SubscriptionWebSocket extends Endpoint {
                         .route(route)
                         .build(),
                 sendPingOnSubscribe,
-                verboseErrors,
                 executorService);
     }
 

@@ -9,14 +9,13 @@ package com.yahoo.elide.core.filter.dialect;
  * Thrown on parsing error.
  */
 public class ParseException extends Exception {
-    private String message;
+    private static final long serialVersionUID = 1L;
 
     public ParseException(String message) {
-        this.message = message;
+        super(message);
     }
 
-    @Override
-    public String getMessage() {
-        return message;
+    public ParseException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -12,9 +12,16 @@ import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.ErrorMapper;
+import com.yahoo.elide.core.exceptions.ExceptionLogger;
+import com.yahoo.elide.core.exceptions.ExceptionMappers;
+import com.yahoo.elide.core.exceptions.ExceptionMappers.ExceptionMappersBuilder;
+import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.graphql.DefaultGraphQLErrorMapper;
+import com.yahoo.elide.graphql.DefaultGraphQLExceptionHandler;
 import com.yahoo.elide.graphql.GraphQLSettings;
+import com.yahoo.elide.jsonapi.DefaultJsonApiErrorMapper;
+import com.yahoo.elide.jsonapi.DefaultJsonApiExceptionHandler;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
@@ -33,22 +40,25 @@ public class Update200StatusTestSetup {
                                                 TransactionRegistry transactionRegistry,
                                                 ElideConfigProperties settings,
                                                 JsonApiMapper mapper,
-                                                ErrorMapper errorMapper) {
-
+                                                ExceptionMappersBuilder exceptionMappersBuilder) {
+        ExceptionMappers exceptionMappers = exceptionMappersBuilder.build();
+        ExceptionLogger exceptionLogger = new Slf4jExceptionLogger();
         JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
                 .path(settings.getJsonApi().getPath())
                 .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
                 .jsonApiMapper(mapper)
-                .updateStatus200();
-        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder().path(settings.getGraphql().getPath());
-
+                .updateStatus200()
+                .jsonApiExceptionHandler(new DefaultJsonApiExceptionHandler(exceptionLogger, exceptionMappers,
+                        new DefaultJsonApiErrorMapper()));
+        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder().path(settings.getGraphql().getPath())
+                .graphqlExceptionHandler(new DefaultGraphQLExceptionHandler(exceptionLogger, exceptionMappers,
+                        new DefaultGraphQLErrorMapper()));
         ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
-                .errorMapper(errorMapper)
                 .objectMapper(mapper.getObjectMapper())
-                .defaultMaxPageSize(settings.getMaxPageSize())
-                .defaultPageSize(settings.getPageSize())
+                .maxPageSize(settings.getMaxPageSize())
+                .defaultPageSize(settings.getDefaultPageSize())
                 .auditLogger(new Slf4jLogger())
                 .baseUrl(settings.getBaseUrl())
                 .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))

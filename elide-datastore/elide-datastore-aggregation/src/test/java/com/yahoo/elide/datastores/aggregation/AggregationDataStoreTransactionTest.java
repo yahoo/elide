@@ -7,8 +7,8 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.core.request.Pagination.DEFAULT_PAGE_LIMIT;
-import static com.yahoo.elide.core.request.Pagination.MAX_PAGE_LIMIT;
+import static com.yahoo.elide.core.request.Pagination.DEFAULT_PAGE_SIZE;
+import static com.yahoo.elide.core.request.Pagination.MAX_PAGE_SIZE;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -271,7 +271,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         AggregationDataStoreTransaction transaction =
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         Pagination pagination = new PaginationImpl(
-                String.class, null, null, DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT, true, false);
+                String.class, null, null, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, true, false);
         EntityProjection entityProjection = EntityProjection.builder()
                 .type(PlayerStats.class).pagination(pagination).build();
 

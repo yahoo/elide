@@ -7,13 +7,30 @@ package com.yahoo.elide.spring.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.yahoo.elide.ElideErrorResponse;
+import com.yahoo.elide.ElideErrors;
+import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
+import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.SerdesBuilderCustomizer;
+import com.yahoo.elide.core.exceptions.ErrorContext;
+import com.yahoo.elide.core.exceptions.ExceptionMapper;
+import com.yahoo.elide.core.exceptions.ExceptionMapperRegistration;
 import com.yahoo.elide.core.request.route.NullRouteResolver;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.request.route.RouteResolver;
+import com.yahoo.elide.graphql.GraphQLErrorContext;
+import com.yahoo.elide.graphql.GraphQLExceptionHandler;
+import com.yahoo.elide.graphql.GraphQLSettings;
+import com.yahoo.elide.graphql.models.GraphQLErrors;
+import com.yahoo.elide.jsonapi.JsonApiErrorContext;
+import com.yahoo.elide.jsonapi.JsonApiExceptionHandler;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.jsonapi.models.JsonApiError;
+import com.yahoo.elide.jsonapi.models.JsonApiErrors;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -32,6 +49,8 @@ import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RestController;
+
+import graphql.GraphQLError;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -285,5 +304,62 @@ class ElideAutoConfigurationTest {
             GroupedOpenApi groupedOpenApi = context.getBean(GroupedOpenApi.class);
             assertThat(groupedOpenApi.getOpenApiCustomizers()).hasSize(1);
         });
+    }
+
+    public static class ConstraintViolationExceptionMapper implements ExceptionMapper<ConstraintViolationException, ElideErrors> {
+        @Override
+        public ElideErrorResponse<ElideErrors> toErrorResponse(ConstraintViolationException exception,
+                ErrorContext errorContext) {
+            return ElideErrorResponse.badRequest(ElideErrors.builder()
+                    .error(error -> error.message(exception.getMessage()).attribute("constraint",
+                            exception.getConstraintName()))
+                    .build());
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    public static class UserExceptionHandlerConfiguration {
+        @Bean
+        public ExceptionMapperRegistration exceptionMapperRegistration() {
+            return ExceptionMapperRegistration.builder().exceptionMapper(new ConstraintViolationExceptionMapper()).build();
+        }
+    }
+
+    @Test
+    void jsonApiExceptionHandler() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false", "elide.jsonapi.enabled=true")
+                .withConfiguration(UserConfigurations.of(UserExceptionHandlerConfiguration.class)).run(context -> {
+                    ElideSettings elideSettings = context.getBean(RefreshableElide.class).getElide().getElideSettings();
+                    JsonApiSettings jsonApiSettings = elideSettings.getSettings(JsonApiSettings.class);
+                    JsonApiExceptionHandler exceptionHandler = jsonApiSettings.getJsonApiExceptionHandler();
+                    ConstraintViolationException exception = new ConstraintViolationException("could not execute statement",
+                            null, "UC_PERSON");
+                    ElideResponse<?> response = exceptionHandler.handleException(exception,
+                            JsonApiErrorContext.builder().mapper(jsonApiSettings.getJsonApiMapper()).build());
+                    JsonApiErrors errors = response.getBody(JsonApiErrors.class);
+                    JsonApiError error = errors.getErrors().get(0);
+                    assertThat(error.getDetail()).isEqualTo(exception.getMessage());
+                    Map<String, Object> meta = error.getMeta();
+                    assertThat(meta).containsEntry("constraint", exception.getConstraintName());
+                });
+    }
+
+    @Test
+    void graphqlExceptionHandler() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false", "elide.graphql.enabled=true")
+                .withConfiguration(UserConfigurations.of(UserExceptionHandlerConfiguration.class)).run(context -> {
+                    ElideSettings elideSettings = context.getBean(RefreshableElide.class).getElide().getElideSettings();
+                    GraphQLSettings graphqlSettings = elideSettings.getSettings(GraphQLSettings.class);
+                    GraphQLExceptionHandler exceptionHandler = graphqlSettings.getGraphqlExceptionHandler();
+                    ConstraintViolationException exception = new ConstraintViolationException("could not execute statement",
+                            null, "UC_PERSON");
+                    ElideResponse<?> response = exceptionHandler.handleException(exception,
+                            GraphQLErrorContext.builder().build());
+                    GraphQLErrors errors = response.getBody(GraphQLErrors.class);
+                    GraphQLError error = errors.getErrors().get(0);
+                    assertThat(error.getMessage()).isEqualTo(exception.getMessage());
+                    Map<String, Object> meta = error.getExtensions();
+                    assertThat(meta).containsEntry("constraint", exception.getConstraintName());
+                });
     }
 }

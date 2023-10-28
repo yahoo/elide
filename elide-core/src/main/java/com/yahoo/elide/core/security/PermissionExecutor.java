@@ -141,15 +141,6 @@ public interface PermissionExecutor {
     }
 
     /**
-     * Whether or not the permission executor will return verbose logging to the requesting user in the response.
-     *
-     * @return True if verbose, false otherwise.
-     */
-    default boolean isVerbose() {
-        return false;
-    }
-
-    /**
      * Evaluate filterPredicate for a provided resource, or return PASS or FAIL.
      * Return UNEVALUATED for default handling.
      * Return DEFERRED to skip default user check handling.

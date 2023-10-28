@@ -57,7 +57,6 @@ public class RequestHandler implements Closeable {
     protected ConnectionInfo connectionInfo;
     protected boolean sendPingOnSubscribe;
     protected AtomicBoolean isOpen = new AtomicBoolean(true);
-    protected boolean verboseErrors = false;
 
     /**
      * Constructor.
@@ -77,8 +76,7 @@ public class RequestHandler implements Closeable {
             String protocolID,
             UUID requestID,
             ConnectionInfo connectionInfo,
-            boolean sendPingOnSubscribe,
-            boolean verboseErrors) {
+            boolean sendPingOnSubscribe) {
         this.sessionHandler = sessionHandler;
         this.topicStore = topicStore;
         this.elide = elide;
@@ -88,7 +86,6 @@ public class RequestHandler implements Closeable {
         this.connectionInfo = connectionInfo;
         this.transaction = null;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
-        this.verboseErrors = verboseErrors;
     }
 
     /**
@@ -119,8 +116,14 @@ public class RequestHandler implements Closeable {
             //This would be a subscription creation error.
         } catch (RuntimeException e) {
             log.error("UNEXPECTED RuntimeException: {}", e.getMessage());
-            ElideResponse response = QueryRunner.handleRuntimeException(elide, e, verboseErrors);
-            safeSendError(response.getBody());
+            ElideResponse<?> response = QueryRunner.handleRuntimeException(elide, e);
+            String responseBody;
+            try {
+                responseBody = elide.getObjectMapper().writeValueAsString(response.getBody());
+                safeSendError(responseBody);
+            } catch (JsonProcessingException e1) {
+                safeSendError(e1.toString());
+            }
             safeClose();
         }
 

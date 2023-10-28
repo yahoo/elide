@@ -129,7 +129,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         return ElideSettings.builder().dataStore(null)
                 .entityDictionary(initDictionary())
                 .auditLogger(MOCK_AUDIT_LOGGER)
-                .defaultMaxPageSize(10)
+                .maxPageSize(10)
                 .defaultPageSize(10)
                 .settings(jsonApiSettings)
                 .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())

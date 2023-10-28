@@ -161,6 +161,8 @@ public class ElideStandaloneConfigStoreTest {
 
     @Test
     public void testGraphQLNullContent() {
+        String expected = """
+                {"errors":[{"message":"Null or empty file content for models/tables/table1.hjson","extensions":{"classification":"DataFetchingException"}}]}""";
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -183,7 +185,7 @@ public class ElideStandaloneConfigStoreTest {
                 .when()
                 .post("/graphql/api")
                 .then()
-                .body(equalTo("{\"errors\":[{\"message\":\"Null or empty file content for models/tables/table1.hjson\"}]}"))
+                .body(equalTo(expected))
                 .log().all()
                 .statusCode(200);
     }

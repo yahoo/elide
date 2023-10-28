@@ -13,8 +13,19 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.assertArg;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
+import com.yahoo.elide.Serdes.SerdesBuilder;
+import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
+import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
+import com.yahoo.elide.graphql.GraphQLExceptionHandler;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
@@ -26,6 +37,7 @@ import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -36,7 +48,9 @@ import jakarta.websocket.Session;
 import jakarta.websocket.WebSocketContainer;
 
 import java.net.URI;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Tests ElideStandalone starts and works.
@@ -44,10 +58,23 @@ import java.util.List;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneSubscriptionTest extends ElideStandaloneTest {
     protected EmbeddedActiveMQ embedded;
+    protected GraphQLExceptionHandler graphqlExceptionHandler;
+    protected ISO8601DateSerde serde = spy(new ISO8601DateSerde("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")));
 
     @BeforeAll
     public void init() throws Exception {
         settings = new ElideStandaloneTestSettings() {
+
+            @Override
+            public SerdesBuilder getSerdesBuilder() {
+                return super.getSerdesBuilder().entry(Date.class, serde);
+            }
+
+            @Override
+            public GraphQLExceptionHandler getGraphQLExceptionHandler() {
+                graphqlExceptionHandler = spy(super.getGraphQLExceptionHandler());
+                return graphqlExceptionHandler;
+            }
 
             @Override
             public ElideStandaloneSubscriptionSettings getSubscriptionProperties() {
@@ -81,6 +108,12 @@ public class ElideStandaloneSubscriptionTest extends ElideStandaloneTest {
 
         embedded.setConfiguration(configuration);
         embedded.start();
+    }
+
+    @BeforeEach
+    public void resetMocks() {
+        reset(graphqlExceptionHandler);
+        reset(serde);
     }
 
     @AfterAll
@@ -166,6 +199,69 @@ public class ElideStandaloneSubscriptionTest extends ElideStandaloneTest {
 
             assertEquals(1, results.size());
             assertEquals(0, results.get(0).getErrors().size());
+        }
+    }
+
+    @Test
+    public void graphqlExceptionHandlerShouldBeCalled() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {post(topic: ADDED) {id texta}}"));
+
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:" + settings.getPort() + "/subscription/v1.0"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+            client.sendClose();
+        }
+
+        verify(graphqlExceptionHandler).handleException(assertArg(arg -> {
+            assertInstanceOf(InvalidEntityBodyException.class, arg);
+            assertEquals("Bad Request Body'Unknown attribute field {post.texta}.'", arg.getMessage());
+        }), any());
+    }
+
+    @Test
+    public void serdeShouldBeCalled() throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
+        SubscriptionWebSocketTestClient client = new SubscriptionWebSocketTestClient(1,
+                List.of("subscription {post(topic: ADDED) {id text date}}"));
+
+        try (Session session = container.connectToServer(client, new URI("ws://localhost:" + settings.getPort() + "/subscription/v1.0"))) {
+
+            //Wait for the socket to be full established.
+            client.waitOnSubscribe(10);
+
+            given()
+                    .contentType(JsonApi.MEDIA_TYPE)
+                    .accept(JsonApi.MEDIA_TYPE)
+                    .body(
+                            datum(
+                                    resource(
+                                            type("post"),
+                                            id("95"),
+                                            attributes(
+                                                    attr("text", "This is my second post. woot."),
+                                                    attr("date", "2019-01-01T00:00Z")
+                                            )
+                                    )
+                            )
+                    )
+                    .post("/api/v1.0/post")
+                    .then()
+                    .statusCode(HttpStatus.SC_CREATED);
+
+            List<ExecutionResult> results = client.waitOnClose(10);
+
+            client.sendClose();
+
+            assertEquals(1, results.size());
+            assertEquals(0, results.get(0).getErrors().size());
+            verify(serde, atLeast(2)).deserialize(assertArg(arg -> {
+                assertEquals("2019-01-01T00:00Z", arg);
+            }));
         }
     }
 }

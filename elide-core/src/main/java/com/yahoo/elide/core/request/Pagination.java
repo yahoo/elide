@@ -19,12 +19,12 @@ public interface Pagination {
     /**
      * Default page limit (in records) it client does not provide one.
      */
-    int DEFAULT_PAGE_LIMIT = 500;
+    int DEFAULT_PAGE_SIZE = 500;
 
     /**
      * Maximum allowable page limit (in records).
      */
-    int MAX_PAGE_LIMIT = 10000;
+    int MAX_PAGE_SIZE = 10000;
 
     /**
      * Get the page offset.

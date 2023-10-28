@@ -53,7 +53,7 @@ public class PermissionAnnotationTest {
 
         ElideSettings elideSettings = ElideSettings.builder().dataStore(null)
                 .defaultPageSize(10)
-                .defaultMaxPageSize(10)
+                .maxPageSize(10)
                 .auditLogger(testLogger)
                 .entityDictionary(dictionary)
                 .build();

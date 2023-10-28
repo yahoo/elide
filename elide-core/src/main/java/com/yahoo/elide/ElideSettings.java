@@ -12,11 +12,10 @@ import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.ErrorMapper;
+import com.yahoo.elide.core.exceptions.ExceptionMappers;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
-import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
 import com.yahoo.elide.utils.HeaderProcessor;
 import com.yahoo.elide.utils.Headers;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,32 +39,31 @@ public class ElideSettings {
     private final DataStore dataStore;
     private final EntityDictionary entityDictionary;
     private final ObjectMapper objectMapper;
-    private final ErrorMapper errorMapper;
     private final Function<RequestScope, PermissionExecutor> permissionExecutor;
     private final HeaderProcessor headerProcessor;
-    private final int defaultMaxPageSize;
+    private final int maxPageSize;
     private final int defaultPageSize;
     private final Serdes serdes;
     private final String baseUrl;
+    private final boolean verboseErrors;
     private final Map<Class<? extends Settings>, Settings> settings;
 
     public ElideSettings(AuditLogger auditLogger, DataStore dataStore, EntityDictionary entityDictionary,
-            ObjectMapper objectMapper, ErrorMapper errorMapper,
-            Function<RequestScope, PermissionExecutor> permissionExecutor, HeaderProcessor headerProcessor,
-            int defaultMaxPageSize, int defaultPageSize, Serdes serdes, String baseUrl,
-            Map<Class<? extends Settings>, Settings> settings) {
+            ObjectMapper objectMapper, Function<RequestScope, PermissionExecutor> permissionExecutor,
+            HeaderProcessor headerProcessor, int maxPageSize, int defaultPageSize, Serdes serdes, String baseUrl,
+            boolean verboseErrors, Map<Class<? extends Settings>, Settings> settings) {
         super();
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.entityDictionary = entityDictionary;
         this.objectMapper = objectMapper;
-        this.errorMapper = errorMapper;
         this.permissionExecutor = permissionExecutor;
         this.headerProcessor = headerProcessor;
-        this.defaultMaxPageSize = defaultMaxPageSize;
+        this.maxPageSize = maxPageSize;
         this.defaultPageSize = defaultPageSize;
         this.serdes = serdes;
         this.baseUrl = baseUrl;
+        this.verboseErrors = verboseErrors;
         this.settings = settings;
     }
 
@@ -80,12 +78,12 @@ public class ElideSettings {
                 .dataStore(this.dataStore)
                 .entityDictionary(this.entityDictionary)
                 .objectMapper(this.objectMapper)
-                .errorMapper(this.errorMapper)
                 .permissionExecutor(this.permissionExecutor)
                 .headerProcessor(this.headerProcessor)
-                .defaultMaxPageSize(this.defaultMaxPageSize)
+                .maxPageSize(this.maxPageSize)
                 .defaultPageSize(this.defaultPageSize)
-                .baseUrl(this.baseUrl);
+                .baseUrl(this.baseUrl)
+                .verboseErrors(this.verboseErrors);
 
         builder.serdes(newSerdes -> newSerdes.entries(entries -> {
             entries.clear(); // Clear the defaults when copying
@@ -133,8 +131,8 @@ public class ElideSettings {
                 settings.put(result.getClass(), result);
             });
             return new ElideSettings(this.auditLogger, this.dataStore, this.entityDictionary, this.objectMapper,
-                    this.errorMapper, this.permissionExecutor, this.headerProcessor, this.defaultMaxPageSize,
-                    this.defaultPageSize, this.serdes.build(), this.baseUrl, settings);
+                    this.permissionExecutor, this.headerProcessor, this.maxPageSize,
+                    this.defaultPageSize, this.serdes.build(), this.baseUrl, this.verboseErrors, settings);
         }
     }
 
@@ -144,13 +142,14 @@ public class ElideSettings {
         protected AuditLogger auditLogger = new Slf4jLogger();
         protected HeaderProcessor headerProcessor = Headers::removeAuthorizationHeaders;
         protected ObjectMapper objectMapper = new ObjectMapper();
-        protected int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
-        protected int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
+        protected int maxPageSize = Pagination.MAX_PAGE_SIZE;
+        protected int defaultPageSize = Pagination.DEFAULT_PAGE_SIZE;
         protected Function<RequestScope, PermissionExecutor> permissionExecutor = ActivePermissionExecutor::new;
         protected Map<Class<?>, Settings.SettingsBuilder> settings = new LinkedHashMap<>();
         protected DataStore dataStore;
         protected EntityDictionary entityDictionary;
-        protected ErrorMapper errorMapper;
+        protected ExceptionMappers exceptionMappers;
+        protected boolean verboseErrors = false;
 
         protected ElideSettingsBuilderSupport() {
             // By default, Elide supports epoch based dates.
@@ -197,20 +196,12 @@ public class ElideSettings {
 
         /**
          * Enable or disable verbose error message generation.
-         * <p>
-         * This sets the appropriate {@link PermissionExecutor}.
          *
          * @param verboseErrors set true to enable
          * @return the builder
-         * @see VerbosePermissionExecutor
-         * @see ActivePermissionExecutor
          */
         public S verboseErrors(boolean verboseErrors) {
-            if (verboseErrors) {
-                this.permissionExecutor = VerbosePermissionExecutor::new;
-            } else {
-                this.permissionExecutor = ActivePermissionExecutor::new;
-            }
+            this.verboseErrors = verboseErrors;
             return self();
         }
 
@@ -259,13 +250,13 @@ public class ElideSettings {
         }
 
         /**
-         * Sets the default max page size.
+         * Sets the max page size.
          *
-         * @param defaultMaxPageSize the default max page size
+         * @param maxPageSize the max page size
          * @return the builder
          */
-        public S defaultMaxPageSize(int defaultMaxPageSize) {
-            this.defaultMaxPageSize = defaultMaxPageSize;
+        public S maxPageSize(int maxPageSize) {
+            this.maxPageSize = maxPageSize;
             return self();
         }
 
@@ -310,17 +301,6 @@ public class ElideSettings {
          */
         public S entityDictionary(EntityDictionary entityDictionary) {
             this.entityDictionary = entityDictionary;
-            return self();
-        }
-
-        /**
-         * Sets the {@link ErrorMapper} for customizing error messages.
-         *
-         * @param errorMapper the error mapper
-         * @return the builder
-         */
-        public S errorMapper(ErrorMapper errorMapper) {
-            this.errorMapper = errorMapper;
             return self();
         }
 

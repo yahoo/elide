@@ -435,7 +435,7 @@ public class GraphQLEntityProjectionMaker {
                     pagination.getOffset(),
                     value,
                     elideSettings.getDefaultPageSize(),
-                    elideSettings.getDefaultMaxPageSize(),
+                    elideSettings.getMaxPageSize(),
                     pagination.returnPageTotals(),
                     false);
         } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
@@ -444,7 +444,7 @@ public class GraphQLEntityProjectionMaker {
                     value,
                     pagination.getLimit(),
                     elideSettings.getDefaultPageSize(),
-                    elideSettings.getDefaultMaxPageSize(),
+                    elideSettings.getMaxPageSize(),
                     pagination.returnPageTotals(),
                     false);
         }
@@ -467,7 +467,7 @@ public class GraphQLEntityProjectionMaker {
                     null,
                     null,
                     elideSettings.getDefaultPageSize(),
-                    elideSettings.getDefaultMaxPageSize(),
+                    elideSettings.getMaxPageSize(),
                     true,
                     false);
 
@@ -477,7 +477,7 @@ public class GraphQLEntityProjectionMaker {
                     projectionBuilder.getPagination().getOffset(),
                     projectionBuilder.getPagination().getLimit(),
                     elideSettings.getDefaultPageSize(),
-                    elideSettings.getDefaultMaxPageSize(),
+                    elideSettings.getMaxPageSize(),
                     true,
                     false);
         }
