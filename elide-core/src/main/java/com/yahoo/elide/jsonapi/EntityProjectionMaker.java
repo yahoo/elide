@@ -339,7 +339,7 @@ public class EntityProjectionMaker
                             .value(argumentType.getDefaultValue())
                             .build();
                 })
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Set<Argument> getDefaultEntityArguments(Type<?> entityClass) {
@@ -351,7 +351,7 @@ public class EntityProjectionMaker
                             .value(argumentType.getDefaultValue())
                             .build();
                 })
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Set<Attribute> getSparseAttributes(Type<?> entityClass) {
@@ -363,7 +363,8 @@ public class EntityProjectionMaker
         } else {
             Set<String> allRelationships = new LinkedHashSet<>(dictionary.getRelationships(entityClass));
             validateSparseFields(sparseFieldsForEntity, allAttributes, allRelationships, entityClass);
-            sparseFieldsForEntity = Sets.intersection(allAttributes, sparseFieldsForEntity);
+            // sparseFieldsForEntity must be the first parameter to retain the order
+            sparseFieldsForEntity = Sets.intersection(sparseFieldsForEntity, allAttributes);
         }
 
         return sparseFieldsForEntity.stream()
@@ -372,7 +373,7 @@ public class EntityProjectionMaker
                     .type(dictionary.getType(entityClass, attributeName))
                     .arguments(getDefaultAttributeArguments(entityClass, attributeName))
                     .build())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Map<String, EntityProjection> getSparseRelationships(Type<?> entityClass) {
@@ -384,7 +385,8 @@ public class EntityProjectionMaker
         } else {
             Set<String> allAttributes = new LinkedHashSet<>(dictionary.getAttributes(entityClass));
             validateSparseFields(sparseFieldsForEntity, allAttributes, allRelationships, entityClass);
-            sparseFieldsForEntity = Sets.intersection(allRelationships, sparseFieldsForEntity);
+            // sparseFieldsForEntity must be the first parameter to retain the order
+            sparseFieldsForEntity = Sets.intersection(sparseFieldsForEntity, allRelationships);
         }
 
         return sparseFieldsForEntity.stream()
@@ -431,7 +433,7 @@ public class EntityProjectionMaker
             return queryParams.get(INCLUDE).stream()
                     .flatMap(param -> Arrays.stream(param.split(",")))
                     .map(pathString -> new Path(entityClass, dictionary, pathString))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         return new LinkedHashSet<>();
@@ -444,6 +446,6 @@ public class EntityProjectionMaker
                         .alias(entry.getKey())
                         .projection(entry.getValue())
                         .build())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
