@@ -39,6 +39,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -81,12 +82,8 @@ public class JsonApi {
     /**
      * Handle GET.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param path the path
-     * @param queryParams the query params
-     * @param requestHeaders the request headers
+     * @param route the route
      * @param opaqueUser the opaque user
-     * @param apiVersion the API version
      * @param requestId the request ID
      * @return Elide response object
      */
@@ -119,13 +116,9 @@ public class JsonApi {
     /**
      * Handle POST.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param path the path
+     * @param route the route
      * @param jsonApiDocument the json api document
-     * @param queryParams the query params
-     * @param requestHeaders the request headers
      * @param opaqueUser the opaque user
-     * @param apiVersion the API version
      * @param requestId the request ID
      * @return Elide response object
      */
@@ -148,23 +141,17 @@ public class JsonApi {
     /**
      * Handle PATCH.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param contentType the content type
-     * @param accept the accept
-     * @param path the path
+     * @param route the route
      * @param jsonApiDocument the json api document
-     * @param queryParams the query params
-     * @param requestHeaders the request headers
      * @param opaqueUser the opaque user
-     * @param apiVersion the API version
      * @param requestId the request ID
      * @return Elide response object
      */
     public ElideResponse<String> patch(Route route, String jsonApiDocument, User opaqueUser, UUID requestId) {
         UUID requestUuid = requestId != null ? requestId : UUID.randomUUID();
 
-        String accept = route.getHeaders().get("accept").stream().findFirst().orElse("");
-        String contentType = route.getHeaders().get("content-type").stream().findFirst().orElse("");
+        String accept = getFirstHeaderValueOrEmpty(route, "accept");
+        String contentType = getFirstHeaderValueOrEmpty(route, "content-type");
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiJsonPatch.isPatchExtension(contentType) && JsonApiJsonPatch.isPatchExtension(accept)) {
@@ -198,13 +185,9 @@ public class JsonApi {
     /**
      * Handle DELETE.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param path the path
+     * @param route the route
      * @param jsonApiDocument the json api document
-     * @param queryParams the query params
-     * @param requestHeaders the request headers
      * @param opaqueUser the opaque user
-     * @param apiVersion the API version
      * @param requestId the request ID
      * @return Elide response object
      */
@@ -228,25 +211,19 @@ public class JsonApi {
     /**
      * Handle operations for the Atomic Operations extension.
      *
-     * @param baseUrlEndPoint base URL with prefix endpoint
-     * @param contentType the content type
-     * @param accept the accept
-     * @param path the path
+     * @param route the route
      * @param jsonApiDocument the json api document
-     * @param queryParams the query params
      * @param opaqueUser the opaque user
-     * @param apiVersion the API version
      * @param requestId the request ID
      * @return Elide response object
-     * @return
      */
     public ElideResponse<String> operations(Route route,
             String jsonApiDocument, User opaqueUser, UUID requestId) {
 
         UUID requestUuid = requestId != null ? requestId : UUID.randomUUID();
 
-        String accept = route.getHeaders().get("accept").stream().findFirst().orElse("");
-        String contentType = route.getHeaders().get("content-type").stream().findFirst().orElse("");
+        String accept = getFirstHeaderValueOrEmpty(route, "accept");
+        String contentType = getFirstHeaderValueOrEmpty(route, "content-type");
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiAtomicOperations.isAtomicOperationsExtension(contentType)
@@ -368,6 +345,10 @@ public class JsonApi {
                         || key.startsWith("page[")
                         || key.equals(EntityProjectionMaker.INCLUDE);
         return !validKey;
+    }
+
+    private static String getFirstHeaderValueOrEmpty(Route route, String headerName) {
+        return route.getHeaders().getOrDefault(headerName, Collections.emptyList()).stream().findFirst().orElse("");
     }
 
     /**
