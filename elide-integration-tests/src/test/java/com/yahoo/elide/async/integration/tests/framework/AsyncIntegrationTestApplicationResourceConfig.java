@@ -19,6 +19,7 @@ import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
+import com.yahoo.elide.async.export.formatter.XlsxExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
 import com.yahoo.elide.async.integration.tests.AsyncIT;
@@ -141,6 +142,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                     Map<String, TableExportFormatter> supportedFormatters = new HashMap<>();
                     supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide, true));
                     supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
+                    supportedFormatters.put(ResultType.XLSX, new XlsxExportFormatter(true));
 
                     // Binding TableExport LifeCycleHook
                     TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, Duration.ofSeconds(10L),

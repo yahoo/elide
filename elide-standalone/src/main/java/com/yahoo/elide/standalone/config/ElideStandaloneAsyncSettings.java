@@ -12,6 +12,7 @@ import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatters;
 import com.yahoo.elide.async.export.formatter.TableExportFormatters.TableExportFormattersBuilder;
+import com.yahoo.elide.async.export.formatter.XlsxExportFormatter;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.service.dao.AsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
@@ -182,6 +183,7 @@ public interface ElideStandaloneAsyncSettings {
         TableExportFormattersBuilder builder = TableExportFormatters.builder();
         builder.entry(ResultType.CSV, new CsvExportFormatter(elide, csvWriteHeader()));
         builder.entry(ResultType.JSON, new JsonExportFormatter(elide));
+        builder.entry(ResultType.XLSX, new XlsxExportFormatter(true));
         return builder;
     }
 

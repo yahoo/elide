@@ -18,6 +18,8 @@ public class DefaultResultTypeFileExtensionMapper implements ResultTypeFileExten
             return ".json";
         case ResultType.CSV:
             return ".csv";
+        case ResultType.XLSX:
+            return ".xlsx";
         default:
             return "";
         }

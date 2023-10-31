@@ -11,4 +11,5 @@ package com.yahoo.elide.async.models;
 public abstract class ResultType {
     public static final String JSON = "JSON";
     public static final String CSV = "CSV";
+    public static final String XLSX = "XLSX";
 }

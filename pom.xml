@@ -126,6 +126,7 @@
         <junit.version>5.10.1</junit.version>
         <logback.version>1.4.14</logback.version>
         <lombok.version>1.18.30</lombok.version>
+        <poi.version>5.2.5</poi.version>
         <rest-assured.version>5.4.0</rest-assured.version>
         <rxjava.version>2.2.21</rxjava.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
@@ -432,6 +433,12 @@
                 <groupId>org.fusesource.jansi</groupId>
                 <artifactId>jansi</artifactId>
                 <version>${jansi.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
             </dependency>
 
             <dependency>

@@ -20,6 +20,7 @@ import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatters;
 import com.yahoo.elide.async.export.formatter.TableExportFormatters.TableExportFormattersBuilder;
 import com.yahoo.elide.async.export.formatter.TableExportFormattersBuilderCustomizer;
+import com.yahoo.elide.async.export.formatter.XlsxExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -85,6 +86,7 @@ public class ElideAsyncConfiguration {
                 && asyncProperties.getExport().getFormat().getCsv().isWriteHeader();
         builder.entry(ResultType.CSV, new CsvExportFormatter(elide.getElide(), writeCSVHeader));
         builder.entry(ResultType.JSON, new JsonExportFormatter(elide.getElide()));
+        builder.entry(ResultType.XLSX, new XlsxExportFormatter(true));
         customizerProvider.orderedStream().forEach(customizer -> customizer.customize(builder));
         return builder;
     }
