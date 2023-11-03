@@ -108,7 +108,8 @@ public class ElideAsyncConfiguration {
             AsyncApiDao asyncQueryDao,
             Optional<ResultStorageEngine> optionalResultStorageEngine,
             Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler,
-            TableExportFormattersBuilder tableExportFormattersBuilder
+            TableExportFormattersBuilder tableExportFormattersBuilder,
+            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper
     ) {
         AsyncProperties asyncProperties = settings.getAsync();
 
@@ -132,7 +133,8 @@ public class ElideAsyncConfiguration {
         if (exportEnabled) {
             // Binding TableExport LifeCycleHook
             TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings,
-                    tableExportFormattersBuilder.build(), optionalResultStorageEngine.orElse(null));
+                    tableExportFormattersBuilder.build(), optionalResultStorageEngine.orElse(null),
+                    asyncProperties.getExport().isAppendFileExtension() ? resultTypeFileExtensionMapper : null);
             dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
             dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
             dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
@@ -143,9 +145,9 @@ public class ElideAsyncConfiguration {
 
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideConfigProperties settings, Map<String, TableExportFormatter> supportedFormatters,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
         return new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfter(), supportedFormatters,
-                resultStorageEngine);
+                resultStorageEngine, resultTypeFileExtensionMapper);
     }
 
     /**
@@ -186,11 +188,9 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
-    public ResultStorageEngine resultStorageEngine(ElideConfigProperties settings,
-            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
+    public ResultStorageEngine resultStorageEngine(ElideConfigProperties settings) {
         FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(
-                settings.getAsync().getExport().getStorageDestination(),
-                settings.getAsync().getExport().isAppendFileExtension() ? resultTypeFileExtensionMapper : null);
+                settings.getAsync().getExport().getStorageDestination());
         return resultStorageEngine;
     }
 

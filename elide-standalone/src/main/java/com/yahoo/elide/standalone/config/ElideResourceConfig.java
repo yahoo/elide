@@ -12,6 +12,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
@@ -166,16 +167,16 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                 if (resultStorageEngine == null) {
-                    resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination(),
-                            asyncProperties.appendFileExtension() ? asyncProperties.getResultTypeFileExtensionMapper()
-                                    : null);
+                    resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination());
                 }
                 bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
                 // Binding TableExport LifeCycleHook
                 TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
                         asyncProperties, asyncProperties.getTableExportFormattersBuilder(elide).build(),
-                        resultStorageEngine);
+                        resultStorageEngine,
+                        asyncProperties.appendFileExtension() ? asyncProperties.getResultTypeFileExtensionMapper()
+                                : null);
                 dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
                 dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                 dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
@@ -306,8 +307,8 @@ public class ElideResourceConfig extends ResourceConfig {
 
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideStandaloneAsyncSettings asyncProperties, Map<String, TableExportFormatter> supportedFormatters,
-            ResultStorageEngine engine) {
+            ResultStorageEngine engine, ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
         return new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
-                    supportedFormatters, engine);
+                    supportedFormatters, engine, resultTypeFileExtensionMapper);
     }
 }

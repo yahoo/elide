@@ -57,6 +57,7 @@ public class JsonApiTableExportOperationTest {
     private Elide elide;
     private AsyncExecutorService asyncExecutorService;
     private ResultStorageEngine engine;
+    private DefaultResultTypeFileExtensionMapper resultTypeFileExtensionMapper = new DefaultResultTypeFileExtensionMapper();
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
@@ -83,7 +84,7 @@ public class JsonApiTableExportOperationTest {
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
-        engine = new FileResultStorageEngine(tempDir.toString(), new DefaultResultTypeFileExtensionMapper());
+        engine = new FileResultStorageEngine(tempDir.toString());
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).baseUrl("https://elide.io").build());
         when(requestScope.getUser()).thenReturn(user);
@@ -102,7 +103,7 @@ public class JsonApiTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope, engine);
+                queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -123,7 +124,7 @@ public class JsonApiTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope, engine);
+                queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -142,7 +143,7 @@ public class JsonApiTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope, engine);
+                queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -161,7 +162,7 @@ public class JsonApiTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         JsonApiTableExportOperation jsonAPIOperation = new JsonApiTableExportOperation(new JsonExportFormatter(elide),
-                        asyncExecutorService, queryObj, requestScope, engine);
+                        asyncExecutorService, queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());

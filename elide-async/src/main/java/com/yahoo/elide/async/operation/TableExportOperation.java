@@ -7,6 +7,7 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.ResourceWriter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
@@ -58,15 +59,18 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
     private RequestScope scope;
     private ResultStorageEngine engine;
     private List<Validator> validators = new ArrayList<>(Arrays.asList(new SingleRootProjectionValidator()));
+    private ResultTypeFileExtensionMapper resultTypeFileExtensionMapper;
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncApi exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators) {
+            AsyncApi exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators,
+            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
         this.formatter = formatter;
         this.service = service;
         this.exportObj = (TableExport) exportObj;
         this.scope = scope;
         this.engine = engine;
         this.validators.addAll(validators);
+        this.resultTypeFileExtensionMapper = resultTypeFileExtensionMapper;
     }
 
     @Override
@@ -187,10 +191,8 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
                 baseURL = baseURL.substring(0, baseURL.length() - graphqlApiPath.length());
             }
         }
-        String extension = this.engine.getResultTypeFileExtensionMapper() != null
-                ? this.engine.getResultTypeFileExtensionMapper().getFileExtension(exportObj.getResultType())
-                : "";
-        return baseURL + downloadPath + "/" + exportObj.getId() + extension;
+        String tableExportID = getTableExportID(exportObj);
+        return baseURL + downloadPath + "/" + tableExportID;
     }
 
     /**
@@ -202,7 +204,14 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      */
     protected TableExportResult storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
             Consumer<OutputStream> result) {
-        return resultStorageEngine.storeResults(exportObj, result);
+        return resultStorageEngine.storeResults(getTableExportID(exportObj), result);
+    }
+
+    protected String getTableExportID(TableExport exportObj) {
+        String extension = resultTypeFileExtensionMapper != null
+                ? resultTypeFileExtensionMapper.getFileExtension(exportObj.getResultType())
+                : "";
+        return exportObj.getId() + extension;
     }
 
     private void validateProjections(Collection<EntityProjection> projections) {

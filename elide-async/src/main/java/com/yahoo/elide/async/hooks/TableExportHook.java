@@ -8,6 +8,7 @@ package com.yahoo.elide.async.hooks;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncApiResult;
@@ -35,12 +36,15 @@ import java.util.concurrent.Callable;
 public class TableExportHook extends AsyncApiHook<TableExport> {
     private final Map<String, TableExportFormatter> supportedFormatters;
     private final ResultStorageEngine engine;
+    private final ResultTypeFileExtensionMapper resultTypeFileExtensionMapper;
 
     public TableExportHook (AsyncExecutorService asyncExecutorService, Duration maxAsyncAfter,
-            Map<String, TableExportFormatter> supportedFormatters, ResultStorageEngine engine) {
+            Map<String, TableExportFormatter> supportedFormatters, ResultStorageEngine engine,
+            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
         super(asyncExecutorService, maxAsyncAfter);
         this.supportedFormatters = supportedFormatters;
         this.engine = engine;
+        this.resultTypeFileExtensionMapper = resultTypeFileExtensionMapper;
     }
 
     @Override
@@ -74,9 +78,11 @@ public class TableExportHook extends AsyncApiHook<TableExport> {
         }
 
         if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
-            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine);
+            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine,
+                    resultTypeFileExtensionMapper);
         } else if (queryType.equals(QueryType.JSONAPI_V1_0)) {
-            operation = new JsonApiTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine);
+            operation = new JsonApiTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine,
+                    resultTypeFileExtensionMapper);
         } else {
             throw new InvalidOperationException(queryType + "is not supported");
         }

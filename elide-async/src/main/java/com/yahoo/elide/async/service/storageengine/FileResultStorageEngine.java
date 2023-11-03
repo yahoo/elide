@@ -6,8 +6,6 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
-import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
-import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 
 import jakarta.inject.Singleton;
@@ -33,26 +31,21 @@ import java.util.function.Consumer;
 @Getter
 public class FileResultStorageEngine implements ResultStorageEngine {
     @Setter private String basePath;
-    @Setter private ResultTypeFileExtensionMapper resultTypeFileExtensionMapper;
 
     /**
      * Constructor.
      * @param basePath basePath for storing the files. Can be absolute or relative.
      * @param resultTypeFileExtensionMapper Enable file extensions.
      */
-    public FileResultStorageEngine(String basePath, ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
+    public FileResultStorageEngine(String basePath) {
         this.basePath = basePath;
-        this.resultTypeFileExtensionMapper = resultTypeFileExtensionMapper;
     }
 
     @Override
-    public TableExportResult storeResults(TableExport tableExport, Consumer<OutputStream> result) {
+    public TableExportResult storeResults(String tableExportID, Consumer<OutputStream> result) {
         log.debug("store TableExportResults for Download");
-        String extension = resultTypeFileExtensionMapper != null
-                ? resultTypeFileExtensionMapper.getFileExtension(tableExport.getResultType())
-                : "";
        TableExportResult exportResult = new TableExportResult();
-       try (OutputStream writer = newOutputStream(tableExport.getId(), extension)) {
+       try (OutputStream writer = newOutputStream(tableExportID)) {
            result.accept(writer);
        } catch (IOException e) {
            throw new UncheckedIOException(STORE_ERROR, e);
@@ -81,17 +74,12 @@ public class FileResultStorageEngine implements ResultStorageEngine {
         }
     }
 
-    private OutputStream newOutputStream(String tableExportID, String extension) {
+    private OutputStream newOutputStream(String tableExportID) {
         try {
-            return Files.newOutputStream(Paths.get(basePath + File.separator + tableExportID + extension));
+            return Files.newOutputStream(Paths.get(basePath + File.separator + tableExportID));
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new UncheckedIOException(STORE_ERROR, e);
         }
-    }
-
-    @Override
-    public ResultTypeFileExtensionMapper getResultTypeFileExtensionMapper() {
-        return this.resultTypeFileExtensionMapper;
     }
 }

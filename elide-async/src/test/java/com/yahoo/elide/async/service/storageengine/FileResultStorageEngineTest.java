@@ -88,7 +88,7 @@ public class FileResultStorageEngineTest {
     }
 
     private String readResultsFile(String path, String queryId) {
-        FileResultStorageEngine engine = new FileResultStorageEngine(path, null);
+        FileResultStorageEngine engine = new FileResultStorageEngine(path);
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             engine.getResultsByID(queryId).accept(outputStream);
             return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
@@ -98,10 +98,10 @@ public class FileResultStorageEngineTest {
     }
 
     private void storeResultsFile(String path, String queryId, Consumer<OutputStream> storable) {
-        FileResultStorageEngine engine = new FileResultStorageEngine(path, null);
+        FileResultStorageEngine engine = new FileResultStorageEngine(path);
         TableExport query = new TableExport();
         query.setId(queryId);
 
-        engine.storeResults(query, storable);
+        engine.storeResults(query.getId(), storable);
     }
 }

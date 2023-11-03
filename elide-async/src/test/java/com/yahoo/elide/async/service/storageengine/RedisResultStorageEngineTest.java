@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.models.TableExport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +40,6 @@ public class RedisResultStorageEngineTest {
     private static final int PORT = 6379;
     private static final int EXPIRATION_SECONDS = 120;
     private static final int BATCH_SIZE = 2;
-    private static final ResultTypeFileExtensionMapper EXTENSION_SUPPORT = null;
     private JedisPooled jedisPool;
     private RedisServer redisServer;
     RedisResultStorageEngine engine;
@@ -51,7 +49,7 @@ public class RedisResultStorageEngineTest {
         redisServer = new RedisServer(PORT);
         redisServer.start();
         jedisPool = new JedisPooled(HOST, PORT);
-        engine = new RedisResultStorageEngine(jedisPool, EXTENSION_SUPPORT, EXPIRATION_SECONDS, BATCH_SIZE);
+        engine = new RedisResultStorageEngine(jedisPool, EXPIRATION_SECONDS, BATCH_SIZE);
     }
 
     @AfterEach
@@ -201,6 +199,6 @@ public class RedisResultStorageEngineTest {
         TableExport query = new TableExport();
         query.setId(queryId);
 
-        engine.storeResults(query, storable);
+        engine.storeResults(query.getId(), storable);
     }
 }
