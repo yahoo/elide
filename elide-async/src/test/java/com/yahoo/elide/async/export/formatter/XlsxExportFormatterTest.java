@@ -6,13 +6,14 @@
 package com.yahoo.elide.async.export.formatter;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.models.Export;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
@@ -26,7 +27,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.jsonapi.models.Resource;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -53,7 +53,6 @@ import java.util.function.Consumer;
 
 public class XlsxExportFormatterTest {
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
-    private static final FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("GMT"));
     private HashMapDataStore dataStore;
     private Elide elide;
     private RequestScope scope;
@@ -81,7 +80,7 @@ public class XlsxExportFormatterTest {
     }
 
     public byte[] format(TableExportFormatter formatter,  EntityProjection entityProjection,
-            TableExport tableExport, PersistentResource resource) {
+            TableExport tableExport, PersistentResource<?> resource) {
         return byteValueOf(outputStream -> {
             try (ResourceWriter writer = formatter.newResourceWriter(outputStream, entityProjection, tableExport)) {
                 if (resource != null) {
@@ -102,10 +101,7 @@ public class XlsxExportFormatterTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        queryObj.setResultType(ResultType.CSV);
-
-        String row = "\"{ tableExport { edges { node { query queryType createdOn} } } }\", \"GRAPHQL_V1_0\""
-                + ", \"" + FORMATTER.format(queryObj.getCreatedOn());
+        queryObj.setResultType(ResultType.XLSX);
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
@@ -131,18 +127,25 @@ public class XlsxExportFormatterTest {
         when(scope.getEntityProjection()).thenReturn(projection);
 
         byte[] output = format(formatter, projection, null, persistentResource);
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output)) {
-            XSSFWorkbook wb = new XSSFWorkbook(inputStream);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
             XSSFSheet sheet = wb.getSheetAt(0);
             Object[] row1 = readRow(sheet, 0);
-            assertArrayEquals(new Object[] {"query", "queryType", "createdOn"}, row1);
+            assertArrayEquals(new Object[] { "query", "queryType", "createdOn" }, row1);
             Object[] row2 = readRow(sheet, 1);
             assertArrayEquals(new Object[] { query, queryObj.getQueryType().name(), queryObj.getCreatedOn() }, row2);
         }
     }
 
+    protected boolean isEmpty(XSSFSheet sheet) {
+        return sheet.getFirstRowNum() == -1;
+    }
+
     protected Object[] readRow(XSSFSheet sheet, int rowNumber) {
         XSSFRow row = sheet.getRow(rowNumber);
+        if (row == null) {
+            return null;
+        }
         short start = row.getFirstCellNum();
         short end = row.getLastCellNum();
         Object[] result = new Object[end];
@@ -164,15 +167,19 @@ public class XlsxExportFormatterTest {
     }
 
     @Test
-    public void testNullResourceToXLSX() {
+    public void testNullResourceToXLSX() throws IOException {
         XlsxExportFormatter formatter = new XlsxExportFormatter(true);
         PersistentResource persistentResource = null;
         byte[] output = format(formatter, null, null, persistentResource);
-        assertEquals("", output);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            assertTrue(isEmpty(sheet));
+        }
     }
 
     @Test
-    public void testNullProjectionHeader() {
+    public void testNullProjectionHeader() throws IOException {
         XlsxExportFormatter formatter = new XlsxExportFormatter(true);
 
         TableExport queryObj = new TableExport();
@@ -181,11 +188,15 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = null;
 
         byte[] output = format(formatter, projection, queryObj, null);
-        assertEquals("", output);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            assertTrue(isEmpty(sheet));
+        }
     }
 
     @Test
-    public void testProjectionWithEmptyAttributeSetHeader() {
+    public void testProjectionWithEmptyAttributeSetHeader() throws IOException {
         XlsxExportFormatter formatter = new XlsxExportFormatter(true);
 
         TableExport queryObj = new TableExport();
@@ -195,11 +206,15 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        assertEquals("", output);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            assertTrue(isEmpty(sheet));
+        }
     }
 
     @Test
-    public void testProjectionWithNullAttributesHeader() {
+    public void testProjectionWithNullAttributesHeader() throws IOException {
         XlsxExportFormatter formatter = new XlsxExportFormatter(true);
 
         TableExport queryObj = new TableExport();
@@ -209,11 +224,15 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        assertEquals("", output);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            assertTrue(isEmpty(sheet));
+        }
     }
 
     @Test
-    public void testHeader() {
+    public void testHeader() throws IOException {
         XlsxExportFormatter formatter = new XlsxExportFormatter(true);
 
         TableExport queryObj = new TableExport();
@@ -222,7 +241,7 @@ public class XlsxExportFormatterTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        queryObj.setResultType(ResultType.CSV);
+        queryObj.setResultType(ResultType.XLSX);
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
@@ -231,11 +250,16 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        assertEquals("\"query\",\"queryType\"\r\n", output);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            Object[] row1 = readRow(sheet, 0);
+            assertArrayEquals(new Object[] { "query", "queryType" }, row1);
+        }
     }
 
     @Test
-    public void testHeaderWithNonmatchingAlias() {
+    public void testHeaderWithNonmatchingAlias() throws IOException {
         XlsxExportFormatter formatter = new XlsxExportFormatter(true);
 
         TableExport queryObj = new TableExport();
@@ -244,7 +268,7 @@ public class XlsxExportFormatterTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        queryObj.setResultType(ResultType.CSV);
+        queryObj.setResultType(ResultType.XLSX);
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
@@ -253,11 +277,16 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        assertEquals("\"query\",\"queryType\"\r\n", output);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            Object[] row1 = readRow(sheet, 0);
+            assertArrayEquals(new Object[] { "query", "queryType" }, row1);
+        }
     }
 
     @Test
-    public void testHeaderWithArguments() {
+    public void testHeaderWithArguments() throws IOException {
         XlsxExportFormatter formatter = new XlsxExportFormatter(true);
 
         TableExport queryObj = new TableExport();
@@ -266,7 +295,7 @@ public class XlsxExportFormatterTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        queryObj.setResultType(ResultType.CSV);
+        queryObj.setResultType(ResultType.XLSX);
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
@@ -285,11 +314,16 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        assertEquals("\"query(foo=bar)\",\"queryType(foo=bar baz=boo)\"\r\n", output);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            Object[] row1 = readRow(sheet, 0);
+            assertArrayEquals(new Object[] { "query(foo=bar)", "queryType(foo=bar baz=boo)" }, row1);
+        }
     }
 
     @Test
-    public void testHeaderSkip() {
+    public void testHeaderSkip() throws IOException {
         XlsxExportFormatter formatter = new XlsxExportFormatter(false);
 
         TableExport queryObj = new TableExport();
@@ -298,7 +332,7 @@ public class XlsxExportFormatterTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        queryObj.setResultType(ResultType.CSV);
+        queryObj.setResultType(ResultType.XLSX);
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
@@ -307,6 +341,51 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        assertEquals("", output);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            assertTrue(isEmpty(sheet));
+        }
+    }
+
+    @Test
+    public void testComplexResourceToXLSX() throws IOException {
+        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        Export export = new Export();
+        export.setName("name");
+        export.setAlternatives(Set.of("a", "b", "c"));
+
+        // Prepare EntityProjection
+        Set<Attribute> attributes = new LinkedHashSet<>();
+        attributes.add(Attribute.builder().type(Export.class).name("name").build());
+        attributes.add(Attribute.builder().type(Export.class).name("alternatives").build());
+        EntityProjection projection = EntityProjection.builder().type(Export.class).attributes(attributes).build();
+
+        Map<String, Object> resourceAttributes = new LinkedHashMap<>();
+        resourceAttributes.put("name", export.getName());
+        resourceAttributes.put("alternatives", export.getAlternatives());
+
+        Resource resource = new Resource("export", "0", null, resourceAttributes, null, null, null);
+
+        PersistentResource persistentResource = mock(PersistentResource.class);
+        when(persistentResource.getObject()).thenReturn(export);
+        when(persistentResource.getRequestScope()).thenReturn(scope);
+        when(persistentResource.toResource(any(), any())).thenReturn(resource);
+        when(persistentResource.getAttribute((Attribute) any())).thenAnswer(key -> {
+            return resourceAttributes.get(((Attribute) key.getArgument(0)).getName());
+        });
+        when(scope.getEntityProjection()).thenReturn(projection);
+
+        byte[] output = format(formatter, projection, null, persistentResource);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
+                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
+            XSSFSheet sheet = wb.getSheetAt(0);
+            Object[] row1 = readRow(sheet, 0);
+            assertArrayEquals(new Object[] { "name", "alternatives" }, row1);
+            Object[] row2 = readRow(sheet, 1);
+            assertArrayEquals(
+                    new Object[] { export.getName(), String.join(";", export.getAlternatives()) },
+                    row2);
+        }
     }
 }

@@ -8,6 +8,7 @@ package com.yahoo.elide.async.export.formatter;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -27,19 +28,26 @@ import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  * {@link ResourceWriter} that writes in XLSX format.
  */
 @Slf4j
 public class XlsxResourceWriter extends ResourceWriterSupport {
-    private boolean writeHeader = true;
-    private EntityProjection entityProjection;
+    private final boolean writeHeader;
+    private final EntityProjection entityProjection;
+    private final SXSSFWorkbook workbook;
+
+    private SXSSFSheet sheet;
     private int recordCount = 0;
     private int rowCount = 0;
-    private final SXSSFWorkbook workbook;
-    private SXSSFSheet sheet;
+
+    private String localDateFormat = "d/m/yyyy";
+    private String localDateTimeFormat = "d/m/yyyy h:mm:ss";
+    private String dateFormat = "d/m/yyyy h:mm:ss";
 
     public XlsxResourceWriter(OutputStream outputStream, boolean writeHeader, EntityProjection entityProjection) {
         this(outputStream, writeHeader, entityProjection, SXSSFWorkbook.DEFAULT_WINDOW_SIZE);
@@ -108,19 +116,19 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         } else if (object instanceof LocalDate value) {
             CreationHelper createHelper = this.workbook.getCreationHelper();
             CellStyle cellStyle = this.workbook.createCellStyle();
-            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yyyy"));
+            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat(localDateFormat));
             cell.setCellValue(value);
             cell.setCellStyle(cellStyle);
         } else if (object instanceof LocalDateTime value) {
             CreationHelper createHelper = this.workbook.getCreationHelper();
             CellStyle cellStyle = this.workbook.createCellStyle();
-            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yyyy h:mm:ss"));
+            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat(localDateTimeFormat));
             cell.setCellValue(value);
             cell.setCellStyle(cellStyle);
         } else if (object instanceof Date value) {
             CreationHelper createHelper = this.workbook.getCreationHelper();
             CellStyle cellStyle = this.workbook.createCellStyle();
-            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yyyy h:mm:ss"));
+            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat(dateFormat));
             cell.setCellValue(value);
             cell.setCellStyle(cellStyle);
         } else if (object instanceof Double value) {
@@ -133,9 +141,15 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
             cell.setCellValue(value);
         } else if (object instanceof RichTextString value) {
             cell.setCellValue(value);
+        } else if (object instanceof Collection<?> value) {
+            cell.setCellValue(convertCollection(value));
         } else {
             throw new IllegalArgumentException("Unexpected attribute value.");
         }
+    }
+
+    protected String convertCollection(Collection<?> value) {
+        return String.join(";", value.stream().map(v -> convert(v, String.class)).toList());
     }
 
     /**
@@ -144,7 +158,7 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
      * @param projection the projection
      */
     private void generateHeader(EntityProjection projection) {
-        if (projection.getAttributes() == null) {
+        if (projection.getAttributes() == null || projection.getAttributes().isEmpty()) {
             return;
         }
         CellStyle cellStyle = getHeaderCellStyle();
@@ -152,12 +166,26 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
 
         int column = 0;
         for (Attribute attribute : this.entityProjection.getAttributes()) {
-            String header = attribute.getName();
+            String header = getHeader(attribute);
             SXSSFCell cell = row.createCell(column);
             cell.setCellStyle(cellStyle);
             cell.setCellValue(header);
             column++;
         }
+    }
+
+    protected String getHeader(Attribute attribute) {
+        String header = attribute.getName();
+        List<String> arguments = attribute.getArguments().stream()
+                .map(argument -> argument.getName() + "=" + convert(argument.getValue(), String.class)).toList();
+        if (!arguments.isEmpty()) {
+            header = header + "(" + String.join(" ", arguments) + ")";
+        }
+        return header;
+    }
+
+    protected <T> T convert(Object value, Class<T> clazz) {
+        return CoerceUtil.coerce(value, clazz);
     }
 
     public void preFormat() throws IOException {
@@ -176,5 +204,29 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         cellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         return cellStyle;
+    }
+
+    public String getLocalDateFormat() {
+        return localDateFormat;
+    }
+
+    public void setLocalDateFormat(String localDateFormat) {
+        this.localDateFormat = localDateFormat;
+    }
+
+    public String getLocalDateTimeFormat() {
+        return localDateTimeFormat;
+    }
+
+    public void setLocalDateTimeFormat(String localDateTimeFormat) {
+        this.localDateTimeFormat = localDateTimeFormat;
+    }
+
+    public String getDateFormat() {
+        return dateFormat;
+    }
+
+    public void setDateFormat(String dateFormat) {
+        this.dateFormat = dateFormat;
     }
 }

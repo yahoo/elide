@@ -15,6 +15,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.DefaultResultTypeFileExtensionMapper;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.models.ArtifactGroup;
 import com.yahoo.elide.async.models.QueryType;
@@ -57,7 +58,7 @@ public class GraphQLTableExportOperationTest {
     private RequestScope requestScope;
     private AsyncExecutorService asyncExecutorService;
     private ResultStorageEngine engine;
-    private DefaultResultTypeFileExtensionMapper resultTypeFileExtensionMapper = new DefaultResultTypeFileExtensionMapper();
+    private ResultTypeFileExtensionMapper resultTypeFileExtensionMapper = new DefaultResultTypeFileExtensionMapper();
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
@@ -106,7 +107,7 @@ public class GraphQLTableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d", queryResultObj.getUrl().toString());
+        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d.csv", queryResultObj.getUrl().toString());
         assertEquals(1, queryResultObj.getRecordCount());
     }
 
