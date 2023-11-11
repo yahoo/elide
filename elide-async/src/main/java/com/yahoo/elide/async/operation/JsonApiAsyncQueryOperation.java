@@ -13,8 +13,8 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URIBuilder;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.net.URIBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +46,6 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
         Map<String, List<String>> queryParams = getQueryParams(uri);
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
-        //TODO - we need to add the baseUrlEndpoint to the queryObject.
         Route route = Route.builder().baseUrl(scope.getRoute().getBaseUrl()).path(getPath(uri)).parameters(queryParams)
                 .headers(scope.getRoute().getHeaders()).apiVersion(apiVersion).build();
         ElideResponse<String> response = jsonApi.get(route, user, requestUUID);

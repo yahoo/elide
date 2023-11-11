@@ -35,7 +35,7 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 
-import org.apache.http.NoHttpResponseException;
+import org.apache.hc.core5.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
