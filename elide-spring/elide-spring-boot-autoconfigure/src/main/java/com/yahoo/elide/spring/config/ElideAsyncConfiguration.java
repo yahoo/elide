@@ -86,7 +86,7 @@ public class ElideAsyncConfiguration {
                 && asyncProperties.getExport().getFormat().getCsv().isWriteHeader();
         builder.entry(ResultType.CSV, new CsvExportFormatter(elide.getElide(), writeCSVHeader));
         builder.entry(ResultType.JSON, new JsonExportFormatter(elide.getElide()));
-        builder.entry(ResultType.XLSX, new XlsxExportFormatter(true));
+        builder.entry(ResultType.XLSX, new XlsxExportFormatter(elide.getElide(), true));
         customizerProvider.orderedStream().forEach(customizer -> customizer.customize(builder));
         return builder;
     }

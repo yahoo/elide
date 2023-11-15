@@ -5,8 +5,11 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.request.EntityProjection;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.OutputStream;
 
@@ -16,14 +19,16 @@ import java.io.OutputStream;
 public class XlsxExportFormatter implements TableExportFormatter {
 
     private boolean writeHeader = true;
+    private ObjectMapper objectMapper;
 
-    public XlsxExportFormatter(boolean writeHeader) {
+    public XlsxExportFormatter(Elide elide, boolean writeHeader) {
         this.writeHeader = writeHeader;
+        this.objectMapper = elide.getObjectMapper();
     }
 
     @Override
     public ResourceWriter newResourceWriter(OutputStream outputStream, EntityProjection entityProjection,
             TableExport tableExport) {
-        return new XlsxResourceWriter(outputStream, writeHeader, entityProjection);
+        return new XlsxResourceWriter(outputStream, objectMapper, writeHeader, entityProjection);
     }
 }

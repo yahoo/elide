@@ -8,6 +8,7 @@ package com.yahoo.elide.async.export.formatter;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.StringUtils;
@@ -134,7 +135,7 @@ public class CsvResourceWriter extends ResourceWriterSupport {
         if (object instanceof Collection collection) {
             return collection.stream().map(this::toString).collect(Collectors.joining(LIST_SEPARATOR)).toString();
         }
-        return object.toString();
+        return CoerceUtil.coerce(object, String.class);
     }
 
     private Object getValue(List<String> header, Map values) {

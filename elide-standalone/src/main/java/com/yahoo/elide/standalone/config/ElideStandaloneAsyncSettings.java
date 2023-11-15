@@ -183,7 +183,7 @@ public interface ElideStandaloneAsyncSettings {
         TableExportFormattersBuilder builder = TableExportFormatters.builder();
         builder.entry(ResultType.CSV, new CsvExportFormatter(elide, csvWriteHeader()));
         builder.entry(ResultType.JSON, new JsonExportFormatter(elide));
-        builder.entry(ResultType.XLSX, new XlsxExportFormatter(true));
+        builder.entry(ResultType.XLSX, new XlsxExportFormatter(elide, true));
         return builder;
     }
 

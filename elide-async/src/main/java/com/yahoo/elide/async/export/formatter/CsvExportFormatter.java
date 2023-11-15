@@ -19,16 +19,16 @@ import java.io.OutputStream;
 public class CsvExportFormatter implements TableExportFormatter {
 
     private boolean writeHeader = true;
-    private ObjectMapper mapper;
+    private ObjectMapper objectMapper;
 
     public CsvExportFormatter(Elide elide, boolean writeHeader) {
         this.writeHeader = writeHeader;
-        this.mapper = elide.getObjectMapper();
+        this.objectMapper = elide.getObjectMapper();
     }
 
     @Override
     public ResourceWriter newResourceWriter(OutputStream outputStream, EntityProjection entityProjection,
             TableExport tableExport) {
-        return new CsvResourceWriter(outputStream, mapper, writeHeader, entityProjection);
+        return new CsvResourceWriter(outputStream, objectMapper, writeHeader, entityProjection);
     }
 }

@@ -142,7 +142,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                     Map<String, TableExportFormatter> supportedFormatters = new HashMap<>();
                     supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide, true));
                     supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
-                    supportedFormatters.put(ResultType.XLSX, new XlsxExportFormatter(true));
+                    supportedFormatters.put(ResultType.XLSX, new XlsxExportFormatter(elide, true));
 
                     // Binding TableExport LifeCycleHook
                     TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, Duration.ofSeconds(10L),

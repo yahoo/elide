@@ -10,6 +10,9 @@ import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.FillPatternType;
@@ -29,17 +32,25 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * {@link ResourceWriter} that writes in XLSX format.
  */
 @Slf4j
 public class XlsxResourceWriter extends ResourceWriterSupport {
+    private static final String HEADER_SEPARATOR = "_";
     private final boolean writeHeader;
     private final EntityProjection entityProjection;
     private final SXSSFWorkbook workbook;
+    private final List<List<String>> headers;
+    private final Map<String, Attribute> attributes;
+    private final ObjectMapper objectMapper;
 
     private SXSSFSheet sheet;
     private int recordCount = 0;
@@ -49,11 +60,12 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
     private String localDateTimeFormat = "d/m/yyyy h:mm:ss";
     private String dateFormat = "d/m/yyyy h:mm:ss";
 
-    public XlsxResourceWriter(OutputStream outputStream, boolean writeHeader, EntityProjection entityProjection) {
-        this(outputStream, writeHeader, entityProjection, SXSSFWorkbook.DEFAULT_WINDOW_SIZE);
+    public XlsxResourceWriter(OutputStream outputStream, ObjectMapper objectMapper, boolean writeHeader,
+            EntityProjection entityProjection) {
+        this(outputStream, objectMapper, writeHeader, entityProjection, SXSSFWorkbook.DEFAULT_WINDOW_SIZE);
     }
 
-    public XlsxResourceWriter(OutputStream outputStream, boolean writeHeader,
+    public XlsxResourceWriter(OutputStream outputStream, ObjectMapper objectMapper, boolean writeHeader,
             EntityProjection entityProjection, int rowAccessWindowSize) {
         super(outputStream);
         this.writeHeader = writeHeader;
@@ -61,6 +73,13 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         // Rows exceeding the row access window size are flushed to disk
         this.workbook = new SXSSFWorkbook(rowAccessWindowSize);
         this.sheet = this.workbook.createSheet();
+        this.objectMapper = objectMapper;
+        this.headers = entityProjection != null ? Attributes.getHeaders(objectMapper, entityProjection.getAttributes())
+                : Collections.emptyList();
+        this.attributes = entityProjection != null && entityProjection.getAttributes() != null ? entityProjection
+                .getAttributes().stream().collect(Collectors.toMap(Attribute::getName, Function.identity()))
+                : Collections.emptyMap();
+
     }
 
     @Override
@@ -90,8 +109,18 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         SXSSFRow row = this.sheet.createRow(rowCount++);
         int column = 0;
         try {
-            for (Attribute attribute : this.entityProjection.getAttributes()) {
-                Object object = getValue(resource, attribute);
+            @SuppressWarnings("rawtypes")
+            Map values = objectMapper.convertValue(Attributes.getAttributes(resource), Map.class);
+            List<Object> result = headers.stream().map(header -> {
+                return getValue(header, values);
+            }).toList();
+
+            for (Object object : result) {
+                List<String> header = headers.get(column);
+                if (header.size() == 1) {
+                    String key = header.get(0);
+                    object = resource.getAttribute(this.attributes.get(key));
+                }
                 SXSSFCell cell = row.createCell(column);
                 setValue(cell, object);
                 column++;
@@ -100,10 +129,6 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
             log.error("Exception while converting to XLSX: {}", e.getMessage());
             throw new IllegalStateException(e);
         }
-    }
-
-    protected Object getValue(PersistentResource<?> resource, Attribute attribute) {
-        return resource.getAttribute(attribute);
     }
 
     protected void setValue(SXSSFCell cell, Object object) {
@@ -165,23 +190,30 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         SXSSFRow row = this.sheet.createRow(rowCount++);
 
         int column = 0;
-        for (Attribute attribute : this.entityProjection.getAttributes()) {
-            String header = getHeader(attribute);
+
+        for (List<String> header : headers) {
+            StringBuilder headerBuilder = new StringBuilder();
+            Attribute attribute = attributes.get(header.get(0));
+            for (int x = 0; x < header.size(); x++) {
+                String item = header.get(x);
+                if (x == 0 && !StringUtils.isEmpty(attribute.getAlias())) {
+                    item = attribute.getAlias();
+                }
+                if (x != 0) {
+                   headerBuilder.append(HEADER_SEPARATOR);
+                }
+                headerBuilder.append(item);
+            }
+            String arguments = Attributes.getArguments(attribute);
+            if (!"".equals(arguments)) {
+                headerBuilder.append(arguments);
+            }
+            String headerValue = headerBuilder.toString();
             SXSSFCell cell = row.createCell(column);
             cell.setCellStyle(cellStyle);
-            cell.setCellValue(header);
+            cell.setCellValue(headerValue);
             column++;
         }
-    }
-
-    protected String getHeader(Attribute attribute) {
-        String header = attribute.getName();
-        List<String> arguments = attribute.getArguments().stream()
-                .map(argument -> argument.getName() + "=" + convert(argument.getValue(), String.class)).toList();
-        if (!arguments.isEmpty()) {
-            header = header + "(" + String.join(" ", arguments) + ")";
-        }
-        return header;
     }
 
     protected <T> T convert(Object value, Class<T> clazz) {
@@ -229,4 +261,20 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
     public void setDateFormat(String dateFormat) {
         this.dateFormat = dateFormat;
     }
+
+    @SuppressWarnings("rawtypes")
+    private Object getValue(List<String> header, Map values) {
+        Object value = null;
+        for (int x = 0; x < header.size(); x++) {
+            String item = header.get(x);
+            if (x == 0) {
+                value = values.get(item);
+            } else {
+                if (value instanceof Map m) {
+                    value = m.get(item);
+                }
+            }
+        }
+        return value;
+     }
 }

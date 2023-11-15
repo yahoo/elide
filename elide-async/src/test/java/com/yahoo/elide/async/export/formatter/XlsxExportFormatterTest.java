@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -79,7 +80,7 @@ public class XlsxExportFormatterTest {
         }
     }
 
-    public byte[] format(TableExportFormatter formatter,  EntityProjection entityProjection,
+    public byte[] format(TableExportFormatter formatter, EntityProjection entityProjection,
             TableExport tableExport, PersistentResource<?> resource) {
         return byteValueOf(outputStream -> {
             try (ResourceWriter writer = formatter.newResourceWriter(outputStream, entityProjection, tableExport)) {
@@ -94,7 +95,7 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testResourceToXLSX() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType createdOn} } } }";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
@@ -105,9 +106,9 @@ public class XlsxExportFormatterTest {
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("createdOn").build());
+        attributes.add(Attribute.builder().type(String.class).name("query").alias("query").build());
+        attributes.add(Attribute.builder().type(QueryType.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(Date.class).name("createdOn").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         Map<String, Object> resourceAttributes = new LinkedHashMap<>();
@@ -120,8 +121,7 @@ public class XlsxExportFormatterTest {
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(queryObj);
         when(persistentResource.getRequestScope()).thenReturn(scope);
-        when(persistentResource.toResource(any(), any())).thenReturn(resource);
-        when(persistentResource.getAttribute((Attribute) any())).thenAnswer(key -> {
+        when(persistentResource.getAttribute(any(Attribute.class))).thenAnswer(key -> {
             return resourceAttributes.get(((Attribute) key.getArgument(0)).getName());
         });
         when(scope.getEntityProjection()).thenReturn(projection);
@@ -168,7 +168,7 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testNullResourceToXLSX() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
         PersistentResource persistentResource = null;
         byte[] output = format(formatter, null, null, persistentResource);
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
@@ -180,7 +180,7 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testNullProjectionHeader() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -197,7 +197,7 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testProjectionWithEmptyAttributeSetHeader() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -215,7 +215,7 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testProjectionWithNullAttributesHeader() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
 
@@ -233,7 +233,7 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testHeader() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -245,8 +245,8 @@ public class XlsxExportFormatterTest {
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(String.class).name("query").alias("query").build());
+        attributes.add(Attribute.builder().type(QueryType.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
@@ -260,7 +260,7 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testHeaderWithNonmatchingAlias() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -272,8 +272,8 @@ public class XlsxExportFormatterTest {
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("foo").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(String.class).name("query").alias("foo").build());
+        attributes.add(Attribute.builder().type(QueryType.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
@@ -281,13 +281,13 @@ public class XlsxExportFormatterTest {
                 XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
             XSSFSheet sheet = wb.getSheetAt(0);
             Object[] row1 = readRow(sheet, 0);
-            assertArrayEquals(new Object[] { "query", "queryType" }, row1);
+            assertArrayEquals(new Object[] { "foo", "queryType" }, row1);
         }
     }
 
     @Test
     public void testHeaderWithArguments() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -300,13 +300,13 @@ public class XlsxExportFormatterTest {
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
         attributes.add(Attribute.builder()
-                .type(TableExport.class)
+                .type(String.class)
                 .name("query")
                 .argument(Argument.builder().name("foo").value("bar").build())
                 .alias("query").build());
 
         attributes.add(Attribute.builder()
-                .type(TableExport.class)
+                .type(QueryType.class)
                 .argument(Argument.builder().name("foo").value("bar").build())
                 .argument(Argument.builder().name("baz").value("boo").build())
                 .name("queryType")
@@ -324,7 +324,7 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testHeaderSkip() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(false);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, false);
 
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType } } } }";
@@ -336,8 +336,8 @@ public class XlsxExportFormatterTest {
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(String.class).name("query").alias("query").build());
+        attributes.add(Attribute.builder().type(QueryType.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
@@ -350,15 +350,15 @@ public class XlsxExportFormatterTest {
 
     @Test
     public void testComplexResourceToXLSX() throws IOException {
-        XlsxExportFormatter formatter = new XlsxExportFormatter(true);
+        XlsxExportFormatter formatter = new XlsxExportFormatter(elide, true);
         Export export = new Export();
         export.setName("name");
         export.setAlternatives(Set.of("a", "b", "c"));
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(Export.class).name("name").build());
-        attributes.add(Attribute.builder().type(Export.class).name("alternatives").build());
+        attributes.add(Attribute.builder().type(String.class).name("name").build());
+        attributes.add(Attribute.builder().type(Set.class).name("alternatives").build());
         EntityProjection projection = EntityProjection.builder().type(Export.class).attributes(attributes).build();
 
         Map<String, Object> resourceAttributes = new LinkedHashMap<>();
@@ -370,8 +370,7 @@ public class XlsxExportFormatterTest {
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(export);
         when(persistentResource.getRequestScope()).thenReturn(scope);
-        when(persistentResource.toResource(any(), any())).thenReturn(resource);
-        when(persistentResource.getAttribute((Attribute) any())).thenAnswer(key -> {
+        when(persistentResource.getAttribute(any(Attribute.class))).thenAnswer(key -> {
             return resourceAttributes.get(((Attribute) key.getArgument(0)).getName());
         });
         when(scope.getEntityProjection()).thenReturn(projection);
