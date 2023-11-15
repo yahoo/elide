@@ -114,7 +114,10 @@ public class JsonExportFormatterTest {
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(queryObj);
         when(persistentResource.getRequestScope()).thenReturn(scope);
-        when(persistentResource.toResource(any(), any())).thenReturn(resource);
+        when(persistentResource.getAttribute(any(Attribute.class))).thenAnswer(invocation -> {
+            Attribute attribute = invocation.getArgument(0);
+            return resourceAttributes.get(attribute.getName());
+        });
         when(scope.getEntityProjection()).thenReturn(projection);
 
         String output = format(formatter, null, null, persistentResource);
@@ -145,7 +148,10 @@ public class JsonExportFormatterTest {
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(queryObj);
         when(persistentResource.getRequestScope()).thenReturn(scope);
-        when(persistentResource.toResource(any(), any())).thenReturn(resource);
+        when(persistentResource.getAttribute(any(Attribute.class))).thenAnswer(invocation -> {
+            Attribute attribute = invocation.getArgument(0);
+            return resourceAttributes.get(attribute.getName());
+        });
         when(scope.getEntityProjection()).thenReturn(projection);
 
         String output = JsonResourceWriter.resourceToJSON(elide.getObjectMapper(), persistentResource);

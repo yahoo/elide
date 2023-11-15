@@ -80,18 +80,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!--Jackson CSV generator does not support Object values for properties (nested Objects)-->
-        <dependency>
-            <groupId>com.github.opendevl</groupId>
-            <artifactId>json2flat</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>

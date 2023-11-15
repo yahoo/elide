@@ -404,7 +404,7 @@ public class AsyncTest extends IntegrationTest {
         }
         String expected = """
                 "deprecated","commonName","description"
-                false, "Example Repository", "The code for this project"
+                "false","Example Repository","The code for this project"
                 """;
         String response = when()
                 .get("/export/aa8ef302-6236-4c64-a523-6b5a21c62360.csv")
@@ -562,7 +562,7 @@ public class AsyncTest extends IntegrationTest {
         }
         String expected = """
                 "deprecated","commonName","description"
-                false, "Example Repository", "The code for this project"
+                "false","Example Repository","The code for this project"
                 """;
         String response = when()
                 .get("/export/8349d148-394f-4e03-9d61-81eb8677ae17.csv")
@@ -919,11 +919,19 @@ public class AsyncTest extends IntegrationTest {
             }
             assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
         }
-        String result = when()
+        String expected = """
+                "name","alternatives","address_street","address_state","address_zip_zip","address_zip_plusFour"
+                "1","a;b","","","",""
+                "2","a;b;c;d","My Street 1","My State 1","",""
+                "3","a","My Street 2","My State 2","123","4444"
+                """;
+
+        String response = when()
                 .get("/export/e965a406-70b3-4de1-8fb7-4de4b4842da9.csv")
                 .then()
                 .statusCode(HttpStatus.SC_OK).extract().asString();
-        System.out.println(result);
+        assertEquals(expected.replaceAll("\r", "").replaceAll("\n", ""),
+                response.replaceAll("\r", "").replaceAll("\n", ""));
     }
 
     @Test

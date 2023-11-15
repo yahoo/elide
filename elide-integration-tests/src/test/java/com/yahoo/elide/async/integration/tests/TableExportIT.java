@@ -407,7 +407,7 @@ public class TableExportIT extends AsyncApiIT {
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        String expected = "\"title\"\n"
+        String expected = "\"bookName\"\n"
                 + "\"Ender's Game\"\n"
                 + "\"Song of Ice and Fire\"\n"
                 + "\"For Whom the Bell Tolls\"\n";

@@ -37,6 +37,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -74,7 +75,7 @@ public class CsvExportFormatterTest {
         }
     }
 
-    public String format(TableExportFormatter formatter,  EntityProjection entityProjection,
+    public String format(TableExportFormatter formatter, EntityProjection entityProjection,
             TableExport tableExport, PersistentResource resource) {
         return stringValueOf(outputStream -> {
             try (ResourceWriter writer = formatter.newResourceWriter(outputStream, entityProjection, tableExport)) {
@@ -98,14 +99,14 @@ public class CsvExportFormatterTest {
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.CSV);
 
-        String row = "\"{ tableExport { edges { node { query queryType createdOn} } } }\", \"GRAPHQL_V1_0\""
-                + ", \"" + FORMATTER.format(queryObj.getCreatedOn());
+        String row = "\"{ tableExport { edges { node { query queryType createdOn} } } }\",\"GRAPHQL_V1_0\""
+                + ",\"" + FORMATTER.format(queryObj.getCreatedOn());
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("createdOn").build());
+        attributes.add(Attribute.builder().type(String.class).name("query").alias("query").build());
+        attributes.add(Attribute.builder().type(QueryType.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(Date.class).name("createdOn").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         Map<String, Object> resourceAttributes = new LinkedHashMap<>();
@@ -118,10 +119,13 @@ public class CsvExportFormatterTest {
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(queryObj);
         when(persistentResource.getRequestScope()).thenReturn(scope);
-        when(persistentResource.toResource(any(), any())).thenReturn(resource);
+        when(persistentResource.getAttribute(any(Attribute.class))).thenAnswer(invocation -> {
+            Attribute attribute = invocation.getArgument(0);
+            return resourceAttributes.get(attribute.getName());
+        });
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = format(formatter, null, null, persistentResource);
+        String output = format(formatter, projection, null, persistentResource);
         assertTrue(output.contains(row));
     }
 
@@ -188,8 +192,8 @@ public class CsvExportFormatterTest {
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(String.class).name("query").alias("query").build());
+        attributes.add(Attribute.builder().type(QueryType.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         String output = format(formatter, projection, queryObj, null);
@@ -210,12 +214,12 @@ public class CsvExportFormatterTest {
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("foo").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(String.class).name("query").alias("foo").build());
+        attributes.add(Attribute.builder().type(QueryType.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         String output = format(formatter, projection, queryObj, null);
-        assertEquals("\"query\",\"queryType\"\r\n", output);
+        assertEquals("\"foo\",\"queryType\"\r\n", output);
     }
 
     @Test
@@ -233,13 +237,13 @@ public class CsvExportFormatterTest {
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
         attributes.add(Attribute.builder()
-                .type(TableExport.class)
+                .type(String.class)
                 .name("query")
                 .argument(Argument.builder().name("foo").value("bar").build())
                 .alias("query").build());
 
         attributes.add(Attribute.builder()
-                .type(TableExport.class)
+                .type(QueryType.class)
                 .argument(Argument.builder().name("foo").value("bar").build())
                 .argument(Argument.builder().name("baz").value("boo").build())
                 .name("queryType")
@@ -264,8 +268,8 @@ public class CsvExportFormatterTest {
 
         // Prepare EntityProjection
         Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
-        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(String.class).name("query").alias("query").build());
+        attributes.add(Attribute.builder().type(QueryType.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         String output = format(formatter, projection, queryObj, null);

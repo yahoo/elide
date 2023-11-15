@@ -6,23 +6,15 @@
 package com.yahoo.elide.async.export.formatter;
 
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.request.Attribute;
-import com.yahoo.elide.jsonapi.models.Resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.apache.commons.lang3.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * {@link ResourceWriter} that writes in JSON format.
@@ -76,33 +68,14 @@ public class JsonResourceWriter extends ResourceWriterSupport {
         if (resource == null || resource.getObject() == null) {
             return null;
         }
-
         StringBuilder str = new StringBuilder();
         try {
-            Resource jsonResource = resource.toResource(getRelationships(resource), getAttributes(resource));
-
-            str.append(mapper.writeValueAsString(jsonResource.getAttributes()));
+            str.append(mapper.writeValueAsString(Attributes.getAttributes(resource, true)));
         } catch (JsonProcessingException e) {
             log.error("Exception when converting to JSON {}", e.getMessage());
             throw new IllegalStateException(e);
         }
         return str.toString();
-    }
-
-    private static Map<String, Object> getAttributes(PersistentResource<?> resource) {
-        final Map<String, Object> attributes = new LinkedHashMap<>();
-        final Set<Attribute> attrFields = resource.getRequestScope().getEntityProjection().getAttributes();
-
-        for (Attribute field : attrFields) {
-            String alias = field.getAlias();
-            String fieldName = StringUtils.isNotEmpty(alias) ? alias : field.getName();
-            attributes.put(fieldName, resource.getAttribute(field));
-        }
-        return attributes;
-    }
-
-    private static <K, V> Map<K, V> getRelationships(PersistentResource<?> resource) {
-        return Collections.emptyMap();
     }
 
     public void preFormat(OutputStream outputStream) throws IOException {

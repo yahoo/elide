@@ -9,14 +9,18 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.opendevl.JFlat;
+
+import org.apache.commons.lang3.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -24,10 +28,13 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class CsvResourceWriter extends ResourceWriterSupport {
-    private static final String COMMA = ",";
+    private static final String LIST_SEPARATOR = ";";
+    private static final String HEADER_SEPARATOR = "_";
+    private static final String ITEM_SEPARATOR = ",";
     private static final String LINE_SEPARATOR = "\r\n"; // CRLF rfc4180
 
     private boolean writeHeader = true;
+    private List<List<String>> headers;
     private ObjectMapper objectMapper;
     private EntityProjection entityProjection;
     private int recordCount = 0;
@@ -38,6 +45,8 @@ public class CsvResourceWriter extends ResourceWriterSupport {
         this.writeHeader = writeHeader;
         this.objectMapper = objectMapper;
         this.entityProjection = entityProjection;
+        this.headers = entityProjection != null ? Attributes.getHeaders(objectMapper, entityProjection.getAttributes())
+                : Collections.emptyList();
     }
 
     @Override
@@ -62,39 +71,21 @@ public class CsvResourceWriter extends ResourceWriterSupport {
             return;
         }
 
-        StringBuilder str = new StringBuilder();
+        @SuppressWarnings("rawtypes")
+        Map values = objectMapper.convertValue(Attributes.getAttributes(resource), Map.class);
+        List<Object> result = headers.stream().map(header -> {
+            return getValue(header, values);
+        }).toList();
 
-        List<Object[]> json2Csv;
+        String line = result.stream().map(this::toString).map(this::quote).collect(Collectors.joining(ITEM_SEPARATOR));
+        write(line + LINE_SEPARATOR);
+    }
 
-        try {
-            String jsonStr = JsonResourceWriter.resourceToJSON(objectMapper, resource);
-
-            JFlat flat = new JFlat(jsonStr);
-
-            json2Csv = flat.json2Sheet().headerSeparator("_").getJsonAsSheet();
-
-            int index = 0;
-
-            for (Object[] obj : json2Csv) {
-                // convertToCSV is called once for each PersistentResource in the observable.
-                // json2Csv will always have 2 entries.
-                // 0th index is the header so we need to skip the header.
-                if (index++ == 0) {
-                    continue;
-                }
-
-                String objString = Arrays.toString(obj);
-                // The arrays.toString returns o/p with [ and ] at the beginning and end. So
-                // need to exclude them.
-                objString = objString.substring(1, objString.length() - 1);
-                str.append(objString);
-                str.append(LINE_SEPARATOR);
-            }
-        } catch (Exception e) {
-            log.error("Exception while converting to CSV: {}", e.getMessage());
-            throw new IllegalStateException(e);
+    public void preFormat(OutputStream outputStream) throws IOException {
+        if (this.entityProjection == null || !writeHeader) {
+            return;
         }
-        write(str.toString());
+        write(generateCSVHeader(this.entityProjection));
     }
 
     /**
@@ -108,40 +99,61 @@ public class CsvResourceWriter extends ResourceWriterSupport {
             return "";
         }
 
-        String header = projection.getAttributes().stream().map(this::toHeader).collect(Collectors.joining(COMMA));
-        if (!"".equals(header)) {
-            return header + LINE_SEPARATOR;
+        Map<String, Attribute> attributes = projection.getAttributes().stream()
+                .collect(Collectors.toMap(Attribute::getName, Function.identity()));
+        String result = headers.stream().map(header -> {
+           StringBuilder headerBuilder = new StringBuilder();
+           Attribute attribute = attributes.get(header.get(0));
+           for (int x = 0; x < header.size(); x++) {
+               String item = header.get(x);
+               if (x == 0 && !StringUtils.isEmpty(attribute.getAlias())) {
+                   item = attribute.getAlias();
+               }
+               if (x != 0) {
+                  headerBuilder.append(HEADER_SEPARATOR);
+               }
+               headerBuilder.append(item);
+           }
+           String arguments = Attributes.getArguments(attribute);
+           if (!"".equals(arguments)) {
+               headerBuilder.append(arguments);
+           }
+           return quote(headerBuilder.toString());
+        }).collect(Collectors.joining(ITEM_SEPARATOR));
+
+        if (!"".equals(result)) {
+            return result + LINE_SEPARATOR;
         }
-        return header;
+        return result;
     }
 
-    public void preFormat(OutputStream outputStream) throws IOException {
-        if (this.entityProjection == null || !writeHeader) {
-            return;
+    private String toString(Object object) {
+        if (object == null) {
+            return "";
         }
-        write(generateCSVHeader(this.entityProjection));
+        if (object instanceof Collection collection) {
+            return collection.stream().map(this::toString).collect(Collectors.joining(LIST_SEPARATOR)).toString();
+        }
+        return object.toString();
     }
 
-    private String toHeader(Attribute attribute) {
-        if (attribute.getArguments() == null || attribute.getArguments().size() == 0) {
-            return quote(attribute.getName());
+    private Object getValue(List<String> header, Map values) {
+        Object value = null;
+        for (int x = 0; x < header.size(); x++) {
+            String item = header.get(x);
+            if (x == 0) {
+                value = values.get(item);
+            } else {
+                if (value instanceof Map m) {
+                    value = m.get(item);
+                }
+            }
         }
+        return value;
+     }
 
-        StringBuilder header = new StringBuilder();
-        header.append(attribute.getName());
-        header.append("(");
-
-        header.append(attribute.getArguments()
-                .stream()
-                .map((arg) -> arg.getName() + "=" + arg.getValue())
-                .collect(Collectors.joining(" ")));
-
-        header.append(")");
-
-        return quote(header.toString());
-    }
-
-    private String quote(String toQuote) {
-        return "\"" + toQuote + "\"";
+     private String quote(String toQuote) {
+        String escaped = toQuote.replace("\"", "\\\"");
+        return "\"" + escaped + "\"";
     }
 }
