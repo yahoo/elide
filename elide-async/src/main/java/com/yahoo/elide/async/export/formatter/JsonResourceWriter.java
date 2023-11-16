@@ -15,15 +15,16 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * {@link ResourceWriter} that writes in JSON format.
  */
 @Slf4j
 public class JsonResourceWriter extends ResourceWriterSupport {
-    private static final String COMMA = ",";
-    private final ObjectMapper objectMapper;
-    private int recordCount = 0;
+    protected static final String COMMA = ",";
+    protected final ObjectMapper objectMapper;
+    protected int recordCount = 0;
 
     public JsonResourceWriter(OutputStream outputStream, ObjectMapper objectMapper) {
         super(outputStream);
@@ -59,23 +60,35 @@ public class JsonResourceWriter extends ResourceWriterSupport {
             str.append(COMMA);
         }
 
-        str.append(resourceToJSON(objectMapper, resource));
+        str.append(convert(objectMapper, resource));
         str.append('\n');
         write(str.toString());
     }
 
-    public static String resourceToJSON(ObjectMapper mapper, PersistentResource<?> resource) {
+    protected String convert(ObjectMapper mapper, PersistentResource<?> resource) {
         if (resource == null || resource.getObject() == null) {
             return null;
         }
-        StringBuilder str = new StringBuilder();
+        return convert(mapper, getAttributes(resource));
+    }
+
+    protected String convert(ObjectMapper mapper, Map<String, Object> attributes) {
         try {
-            str.append(mapper.writeValueAsString(Attributes.getAttributes(resource, true)));
+            return mapper.writeValueAsString(attributes);
         } catch (JsonProcessingException e) {
             log.error("Exception when converting to JSON {}", e.getMessage());
             throw new IllegalStateException(e);
         }
-        return str.toString();
+    }
+
+    /**
+     * Gets the attributes from a resource.
+     *
+     * @param resource the resource
+     * @return the attributes
+     */
+    protected Map<String, Object> getAttributes(PersistentResource<?> resource) {
+        return Attributes.getAttributes(resource, true);
     }
 
     public void preFormat(OutputStream outputStream) throws IOException {

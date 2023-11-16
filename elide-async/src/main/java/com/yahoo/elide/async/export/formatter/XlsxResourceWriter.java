@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Yahoo Inc.
+ * Copyright 2023, the original author or authors.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -8,6 +8,7 @@ package com.yahoo.elide.async.export.formatter;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.utils.ObjectProperties;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,12 +25,13 @@ import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,23 +44,26 @@ import java.util.stream.Collectors;
 /**
  * {@link ResourceWriter} that writes in XLSX format.
  */
-@Slf4j
 public class XlsxResourceWriter extends ResourceWriterSupport {
-    private static final String HEADER_SEPARATOR = "_";
-    private final boolean writeHeader;
-    private final EntityProjection entityProjection;
-    private final SXSSFWorkbook workbook;
-    private final List<List<String>> headers;
-    private final Map<String, Attribute> attributes;
-    private final ObjectMapper objectMapper;
+    protected static final String DEFAULT_HEADER_SEPARATOR = "_";
+    protected final boolean writeHeader;
+    protected final EntityProjection entityProjection;
+    protected final SXSSFWorkbook workbook;
 
-    private SXSSFSheet sheet;
-    private int recordCount = 0;
-    private int rowCount = 0;
+    /**
+     * Each individual header is a list to handle nested objects.
+     */
+    protected final List<List<String>> headers;
+    protected final Map<String, Attribute> attributes;
 
-    private String localDateFormat = "d/m/yyyy";
-    private String localDateTimeFormat = "d/m/yyyy h:mm:ss";
-    private String dateFormat = "d/m/yyyy h:mm:ss";
+    protected SXSSFSheet sheet;
+    protected int recordCount = 0;
+    protected int rowCount = 0;
+
+    protected String localDateFormat = "d/m/yyyy";
+    protected String localDateTimeFormat = "d/m/yyyy h:mm:ss";
+    protected String dateFormat = "d/m/yyyy h:mm:ss";
+    protected String headerSeparator = DEFAULT_HEADER_SEPARATOR;
 
     public XlsxResourceWriter(OutputStream outputStream, ObjectMapper objectMapper, boolean writeHeader,
             EntityProjection entityProjection) {
@@ -73,7 +78,6 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         // Rows exceeding the row access window size are flushed to disk
         this.workbook = new SXSSFWorkbook(rowAccessWindowSize);
         this.sheet = this.workbook.createSheet();
-        this.objectMapper = objectMapper;
         this.headers = entityProjection != null ? Attributes.getHeaders(objectMapper, entityProjection.getAttributes())
                 : Collections.emptyList();
         this.attributes = entityProjection != null && entityProjection.getAttributes() != null ? entityProjection
@@ -101,39 +105,49 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         super.close();
     }
 
-    public void format(PersistentResource<?> resource) throws IOException {
+    public void format(PersistentResource<?> resource) {
         if (resource == null) {
             rowCount++;
             return;
         }
         SXSSFRow row = this.sheet.createRow(rowCount++);
         int column = 0;
-        try {
-            @SuppressWarnings("rawtypes")
-            Map values = objectMapper.convertValue(Attributes.getAttributes(resource), Map.class);
-            List<Object> result = headers.stream().map(header -> {
-                return getValue(header, values);
-            }).toList();
+        Map<String, Object> values = getAttributes(resource);
+        List<Object> result = headers.stream().map(header -> {
+            return getValue(header, values);
+        }).toList();
 
-            for (Object object : result) {
-                List<String> header = headers.get(column);
-                if (header.size() == 1) {
-                    String key = header.get(0);
-                    object = resource.getAttribute(this.attributes.get(key));
-                }
-                SXSSFCell cell = row.createCell(column);
-                setValue(cell, object);
-                column++;
-            }
-        } catch (Exception e) {
-            log.error("Exception while converting to XLSX: {}", e.getMessage());
-            throw new IllegalStateException(e);
+        for (Object object : result) {
+            SXSSFCell cell = row.createCell(column);
+            setValue(cell, process(object));
+            column++;
         }
+    }
+
+    /**
+     * Gets the attributes from a resource.
+     *
+     * @param resource the resource
+     * @return the attributes
+     */
+    protected Map<String, Object> getAttributes(PersistentResource<?> resource) {
+        return Attributes.getAttributes(resource);
+    }
+
+    /**
+     * Allows derived classes a chance to process the attribute value.
+     *
+     * @param object the object to process
+     * @return the processed object
+     */
+    protected Object process(Object object) {
+        return object;
     }
 
     protected void setValue(SXSSFCell cell, Object object) {
         if (object == null) {
-           // Empty cell
+            // Empty cell
+            cell.setBlank();
         } else if (object instanceof String value) {
             cell.setCellValue(value);
         } else if (object instanceof Boolean value) {
@@ -150,6 +164,24 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
             cellStyle.setDataFormat(createHelper.createDataFormat().getFormat(localDateTimeFormat));
             cell.setCellValue(value);
             cell.setCellStyle(cellStyle);
+        } else if (object instanceof OffsetDateTime value) {
+            CreationHelper createHelper = this.workbook.getCreationHelper();
+            CellStyle cellStyle = this.workbook.createCellStyle();
+            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat(localDateTimeFormat));
+            cell.setCellValue(value.toLocalDateTime()); // drops the offset
+            cell.setCellStyle(cellStyle);
+        } else if (object instanceof ZonedDateTime value) {
+            CreationHelper createHelper = this.workbook.getCreationHelper();
+            CellStyle cellStyle = this.workbook.createCellStyle();
+            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat(localDateTimeFormat));
+            cell.setCellValue(value.toLocalDateTime()); // drops the zone
+            cell.setCellStyle(cellStyle);
+        } else if (object instanceof Instant value) {
+            CreationHelper createHelper = this.workbook.getCreationHelper();
+            CellStyle cellStyle = this.workbook.createCellStyle();
+            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat(dateFormat));
+            cell.setCellValue(Date.from(value));
+            cell.setCellStyle(cellStyle);
         } else if (object instanceof Date value) {
             CreationHelper createHelper = this.workbook.getCreationHelper();
             CellStyle cellStyle = this.workbook.createCellStyle();
@@ -160,6 +192,8 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
             cell.setCellValue(value);
         } else if (object instanceof Float value) {
             cell.setCellValue(value);
+        } else if (object instanceof Number value) {
+            cell.setCellValue(value.doubleValue());
         } else if (object instanceof Enum value) {
             cell.setCellValue(value.name());
         } else if (object instanceof Calendar value) {
@@ -169,10 +203,16 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         } else if (object instanceof Collection<?> value) {
             cell.setCellValue(convertCollection(value));
         } else {
-            throw new IllegalArgumentException("Unexpected attribute value.");
+            cell.setCellValue(convert(object, String.class));
         }
     }
 
+    /**
+     * Converts a collection.
+     *
+     * @param value the collection
+     * @return the value
+     */
     protected String convertCollection(Collection<?> value) {
         return String.join(";", value.stream().map(v -> convert(v, String.class)).toList());
     }
@@ -182,7 +222,7 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
      *
      * @param projection the projection
      */
-    private void generateHeader(EntityProjection projection) {
+    protected void generateHeader(EntityProjection projection) {
         if (projection.getAttributes() == null || projection.getAttributes().isEmpty()) {
             return;
         }
@@ -192,28 +232,40 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         int column = 0;
 
         for (List<String> header : headers) {
-            StringBuilder headerBuilder = new StringBuilder();
-            Attribute attribute = attributes.get(header.get(0));
-            for (int x = 0; x < header.size(); x++) {
-                String item = header.get(x);
-                if (x == 0 && !StringUtils.isEmpty(attribute.getAlias())) {
-                    item = attribute.getAlias();
-                }
-                if (x != 0) {
-                   headerBuilder.append(HEADER_SEPARATOR);
-                }
-                headerBuilder.append(item);
-            }
-            String arguments = Attributes.getArguments(attribute);
-            if (!"".equals(arguments)) {
-                headerBuilder.append(arguments);
-            }
-            String headerValue = headerBuilder.toString();
+            String headerValue = getHeader(header, attributes);
             SXSSFCell cell = row.createCell(column);
             cell.setCellStyle(cellStyle);
             cell.setCellValue(headerValue);
             column++;
         }
+    }
+
+    /**
+     * Gets the header value.
+     *
+     * @param header the header
+     * @param attributes the attributes
+     * @return the header value
+     */
+    protected String getHeader(List<String> header, Map<String, Attribute> attributes) {
+        StringBuilder headerBuilder = new StringBuilder();
+        Attribute attribute = attributes.get(header.get(0));
+        for (int x = 0; x < header.size(); x++) {
+            String item = header.get(x);
+            if (x == 0 && !StringUtils.isEmpty(attribute.getAlias())) {
+                item = attribute.getAlias();
+            }
+            if (x != 0) {
+               headerBuilder.append(headerSeparator);
+            }
+            headerBuilder.append(item);
+        }
+        String arguments = Attributes.getArguments(attribute);
+        if (!"".equals(arguments)) {
+            headerBuilder.append(arguments);
+        }
+        String headerValue = headerBuilder.toString();
+        return headerValue;
     }
 
     protected <T> T convert(Object value, Class<T> clazz) {
@@ -262,17 +314,24 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         this.dateFormat = dateFormat;
     }
 
-    @SuppressWarnings("rawtypes")
-    private Object getValue(List<String> header, Map values) {
+    /**
+     * Gets the value from the attributes.
+     *
+     * @param header the header
+     * @param values the attributes
+     * @return the value
+     */
+    protected Object getValue(List<String> header, Map<String, Object> values) {
         Object value = null;
         for (int x = 0; x < header.size(); x++) {
             String item = header.get(x);
             if (x == 0) {
                 value = values.get(item);
             } else {
-                if (value instanceof Map m) {
-                    value = m.get(item);
-                }
+                value = ObjectProperties.getProperty(value, item);
+            }
+            if (value == null) {
+                break;
             }
         }
         return value;

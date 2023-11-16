@@ -1087,11 +1087,11 @@ public class AsyncTest extends IntegrationTest {
             assertArrayEquals(new Object[] { "name", "alternatives", "address_street", "address_state",
                     "address_zip_zip", "address_zip_plusFour" }, row1);
             Object[] row2 = readRow(sheet, 1);
-            assertNotNull(row2);
+            assertArrayEquals(new Object[] { "1", "a;b", "", "", "", "" }, row2);
             Object[] row3 = readRow(sheet, 2);
-            assertNotNull(row3);
+            assertArrayEquals(new Object[] { "2", "a;b;c;d", "My Street 1", "My State 1", "", "" }, row3);
             Object[] row4 = readRow(sheet, 3);
-            assertNotNull(row4);
+            assertArrayEquals(new Object[] { "3", "a", "My Street 2", "My State 2", "123", "4444" }, row4);
         }
         assertNotNull(response);
     }

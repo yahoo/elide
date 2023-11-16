@@ -35,7 +35,8 @@ public class Attributes {
      * @param attributes the attributes
      * @return the properties
      */
-    public static Map<String, Object> getProperties(ObjectMapper objectMapper, Collection<Attribute> attributes) {
+    public static Map<String, Object> getProperties(ObjectMapper objectMapper,
+            Collection<? extends Attribute> attributes) {
         Map<String, Object> result = new LinkedHashMap<>();
         if (attributes != null) {
             for (Attribute attribute : attributes) {
@@ -130,18 +131,22 @@ public class Attributes {
 
     /**
      * Gets the headers given the attributes.
+     * <p>
+     * Each individual header is a list to handle nested objects.
      *
      * @param objectMapper the object mapper
      * @param attributes the attributes
      * @return the headers which can be nested
      */
-    public static List<List<String>> getHeaders(ObjectMapper objectMapper, Collection<Attribute> attributes) {
+    public static List<List<String>> getHeaders(ObjectMapper objectMapper, Collection<? extends Attribute> attributes) {
         Map<String, Object> properties = Attributes.getProperties(objectMapper, attributes);
         return Attributes.getHeaders(properties);
     }
 
     /**
      * Gets the headers given the attribute properties.
+     * <p>
+     * Each individual header is a list to handle nested objects.
      *
      * @param properties the attribute properties
      * @return the headerswhich can be nested

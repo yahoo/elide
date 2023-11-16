@@ -125,7 +125,7 @@ public class JsonExportFormatterTest {
     }
 
     @Test
-    public void testResourceToJSON() {
+    public void testResourceToJSON() throws IOException {
         JsonExportFormatter formatter = new JsonExportFormatter(elide);
         TableExport queryObj = new TableExport();
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
@@ -154,8 +154,13 @@ public class JsonExportFormatterTest {
         });
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = JsonResourceWriter.resourceToJSON(elide.getObjectMapper(), persistentResource);
-        assertTrue(output.contains(start));
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ResourceWriter writer = formatter.newResourceWriter(outputStream, projection, queryObj);
+            writer.write(persistentResource);
+            writer.close();
+            String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+            assertTrue(output.contains(start));
+        }
     }
 
     @Test

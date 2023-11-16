@@ -18,10 +18,10 @@ public interface TableExportFormatter {
     /**
      * Factory method to create the resource writer used to generate this format.
      *
-     * @param outputStream
-     * @param entityProjection
-     * @param tableExport
-     * @return
+     * @param outputStream the output stream to write to
+     * @param entityProjection the entity projection
+     * @param tableExport the table export
+     * @return the resource writer
      */
     ResourceWriter newResourceWriter(OutputStream outputStream, EntityProjection entityProjection,
             TableExport tableExport);
