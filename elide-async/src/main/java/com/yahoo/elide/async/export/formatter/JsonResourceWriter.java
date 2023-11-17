@@ -42,10 +42,14 @@ public class JsonResourceWriter extends ResourceWriterSupport {
 
     @Override
     public void close() throws IOException {
-        if (recordCount == 0) {
-            preFormat(this.outputStream);
+        if (!closed) {
+            if (recordCount == 0) {
+                preFormat(this.outputStream);
+            }
+            postFormat(outputStream);
+            super.close();
+            closed = true;
         }
-        postFormat(outputStream);
     }
 
     public void format(PersistentResource<?> resource, OutputStream outputStream)

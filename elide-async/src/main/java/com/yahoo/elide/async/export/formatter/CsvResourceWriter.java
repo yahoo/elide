@@ -81,10 +81,13 @@ public class CsvResourceWriter extends ResourceWriterSupport {
 
     @Override
     public void close() throws IOException {
-        if (recordCount == 0) {
-            preFormat(this.outputStream);
+        if (!closed) {
+            if (recordCount == 0) {
+                preFormat(this.outputStream);
+            }
+            super.close();
+            closed = true;
         }
-        super.close();
     }
 
     public void format(PersistentResource<?> resource) throws IOException {
@@ -192,7 +195,7 @@ public class CsvResourceWriter extends ResourceWriterSupport {
     /**
      * Converts a collection.
      *
-     * @param value the collection
+     * @param collection the collection
      * @return the value
      */
     protected String convertCollection(Collection<?> collection) {

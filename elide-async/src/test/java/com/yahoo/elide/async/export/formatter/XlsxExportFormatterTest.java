@@ -27,10 +27,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.jsonapi.models.Resource;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +43,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -127,43 +124,13 @@ public class XlsxExportFormatterTest {
         when(scope.getEntityProjection()).thenReturn(projection);
 
         byte[] output = format(formatter, projection, null, persistentResource);
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
-                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
-            XSSFSheet sheet = wb.getSheetAt(0);
-            Object[] row1 = readRow(sheet, 0);
-            assertArrayEquals(new Object[] { "query", "queryType", "createdOn" }, row1);
-            Object[] row2 = readRow(sheet, 1);
-            assertArrayEquals(new Object[] { query, queryObj.getQueryType().name(), queryObj.getCreatedOn() }, row2);
-        }
+        List<Object[]> results = XlsxTestUtils.read(output);
+        assertArrayEquals(new Object[] { "query", "queryType", "createdOn" }, results.get(0));
+        assertArrayEquals(new Object[] { query, queryObj.getQueryType().name(), queryObj.getCreatedOn() }, results.get(1));
     }
 
     protected boolean isEmpty(XSSFSheet sheet) {
         return sheet.getFirstRowNum() == -1;
-    }
-
-    protected Object[] readRow(XSSFSheet sheet, int rowNumber) {
-        XSSFRow row = sheet.getRow(rowNumber);
-        if (row == null) {
-            return null;
-        }
-        short start = row.getFirstCellNum();
-        short end = row.getLastCellNum();
-        Object[] result = new Object[end];
-        for (short colIx = start; colIx < end; colIx++) {
-            XSSFCell cell = row.getCell(colIx);
-            if (cell == null) {
-                continue;
-            } else if (CellType.NUMERIC.equals(cell.getCellType())) {
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    result[colIx] = cell.getDateCellValue();
-                } else {
-                    result[colIx] = cell.getNumericCellValue();
-                }
-            } else {
-                result[colIx] = cell.getStringCellValue();
-            }
-        }
-        return result;
     }
 
     @Test
@@ -250,12 +217,8 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
-                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
-            XSSFSheet sheet = wb.getSheetAt(0);
-            Object[] row1 = readRow(sheet, 0);
-            assertArrayEquals(new Object[] { "query", "queryType" }, row1);
-        }
+        List<Object[]> results = XlsxTestUtils.read(output);
+        assertArrayEquals(new Object[] { "query", "queryType"}, results.get(0));
     }
 
     @Test
@@ -277,12 +240,8 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
-                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
-            XSSFSheet sheet = wb.getSheetAt(0);
-            Object[] row1 = readRow(sheet, 0);
-            assertArrayEquals(new Object[] { "foo", "queryType" }, row1);
-        }
+        List<Object[]> results = XlsxTestUtils.read(output);
+        assertArrayEquals(new Object[] { "foo", "queryType"}, results.get(0));
     }
 
     @Test
@@ -314,12 +273,8 @@ public class XlsxExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         byte[] output = format(formatter, projection, queryObj, null);
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
-                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
-            XSSFSheet sheet = wb.getSheetAt(0);
-            Object[] row1 = readRow(sheet, 0);
-            assertArrayEquals(new Object[] { "query(foo=bar)", "queryType(foo=bar baz=boo)" }, row1);
-        }
+        List<Object[]> results = XlsxTestUtils.read(output);
+        assertArrayEquals(new Object[] { "query(foo=bar)", "queryType(foo=bar baz=boo)"}, results.get(0));
     }
 
     @Test
@@ -376,15 +331,10 @@ public class XlsxExportFormatterTest {
         when(scope.getEntityProjection()).thenReturn(projection);
 
         byte[] output = format(formatter, projection, null, persistentResource);
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(output);
-                XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
-            XSSFSheet sheet = wb.getSheetAt(0);
-            Object[] row1 = readRow(sheet, 0);
-            assertArrayEquals(new Object[] { "name", "alternatives" }, row1);
-            Object[] row2 = readRow(sheet, 1);
-            assertArrayEquals(
-                    new Object[] { export.getName(), String.join(";", export.getAlternatives()) },
-                    row2);
-        }
+        List<Object[]> results = XlsxTestUtils.read(output);
+        assertArrayEquals(new Object[] { "name", "alternatives"}, results.get(0));
+        assertArrayEquals(
+                new Object[] { export.getName(), String.join(";", export.getAlternatives()) },
+                results.get(1));
     }
 }

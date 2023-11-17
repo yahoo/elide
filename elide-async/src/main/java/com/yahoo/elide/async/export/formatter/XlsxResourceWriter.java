@@ -97,12 +97,15 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
 
     @Override
     public void close() throws IOException {
-        if (recordCount == 0) {
-            preFormat();
+        if (!closed) {
+            if (recordCount == 0) {
+                preFormat();
+            }
+            workbook.write(this.outputStream);
+            workbook.close();
+            super.close();
+            closed = true;
         }
-        workbook.write(this.outputStream);
-        workbook.close();
-        super.close();
     }
 
     public void format(PersistentResource<?> resource) {

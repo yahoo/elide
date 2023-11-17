@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
  */
 public abstract class ResourceWriterSupport implements ResourceWriter {
     protected OutputStream outputStream;
+    protected boolean closed = false;
 
     public ResourceWriterSupport(OutputStream outputStream) {
         this.outputStream = outputStream;
@@ -25,6 +26,9 @@ public abstract class ResourceWriterSupport implements ResourceWriter {
 
     @Override
     public void close() throws IOException {
-        this.outputStream.close();
+        if (!this.closed) {
+            this.outputStream.close();
+            this.closed = true;
+        }
     }
 }
