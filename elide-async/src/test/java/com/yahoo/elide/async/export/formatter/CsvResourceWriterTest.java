@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -15,8 +15,10 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.junit.jupiter.api.Test;
 
@@ -26,17 +28,20 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Data;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -45,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class XlsxResourceWriterTest {
+class CsvResourceWriterTest {
     // 2023-12-25T12:30:30.000000010+00:00
     public static OffsetDateTime REFERENCE = OffsetDateTime.of(LocalDate.of(2023, 12, 25), LocalTime.of(12, 30, 30, 10),
             ZoneOffset.UTC);
@@ -138,34 +143,34 @@ class XlsxResourceWriterTest {
         byte[] data = process(entityProjection, writer -> {
             writer.write(persistentResource);
         });
-        List<Object[]> results = XlsxTestUtils.read(data);
-        assertArrayEquals(new Object[] { "name", "alternatives", "nested_enumValue", "nested_doubleNumber",
-                "nested_floatNumber", "nested_longNumber", "nested_integerNumber", "nested_instant", "nested_date",
-                "nested_localDateTime", "nested_localDate", "nested_offsetDateTime", "nested_zonedDateTime" },
-                results.get(0));
-        assertArrayEquals(new Object[] { export.getName(), String.join(";", export.getAlternatives()),
-                export.getNested().getEnumValue().name(), export.getNested().getDoubleNumber(),
-                Double.valueOf(export.getNested().getFloatNumber()), Double.valueOf(export.getNested().getLongNumber()),
-                Double.valueOf(export.getNested().getIntegerNumber()), Date.from(export.getNested().getInstant()),
-                export.getNested().getDate(),
-                Date.from(export.getNested().getLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()),
-                Date.from(export.getNested().getLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()),
-                Date.from(export.getNested()
-                        .getOffsetDateTime()
-                        .toLocalDateTime()
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()),
-                Date.from(export.getNested()
-                        .getZonedDateTime()
-                        .toLocalDateTime()
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()) },
-                results.get(1));
+        List<String> results = read(data);
+        String header = """
+               "name","alternatives","nested_enumValue","nested_doubleNumber","nested_floatNumber","nested_longNumber","nested_integerNumber","nested_instant","nested_date","nested_localDateTime","nested_localDate","nested_offsetDateTime","nested_zonedDateTime"\
+               """;
+        assertEquals(header, results.get(0));
+        String row = """
+                "name","a;b;c","VALUE1","1.0","1.0","1","1","2023-12-25T12:30:30.000000010Z","2023-12-25T12:30:30.000+00:00","2023-12-25T12:30:30.00000001","2023-12-25","2023-12-25T12:30:30.00000001Z","2023-12-25T12:30:30.00000001Z"\
+                """;
+        assertEquals(row, results.get(1));
+    }
+
+    List<String> read(byte[] data) {
+        List<String> result = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(data)))) {
+            result = reader.lines().toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return result;
     }
 
     byte[] process(EntityProjection entityProjection, ResourceWriterProcessor processor) {
+        ObjectMapper objectMapper = JsonMapper.builder()
+                .addModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build();
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                ResourceWriter writer = new XlsxResourceWriter(outputStream, new ObjectMapper(), true, entityProjection)) {
+                ResourceWriter writer = new CsvResourceWriter(outputStream, objectMapper, true, entityProjection)) {
             processor.process(writer);
             writer.close();
             outputStream.close();

@@ -293,30 +293,6 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         return cellStyle;
     }
 
-    public String getLocalDateFormat() {
-        return localDateFormat;
-    }
-
-    public void setLocalDateFormat(String localDateFormat) {
-        this.localDateFormat = localDateFormat;
-    }
-
-    public String getLocalDateTimeFormat() {
-        return localDateTimeFormat;
-    }
-
-    public void setLocalDateTimeFormat(String localDateTimeFormat) {
-        this.localDateTimeFormat = localDateTimeFormat;
-    }
-
-    public String getDateFormat() {
-        return dateFormat;
-    }
-
-    public void setDateFormat(String dateFormat) {
-        this.dateFormat = dateFormat;
-    }
-
     /**
      * Gets the value from the attributes.
      *
