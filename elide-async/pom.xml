@@ -50,6 +50,11 @@
             <version>7.0.1-SNAPSHOT</version>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- JPA -->
         <dependency>
             <groupId>jakarta.persistence</groupId>

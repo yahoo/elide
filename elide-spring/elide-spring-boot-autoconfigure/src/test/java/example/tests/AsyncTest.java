@@ -21,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import io.restassured.response.Response;
-import jakarta.ws.rs.core.MediaType;
 
 /**
  * Basic functional tests to test Async service setup, JSONAPI and GRAPHQL endpoints.
@@ -98,8 +98,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"a85a1372-ebae-4972-ae79-d6f39343b10e\\\"]) "
                                 + "{ edges { node { id queryType status result "
                                 + "{ responseBody httpStatus contentLength } } } } }\","
@@ -166,8 +166,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ tableExport(ids: [\\\"7cf798e8-a924-4f4c-8a45-9ad079668f70\\\"]) "
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
@@ -245,8 +245,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ tableExport(ids: [\\\"aa8ef302-6236-4c64-a523-6b5a21c62360\\\"]) "
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
@@ -324,8 +324,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ tableExport(ids: [\\\"26a691c1-706b-412a-af8f-2d4861252b08\\\"]) "
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
@@ -403,8 +403,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ tableExport(ids: [\\\"8349d148-394f-4e03-9d61-81eb8677ae17\\\"]) "
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
@@ -483,8 +483,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
                                 + "{ edges { node { id queryType status result "
                                 + "{ responseBody httpStatus contentLength } } } } }\","
@@ -551,8 +551,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ tableExport(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9265d\\\"]) "
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
@@ -625,8 +625,8 @@ public class AsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ tableExport(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\\\"]) "
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
