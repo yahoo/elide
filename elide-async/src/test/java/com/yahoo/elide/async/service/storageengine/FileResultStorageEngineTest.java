@@ -63,6 +63,13 @@ public class FileResultStorageEngineTest {
     }
 
     @Test
+    public void testReadPathTraversal() {
+        assertThrows(UncheckedIOException.class, () ->
+                readResultsFile(BASE_PATH , "../../../../../checkstyle-style.xml")
+        );
+    }
+
+    @Test
     public void testStoreResults(@TempDir Path tempDir) {
         String queryId = "store_results_success";
         String validOutput = "hi\nhello";

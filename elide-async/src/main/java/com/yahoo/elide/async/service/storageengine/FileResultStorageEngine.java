@@ -13,12 +13,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 
@@ -64,9 +65,25 @@ public class FileResultStorageEngine implements ResultStorageEngine {
         };
     }
 
+    /**
+     * Validates that the path to read/write is as expected to prevent path
+     * traversal.
+     *
+     * @param path the path to read/write
+     * @throws IOException if the path is not expected
+     */
+    protected void validatePath(Path path) throws IOException {
+        Path parent = Paths.get(basePath);
+        if (!path.getParent().equals(parent)) {
+            throw new FileNotFoundException();
+        }
+    }
+
     private InputStream newInputStream(String tableExportID) {
         try {
-            return Files.newInputStream(Paths.get(basePath + File.separator + tableExportID));
+            Path path = Paths.get(basePath, tableExportID);
+            validatePath(path);
+            return Files.newInputStream(path);
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new UncheckedIOException(RETRIEVE_ERROR, e);
@@ -75,7 +92,9 @@ public class FileResultStorageEngine implements ResultStorageEngine {
 
     private OutputStream newOutputStream(String tableExportID) {
         try {
-            return Files.newOutputStream(Paths.get(basePath + File.separator + tableExportID));
+            Path path = Paths.get(basePath, tableExportID);
+            validatePath(path);
+            return Files.newOutputStream(path);
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new UncheckedIOException(STORE_ERROR, e);
