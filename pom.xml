@@ -81,7 +81,6 @@
         <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
-        <ant.version>1.10.14</ant.version>
         <antlr4.version>4.13.1</antlr4.version>
         <artemis.version>2.31.2</artemis.version>
         <atomikos.version>6.0.0</atomikos.version>
@@ -499,11 +498,6 @@
             </dependency>
 
             <!-- Test dependencies -->
-             <dependency>
-                <groupId>org.apache.ant</groupId>
-                <artifactId>ant</artifactId>
-                <version>${ant.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
