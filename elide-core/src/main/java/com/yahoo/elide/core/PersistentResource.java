@@ -1901,7 +1901,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Queue the @*Update triggers iff this is not a newly created object (otherwise we run @*Create)
+     * Queue the @*Update triggers iff this is not a newly created object (otherwise we run @*Create).
      */
     private void triggerUpdate(String fieldName, Object original, Object value) {
         ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);

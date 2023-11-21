@@ -12,7 +12,7 @@ import com.yahoo.elide.core.RequestScope;
 import jakarta.persistence.Entity;
 
 /**
- * Bean with only computed fields
+ * Bean with only computed fields.
  */
 @Include(rootLevel = false)
 @Entity

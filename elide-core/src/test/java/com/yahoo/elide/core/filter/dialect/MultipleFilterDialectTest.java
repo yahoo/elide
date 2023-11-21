@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests MultipleFilterDialect
+ * Tests MultipleFilterDialect.
  */
 public class MultipleFilterDialectTest {
 
@@ -110,7 +110,7 @@ public class MultipleFilterDialectTest {
     }
 
     /**
-     * Verify that missing dialects throws a ParseException
+     * Verify that missing dialects throws a ParseException.
      */
     @Test
     public void testMissingTypedDialect() throws Exception {
@@ -136,7 +136,7 @@ public class MultipleFilterDialectTest {
     }
 
     /**
-     * Verify that missing dialects throws a ParseException
+     * Verify that missing dialects throws a ParseException.
      */
     @Test
     public void testMissingGlobalDialect() throws Exception {

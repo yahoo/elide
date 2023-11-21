@@ -32,7 +32,7 @@ public class TypeHelper {
                     Short.class, Integer.class, Long.class, Float.class, Double.class);
 
     /**
-     * Determine whether a type is primitive number type
+     * Determine whether a type is primitive number type.
      *
      * @param type type to check
      * @return True is the type is primitive number type
@@ -46,7 +46,7 @@ public class TypeHelper {
     }
 
     /**
-     * Determine whether a type is number type
+     * Determine whether a type is number type.
      *
      * @param type type to check
      * @return True is the type is number type
@@ -56,7 +56,7 @@ public class TypeHelper {
     }
 
     /**
-     * Extend an type alias to the final type of an extension path
+     * Extend an type alias to the final type of an extension path.
      *
      * @param alias      type alias to be extended, e.g. <code>a_b</code>
      * @param extension  path extension from aliased type, e.g. <code>[b.c]/[c.d]</code>

@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * Tests PredicateExtractionVisitor
+ * Tests PredicateExtractionVisitor.
  */
 public class FilterPredicateExtractionVisitorTest {
 

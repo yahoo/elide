@@ -132,7 +132,7 @@ public class CoerceUtil {
     }
 
     /**
-     * Initialize this classloader if necessary
+     * Initialize this classloader if necessary.
      */
     private static void initializeCurrentClassLoaderIfNecessary() {
         ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();

@@ -626,7 +626,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     /**
-     * Avoid NPE when PATCH or POST defines relationship with null id
+     * Avoid NPE when PATCH or POST defines relationship with null id.
      * <pre>
      * <code>
      * "relationships": {

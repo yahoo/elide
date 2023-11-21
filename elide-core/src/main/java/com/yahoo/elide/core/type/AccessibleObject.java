@@ -36,6 +36,7 @@ public interface AccessibleObject extends Member {
     }
 
     /**
+     * Checks if an annotation is present.
      * @param annotationClass The annotation to search for.
      * @return True or false.
      */

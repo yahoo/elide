@@ -48,8 +48,10 @@ public class InMemoryExecutionVerifier implements FilterExpressionVisitor<Boolea
     }
 
     /**
-     * @param dictionary
-     * @param expression
+     * Determines if the filter expression should be evaluated in memory.
+     *
+     * @param dictionary the entity dictionary
+     * @param expression the filter expression
      * @return Returns true if the filter expression must be evaluated in memory.
      */
     public static boolean shouldExecuteInMemory(EntityDictionary dictionary, FilterExpression expression) {
