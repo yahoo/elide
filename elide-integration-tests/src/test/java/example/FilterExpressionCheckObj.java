@@ -67,10 +67,10 @@ public class FilterExpressionCheckObj extends BaseId {
         return new FilterPredicate(path1, op, value);
     }
 
-    public static class CheckRestrictUser extends FilterExpressionCheck {
+    public static class CheckRestrictUser extends FilterExpressionCheck<Object> {
 
         @Override
-        public FilterPredicate getFilterExpression(Type entityClass, RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Type<?> entityClass, RequestScope requestScope) {
             return createUserPredicate(requestScope, false, 1L);
         }
 
@@ -79,10 +79,10 @@ public class FilterExpressionCheckObj extends BaseId {
         }
     }
 
-    public static class CheckLE extends FilterExpressionCheck {
+    public static class CheckLE extends FilterExpressionCheck<Object> {
 
         @Override
-        public FilterPredicate getFilterExpression(Type entityClass, RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Type<?> entityClass, RequestScope requestScope) {
             Path.PathElement path1 = new Path.PathElement(FilterExpressionCheckObj.class, long.class, "id");
             Operator op = Operator.LE;
             List<Object> value = new ArrayList<>();

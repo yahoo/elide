@@ -67,6 +67,7 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         @Setter
         private Price price;
 
+        @SuppressWarnings("unused")
         private Collection<example.Author> authors = new ArrayList<>();
     }
 

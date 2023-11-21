@@ -23,9 +23,6 @@ import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class InheritanceIT extends IntegrationTest {
 
     @Test

@@ -55,7 +55,7 @@ public class Filtered extends BaseId {
     static public class FilterCheck<T> extends FilterExpressionCheck<T> {
         /* Limit reads to ID 1 */
         @Override
-        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type<?> entityClass, RequestScope requestScope) {
             return getPredicateOfId(1L);
         }
     }
@@ -66,7 +66,7 @@ public class Filtered extends BaseId {
     static public class FilterCheck3<T> extends FilterExpressionCheck<T> {
         /* Limit reads to ID 3 */
         @Override
-        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type<?> entityClass, RequestScope requestScope) {
             return getPredicateOfId(3L);
         }
     }
