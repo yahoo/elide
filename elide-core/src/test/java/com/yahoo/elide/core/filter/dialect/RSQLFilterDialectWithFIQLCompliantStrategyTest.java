@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests RSQLFilterDialect
+ * Tests RSQLFilterDialect.
  */
 public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
     private static RSQLFilterDialect dialect;

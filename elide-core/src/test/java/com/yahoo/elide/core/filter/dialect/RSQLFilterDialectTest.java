@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Tests RSQLFilterDialect
+ * Tests RSQLFilterDialect.
  */
 public class RSQLFilterDialectTest {
     private static RSQLFilterDialect dialect;

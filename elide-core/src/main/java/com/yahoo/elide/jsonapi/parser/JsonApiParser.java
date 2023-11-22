@@ -28,7 +28,7 @@ public class JsonApiParser {
     private static final Pattern DUPLICATE_SEPARATOR_PATTERN = Pattern.compile("//+");
 
     /**
-     * Normalize request path
+     * Normalize request path.
      *
      * @param path request path
      * @return normalized path string

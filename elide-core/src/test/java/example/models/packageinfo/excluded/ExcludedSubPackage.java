@@ -11,7 +11,7 @@ import example.models.BaseId;
 import jakarta.persistence.Entity;
 
 /**
- * Helper class to test Include on parent package level
+ * Helper class to test Include on parent package level.
  */
 @Entity
 public class ExcludedSubPackage extends BaseId {
