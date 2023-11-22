@@ -40,11 +40,17 @@ import com.yahoo.elide.graphql.GraphQLNameUtils;
 import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.ModelBuilder;
 
+import com.apollographql.federation.graphqljava._Entity;
+import com.apollographql.federation.graphqljava._Service;
+
+import org.apache.commons.lang3.StringUtils;
+
 import graphql.language.Argument;
 import graphql.language.Document;
 import graphql.language.Field;
 import graphql.language.FragmentDefinition;
 import graphql.language.FragmentSpread;
+import graphql.language.InlineFragment;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
@@ -170,20 +176,45 @@ public class GraphQLEntityProjectionMaker {
             String aliasName = rootSelectionField.getAlias();
 
             //_service comes from Apollo federation spec
-            if ("_service".equals(entityName) || SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
+            if (_Service.fieldName.equals(entityName) || SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
                 // '_service' and '__schema' and '__type' would not be handled by entity projection
                 return;
             }
 
-            Type<?> entityType = getRootEntity(rootSelectionField.getName(), apiVersion);
+            //_entities comes from Apollo federation spec
+            if (_Entity.fieldName.equals(entityName)) {
+                /*
+                 * query {
+                 *   _entities(representations: [{__typename: "Group", id: "com.yahoo.elide"}]) {
+                 *     ... on Group {
+                 *       name
+                 *       commonName
+                 *       description
+                 *     }
+                 *   }
+                 * }
+                 */
+                List<InlineFragment> inlineFragments = rootSelectionField.getSelectionSet()
+                        .getSelectionsOfType(graphql.language.InlineFragment.class);
+                if (inlineFragments == null || inlineFragments.isEmpty()) {
+                    throw new InvalidEntityBodyException("Entity selection must be an inline fragment.");
+                }
+                String graphqlTypeName = inlineFragments
+                        .get(0)
+                        .getTypeCondition()
+                        .getName();
+                entityName = StringUtils.uncapitalize(graphqlTypeName);
+            }
+
+            Type<?> entityType = getRootEntity(entityName, apiVersion);
             if (entityType == null) {
                 throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
-                        rootSelectionField.getName()));
+                        entityName));
             }
 
             String keyName = GraphQLProjectionInfo.computeProjectionKey(aliasName, entityName);
             if (rootProjections.containsKey(keyName)) {
-                throw  new InvalidEntityBodyException(
+                throw new InvalidEntityBodyException(
                         String.format("Found two root level query for Entity {%s} with same alias name",
                                 entityName));
             }
@@ -228,18 +259,22 @@ public class GraphQLEntityProjectionMaker {
      * @param fieldSelection field/fragment to add
      * @param projectionBuilder projection that is being built
      */
-    private void addSelection(Selection fieldSelection, final EntityProjectionBuilder projectionBuilder) {
-        if (fieldSelection instanceof FragmentSpread) {
-            addFragment((FragmentSpread) fieldSelection, projectionBuilder);
-        } else if (fieldSelection instanceof Field) {
-            if (EDGES.hasName(((Field) fieldSelection).getName())
-                    || NODE.hasName(((Field) fieldSelection).getName())) {
+    private void addSelection(Selection<?> fieldSelection, final EntityProjectionBuilder projectionBuilder) {
+        if (fieldSelection instanceof FragmentSpread fragmentSpread) {
+            addFragment(fragmentSpread, projectionBuilder);
+        } else if (fieldSelection instanceof Field field) {
+            if (EDGES.hasName(field.getName())
+                    || NODE.hasName(field.getName())) {
                 // if this graphql field is 'edges' or 'node', go one level deeper in the graphql document
-                ((Field) fieldSelection).getSelectionSet().getSelections().forEach(
+                field.getSelectionSet().getSelections().forEach(
                         selection -> addSelection(selection, projectionBuilder));
             } else {
-                addField((Field) fieldSelection, projectionBuilder);
+                addField(field, projectionBuilder);
             }
+        } else if (fieldSelection instanceof InlineFragment inlineFragment) {
+            // Federation
+            inlineFragment.getSelectionSet().getSelections().forEach(
+                    selection -> addSelection(selection, projectionBuilder));
         } else {
             throw new InvalidEntityBodyException(
                     String.format("Unsupported selection type {%s}.", fieldSelection.getClass()));
@@ -364,7 +399,10 @@ public class GraphQLEntityProjectionMaker {
     private void addArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String argumentName = argument.getName();
 
-        if (isPaginationArgument(argumentName)) {
+        if (_Entity.argumentName.equals(argumentName)) {
+            // Ignore representations argument from federation
+            return;
+        } else if (isPaginationArgument(argumentName)) {
             addPagination(argument, projectionBuilder);
         } else if (isSortingArgument(argumentName)) {
             addSorting(argument, projectionBuilder);

@@ -101,8 +101,8 @@
         <dom4j.version>2.1.4</dom4j.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
         <encoder.version>1.2.3</encoder.version>
-        <federation-graphql-java-support-api.version>4.1.1</federation-graphql-java-support-api.version>
-        <graphql-java.version>20.2</graphql-java.version>
+        <federation-graphql-java-support-api.version>4.2.0</federation-graphql-java-support-api.version>
+        <graphql-java.version>21.0</graphql-java.version>
         <graal-sdk.version>23.1.0</graal-sdk.version>
         <guava.version>32.1.1-jre</guava.version>
         <handlebars.version>4.3.1</handlebars.version>
