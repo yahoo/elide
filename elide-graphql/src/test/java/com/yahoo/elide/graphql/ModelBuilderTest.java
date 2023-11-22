@@ -28,6 +28,8 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.graphql.federation.FederationVersion;
+import com.apollographql.federation.graphqljava.FederationDirectives;
 import example.Address;
 import example.Author;
 import example.Book;
@@ -39,6 +41,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import graphql.Scalars;
 import graphql.scalars.java.JavaPrimitives;
 import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLAppliedDirective;
+import graphql.schema.GraphQLAppliedDirectiveArgument;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
@@ -112,6 +116,89 @@ public class ModelBuilderTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Address.class);
+    }
+
+    @Test
+    public void testFederationPageInfoHasShareableDirective() {
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        ElideSettings settings = ElideSettings.builder().entityDictionary(dictionary)
+                .settings(GraphQLSettingsBuilder.withDefaults(dictionary)
+                        .federation(federation -> federation.enabled(true).version(FederationVersion.FEDERATION_2_3)))
+                .build();
+        ModelBuilder builder = new ModelBuilder(dictionary,
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType pageInfo = (GraphQLObjectType) schema.getType("PageInfo");
+        assertNotNull(pageInfo);
+        GraphQLAppliedDirective directive = pageInfo.getAppliedDirective("shareable");
+        if (directive == null) {
+            directive = pageInfo.getAppliedDirective("federation__shareable");
+        }
+        assertNotNull(directive);
+    }
+
+    @Test
+    public void testFederationPageInfoHasNoShareableDirective() {
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        ElideSettings settings = ElideSettings.builder().entityDictionary(dictionary)
+                .settings(GraphQLSettingsBuilder.withDefaults(dictionary)
+                        .federation(federation -> federation.enabled(true).version(FederationVersion.FEDERATION_1_1)))
+                .build();
+        ModelBuilder builder = new ModelBuilder(dictionary,
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType pageInfo = (GraphQLObjectType) schema.getType("PageInfo");
+        assertNotNull(pageInfo);
+        GraphQLAppliedDirective directive = pageInfo.getAppliedDirective("shareable");
+        if (directive == null) {
+            directive = pageInfo.getAppliedDirective("federation__shareable");
+        }
+        assertNull(directive);
+    }
+
+    @Test
+    public void testFederationRootHasEntityKeyDirective() {
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        ElideSettings settings = ElideSettings.builder().entityDictionary(dictionary)
+                .settings(GraphQLSettingsBuilder.withDefaults(dictionary)
+                        .federation(federation -> federation.enabled(true)))
+                .build();
+        ModelBuilder builder = new ModelBuilder(dictionary,
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType internalBook = (GraphQLObjectType) schema.getType("ElideInternalBook");
+        assertNotNull(internalBook);
+        GraphQLAppliedDirective directive = internalBook.getAppliedDirective(FederationDirectives.keyName);
+        GraphQLAppliedDirectiveArgument argument = directive.getArgument(FederationDirectives.fieldsArgumentName);
+        assertNotNull(argument);
+    }
+
+    @Test
+    public void testFederationNonRootHasNoEntityKeyDirective() {
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        ElideSettings settings = ElideSettings.builder().entityDictionary(dictionary)
+                .settings(GraphQLSettingsBuilder.withDefaults(dictionary)
+                        .federation(federation -> federation.enabled(true)))
+                .build();
+        ModelBuilder builder = new ModelBuilder(dictionary,
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType publisher = (GraphQLObjectType) schema.getType("Publisher");
+        assertNotNull(publisher);
+        GraphQLAppliedDirective directive = publisher.getAppliedDirective(FederationDirectives.keyName);
+        assertNull(directive);
     }
 
     @Test

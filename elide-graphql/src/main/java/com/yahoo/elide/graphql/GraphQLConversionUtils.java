@@ -539,7 +539,7 @@ public class GraphQLConversionUtils {
 
 
     private GraphQLOutputType fetchScalarOrObjectOutput(Type<?> conversionClass,
-                                                        DataFetcher fetcher) {
+                                                        DataFetcher<?> fetcher) {
         /* If class is enum, provide enum type */
         if (conversionClass.isEnum()) {
             return classToEnumType(conversionClass);

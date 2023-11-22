@@ -62,7 +62,7 @@ public class GraphQLScalars {
 
     public static GraphQLScalarType GRAPHQL_DEFERRED_ID = GraphQLScalarType.newScalar()
             .name("DeferredID")
-            .description("custom id type")
+            .description("The DeferredID scalar type represents a unique identifier.")
             .coercing(new Coercing() {
                 @Override
                 public Object serialize(Object o) {

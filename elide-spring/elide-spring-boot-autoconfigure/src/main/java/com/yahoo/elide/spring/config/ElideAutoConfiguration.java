@@ -889,8 +889,10 @@ public class ElideAutoConfiguration {
                 ObjectProvider<GraphQLSettingsBuilderCustomizer> customizerProviders) {
             return GraphQLSettingsBuilderCustomizers.buildGraphQLSettingsBuilder(entityDictionary,
                     builder -> {
-                        builder.path(settings.getGraphql().getPath()).federation(
-                                federation -> federation.enabled(settings.getGraphql().getFederation().isEnabled()))
+                        builder.path(settings.getGraphql().getPath())
+                                .federation(federation -> federation
+                                        .enabled(settings.getGraphql().getFederation().isEnabled())
+                                        .version(settings.getGraphql().getFederation().getVersion().getValue()))
                                 .graphqlExceptionHandler(graphqlExceptionHandler);
                         customizerProviders.orderedStream().forEach(customizer -> customizer.customize(builder));
                     });
