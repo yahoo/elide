@@ -167,7 +167,7 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
         <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
-        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
         <maven-scm-provider-gitexe.version>1.13.0</maven-scm-provider-gitexe.version>
         <maven-scm-api.version>1.13.0</maven-scm-api.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
