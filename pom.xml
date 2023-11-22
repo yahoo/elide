@@ -131,7 +131,6 @@
         <rxjava.version>2.2.21</rxjava.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
         <slf4j.version>2.0.9</slf4j.version>
-        <snakeyaml.version>2.2</snakeyaml.version>
         <spring-boot.version>3.2.0</spring-boot.version>
         <spring-framework.version>6.1.1</spring-framework.version>
 
@@ -382,11 +381,6 @@
                 <groupId>org.apache.tomcat.embed</groupId>
                 <artifactId>tomcat-embed-websocket</artifactId>
                 <version>${tomcat.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${snakeyaml.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
