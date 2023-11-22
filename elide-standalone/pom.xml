@@ -101,12 +101,6 @@
             <version>7.0.1-SNAPSHOT</version>
         </dependency>
 
-        <!-- JPA -->
-        <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-        </dependency>
-
         <!-- Hibernate -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
