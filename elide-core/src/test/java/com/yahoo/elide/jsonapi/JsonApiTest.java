@@ -8,6 +8,7 @@ package com.yahoo.elide.jsonapi;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -52,9 +53,11 @@ import example.Child;
 import example.Parent;
 
 import org.apache.commons.collections4.IterableUtils;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -236,7 +239,11 @@ public class JsonApiTest {
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(data, jsonApiDocument.getData());
 
-        assertEquals(expected, doc);
+        try {
+            JSONAssert.assertEquals(expected, doc, true);
+        } catch (JSONException e) {
+            fail(e);
+        }
         checkEquality(jsonApiDocument);
     }
 
@@ -332,7 +339,11 @@ public class JsonApiTest {
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(data, jsonApiDocument.getData());
 
-        assertEquals(expected, doc);
+        try {
+            JSONAssert.assertEquals(expected, doc, true);
+        } catch (JSONException e) {
+            fail(e);
+        }
         checkEquality(jsonApiDocument);
     }
 
