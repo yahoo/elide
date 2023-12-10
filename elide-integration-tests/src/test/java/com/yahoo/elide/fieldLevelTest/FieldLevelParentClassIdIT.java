@@ -14,7 +14,6 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -22,8 +21,6 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 public class FieldLevelParentClassIdIT extends IntegrationTest {
-    private final JsonParser jsonParser = new JsonParser();
-
     @Test
     public void testResponseCodeOnUpdate() {
         Resource original = resource(

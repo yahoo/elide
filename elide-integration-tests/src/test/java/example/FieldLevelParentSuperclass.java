@@ -12,5 +12,6 @@ import jakarta.persistence.MappedSuperclass;
 public abstract class FieldLevelParentSuperclass {
     @Id
     private String id;
+    @SuppressWarnings("unused")
     private String parentField;
 }

@@ -122,7 +122,7 @@ public class Child extends BaseId {
 
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
-        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type<?> entityClass, RequestScope requestScope) {
             return new NotNullPredicate(new Path.PathElement(Child.class, Long.class, "id"));
         }
     }
