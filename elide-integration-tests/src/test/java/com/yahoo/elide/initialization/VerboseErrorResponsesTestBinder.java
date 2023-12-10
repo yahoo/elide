@@ -26,14 +26,11 @@ import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Arrays;
 
 /**
  * Binder for integration tests related to verbose error responses.
  */
-@Slf4j
 public class VerboseErrorResponsesTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
     private final ServiceLocator injector;
