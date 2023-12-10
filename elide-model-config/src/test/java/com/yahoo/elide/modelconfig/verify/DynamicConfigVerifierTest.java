@@ -16,7 +16,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,6 +27,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -52,7 +53,11 @@ public class DynamicConfigVerifierTest {
 
     @AfterAll
     public static void after() {
-        FileUtils.deleteQuietly(FileUtils.getFile(TAR_FILE_PATH));
+        try {
+            Files.deleteIfExists(Paths.get(TAR_FILE_PATH));
+        } catch (IOException e) {
+            // Do nothing
+        }
     }
 
     @Test

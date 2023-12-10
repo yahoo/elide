@@ -58,6 +58,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -65,8 +66,6 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
-
-import jakarta.ws.rs.core.MediaType;
 
 import java.util.Map;
 /**
@@ -1001,8 +1000,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void graphqlTest() {
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         query(
                                 selection(
@@ -1053,8 +1052,8 @@ public class ControllerTest extends IntegrationTest {
                 {"errors":[{"message":"Invalid operation: Invalid API Version","extensions":{"classification":"DataFetchingException"}}]}""";
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .header("ApiVersion", "2.0")
                 .body("{ \"query\" : \"" + graphQLRequest + "\" }")
                 .post("/graphql")
@@ -1069,8 +1068,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void versionedGraphqlTest() {
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .header("ApiVersion", "1.0")
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         query(
@@ -1182,8 +1181,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void graphqlTestForbiddenCreate() {
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         mutation(
                                 selection(

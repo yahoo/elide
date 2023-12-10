@@ -973,7 +973,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testInvalidJson() {
-        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: (String)\"{ ]\"; line: 1, column: 1])\n at [Source: (String)\"{ ]\"; line: 1, column: 4]";
+        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1])";
 
         given()
                 .contentType(JsonApi.MEDIA_TYPE)

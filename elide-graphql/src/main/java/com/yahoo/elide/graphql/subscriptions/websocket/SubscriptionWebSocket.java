@@ -32,7 +32,6 @@ import jakarta.websocket.Endpoint;
 import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.MessageHandler;
 import jakarta.websocket.Session;
-import jakarta.ws.rs.core.MediaType;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,6 +61,7 @@ import java.util.concurrent.ExecutorService;
 @Slf4j
 @Builder
 public class SubscriptionWebSocket extends Endpoint {
+    public static final String MEDIA_TYPE = "application/json";
     public static final String SUBPROTOCOL_GRAPHQL_TRANSPORT_WS = "graphql-transport-ws";
     public static final List<String> SUPPORTED_WEBSOCKET_SUBPROTOCOLS = List.of(SUBPROTOCOL_GRAPHQL_TRANSPORT_WS);
 
@@ -272,7 +272,7 @@ public class SubscriptionWebSocket extends Endpoint {
             headers.putAll(handshakeHeaders);
         }
 
-        Route route = routeResolver.resolve(MediaType.APPLICATION_JSON, baseUrl, path, headers,
+        Route route = routeResolver.resolve(MEDIA_TYPE, baseUrl, path, headers,
                 session.getRequestParameterMap());
 
         String apiVersion = route.getApiVersion();

@@ -67,10 +67,6 @@
         <tag>HEAD</tag>
     </scm>
 
-    <prerequisites>
-        <maven>3.6.3</maven>
-    </prerequisites>
-
     <properties>
         <releaseRepoUrl>https://oss.sonatype.org/service/local/staging/deploy/maven2/</releaseRepoUrl>
         <snapshotRepoUrl>https://oss.sonatype.org/content/repositories/snapshots/</snapshotRepoUrl>
@@ -85,36 +81,33 @@
         <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
-        <ant.version>1.10.13</ant.version>
         <antlr4.version>4.13.1</antlr4.version>
-        <artemis.version>2.28.0</artemis.version>
+        <artemis.version>2.31.2</artemis.version>
         <atomikos.version>6.0.0</atomikos.version>
-        <calcite.version>1.35.0</calcite.version>
+        <calcite.version>1.36.0</calcite.version>
         <caffeine.version>3.1.8</caffeine.version>
-        <classgraph.version>4.8.162</classgraph.version>
+        <classgraph.version>4.8.165</classgraph.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
-        <commons-cli.version>1.5.0</commons-cli.version>
+        <commons-cli.version>1.6.0</commons-cli.version>
         <commons-collections4.version>4.4</commons-collections4.version>
-        <commons-compress.version>1.24.0</commons-compress.version>
-        <commons-io.version>2.12.0</commons-io.version>
-        <commons-lang3.version>3.12.0</commons-lang3.version>
-        <dom4j.version>2.1.4</dom4j.version>
+        <commons-compress.version>1.25.0</commons-compress.version>
+        <commons-lang3.version>3.14.0</commons-lang3.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
         <encoder.version>1.2.3</encoder.version>
         <federation-graphql-java-support-api.version>4.2.0</federation-graphql-java-support-api.version>
         <graphql-java.version>21.0</graphql-java.version>
-        <graal-sdk.version>23.1.0</graal-sdk.version>
-        <guava.version>32.1.1-jre</guava.version>
+        <graal-sdk.version>23.1.1</graal-sdk.version>
+        <guava.version>32.1.3-jre</guava.version>
         <handlebars.version>4.3.1</handlebars.version>
-        <hibernate.version>6.3.1.Final</hibernate.version>
-        <hibernate-validator.version>8.0.0.Final</hibernate-validator.version>
-        <hibernate-search.version>6.2.1.Final</hibernate-search.version>
-        <hjson.version>3.0.1</hjson.version>
+        <hibernate.version>6.4.0.Final</hibernate.version>
+        <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
+        <hibernate-search.version>6.2.2.Final</hibernate-search.version>
+        <hjson.version>3.1.0</hjson.version>
         <httpclient5.version>5.2.1</httpclient5.version>
         <gson.version>2.10.1</gson.version>
         <h2.version>2.2.224</h2.version>
-        <hikaricp.version>5.0.1</hikaricp.version>
-        <jackson-bom.version>2.15.2</jackson-bom.version>
+        <hikaricp.version>5.1.0</hikaricp.version>
+        <jackson-bom.version>2.16.0</jackson-bom.version>
         <jakarta-inject.version>2.0.1</jakarta-inject.version>
         <jakarta-jms.version>3.1.0</jakarta-jms.version>
         <jakarta-persistence.version>3.1.0</jakarta-persistence.version>
@@ -122,50 +115,48 @@
         <jakarta-websocket.version>2.1.1</jakarta-websocket.version>
         <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
         <jakarta-validation.version>3.0.2</jakarta-validation.version>
-        <javaassist.version>3.29.2-GA</javaassist.version>
-        <jansi.version>2.4.0</jansi.version>
+        <jansi.version>2.4.1</jansi.version>
         <jersey.version>3.1.3</jersey.version>
-        <jetty.version>11.0.15</jetty.version>
-        <jedis.version>4.4.1</jedis.version>
+        <jetty.version>12.0.3</jetty.version>
+        <jedis.version>5.1.0</jedis.version>
         <jsonassert.version>1.5.1</jsonassert.version>
         <json2flat.version>1.0.3</json2flat.version>
         <json-path.version>2.8.0</json-path.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
-        <junit.version>5.10.0</junit.version>
-        <logback.version>1.4.7</logback.version>
-        <lombok.version>1.18.28</lombok.version>
+        <junit.version>5.10.1</junit.version>
+        <logback.version>1.4.11</logback.version>
+        <lombok.version>1.18.30</lombok.version>
         <rest-assured.version>5.3.2</rest-assured.version>
         <rxjava.version>2.2.21</rxjava.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
         <slf4j.version>2.0.9</slf4j.version>
-        <snakeyaml.version>2.0</snakeyaml.version>
-        <spring-boot.version>3.1.3</spring-boot.version>
-        <spring-framework.version>6.0.11</spring-framework.version>
+        <spring-boot.version>3.2.0</spring-boot.version>
+        <spring-framework.version>6.1.1</spring-framework.version>
 
-        <spring-cloud-commons.version>4.0.2</spring-cloud-commons.version>
-        <springdoc.version>2.1.0</springdoc.version>
-        <swagger-api.version>2.2.15</swagger-api.version>
+        <spring-cloud-commons.version>4.0.4</spring-cloud-commons.version>
+        <springdoc.version>2.2.0</springdoc.version>
+        <swagger-api.version>2.2.19</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
-        <tomcat.version>10.1.13</tomcat.version>
-        <mockito.version>5.6.0</mockito.version>
+        <tomcat.version>10.1.16</tomcat.version>
+        <mockito.version>5.7.0</mockito.version>
 
 
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
-        <checkstyle.version>10.12.4</checkstyle.version>
-        <gmaven-plugin.version>1.5</gmaven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
+        <checkstyle.version>10.12.5</checkstyle.version>
+        <dependency-check-maven.version>8.4.3</dependency-check-maven.version>
+        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
-        <maven-checkstyle-plugin.version>3.2.1</maven-checkstyle-plugin.version>
-        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
-        <maven-enforcer-plugin.version>3.4.0</maven-enforcer-plugin.version>
+        <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-        <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
+        <maven-javadoc-plugin.version>3.6.2</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
-        <maven-surefire-plugin.version>3.0.0</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.2.2</maven-surefire-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-        <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
+        <maven-failsafe-plugin.version>3.2.2</maven-failsafe-plugin.version>
         <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <maven-scm-provider-gitexe.version>1.13.0</maven-scm-provider-gitexe.version>
@@ -196,6 +187,12 @@
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>artemis-jakarta-server</artifactId>
                 <version>${artemis.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
@@ -211,6 +208,12 @@
                 <groupId>org.apache.calcite</groupId>
                 <artifactId>calcite-core</artifactId>
                 <version>${calcite.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
@@ -236,6 +239,12 @@
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
                 <version>${commons-beanutils.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>commons-cli</groupId>
@@ -243,19 +252,9 @@
                 <version>${commons-cli.version}</version>
             </dependency>
             <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${commons-io.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>${commons-compress.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.dom4j</groupId>
-                <artifactId>dom4j</artifactId>
-                <version>${dom4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.codemonstur</groupId>
@@ -383,11 +382,6 @@
                 <version>${tomcat.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${snakeyaml.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
@@ -401,6 +395,11 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
             <dependency>
@@ -433,10 +432,17 @@
                 <artifactId>jansi</artifactId>
                 <version>${jansi.version}</version>
             </dependency>
-            
+
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
+                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.ee10</groupId>
+                <artifactId>jetty-ee10-bom</artifactId>
                 <version>${jetty.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -479,16 +485,6 @@
             </dependency>
 
             <!-- Test dependencies -->
-             <dependency>
-                <groupId>org.apache.ant</groupId>
-                <artifactId>ant</artifactId>
-                <version>${ant.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.javassist</groupId>
-                <artifactId>javassist</artifactId>
-                <version>${javaassist.version}</version>
-            </dependency>            
             <dependency>
                 <groupId>org.skyscreamer</groupId>
                 <artifactId>jsonassert</artifactId>
@@ -562,12 +558,22 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>io.rest-assured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>${rest-assured.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <!-- JPA -->
             <dependency>
                 <groupId>jakarta.persistence</groupId>
                 <artifactId>jakarta.persistence-api</artifactId>
                 <version>${jakarta-persistence.version}</version>
-                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -705,20 +711,14 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.gmaven</groupId>
-                    <artifactId>gmaven-plugin</artifactId>
-                    <version>${gmaven-plugin.version}</version>
-                    <configuration>
-                        <providerSelection>2.0</providerSelection>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>compile</goal>
-                                <goal>testCompile</goal>
-                            </goals>
-                        </execution>
-                    </executions>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>${dependency-check-maven.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build-helper-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -912,6 +912,9 @@
                                 <requireJavaVersion>
                                     <version>[${min.jdk.version},${max.jdk.version}]</version>
                                 </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>3.6.3</version>
+                                </requireMavenVersion>
                             </rules>
                         </configuration>
                     </execution>
