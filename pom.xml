@@ -124,7 +124,7 @@
         <json-path.version>2.8.0</json-path.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
         <junit.version>5.10.1</junit.version>
-        <logback.version>1.4.12</logback.version>
+        <logback.version>1.4.14</logback.version>
         <lombok.version>1.18.30</lombok.version>
         <rest-assured.version>5.3.2</rest-assured.version>
         <rxjava.version>2.2.21</rxjava.version>
@@ -158,7 +158,7 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-failsafe-plugin.version>3.2.2</maven-failsafe-plugin.version>
         <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
-        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
         <maven-scm-provider-gitexe.version>1.13.0</maven-scm-provider-gitexe.version>
         <maven-scm-api.version>1.13.0</maven-scm-api.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
