@@ -1847,7 +1847,7 @@ public class NoCacheAggregationDataStoreIntegrationTest extends AggregationDataS
     }
 
     /**
-     * Check if AggregationBeforeJoinOptimizer works with alias
+     * Check if AggregationBeforeJoinOptimizer works with alias.
      * @throws Exception
      */
     @Test

@@ -37,12 +37,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -142,7 +141,7 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testRootEntityFormulaFetch() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
                 .build();
@@ -162,7 +161,7 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testSubcollectionEntityFormulaFetch() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams)
                 .apiVersion(NO_VERSION).build();
@@ -182,7 +181,7 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testRootEntityFormulaWithFilter() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
@@ -199,7 +198,7 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testSubCollectionEntityFormulaWithFilter() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams)
@@ -216,7 +215,7 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testRootEntityFormulaWithSorting() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("sort", Arrays.asList("-chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
@@ -237,7 +236,7 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testSubcollectionEntityFormulaWithSorting() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("sort", Arrays.asList("-chapterCount"));
         Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams).apiVersion(NO_VERSION)

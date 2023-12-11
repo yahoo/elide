@@ -29,6 +29,8 @@ public class User extends BaseId {
     private String reversedPassword;
 
     /**
+     * Gets the password.
+     *
      * @return empty string
      */
     @ComputedAttribute
@@ -49,6 +51,8 @@ public class User extends BaseId {
     }
 
     /**
+     * Gets the reversed password.
+     *
      * @return the 'encrypted' password
      */
     public String getReversedPassword() {

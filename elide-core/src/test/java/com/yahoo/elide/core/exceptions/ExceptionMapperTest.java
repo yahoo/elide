@@ -112,7 +112,7 @@ public class ExceptionMapperTest {
         ElideResponse<String> response = jsonApi.post(route, body, null, null);
         assertEquals(400, response.getStatus());
         assertEquals(
-                "{\"errors\":[{\"detail\":\"Unexpected character (&#39;&#34;&#39; (code 34)): was expecting comma to separate Object entries\\n at [Source: (String)&#34;{&#34;data&#34;: {&#34;type&#34;:&#34;testModel&#34;&#34;id&#34;:&#34;1&#34;,&#34;attributes&#34;: {&#34;field&#34;:&#34;Foo&#34;}}}&#34;; line: 1, column: 30]\"}]}",
+                "{\"errors\":[{\"detail\":\"Unexpected character (&#39;&#34;&#39; (code 34)): was expecting comma to separate Object entries\"}]}",
                 response.getBody());
 
         verify(tx).close();
@@ -159,7 +159,7 @@ public class ExceptionMapperTest {
         ElideResponse<String> response = jsonApi.post(route, body, null, null);
         assertEquals(400, response.getStatus());
         assertEquals(
-                "{\"errors\":[{\"detail\":\"Unexpected character (&#39;&#34;&#39; (code 34)): was expecting comma to separate Object entries\\n at [Source: (String)&#34;{&#34;data&#34;: {&#34;type&#34;:&#34;testModel&#34;&#34;id&#34;:&#34;1&#34;,&#34;attributes&#34;: {&#34;field&#34;:&#34;Foo&#34;}}}&#34;; line: 1, column: 30]\"}]}",
+                "{\"errors\":[{\"detail\":\"Unexpected character (&#39;&#34;&#39; (code 34)): was expecting comma to separate Object entries\"}]}",
                 response.getBody());
 
         verify(tx).close();

@@ -67,8 +67,10 @@ public class FilterPredicatePushdownExtractor implements FilterExpressionVisitor
     }
 
     /**
-     * @param dictionary
-     * @param expression
+     * Extracts the push down predicate.
+     *
+     * @param dictionary the entity dictionary
+     * @param expression the filter expression
      * @return A filter expression that can be safely executed in the data store.
      */
     public static FilterExpression extractPushDownPredicate(EntityDictionary dictionary, FilterExpression expression) {

@@ -79,9 +79,9 @@ public class Editor {
         return this;
     }
 
-    public static class FieldPathFilterExpression extends FilterExpressionCheck {
+    public static class FieldPathFilterExpression extends FilterExpressionCheck<Object> {
         @Override
-        public FilterPredicate getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Type<?> entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
             Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
             return new NotNullPredicate(path);
         }

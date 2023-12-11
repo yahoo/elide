@@ -17,16 +17,15 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.Type;
 
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -35,7 +34,7 @@ import java.util.Map.Entry;
 public class MultiplexWriteTransaction extends MultiplexTransaction {
     private static final Object NEWLY_CREATED_OBJECT = new Object();
     private final IdentityHashMap<Object, Object> clonedObjects = new IdentityHashMap<>();
-    private final MultivaluedHashMap<DataStore, Object> dirtyObjects = new MultivaluedHashMap<>();
+    private final Map<DataStore, List<Object>> dirtyObjects = new HashMap<>();
 
     public MultiplexWriteTransaction(MultiplexManager multiplexManager) {
         super(multiplexManager);
@@ -51,14 +50,18 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     public <T> void save(T entity, RequestScope requestScope) {
         Type<Object> entityType = EntityDictionary.getType(entity);
         getTransaction(entityType).save(entity, requestScope);
-        dirtyObjects.add(this.multiplexManager.getSubManager(entityType), entity);
+        add(this.multiplexManager.getSubManager(entityType), entity);
     }
 
     @Override
     public <T> void delete(T entity, RequestScope requestScope) {
         Type<Object> entityType = EntityDictionary.getType(entity);
         getTransaction(entityType).delete(entity, requestScope);
-        dirtyObjects.add(this.multiplexManager.getSubManager(entityType), entity);
+        add(this.multiplexManager.getSubManager(entityType), entity);
+    }
+
+    protected void add(DataStore dataStore, Object entity) {
+        dirtyObjects.computeIfAbsent(dataStore, key -> new ArrayList<>()).add(entity);
     }
 
     @Override
@@ -78,10 +81,14 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
                 if (this.multiplexManager.isApplyCompensatingTransactions(entry.getKey())) {
                     commitList.add(entry.getKey());
                 }
-            } catch (HttpStatusException | WebApplicationException e) {
+            } catch (HttpStatusException e) {
                 reverseTransactions(commitList, e, scope);
                 throw e;
             } catch (Error | RuntimeException e) {
+                if ("jakarta.ws.rs.WebApplicationException".equals(e.getClass().getCanonicalName())) {
+                    reverseTransactions(commitList, e, scope);
+                    throw e;
+                }
                 TransactionException transactionException = new TransactionException(e);
                 reverseTransactions(commitList, transactionException, scope);
                 throw transactionException;

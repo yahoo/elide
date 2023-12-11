@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * A model intended to be ONLY created and read, but never updated
+ * A model intended to be ONLY created and read, but never updated.
  */
 @Include
 @Entity

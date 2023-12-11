@@ -455,7 +455,7 @@ public class PermissionExpressionBuilder {
     }
 
     /**
-     * Build a filter expression for entity permission alone
+     * Build a filter expression for entity permission alone.
      * @param forType Resource class
      * @param requestScope Request Scope
      * @return

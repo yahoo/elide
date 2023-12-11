@@ -11,8 +11,8 @@ import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
 
 public class OrderDetailsMaker implements TableSQLMaker {
     /**
-     * Creates a subquery that mirrors the following table:
-     *
+     * Creates a subquery that mirrors the following table.
+     * <pre>
      * CREATE TABLE IF NOT EXISTS order_details
      * (
      *   order_id VARCHAR(255) NOT NULL,
@@ -21,6 +21,7 @@ public class OrderDetailsMaker implements TableSQLMaker {
      *   created_on DATETIME,
      *   PRIMARY KEY (order_id)
      * );
+     * </pre>
      * @param clientQuery the client query.
      * @return SQL query
      */

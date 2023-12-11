@@ -71,7 +71,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Transient;
-import jakarta.ws.rs.WebApplicationException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -1785,7 +1784,9 @@ public class EntityDictionary {
      */
     private static RuntimeException handleInvocationTargetException(InvocationTargetException e) {
         Throwable exception = e.getTargetException();
-        if (exception instanceof HttpStatusException || exception instanceof WebApplicationException) {
+        if (exception instanceof HttpStatusException) {
+            return (RuntimeException) exception;
+        } else if ("jakarta.ws.rs.WebApplicationException".equals(exception.getClass().getCanonicalName())) {
             return (RuntimeException) exception;
         }
         log.error("Caught an unexpected exception (rethrowing as internal server error)", e);

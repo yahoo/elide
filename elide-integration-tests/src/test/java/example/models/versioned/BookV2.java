@@ -13,10 +13,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Include(name = "book")
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Table(name = "book")
 public class BookV2 extends BaseId {
 

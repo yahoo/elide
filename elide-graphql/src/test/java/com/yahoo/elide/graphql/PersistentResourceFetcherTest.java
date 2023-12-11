@@ -35,7 +35,6 @@ import example.Book;
 import example.Price;
 import example.Pseudonym;
 import example.Publisher;
-import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,8 +49,8 @@ import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -253,13 +252,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
     public String loadGraphQLRequest(String fileName) throws IOException {
         try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/requests/" + fileName)) {
-            return FileUtils.readFully(new InputStreamReader(in));
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
     public String loadGraphQLResponse(String fileName) throws IOException {
         try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/responses/" + fileName)) {
-            return FileUtils.readFully(new InputStreamReader(in));
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 

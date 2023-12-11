@@ -18,6 +18,7 @@ import lombok.Setter;
 
 import java.util.Date;
 
+@SuppressWarnings("deprecation")
 @Entity
 @Include
 public class Generate {

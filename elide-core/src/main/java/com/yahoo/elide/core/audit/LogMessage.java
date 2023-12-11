@@ -40,7 +40,7 @@ public interface LogMessage {
     public User getUser();
 
     /**
-     * Get the change specification
+     * Get the change specification.
      *
      * @return the change specification.
      */

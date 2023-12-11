@@ -22,8 +22,9 @@ import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -972,7 +973,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testInvalidJson() {
-        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: (String)\"{ ]\"; line: 1, column: 1])\n at [Source: (String)\"{ ]\"; line: 1, column: 4]";
+        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1])";
 
         given()
                 .contentType(JsonApi.MEDIA_TYPE)
@@ -1014,7 +1015,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testGetRelEmptyColl() {
-        String expected = data(null).toJSON();
+        String expected = data((Resource[]) null).toJSON();
 
         given()
                 .contentType(JsonApi.MEDIA_TYPE)
@@ -1094,7 +1095,7 @@ public class ResourceIT extends IntegrationTest {
                 .delete("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .body(isEmptyOrNullString());
+                .body(is(emptyOrNullString()));
     }
 
     @Test
@@ -1105,7 +1106,7 @@ public class ResourceIT extends IntegrationTest {
                 .delete("/invoice/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .body(isEmptyOrNullString());
+                .body(is(emptyOrNullString()));
     }
 
     @Test
