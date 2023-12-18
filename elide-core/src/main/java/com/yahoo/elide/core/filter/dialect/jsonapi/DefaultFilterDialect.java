@@ -123,6 +123,20 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
                 throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
             }
 
+            if ((filterPredicate.getOperator().equals(Operator.SUBSETOF)
+                    || filterPredicate.getOperator().equals(Operator.NOTSUBSETOF))
+                && !FilterPredicate.isLastPathElementAssignableFrom(
+                        dictionary, filterPredicate.getPath(), COLLECTION_TYPE)) {
+                throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
+            }
+
+            if ((filterPredicate.getOperator().equals(Operator.SUPERSETOF)
+                    || filterPredicate.getOperator().equals(Operator.NOTSUPERSETOF))
+                && !FilterPredicate.isLastPathElementAssignableFrom(
+                        dictionary, filterPredicate.getPath(), COLLECTION_TYPE)) {
+                throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
+            }
+
             if (joinedExpression == null) {
                 joinedExpression = filterPredicate;
             } else {
@@ -221,6 +235,14 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             case HASNOMEMBER:
                 memberOfOperatorConditions(filterPredicate);
                 break;
+            case SUBSETOF:
+            case NOTSUBSETOF:
+                subsetOfOperatorConditions(filterPredicate);
+                break;
+            case SUPERSETOF:
+            case NOTSUPERSETOF:
+                supersetOfOperatorConditions(filterPredicate);
+                break;
         }
     }
 
@@ -239,6 +261,30 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     }
 
     private void memberOfOperatorConditions(FilterPredicate filterPredicate) throws ParseException {
+        if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
+            if (FilterPredicate.isLastPathElementAssignableFrom(dictionary,
+                    filterPredicate.getPath(), COLLECTION_TYPE)) {
+                throw new ParseException("Invalid Path: Last Path Element cannot be a collection type");
+            }
+        } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, filterPredicate.getPath(),
+                COLLECTION_TYPE)) {
+            throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
+        }
+    }
+
+    private void subsetOfOperatorConditions(FilterPredicate filterPredicate) throws ParseException {
+        if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
+            if (FilterPredicate.isLastPathElementAssignableFrom(dictionary,
+                    filterPredicate.getPath(), COLLECTION_TYPE)) {
+                throw new ParseException("Invalid Path: Last Path Element cannot be a collection type");
+            }
+        } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, filterPredicate.getPath(),
+                COLLECTION_TYPE)) {
+            throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
+        }
+    }
+
+    private void supersetOfOperatorConditions(FilterPredicate filterPredicate) throws ParseException {
         if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
             if (FilterPredicate.isLastPathElementAssignableFrom(dictionary,
                     filterPredicate.getPath(), COLLECTION_TYPE)) {
