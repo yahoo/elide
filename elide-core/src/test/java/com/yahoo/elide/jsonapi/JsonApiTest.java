@@ -8,18 +8,38 @@ package com.yahoo.elide.jsonapi;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TestRequestScope;
+import com.yahoo.elide.core.TransactionRegistry;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.exceptions.ExceptionMappers;
+import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
+import com.yahoo.elide.core.lifecycle.FieldTestModel;
+import com.yahoo.elide.core.lifecycle.LegacyTestModel;
+import com.yahoo.elide.core.lifecycle.PropertyTestModel;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.JsonApiError;
+import com.yahoo.elide.jsonapi.models.JsonApiErrors;
 import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -28,12 +48,25 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import example.Child;
 import example.Parent;
+
 import org.apache.commons.collections4.IterableUtils;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
+import org.skyscreamer.jsonassert.JSONAssert;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Valid;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -42,6 +75,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 
 /**
  * JSON API testing.
@@ -49,7 +85,7 @@ import java.util.Map;
 public class JsonApiTest {
     private JsonApiMapper mapper;
     private User user = new TestUser("0");
-    private static String BASE_URL = "http://localhost:8080";
+    private static String BASE_URL = "http://localhost:8080/json";
 
     private EntityDictionary dictionary;
     private DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
@@ -59,6 +95,9 @@ public class JsonApiTest {
         dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(Child.class);
+        dictionary.bindEntity(FieldTestModel.class);
+        dictionary.bindEntity(PropertyTestModel.class);
+        dictionary.bindEntity(LegacyTestModel.class);
         mapper = new JsonApiMapper();
     }
 
@@ -200,7 +239,11 @@ public class JsonApiTest {
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(data, jsonApiDocument.getData());
 
-        assertEquals(expected, doc);
+        try {
+            JSONAssert.assertEquals(expected, doc, true);
+        } catch (JSONException e) {
+            fail(e);
+        }
         checkEquality(jsonApiDocument);
     }
 
@@ -296,7 +339,11 @@ public class JsonApiTest {
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(data, jsonApiDocument.getData());
 
-        assertEquals(expected, doc);
+        try {
+            JSONAssert.assertEquals(expected, doc, true);
+        } catch (JSONException e) {
+            fail(e);
+        }
         checkEquality(jsonApiDocument);
     }
 
@@ -541,5 +588,86 @@ public class JsonApiTest {
         }
         assertEquals(doc1, doc2);
         assertEquals(doc1.hashCode(), doc2.hashCode());
+    }
+
+    @Test
+    void constraintViolationException() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+
+        Elide elide = getElide(store, dictionary, null);
+
+        String body = """
+                {"data": {"type":"testModel","id":"1","attributes": {"field":"Foo"}}}""";
+
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        TestObject testObject = new TestObject();
+        Set<ConstraintViolation<TestObject>> violations = validator.validate(testObject);
+        ConstraintViolationException e = new ConstraintViolationException("message", violations);
+
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
+        doThrow(e).when(tx).preCommit(any());
+
+        Route route = Route.builder().baseUrl(BASE_URL).path("/testModel").build();
+        ElideResponse<String> response = new JsonApi(elide).post(route, body, null, UUID.randomUUID());
+        JsonApiErrors errorObjects = mapper.getObjectMapper().readValue(response.getBody(), JsonApiErrors.class);
+        assertEquals(3, errorObjects.getErrors().size());
+        for (JsonApiError errorObject : errorObjects.getErrors()) {
+            Map<String, Object> meta = errorObject.getMeta();
+            String expected;
+            String actual = mapper.getObjectMapper().writeValueAsString(errorObject);
+            switch (meta.get("property").toString()) {
+            case "nestedTestObject.nestedNotNullField":
+                expected = """
+                        {"code":"NotNull","source":{"pointer":"/data/attributes/nestedTestObject/nestedNotNullField"},"detail":"must not be null","meta":{"type":"ConstraintViolation","property":"nestedTestObject.nestedNotNullField"}}""";
+                assertEquals(expected, actual);
+                break;
+            case "notNullField":
+                expected = """
+                        {"code":"NotNull","source":{"pointer":"/data/attributes/notNullField"},"detail":"must not be null","meta":{"type":"ConstraintViolation","property":"notNullField"}}""";
+                assertEquals(expected, actual);
+                break;
+            case "minField":
+                expected = """
+                        {"code":"Min","source":{"pointer":"/data/attributes/minField"},"detail":"must be greater than or equal to 5","meta":{"type":"ConstraintViolation","property":"minField"}}""";
+                assertEquals(expected, actual);
+                break;
+            }
+        }
+
+        verify(tx).close();
+    }
+
+    private Elide getElide(DataStore dataStore, EntityDictionary dictionary, ExceptionMappers exceptionMappers) {
+        ElideSettings settings = getElideSettings(dataStore, dictionary, exceptionMappers);
+        return new Elide(settings, new TransactionRegistry(), settings.getEntityDictionary().getScanner(), false);
+    }
+
+    private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, ExceptionMappers exceptionMappers) {
+        return ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .verboseErrors(true)
+                .settings(JsonApiSettings.builder().jsonApiExceptionHandler(new DefaultJsonApiExceptionHandler(
+                        new Slf4jExceptionLogger(), exceptionMappers, new DefaultJsonApiErrorMapper())))
+                .build();
+    }
+
+    public static class TestObject {
+        public static class NestedTestObject {
+            @NotNull
+            private String nestedNotNullField;
+        }
+
+        @NotNull
+        private String notNullField;
+
+        @Min(5)
+        private int minField = 1;
+
+        @Valid
+        private NestedTestObject nestedTestObject = new NestedTestObject();
     }
 }

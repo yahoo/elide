@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -37,6 +37,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -84,11 +85,14 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                             Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                     );
 
-                    Elide elide = new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
-                            .withJoinFilterDialect(multipleFilterStrategy)
-                            .withSubqueryFilterDialect(multipleFilterStrategy)
-                            .withEntityDictionary(dictionary)
-                            .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                    JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                            .joinFilterDialect(multipleFilterStrategy)
+                            .subqueryFilterDialect(multipleFilterStrategy);
+
+                    Elide elide = new Elide(ElideSettings.builder().dataStore(IntegrationTest.getDataStore())
+                            .settings(jsonApiSettings)
+                            .entityDictionary(dictionary)
+                            .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
                             .build());
 
                     elide.doScans();

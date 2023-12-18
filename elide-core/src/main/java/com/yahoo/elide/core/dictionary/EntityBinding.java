@@ -143,7 +143,7 @@ public class EntityBinding {
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param injector Instantiates and injects new entities
      * @param cls Entity class
@@ -156,7 +156,7 @@ public class EntityBinding {
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param injector Instantiates and injects new entities.
      * @param cls Entity class
@@ -173,7 +173,7 @@ public class EntityBinding {
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param injector Instantiates and injects new entities.
      * @param cls Entity class
@@ -397,7 +397,7 @@ public class EntityBinding {
     }
 
     /**
-     * Bind a relationship to current class
+     * Bind a relationship to current class.
      *
      * @param fieldOrMethod Field or method to bind
      * @param fieldName Field name
@@ -454,7 +454,7 @@ public class EntityBinding {
     }
 
     /**
-     * Bind an attribute to current class
+     * Bind an attribute to current class.
      *
      * @param fieldOrMethod Field or method to bind
      * @param fieldName Field name

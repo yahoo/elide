@@ -128,12 +128,6 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.core.exceptions.ErrorObjects",
-    "allDeclaredFields": true,
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
     "name": "com.yahoo.elide.core.security.checks.prefab.Collections$AppendOnly",
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true
@@ -196,6 +190,30 @@
     "allDeclaredConstructors": true
   },
   {
+    "name": "com.yahoo.elide.jsonapi.models.JsonApiError",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.JsonApiError$Links",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.JsonApiError$Source",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.JsonApiErrors",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
     "name": "com.yahoo.elide.jsonapi.models.KeyValMap",
     "allDeclaredFields": true,
     "allDeclaredMethods": true,
@@ -209,6 +227,12 @@
   },
   {
     "name": "com.yahoo.elide.jsonapi.models.Operation",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.models.Operation$OperationCode",
     "allDeclaredFields": true,
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true
@@ -270,11 +294,19 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.jsonapi.serialization.MetaDeserializer",
+    "name": "com.yahoo.elide.jsonapi.serialization.JsonApiErrorSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.serialization.JsonApiSetSerializer",
     "allDeclaredConstructors": true
   },
   {
     "name": "com.yahoo.elide.jsonapi.serialization.KeySerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.yahoo.elide.jsonapi.serialization.MetaDeserializer",
     "allDeclaredConstructors": true
   },
   {

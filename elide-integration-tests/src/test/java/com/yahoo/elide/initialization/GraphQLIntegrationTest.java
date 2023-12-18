@@ -22,7 +22,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import io.restassured.response.ValidatableResponse;
 import jakarta.ws.rs.core.MediaType;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 /**
  * Adds test methods for GraphQL IT tests.
  */
-@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class GraphQLIntegrationTest extends IntegrationTest {
 

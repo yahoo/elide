@@ -71,7 +71,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Transient;
-import jakarta.ws.rs.WebApplicationException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -95,6 +94,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -1784,7 +1784,9 @@ public class EntityDictionary {
      */
     private static RuntimeException handleInvocationTargetException(InvocationTargetException e) {
         Throwable exception = e.getTargetException();
-        if (exception instanceof HttpStatusException || exception instanceof WebApplicationException) {
+        if (exception instanceof HttpStatusException) {
+            return (RuntimeException) exception;
+        } else if ("jakarta.ws.rs.WebApplicationException".equals(exception.getClass().getCanonicalName())) {
             return (RuntimeException) exception;
         }
         log.error("Caught an unexpected exception (rethrowing as internal server error)", e);
@@ -2236,6 +2238,45 @@ public class EntityDictionary {
     }
 
     public static class EntityDictionaryBuilder {
+        public EntityDictionaryBuilder checks(Map<String, Class<? extends Check>> checks) {
+            this.checks = checks;
+            return this;
+        }
+
+        public EntityDictionaryBuilder checks(Consumer<Map<String, Class<? extends Check>>> checks) {
+            if (this.checks == null) {
+                this.checks = new LinkedHashMap<>();
+            }
+            checks.accept(this.checks);
+            return this;
+        }
+
+        public EntityDictionaryBuilder roleChecks(Map<String, UserCheck> roleChecks) {
+            this.roleChecks = roleChecks;
+            return this;
+        }
+
+        public EntityDictionaryBuilder roleChecks(Consumer<Map<String, UserCheck>> roleChecks) {
+            if (this.roleChecks == null) {
+                this.roleChecks = new LinkedHashMap<>();
+            }
+            roleChecks.accept(this.roleChecks);
+            return this;
+        }
+
+        public EntityDictionaryBuilder entitiesToExclude(Set<Type<?>> entitiesToExclude) {
+            this.entitiesToExclude = entitiesToExclude;
+            return this;
+        }
+
+        public EntityDictionaryBuilder entitiesToExclude(Consumer<Set<Type<?>>> entitiesToExclude) {
+            if (this.entitiesToExclude == null) {
+                this.entitiesToExclude = new LinkedHashSet<>();
+            }
+            entitiesToExclude.accept(this.entitiesToExclude);
+            return this;
+        }
+
         public EntityDictionary build() {
 
             if (scanner == null) {

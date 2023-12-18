@@ -9,11 +9,11 @@ package com.yahoo.elide.parsers.expression;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
 import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.security.visitors.PermissionExpressionNormalizationVisitor;
@@ -35,10 +35,12 @@ public class PermissionExpressionNormalizationVisitorTest {
     @BeforeAll
     public void setUp() {
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
-        ElideSettings elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null)
+                .entityDictionary(dictionary)
                 .build();
-        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope requestScope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
 
         permissionExpressionVisitor = new PermissionExpressionVisitor(dictionary,
                 (check -> new CheckExpression(check, null, requestScope, null, null)));

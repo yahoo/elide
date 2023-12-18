@@ -49,7 +49,6 @@ import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Builder;
 import lombok.NonNull;
 
@@ -60,6 +59,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,6 +83,11 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final ComparisonOperator HASNOMEMBER_OP = new ComparisonOperator("=hasnomember=", false);
     private static final ComparisonOperator BETWEEN_OP = new ComparisonOperator("=between=", true);
     private static final ComparisonOperator NOTBETWEEN_OP = new ComparisonOperator("=notbetween=", true);
+    private static final ComparisonOperator SUBSETOF_OP = new ComparisonOperator("=subsetof=", true);
+    private static final ComparisonOperator NOTSUBSETOF_OP = new ComparisonOperator("=notsubsetof=", true);
+
+    private static final ComparisonOperator SUPERSETOF_OP = new ComparisonOperator("=supersetof=", true);
+    private static final ComparisonOperator NOTSUPERSETOF_OP = new ComparisonOperator("=notsupersetof=", true);
 
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
@@ -95,6 +100,10 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     .put(HASNOMEMBER_OP, Operator.HASNOMEMBER)
                     .put(BETWEEN_OP, Operator.BETWEEN)
                     .put(NOTBETWEEN_OP, Operator.NOTBETWEEN)
+                    .put(SUBSETOF_OP, Operator.SUBSETOF)
+                    .put(NOTSUBSETOF_OP, Operator.NOTSUBSETOF)
+                    .put(SUPERSETOF_OP, Operator.SUPERSETOF)
+                    .put(NOTSUPERSETOF_OP, Operator.NOTSUPERSETOF)
                     .build();
 
 
@@ -135,6 +144,10 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         operators.add(HASNOMEMBER_OP);
         operators.add(BETWEEN_OP);
         operators.add(NOTBETWEEN_OP);
+        operators.add(SUBSETOF_OP);
+        operators.add(NOTSUBSETOF_OP);
+        operators.add(SUPERSETOF_OP);
+        operators.add(NOTSUPERSETOF_OP);
         return operators;
     }
 
@@ -148,14 +161,14 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     }
 
     @Override
-    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams,
+    public FilterExpression parseGlobalExpression(String path, Map<String, List<String>> filterParams,
                                                   String apiVersion)
             throws ParseException {
         if (filterParams.size() != 1) {
             throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
-        MultivaluedMap.Entry<String, List<String>> entry = CollectionUtils.get(filterParams, 0);
+        Entry<String, List<String>> entry = CollectionUtils.get(filterParams, 0);
         String queryParamName = entry.getKey();
 
         if (!"filter".equals(queryParamName)) {
@@ -190,13 +203,13 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     }
 
     @Override
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams,
+    public Map<String, FilterExpression> parseTypedExpression(String path, Map<String, List<String>> filterParams,
                                                               String apiVersion)
             throws ParseException {
 
         Map<String, FilterExpression> expressionByType = new HashMap<>();
 
-        for (MultivaluedMap.Entry<String, List<String>> entry : filterParams.entrySet()) {
+        for (Entry<String, List<String>> entry : filterParams.entrySet()) {
 
             String paramName = entry.getKey();
             List<String> paramValues = entry.getValue();
@@ -276,19 +289,27 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(allowNestedToManyAssociations,
                     coerceValues, attributes);
             return ast.accept(visitor, entityType);
+        } catch (RSQLParseException e) {
+            throw new ParseException(e.getMessage(), e);
         } catch (RSQLParserException e) {
-            throw new ParseException(e.getMessage());
+            throw new ParseException(
+                    String.format("Filter expression is not in expected format at: %s", expressionText), e);
         }
     }
 
     /**
-     * Allows base RSQLParseException to carry a parametrized message.
+     * Allows base RSQLParseException to carry a parameterized message.
      */
     public static class RSQLParseException extends RSQLParserException {
         private String message;
 
         RSQLParseException(String message) {
             super(null);
+            this.message = message;
+        }
+
+        RSQLParseException(String message, Throwable cause) {
+            super(cause);
             this.message = message;
         }
 
@@ -475,6 +496,26 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 }
             }
 
+            if (op.equals(SUBSETOF_OP) || op.equals(NOTSUBSETOF_OP)) {
+                if (FilterPredicate.toManyInPath(dictionary, path)) {
+                    if (FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                        throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");
+                    }
+                } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                    throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                }
+            }
+
+            if (op.equals(SUPERSETOF_OP) || op.equals(NOTSUPERSETOF_OP)) {
+                if (FilterPredicate.toManyInPath(dictionary, path)) {
+                    if (FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                        throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");
+                    }
+                } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                    throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                }
+            }
+
             if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
                 throw new RSQLParseException(String.format("Invalid association %s", relationship));
             }
@@ -581,8 +622,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     return new IsNullPredicate(path);
                 }
                 return new NotNullPredicate(path);
-            } catch (InvalidValueException ignored) {
-                throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
+            } catch (InvalidValueException exception) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg), exception);
             }
         }
 
@@ -601,8 +642,9 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     return new IsEmptyPredicate(path);
                 }
                 return new NotEmptyPredicate(path);
-            } catch (InvalidValueException ignored) {
-                throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg));
+            } catch (InvalidValueException exception) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg),
+                        exception);
             }
         }
     }

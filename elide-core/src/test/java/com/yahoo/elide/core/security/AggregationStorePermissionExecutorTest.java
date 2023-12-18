@@ -9,7 +9,6 @@ package com.yahoo.elide.core.security;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.Path;
@@ -19,6 +18,7 @@ import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role;
@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * test Aggregation Store Permission Executor
+ * Test Aggregation Store Permission Executor.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AggregationStorePermissionExecutorTest {
@@ -65,8 +65,7 @@ public class AggregationStorePermissionExecutorTest {
         checks.put("user none", Role.NONE.class);
         checks.put("filter check", FilterCheck.class);
         dictionary = TestDictionary.getTestDictionary(checks);
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
+        elideSettings = ElideSettings.builder().entityDictionary(dictionary)
                 .build();
     }
 
@@ -192,6 +191,8 @@ public class AggregationStorePermissionExecutorTest {
     private com.yahoo.elide.core.RequestScope bindAndgetRequestScope(Class clz) {
         dictionary.bindEntity(clz);
         dictionary.bindPermissionExecutor(clz, AggregationStorePermissionExecutor::new);
-        return new com.yahoo.elide.core.RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        return com.yahoo.elide.core.RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
     }
 }

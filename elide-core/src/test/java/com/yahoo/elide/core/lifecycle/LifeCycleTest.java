@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.core.lifecycle;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
@@ -34,7 +32,6 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
@@ -49,23 +46,27 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import jakarta.validation.ConstraintViolationException;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.UUID;
 
 /**
@@ -85,6 +86,14 @@ public class LifeCycleTest {
         dictionary.bindEntity(ErrorTestModel.class);
     }
 
+    private Map<String, List<String>> getHeaders(String mediaType) {
+        Map<String, List<String>> headers = new TreeMap<>();
+        headers.put("accept", Arrays.asList(mediaType));
+        headers.put("content-type", Arrays.asList(mediaType));
+        return headers;
+    }
+
+
     @Test
     public void testLifecycleError() throws Exception {
         DataStore store = mock(DataStore.class);
@@ -92,14 +101,16 @@ public class LifeCycleTest {
         ErrorTestModel mockModel = mock(ErrorTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"errorTestModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(eq(ClassType.of(ErrorTestModel.class)), any())).thenReturn(mockModel);
 
-        ElideResponse response = elide.post(baseUrl, "/errorTestModel", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/errorTestModel").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.post(route, body, null, null);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         assertEquals("{\"errors\":[{\"detail\":\"Invalid\"}]}", response.getBody());
     }
 
@@ -110,14 +121,16 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
-        ElideResponse response = elide.post(baseUrl, "/testModel", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.post(route, body, null, null);
+        assertEquals(HttpStatus.SC_CREATED, response.getStatus());
 
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PREFLUSH));
@@ -157,14 +170,16 @@ public class LifeCycleTest {
         LegacyTestModel mockModel = mock(LegacyTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"legacyTestModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(eq(ClassType.of(LegacyTestModel.class)), any())).thenReturn(mockModel);
 
-        ElideResponse response = elide.post(baseUrl, "/legacyTestModel", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/legacyTestModel").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.post(route, body, null, null);
+        assertEquals(HttpStatus.SC_CREATED, response.getStatus());
 
         verify(mockModel, times(1)).classCreatePreCommitAllUpdates();
         verify(mockModel, times(1)).classCreatePreSecurity();
@@ -201,14 +216,16 @@ public class LifeCycleTest {
         doThrow(RuntimeException.class).when(mockModel).setField(anyString());
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
-        ElideResponse response = elide.post(baseUrl, "/testModel", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.post(route, body, null, null);
+        assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatus());
         assertEquals(
                 "{\"errors\":[{\"detail\":\"Unexpected exception caught\"}]}",
                 response.getBody());
@@ -232,14 +249,15 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         when(store.beginReadTransaction()).thenCallRealMethod();
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel/1").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.get(route, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
@@ -267,14 +285,15 @@ public class LifeCycleTest {
         LegacyTestModel mockModel = mock(LegacyTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         when(store.beginReadTransaction()).thenCallRealMethod();
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        ElideResponse response = elide.get(baseUrl, "/legacyTestModel/1", queryParams, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/legacyTestModel/1").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.get(route, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, never()).classMultiple();
         verify(mockModel, never()).classUpdatePreSecurity();
@@ -309,15 +328,17 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         when(store.beginReadTransaction()).thenCallRealMethod();
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.putSingle("fields[testModel]", "field");
-        ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        queryParams.put("fields[testModel]", List.of("field"));
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel/1").apiVersion(NO_VERSION).parameters(queryParams).build();
+        ElideResponse<String> response = jsonApi.get(route, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
@@ -341,17 +362,19 @@ public class LifeCycleTest {
     public void testElideGetInvalidKey() throws Exception {
         DataStore store = mock(DataStore.class);
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.putSingle("fields[testModel]", "field");
-        queryParams.putSingle("?filter", "field"); // Key starts with '?'
-        queryParams.putSingle("Sort", "field"); // Valid Key is sort
-        queryParams.putSingle("INCLUDE", "field"); // Valid Key is include
-        queryParams.putSingle("fields.testModel", "field"); // fields is not followed by [
-        queryParams.putSingle("page.size", "10"); // page is not followed by [
-        ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
-        assertEquals("{\"errors\":[{\"detail\":\"Found undefined keys in request: fields.testModel, ?filter, Sort, page.size, INCLUDE\"}]}",
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        queryParams.put("fields[testModel]", List.of("field"));
+        queryParams.put("?filter", List.of("field")); // Key starts with '?'
+        queryParams.put("Sort", List.of("field")); // Valid Key is sort
+        queryParams.put("INCLUDE", List.of("field")); // Valid Key is include
+        queryParams.put("fields.testModel", List.of("field")); // fields is not followed by [
+        queryParams.put("page.size", List.of("10")); // page is not followed by [
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel/1").apiVersion(NO_VERSION).parameters(queryParams).build();
+        ElideResponse<String> response = jsonApi.get(route, null, null);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
+        assertEquals("{\"errors\":[{\"detail\":\"Found undefined keys in request: ?filter, Sort, INCLUDE, fields.testModel, page.size\"}]}",
                         response.getBody());
     }
 
@@ -364,14 +387,15 @@ public class LifeCycleTest {
         when(mockModel.getModels()).thenReturn(ImmutableSet.of(child));
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         when(store.beginReadTransaction()).thenCallRealMethod();
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        ElideResponse response = elide.get(baseUrl, "/testModel/1/relationships/models", queryParams, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel/1/relationships/models").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.get(route, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
@@ -400,6 +424,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
@@ -407,9 +432,10 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        String contentType = JSONAPI_CONTENT_TYPE;
-        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/testModel/1", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel/1").apiVersion(NO_VERSION)
+                .headers(getHeaders(JsonApi.MEDIA_TYPE)).build();
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatus());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
@@ -448,6 +474,7 @@ public class LifeCycleTest {
         FieldTestModel child3 = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"relationships\": { \"models\": { \"data\": [ { \"type\": \"testModel\", \"id\": \"2\" }, {\"type\": \"testModel\", \"id\": \"3\" } ] } } } }";
 
@@ -464,9 +491,11 @@ public class LifeCycleTest {
         DataStoreIterable iterable = new DataStoreIterableBuilder(List.of(child3)).build();
         when(tx.getToManyRelation(any(), any(), isA(Relationship.class), isA(RequestScope.class))).thenReturn(iterable);
 
-        String contentType = JSONAPI_CONTENT_TYPE;
-        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/testModel/1", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel/1").apiVersion(NO_VERSION)
+                .headers(getHeaders(JsonApi.MEDIA_TYPE)).build();
+
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatus());
 
         verify(parent, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
 
@@ -482,6 +511,7 @@ public class LifeCycleTest {
         LegacyTestModel mockModel = mock(LegacyTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"legacyTestModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
@@ -489,9 +519,10 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        String contentType = JSONAPI_CONTENT_TYPE;
-        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/legacyTestModel/1", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/legacyTestModel/1").apiVersion(NO_VERSION)
+                .headers(getHeaders(JsonApi.MEDIA_TYPE)).build();
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatus());
 
         verify(mockModel, never()).classCreatePreCommitAllUpdates();
         verify(mockModel, never()).classCreatePreSecurity();
@@ -529,13 +560,15 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         dictionary.setValue(mockModel, "id", "1");
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        ElideResponse response = elide.delete(baseUrl, "/testModel/1", "", null, NO_VERSION);
-        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel/1").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.delete(route, "", null, null);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatus());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
@@ -569,13 +602,15 @@ public class LifeCycleTest {
         LegacyTestModel mockModel = mock(LegacyTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         dictionary.setValue(mockModel, "id", "1");
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        ElideResponse response = elide.delete(baseUrl, "/legacyTestModel/1", "", null, NO_VERSION);
-        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/legacyTestModel/1").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.delete(route, "", null, null);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatus());
 
         verify(mockModel, never()).classUpdatePostCommit();
         verify(mockModel, never()).classUpdatePreSecurity();
@@ -612,6 +647,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "[{\"op\": \"add\",\"path\": \"/testModel\",\"value\":{"
                 + "\"type\":\"testModel\",\"id\": \"1\",\"attributes\": {\"field\":\"Foo\"}}}]";
@@ -620,10 +656,11 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
-        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response =
-                elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        String contentType = JsonApi.JsonPatch.MEDIA_TYPE;
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PREFLUSH));
@@ -663,6 +700,7 @@ public class LifeCycleTest {
         LegacyTestModel mockModel = mock(LegacyTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "[{\"op\": \"add\",\"path\": \"/legacyTestModel\",\"value\":{"
                 + "\"type\":\"legacyTestModel\",\"id\": \"1\",\"attributes\": {\"field\":\"Foo\"}}}]";
@@ -670,10 +708,11 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(eq(ClassType.of(LegacyTestModel.class)), any())).thenReturn(mockModel);
 
-        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response =
-                elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        String contentType = JsonApi.JsonPatch.MEDIA_TYPE;
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, times(1)).classCreatePreSecurity();
         verify(mockModel, times(1)).classCreatePreCommit();
@@ -709,6 +748,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "[{\"op\": \"add\",\"path\": \"/testModel\",\"value\":{"
                 + "\"type\":\"testModel\",\"attributes\": {\"field\":\"Foo\"}}}]";
@@ -717,9 +757,11 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
 
-        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        String contentType = JsonApi.JsonPatch.MEDIA_TYPE;
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         assertEquals(
                 "[{\"errors\":[{\"detail\":\"Bad Request Body&#39;Patch extension requires all objects to have an assigned ID (temporary or permanent) when assigning relationships.&#39;\",\"status\":\"400\"}]}]",
                 response.getBody());
@@ -762,6 +804,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "[{\"op\": \"replace\",\"path\": \"/testModel/1\",\"value\":{"
                 + "\"type\":\"testModel\",\"id\": \"1\",\"attributes\": {\"field\":\"Foo\"}}}]";
@@ -770,9 +813,11 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        String contentType = JsonApi.JsonPatch.MEDIA_TYPE;
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
         assertEquals("[{\"data\":null}]", response.getBody());
 
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
@@ -813,6 +858,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "[{\"op\": \"remove\",\"path\": \"/testModel\",\"value\":{"
                 + "\"type\":\"testModel\",\"id\": \"1\"}}]";
@@ -821,9 +867,11 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        String contentType = JsonApi.JsonPatch.MEDIA_TYPE;
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
@@ -856,6 +904,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
@@ -864,9 +913,11 @@ public class LifeCycleTest {
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
         doThrow(ConstraintViolationException.class).when(tx).flush(any());
 
-        String contentType = JSONAPI_CONTENT_TYPE;
-        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/testModel/1", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        String contentType = JsonApi.MEDIA_TYPE;
+        Route route = Route.builder().baseUrl(baseUrl).path("/testModel/1").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.patch(route, body, null, null);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         assertEquals("{\"errors\":[{\"detail\":\"Constraint violation\"}]}", response.getBody());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
@@ -904,6 +955,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = """
                 {
@@ -924,8 +976,10 @@ public class LifeCycleTest {
         when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
         String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
-        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.operations(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PREFLUSH));
@@ -965,6 +1019,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = """
                 {
@@ -984,8 +1039,10 @@ public class LifeCycleTest {
         when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
         String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
-        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.operations(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PREFLUSH));
@@ -1025,6 +1082,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = """
                 {
@@ -1046,8 +1104,10 @@ public class LifeCycleTest {
         when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
 
         String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
-        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.operations(route, body, null, null);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         String expected = """
                 [{"errors":[{"detail":"Bad Request Body&#39;Atomic Operations extension requires all objects to have an assigned ID (temporary or permanent) when assigning relationships.&#39;","status":"400"}]}]""";
         assertEquals(expected, response.getBody());
@@ -1090,6 +1150,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = """
                 {
@@ -1112,8 +1173,10 @@ public class LifeCycleTest {
         when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
         String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
-        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.operations(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         String expected = """
                 {"atomic:results":[{"data":null}]}""";
@@ -1157,6 +1220,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = """
                 {
@@ -1178,8 +1242,10 @@ public class LifeCycleTest {
         when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
         String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
-        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.operations(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         String expected = """
                 {"atomic:results":[{"data":null}]}""";
@@ -1223,6 +1289,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = """
                 {
@@ -1241,8 +1308,10 @@ public class LifeCycleTest {
         when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
         String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
-        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.operations(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
@@ -1276,6 +1345,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+        JsonApi jsonApi = new JsonApi(elide);
 
         String body = """
                 {
@@ -1293,8 +1363,10 @@ public class LifeCycleTest {
         when(tx.loadObject(any(), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
         String contentType = JsonApi.AtomicOperations.MEDIA_TYPE;
-        ElideResponse response = elide.operations(baseUrl, contentType, contentType, "/", body, null, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/").apiVersion(NO_VERSION).headers(getHeaders(contentType))
+                .build();
+        ElideResponse<String> response = jsonApi.operations(route, body, null, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
@@ -1773,21 +1845,25 @@ public class LifeCycleTest {
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
         ElideSettings settings = getElideSettings(dataStore, dictionary, auditLogger);
-        return new Elide(settings, new TransactionRegistry(), settings.getDictionary().getScanner(), false);
+        return new Elide(settings, new TransactionRegistry(), settings.getEntityDictionary().getScanner(), false);
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
-        return new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withAuditLogger(auditLogger)
-                .withVerboseErrors()
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder();
+        return ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .auditLogger(auditLogger)
+                .verboseErrors(true)
+                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
+                .settings(jsonApiSettings)
                 .build();
     }
 
     private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx) {
         User user = new TestUser("1");
-
-        return new RequestScope(null, null, NO_VERSION, null, tx, user, null, null, UUID.randomUUID(),
-                getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        ElideSettings elideSettings = getElideSettings(null, dict, MOCK_AUDIT_LOGGER);
+        return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user)
+                .requestId(UUID.randomUUID()).elideSettings(elideSettings).build();
     }
 }

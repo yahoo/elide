@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.jsonapi.parser;
 
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.generated.parsers.CoreParser.QueryContext;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -22,7 +22,7 @@ public class DeleteVisitor extends BaseVisitor {
      *
      * @param requestScope the request scope
      */
-    public DeleteVisitor(RequestScope requestScope) {
+    public DeleteVisitor(JsonApiRequestScope requestScope) {
         super(requestScope);
     }
 

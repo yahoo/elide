@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -20,6 +19,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
@@ -513,7 +513,9 @@ public class PermissionExecutorTest {
     public <T> PersistentResource<T> newResource(T obj, Class<T> cls, boolean markNew) {
         EntityDictionary dictionary = EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build();
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(), getElideSettings(dictionary));
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope requestScope = RequestScope.builder().route(route).requestId(UUID.randomUUID())
+                .elideSettings(getElideSettings(dictionary)).build();
         PersistentResource resource = new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
         if (markNew) {
             requestScope.getNewPersistentResources().add(resource);
@@ -531,8 +533,8 @@ public class PermissionExecutorTest {
     }
 
     private ElideSettings getElideSettings(EntityDictionary dictionary) {
-        return new ElideSettingsBuilder(null)
-                    .withEntityDictionary(dictionary)
+        return ElideSettings.builder().dataStore(null)
+                    .entityDictionary(dictionary)
                     .build();
     }
 

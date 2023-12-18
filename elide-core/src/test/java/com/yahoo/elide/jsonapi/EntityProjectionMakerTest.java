@@ -35,10 +35,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,9 +56,13 @@ public class EntityProjectionMakerTest {
         dictionary.bindEntity(Editor.class);
     }
 
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
+
     @Test
     public void testRootCollectionNoQueryParams() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         String path = "/book";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -93,8 +97,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootCollectionSparseFields() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("fields[book]", "title,publishDate,authors");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "fields[book]", "title,publishDate,authors");
         String path = "/book";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -118,7 +122,7 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootEntityNoQueryParams() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         String path = "/book/1";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -152,7 +156,7 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testNestedCollectionNoQueryParams() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         String path = "/author/1/books/3/publisher";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -185,7 +189,7 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testNestedEntityNoQueryParams() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         String path = "/author/1/books/3/publisher/1";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -217,7 +221,7 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRelationshipNoQueryParams() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         String path = "/author/1/relationships/books";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -242,8 +246,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRelationshipWithSingleInclude() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "authors");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "authors");
         String path = "/book/1/relationships/publisher";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -283,8 +287,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootCollectionWithSingleInclude() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "authors");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "authors");
         String path = "/book";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -331,8 +335,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootEntityWithSingleInclude() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "authors");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "authors");
         String path = "/book/1";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -378,9 +382,9 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootCollectionWithNestedInclude() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "books");
-        queryParams.add("include", "books.publisher,books.editor");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "books");
+        add(queryParams, "include", "books.publisher,books.editor");
         String path = "/author";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -441,9 +445,9 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootEntityWithNestedInclude() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "books");
-        queryParams.add("include", "books.publisher,books.editor");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "books");
+        add(queryParams, "include", "books.publisher,books.editor");
         String path = "/author/1";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -503,8 +507,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testNestedEntityWithSingleInclude() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "books");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "books");
         String path = "/author/1/books/3/publisher/1";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -552,8 +556,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testNestedCollectionWithSingleInclude() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "books");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "books");
         String path = "/author/1/books/3/publisher";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -602,12 +606,12 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootEntityWithNestedIncludeAndSparseFields() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "books");
-        queryParams.add("include", "books.publisher,books.editor");
-        queryParams.add("fields[publisher]", "name");
-        queryParams.add("fields[editor]", "fullName");
-        queryParams.add("fields[book]", "publisher,editor,title");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "books");
+        add(queryParams, "include", "books.publisher,books.editor");
+        add(queryParams, "fields[publisher]", "name");
+        add(queryParams, "fields[editor]", "fullName");
+        add(queryParams, "fields[book]", "publisher,editor,title");
         String path = "/author/1";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -646,8 +650,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootCollectionWithGlobalFilter() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter", "genre=='Science Fiction'");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter", "genre=='Science Fiction'");
         String path = "/book";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -686,8 +690,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testNestedCollectionWithTypedFilter() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[publisher]", "name=='Foo'");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[publisher]", "name=='Foo'");
         String path = "/author/1/books/3/publisher";
 
         FilterExpression expression =
@@ -724,11 +728,11 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRelationshipsAndIncludeWithFilterAndSort() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("include", "authors");
-        queryParams.add("filter[author]", "name=='Foo'");
-        queryParams.add("filter[publisher]", "name=='Foo'");
-        queryParams.add("sort", "name");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "include", "authors");
+        add(queryParams, "filter[author]", "name=='Foo'");
+        add(queryParams, "filter[publisher]", "name=='Foo'");
+        add(queryParams, "sort", "name");
         String path = "/book/1/relationships/publisher";
         Sorting sorting = SortingImpl.parseSortRule("name", ClassType.of(Publisher.class), dictionary);
 
@@ -772,8 +776,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootCollectionWithTypedFilter() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book]", "genre=='Science Fiction'");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[book]", "genre=='Science Fiction'");
         String path = "/book";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -812,8 +816,8 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testInvalidSparseFields() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("fields[book]", "publisher,bookTitle,bookName"); // Invalid Fields: bookTitle & bookName
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "fields[book]", "publisher,bookTitle,bookName"); // Invalid Fields: bookTitle & bookName
         String path = "/book";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
@@ -825,10 +829,10 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testInvalidSparseFieldsNested() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("fields[book]", "publisher,title");
-        queryParams.add("fields[publisher]", "name,cost"); // Invalid Fields: cost
-        queryParams.add("include", "publisher");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "fields[book]", "publisher,title");
+        add(queryParams, "fields[publisher]", "name,cost"); // Invalid Fields: cost
+        add(queryParams, "include", "publisher");
         String path = "/book";
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);

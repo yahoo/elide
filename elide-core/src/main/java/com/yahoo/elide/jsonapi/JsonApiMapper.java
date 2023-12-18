@@ -8,6 +8,7 @@ package com.yahoo.elide.jsonapi;
 import com.yahoo.elide.jsonapi.extensions.JsonApiAtomicOperationsMapper;
 import com.yahoo.elide.jsonapi.extensions.JsonApiJsonPatchMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.serialization.JsonApiModule;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,7 +49,7 @@ public class JsonApiMapper {
     public JsonApiMapper(ObjectMapper mapper, JsonApiJsonPatchMapper jsonPatchMapper,
             JsonApiAtomicOperationsMapper atomicOperationsMapper) {
         this.mapper = mapper;
-        this.mapper.registerModule(JsonApiSerializer.getModule());
+        this.mapper.registerModule(new JsonApiModule());
         this.jsonPatchMapper = jsonPatchMapper;
         this.atomicOperationsMapper = atomicOperationsMapper;
     }

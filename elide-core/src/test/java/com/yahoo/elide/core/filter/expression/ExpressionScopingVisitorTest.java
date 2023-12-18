@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests ExpressionScopingVisitor
+ * Tests ExpressionScopingVisitor.
  */
 public class ExpressionScopingVisitorTest {
 

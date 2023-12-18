@@ -16,11 +16,13 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
-import org.apache.http.client.utils.URIBuilder;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 
-import jakarta.ws.rs.core.MultivaluedMap;
+import org.apache.hc.core5.net.URIBuilder;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
@@ -49,7 +51,7 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             Map<String, List<String>> additionalRequestHeaders) {
         UUID requestId = UUID.fromString(export.getRequestId());
         User user = scope.getUser();
-        String apiVersion = scope.getApiVersion();
+        String apiVersion = scope.getRoute().getApiVersion();
         URIBuilder uri;
         try {
             uri = new URIBuilder(export.getQuery());
@@ -57,23 +59,28 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             throw new BadRequestException(e.getMessage());
         }
 
-        MultivaluedMap<String, String> queryParams = JsonApiAsyncQueryOperation.getQueryParams(uri);
+        Map<String, List<String>> queryParams = JsonApiAsyncQueryOperation.getQueryParams(uri);
 
         // Call with additionalHeader alone
-        if (scope.getRequestHeaders().isEmpty()) {
-            return new RequestScope("", JsonApiAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user,
-                    queryParams, additionalRequestHeaders, requestId, getService().getElide().getElideSettings());
+        if (scope.getRoute().getHeaders().isEmpty()) {
+            Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
+                    .apiVersion(apiVersion).headers(additionalRequestHeaders).parameters(queryParams).build();
+
+            return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(requestId)
+                    .elideSettings(getService().getElide().getElideSettings()).build();
         }
 
         // Combine additionalRequestHeaders and existing scope's request headers
-        Map<String, List<String>> finalRequestHeaders = new HashMap<String, List<String>>();
-        scope.getRequestHeaders().forEach((entry, value) -> finalRequestHeaders.put(entry, value));
+        Map<String, List<String>> finalRequestHeaders = new HashMap<>();
+        scope.getRoute().getHeaders().forEach(finalRequestHeaders::put);
 
         //additionalRequestHeaders will override any headers in scope.getRequestHeaders()
-        additionalRequestHeaders.forEach((entry, value) -> finalRequestHeaders.put(entry, value));
+        additionalRequestHeaders.forEach(finalRequestHeaders::put);
 
-        return new RequestScope("", JsonApiAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user, queryParams,
-                scope.getRequestHeaders(), requestId, getService().getElide().getElideSettings());
+        Route route = Route.builder().baseUrl("").path(JsonApiAsyncQueryOperation.getPath(uri))
+                .apiVersion(apiVersion).headers(scope.getRoute().getHeaders()).parameters(queryParams).build();
+        return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(requestId)
+                .elideSettings(getService().getElide().getElideSettings()).build();
     }
 
     @Override
@@ -82,7 +89,7 @@ public class JsonApiTableExportOperation extends TableExportOperation {
         try {
             URIBuilder uri = new URIBuilder(export.getQuery());
             Elide elide = getService().getElide();
-            projection = new EntityProjectionMaker(elide.getElideSettings().getDictionary(),
+            projection = new EntityProjectionMaker(elide.getElideSettings().getEntityDictionary(),
                     scope).parsePath(JsonApiAsyncQueryOperation.getPath(uri));
 
         } catch (URISyntaxException e) {

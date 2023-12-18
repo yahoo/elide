@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.graphql;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -22,9 +24,6 @@ import java.util.HashMap;
  *   /resources/graphql/{requests,responses}/fetch directory, respectively.
  */
 public class FetcherFetchTest extends PersistentResourceFetcherTest {
-
-    private final String baseUrl = "http://localhost:8080/graphql";
-
     @Test
     public void testMutationInQueryThrowsError() throws Exception {
         String query = "query {\n"
@@ -285,10 +284,89 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testFederationServiceIntrospection() throws Exception {
         String graphQLRequest = "{ _service { sdl }}";
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        assertFalse(response.getBody().contains("errors"));
+    }
 
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+    @Test
+    public void testFederationHasKeyDirective() throws Exception {
+        String graphQLRequest = "{ _service { sdl }}";
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        assertTrue(response.getBody().contains("@key")); // @key directive present
+    }
 
-        assertTrue(! response.getBody().contains("errors"));
+    @Test
+    public void testFederationQueryEntities() throws Exception {
+        String graphQLRequest = """
+                query {
+                  _entities(representations: [{__typename: "Book", id: "1"}]) {
+                    ... on Book {
+                      title
+                      genre
+                      language
+                    }
+                  }
+                }
+                """;
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        String expected = """
+                {"data":{"_entities":[{"title":"Libro Uno","genre":null,"language":null}]}}""";
+        assertEquals(expected, response.getBody());
+    }
+
+    @Test
+    public void testFederationQueryEntitiesMissingShouldReturnNullNotThrow() throws Exception {
+        String graphQLRequest = """
+                query {
+                  _entities(representations: [{__typename: "Book", id: "1"},{__typename: "Book", id: "99"},{__typename: "Book", id: "2"},{__typename: "Book", id: "3"}]) {
+                    ... on Book {
+                      title
+                      genre
+                      language
+                    }
+                  }
+                }
+                """;
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        String expected = """
+                {"data":{"_entities":[{"title":"Libro Uno","genre":null,"language":null},null,{"title":"Libro Dos","genre":null,"language":null},{"title":"Doctor Zhivago","genre":null,"language":null}]}}""";
+        assertEquals(expected, response.getBody());
+    }
+
+    @Test
+    public void testFederationQueryEntitiesInvalidSelection() throws Exception {
+        String graphQLRequest = """
+                query {
+                  _entities(representations: [{__typename: "Book", id: "1"}]) {
+                    title
+                    genre
+                    language
+                  }
+                }
+                """;
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        String expected = """
+                {"errors":[{"message":"Bad Request Body&#39;Entity selection must be an inline fragment.&#39;","extensions":{"classification":"DataFetchingException"}}]}""";
+        assertEquals(expected, response.getBody());
+    }
+
+    @Test
+    public void testFederationQueryEntitiesInvalidEntity() throws Exception {
+        String graphQLRequest = """
+                query {
+                  _entities(representations: [{__typename: "Book", id: "1"}]) {
+                    ... on InvalidEntity {
+                      title
+                      genre
+                      language
+                    }
+                  }
+                }
+                """;
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        String expected = """
+                {"errors":[{"message":"Bad Request Body&#39;Unknown entity {invalidEntity}.&#39;","extensions":{"classification":"DataFetchingException"}}]}""";
+        assertEquals(expected, response.getBody());
     }
 
     @Test
@@ -301,9 +379,8 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}"
                 + "}";
 
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
-
-        assertTrue(! response.getBody().contains("errors"));
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        assertFalse(response.getBody().contains("errors"));
     }
 
     @Test
@@ -318,9 +395,8 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
             + "}"
             + "}";
 
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
-
-        assertTrue(! response.getBody().contains("errors"));
+        ElideResponse<String> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        assertFalse(response.getBody().contains("errors"));
     }
 
     @Override

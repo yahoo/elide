@@ -31,7 +31,7 @@ public @interface FromSubquery {
     String sql();
 
     /**
-     * Generates the subquery SQL dynamically
+     * Generates the subquery SQL dynamically.
      *
      * @return The class of the subquery generator.
      */

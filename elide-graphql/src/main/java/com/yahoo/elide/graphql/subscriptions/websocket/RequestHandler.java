@@ -11,6 +11,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
@@ -56,7 +57,6 @@ public class RequestHandler implements Closeable {
     protected ConnectionInfo connectionInfo;
     protected boolean sendPingOnSubscribe;
     protected AtomicBoolean isOpen = new AtomicBoolean(true);
-    protected boolean verboseErrors = false;
 
     /**
      * Constructor.
@@ -76,8 +76,7 @@ public class RequestHandler implements Closeable {
             String protocolID,
             UUID requestID,
             ConnectionInfo connectionInfo,
-            boolean sendPingOnSubscribe,
-            boolean verboseErrors) {
+            boolean sendPingOnSubscribe) {
         this.sessionHandler = sessionHandler;
         this.topicStore = topicStore;
         this.elide = elide;
@@ -87,7 +86,6 @@ public class RequestHandler implements Closeable {
         this.connectionInfo = connectionInfo;
         this.transaction = null;
         this.sendPingOnSubscribe = sendPingOnSubscribe;
-        this.verboseErrors = verboseErrors;
     }
 
     /**
@@ -118,8 +116,14 @@ public class RequestHandler implements Closeable {
             //This would be a subscription creation error.
         } catch (RuntimeException e) {
             log.error("UNEXPECTED RuntimeException: {}", e.getMessage());
-            ElideResponse response = QueryRunner.handleRuntimeException(elide, e, verboseErrors);
-            safeSendError(response.getBody());
+            ElideResponse<?> response = QueryRunner.handleRuntimeException(elide, e);
+            String responseBody;
+            try {
+                responseBody = elide.getObjectMapper().writeValueAsString(response.getBody());
+                safeSendError(responseBody);
+            } catch (JsonProcessingException e1) {
+                safeSendError(e1.toString());
+            }
             safeClose();
         }
 
@@ -153,21 +157,21 @@ public class RequestHandler implements Closeable {
         elide.getTransactionRegistry().addRunningTransaction(requestID, transaction);
 
         ElideSettings settings = elide.getElideSettings();
+        Route route = connectionInfo.getRoute();
 
         GraphQLProjectionInfo projectionInfo =
             new SubscriptionEntityProjectionMaker(settings,
                                 subscribeRequest.getPayload().getVariables(),
-                                connectionInfo.getGetApiVersion()).make(subscribeRequest.getPayload().getQuery());
+                                route.getApiVersion()).make(subscribeRequest.getPayload().getQuery());
 
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(
-                connectionInfo.getBaseUrl(),
-                transaction,
-                connectionInfo.getUser(),
-                connectionInfo.getGetApiVersion(),
-                settings,
-                projectionInfo,
-                requestID,
-                connectionInfo.getParameters());
+        GraphQLRequestScope requestScope = GraphQLRequestScope.builder()
+                .route(route)
+                .dataStoreTransaction(transaction)
+                .user(connectionInfo.getUser())
+                .requestId(requestID)
+                .elideSettings(settings)
+                .projectionInfo(projectionInfo)
+                .build();
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(subscribeRequest.getPayload().getQuery())
@@ -190,7 +194,7 @@ public class RequestHandler implements Closeable {
     }
 
     protected void safeSendPing() {
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Ping ping = new Ping();
 
         try {
@@ -203,7 +207,7 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendNext(ExecutionResult result) {
         log.debug("Sending Next {}", result);
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Next next = Next.builder()
                 .result(result)
                 .id(protocolID)
@@ -218,7 +222,7 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendComplete() {
         log.debug("Sending Complete");
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Complete complete = Complete.builder()
                 .id(protocolID)
                 .build();
@@ -232,7 +236,7 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendError(GraphQLError[] errors) {
         log.debug("Sending Error {}", errors);
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
         Error error = Error.builder()
                 .id(protocolID)
                 .payload(errors)

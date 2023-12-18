@@ -67,6 +67,7 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         @Setter
         private Price price;
 
+        @SuppressWarnings("unused")
         private Collection<example.Author> authors = new ArrayList<>();
     }
 
@@ -699,7 +700,8 @@ public class GraphQLIT extends GraphQLIntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "{\"errors\":[{\"message\":\"Invalid operation: Invalid API Version\"}]}";
+        String expected = """
+                {"errors":[{"message":"Invalid operation: Invalid API Version","extensions":{"classification":"DataFetchingException"}}]}""";
 
         String query = toJsonQuery(graphQLRequest, new HashMap<>());
 
@@ -728,7 +730,8 @@ public class GraphQLIT extends GraphQLIntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "{\"errors\":[{\"message\":\"Bad Request Body&#39;Unknown entity {parent}.&#39;\"}]}";
+        String expected = """
+                {"errors":[{"message":"Bad Request Body&#39;Unknown entity {parent}.&#39;","extensions":{"classification":"DataFetchingException"}}]}""";
 
         runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
     }

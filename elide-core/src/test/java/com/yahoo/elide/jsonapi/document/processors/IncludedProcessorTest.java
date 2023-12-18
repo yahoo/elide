@@ -26,14 +26,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class IncludedProcessorTest {
@@ -109,7 +108,7 @@ public class IncludedProcessorTest {
     public void testExecuteSingleRelation() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
         testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, queryParams);
@@ -129,7 +128,7 @@ public class IncludedProcessorTest {
         parents.add(parentRecord1);
         parents.add(parentRecord2);
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
         testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, testScope, parents, queryParams);
@@ -146,7 +145,7 @@ public class IncludedProcessorTest {
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
         testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, queryParams);
@@ -163,7 +162,7 @@ public class IncludedProcessorTest {
     public void testExecuteMultipleRelations() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         queryParams.put(INCLUDE, Arrays.asList("children", "spouses"));
         testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, queryParams);
@@ -180,7 +179,7 @@ public class IncludedProcessorTest {
     public void testExecuteMultipleNestedRelations() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
         testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, testScope, parentRecord3, queryParams);
@@ -202,7 +201,7 @@ public class IncludedProcessorTest {
     public void testIncludeForbiddenRelationship() {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("relation1"));
         testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, testScope, funWithPermissionsRecord, queryParams);
@@ -225,7 +224,7 @@ public class IncludedProcessorTest {
     public void testNoQueryIncludeParams() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         queryParams.put("unused", Collections.emptyList());
         testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, testScope, parentRecord1, queryParams);

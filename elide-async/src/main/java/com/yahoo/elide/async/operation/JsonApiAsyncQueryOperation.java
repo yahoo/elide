@@ -5,21 +5,24 @@
  */
 package com.yahoo.elide.async.operation;
 
-import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URIBuilder;
+import com.yahoo.elide.jsonapi.JsonApi;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.net.URIBuilder;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -33,34 +36,35 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
     }
 
     @Override
-    public ElideResponse execute(AsyncApi queryObj, RequestScope scope)
+    public ElideResponse<String> execute(AsyncApi queryObj, RequestScope scope)
             throws URISyntaxException {
-        Elide elide = getService().getElide();
+        JsonApi jsonApi = getService().getJsonApi();
         User user = scope.getUser();
-        String apiVersion = scope.getApiVersion();
+        String apiVersion = scope.getRoute().getApiVersion();
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         URIBuilder uri = new URIBuilder(queryObj.getQuery());
-        MultivaluedMap<String, String> queryParams = getQueryParams(uri);
+        Map<String, List<String>> queryParams = getQueryParams(uri);
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
-        //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = elide.get("", getPath(uri), queryParams, scope.getRequestHeaders(), user, apiVersion,
-                requestUUID);
+        Route route = Route.builder().baseUrl(scope.getRoute().getBaseUrl()).path(getPath(uri)).parameters(queryParams)
+                .headers(scope.getRoute().getHeaders()).apiVersion(apiVersion).build();
+        ElideResponse<String> response = jsonApi.get(route, user, requestUUID);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
-                response.getResponseCode(), response.getBody());
+                response.getStatus(), response.getBody());
         return response;
     }
 
     /**
      * This method parses the url and gets the query params.
-     * And adds them into a MultivaluedMap to be used by underlying Elide.get method
+     * And adds them into a Map to be used by underlying Elide.get method
      * @param uri URIBuilder instance
-     * @return MultivaluedMap with query parameters
+     * @return Map with query parameters
      */
-    public static MultivaluedMap<String, String> getQueryParams(URIBuilder uri) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+    public static Map<String, List<String>> getQueryParams(URIBuilder uri) {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
         for (NameValuePair queryParam : uri.getQueryParams()) {
-            queryParams.add(queryParam.getName(), queryParam.getValue());
+            queryParams.computeIfAbsent(queryParam.getName(), key -> new ArrayList<>())
+                    .add(queryParam.getValue());
         }
         return queryParams;
     }
@@ -76,9 +80,9 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
     }
 
     @Override
-    public Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse response) {
+    public Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse<String> response) {
         Integer count = null;
-        if (response.getResponseCode() == 200) {
+        if (response.getStatus() == 200) {
             count = safeJsonPathLength(response.getBody(), "$.data.length()");
         }
         return count;

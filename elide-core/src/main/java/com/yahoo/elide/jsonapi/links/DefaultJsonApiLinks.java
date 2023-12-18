@@ -52,16 +52,10 @@ public class DefaultJsonApiLinks implements JsonApiLinks {
     protected String getResourceUrl(PersistentResource resource) {
         StringBuilder result = new StringBuilder();
 
-        if (StringUtils.isEmpty(baseUrl)) {
-            if (resource.getRequestScope().getBaseUrlEndPoint() != null) {
-                result.append(resource.getRequestScope().getBaseUrlEndPoint());
-                String jsonApiPath = resource.getRequestScope().getElideSettings().getJsonApiPath();
-                if (StringUtils.isNotEmpty(jsonApiPath)) {
-                    result.append(jsonApiPath);
-                }
-                result.append("/");
-            }
-        } else {
+        if (resource.getRequestScope().getRoute().getBaseUrl() != null) {
+            result.append(resource.getRequestScope().getRoute().getBaseUrl());
+            result.append("/");
+        } else if (!StringUtils.isEmpty(baseUrl)) {
             result.append(baseUrl);
         }
 

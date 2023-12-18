@@ -11,7 +11,7 @@ import example.ExcludedEntity;
 import jakarta.persistence.Entity;
 
 /**
- * Helper class to test Exclude on superclass
+ * Helper class to test Exclude on superclass.
  */
 @Entity
 public class ExcludedBySuperClass extends ExcludedEntity {

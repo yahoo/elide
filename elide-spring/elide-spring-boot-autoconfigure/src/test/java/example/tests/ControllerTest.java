@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.spring.controllers.JsonApiController;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
 import com.yahoo.elide.test.jsonapi.elements.AtomicOperationCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -58,6 +58,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -65,8 +66,6 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
-
-import jakarta.ws.rs.core.MediaType;
 
 import java.util.Map;
 /**
@@ -146,6 +145,7 @@ public class ControllerTest extends IntegrationTest {
                                         type("group"),
                                         id("com.example.repository"),
                                         attributes(
+                                                attr("deprecated", false),
                                                 attr("title", "Example Repository")
                                         ),
                                         links(
@@ -158,9 +158,33 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
+    public void versionedJsonApiGetPathTest() {
+        given()
+                .when()
+                .get("/json/v1.0/group")
+                .then()
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("group"),
+                                        id("com.example.repository"),
+                                        attributes(
+                                                attr("deprecated", false),
+                                                attr("title", "Example Repository")
+                                        ),
+                                        links(
+                                                attr("self", baseUrl + "v1.0/group/com.example.repository")
+                                        )
+                                )
+                        ).toJSON())
+                )
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
     public void jsonApiPatchTest() {
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -214,7 +238,7 @@ public class ControllerTest extends IntegrationTest {
     public void jsonApiPostLidTest() {
         String personId = "1";
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -270,7 +294,7 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonForbiddenApiPatchTest() {
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -292,8 +316,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiPatchExtensionTest() {
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(
                         patchSet(
                                 patchOperation(add, "/group",
@@ -336,8 +360,8 @@ public class ControllerTest extends IntegrationTest {
         assertEquals(expected, result);
 
         ExtractableResponse<Response> deleteResponse = given()
-                .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(
                         patchSet(
                                 patchOperation(remove, "/group",
@@ -368,8 +392,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiAtomicOperationsExtensionTest() {
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.add, "/group",
@@ -431,8 +455,8 @@ public class ControllerTest extends IntegrationTest {
         assertEquals(expected, result);
 
         ExtractableResponse<Response> deleteResponse = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.remove,
@@ -464,8 +488,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiAtomicOperationsExtensionPathInferTest() {
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.add,
@@ -508,8 +532,8 @@ public class ControllerTest extends IntegrationTest {
         assertEquals(expected, result);
 
         ExtractableResponse<Response> deleteResponse = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.remove,
@@ -540,8 +564,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiAtomicOperationsExtensionLidTest() {
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.add,
@@ -607,8 +631,8 @@ public class ControllerTest extends IntegrationTest {
         String publisherId = response.path("'atomic:results'[2].data.id");
 
         ExtractableResponse<Response> deleteResponse = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.remove,
@@ -646,8 +670,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiAtomicOperationsExtensionRelationshipTest() {
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.add,
@@ -697,8 +721,8 @@ public class ControllerTest extends IntegrationTest {
         assertEquals(expected, result);
 
         ExtractableResponse<Response> deleteResponse = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.remove,
@@ -741,8 +765,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiAtomicOperationsExtensionMissingRefTypeTest() {
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.add,
@@ -767,8 +791,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiAtomicOperationsExtensionMissingRefAndHrefTest() {
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(
                         atomicOperations(
                                 atomicOperation(AtomicOperationCode.add,
@@ -805,8 +829,8 @@ public class ControllerTest extends IntegrationTest {
                             """;
 
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(body)
                 .when()
                 .post("/json/operations")
@@ -836,8 +860,8 @@ public class ControllerTest extends IntegrationTest {
                       """;
 
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(body)
                 .when()
                 .post("/json/operations")
@@ -858,8 +882,8 @@ public class ControllerTest extends IntegrationTest {
                       """;
 
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(body)
                 .when()
                 .post("/json/operations")
@@ -876,8 +900,8 @@ public class ControllerTest extends IntegrationTest {
         String body = """
                 {"<script src=''></script>"}""";
         ExtractableResponse<Response> response = given()
-                .contentType(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
-                .accept(JsonApiController.JSON_API_ATOMIC_OPERATIONS_CONTENT_TYPE)
+                .contentType(JsonApi.AtomicOperations.MEDIA_TYPE)
+                .accept(JsonApi.AtomicOperations.MEDIA_TYPE)
                 .body(body)
                 .when()
                 .post("/json/operations")
@@ -892,7 +916,7 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiPostTest() {
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -949,7 +973,7 @@ public class ControllerTest extends IntegrationTest {
         when()
                 .delete("/json/group/doestnotexist")
                 .then()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
@@ -960,7 +984,7 @@ public class ControllerTest extends IntegrationTest {
     })
     public void jsonApiDeleteRelationshipTest() {
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(datum(
                         linkage(type("product"), id("foo"))
                 ))
@@ -976,8 +1000,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void graphqlTest() {
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         query(
                                 selection(
@@ -1024,11 +1048,12 @@ public class ControllerTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "{\"errors\":[{\"message\":\"Invalid operation: Invalid API Version\"}]}";
+        String expected = """
+                {"errors":[{"message":"Invalid operation: Invalid API Version","extensions":{"classification":"DataFetchingException"}}]}""";
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .header("ApiVersion", "2.0")
                 .body("{ \"query\" : \"" + graphQLRequest + "\" }")
                 .post("/graphql")
@@ -1043,8 +1068,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void versionedGraphqlTest() {
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .header("ApiVersion", "1.0")
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         query(
@@ -1156,8 +1181,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void graphqlTestForbiddenCreate() {
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         mutation(
                                 selection(

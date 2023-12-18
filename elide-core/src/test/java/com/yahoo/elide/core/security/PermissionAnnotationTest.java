@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -21,6 +20,7 @@ import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import example.FunWithPermissions;
 import org.junit.jupiter.api.BeforeAll;
@@ -51,16 +51,19 @@ public class PermissionAnnotationTest {
 
         AuditLogger testLogger = new TestAuditLogger();
 
-        ElideSettings elideSettings = new ElideSettingsBuilder(null)
-                .withDefaultPageSize(10)
-                .withDefaultMaxPageSize(10)
-                .withAuditLogger(testLogger)
-                .withEntityDictionary(dictionary)
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null)
+                .defaultPageSize(10)
+                .maxPageSize(10)
+                .auditLogger(testLogger)
+                .entityDictionary(dictionary)
                 .build();
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, null, GOOD_USER, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope goodScope = RequestScope.builder().route(route).user(GOOD_USER).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
         funRecord = new PersistentResource<>(fun, goodScope.getUUIDFor(fun), goodScope);
-        RequestScope badScope = new RequestScope(null, null, NO_VERSION, null, null, BAD_USER, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope badScope = RequestScope.builder().route(route).user(BAD_USER).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
         badRecord = new PersistentResource<>(fun, badScope.getUUIDFor(fun), badScope);
     }
 

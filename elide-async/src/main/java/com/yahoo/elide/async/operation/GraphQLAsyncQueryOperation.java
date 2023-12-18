@@ -30,25 +30,25 @@ public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
     }
 
     @Override
-    public ElideResponse execute(AsyncApi queryObj, RequestScope scope) throws URISyntaxException {
+    public ElideResponse<String> execute(AsyncApi queryObj, RequestScope scope) throws URISyntaxException {
         User user = scope.getUser();
-        String apiVersion = scope.getApiVersion();
+        String apiVersion = scope.getRoute().getApiVersion();
         QueryRunner runner = getService().getRunners().get(apiVersion);
         if (runner == null) {
             throw new InvalidOperationException("Invalid API Version");
         }
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
-        //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID, scope.getRequestHeaders());
+        ElideResponse<String> response = runner.run(scope.getRoute().getBaseUrl(), queryObj.getQuery(), user,
+                requestUUID, scope.getRoute().getHeaders());
         log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
-                response.getResponseCode(), response.getBody());
+                response.getStatus(), response.getBody());
         return response;
     }
 
     @Override
-    public Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse response) {
+    public Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse<String> response) {
         Integer count = 0;
-        if (response.getResponseCode() == 200) {
+        if (response.getStatus() == 200) {
             count = safeJsonPathLength(response.getBody(), "$..edges.length()");
         }
         return count;

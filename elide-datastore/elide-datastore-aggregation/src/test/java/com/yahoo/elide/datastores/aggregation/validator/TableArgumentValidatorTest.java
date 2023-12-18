@@ -27,8 +27,8 @@ import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
+import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariDataSource;
-import org.apache.commons.compress.utils.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;

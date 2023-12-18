@@ -8,12 +8,17 @@ package com.yahoo.elide.initialization;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
+
 import example.TestCheckMappings;
 import example.models.triggers.services.BillingService;
 import org.glassfish.hk2.api.Factory;
@@ -58,12 +63,19 @@ public class StandardTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                Elide elide = new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
-                        .withAuditLogger(auditLogger)
-                        .withJoinFilterDialect(multipleFilterStrategy)
-                        .withSubqueryFilterDialect(multipleFilterStrategy)
-                        .withEntityDictionary(dictionary)
-                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                JsonApiSettingsBuilder jsonApiSettings = JsonApiSettingsBuilder.withDefaults(dictionary)
+                        .joinFilterDialect(multipleFilterStrategy)
+                        .subqueryFilterDialect(multipleFilterStrategy);
+
+                GraphQLSettingsBuilder graphqlSettings = GraphQLSettingsBuilder.withDefaults(dictionary);
+
+                AsyncSettingsBuilder asyncSettings = AsyncSettings.builder();
+
+                Elide elide = new Elide(ElideSettings.builder().dataStore(IntegrationTest.getDataStore())
+                        .auditLogger(auditLogger)
+                        .entityDictionary(dictionary)
+                        .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
+                        .settings(jsonApiSettings, graphqlSettings, asyncSettings)
                         .build());
 
                 elide.doScans();

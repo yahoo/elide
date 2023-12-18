@@ -12,7 +12,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.models.ArtifactGroup;
 import com.yahoo.elide.async.models.QueryType;
@@ -28,9 +29,12 @@ import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +43,6 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -69,10 +72,11 @@ public class JsonApiTableExportOperationTest {
                 AsyncApiInlineChecks.AsyncApiStatusQueuedValue.class);
 
         elide = new Elide(
-                    new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(EntityDictionary.builder().checks(map).build())
-                        .withAuditLogger(new Slf4jLogger())
-                        .withExportApiPath("/export")
+                    ElideSettings.builder().dataStore(dataStore)
+                        .entityDictionary(EntityDictionary.builder().checks(map).build())
+                        .auditLogger(new Slf4jLogger())
+                        .settings(AsyncSettings.builder().export(export -> export.path("/export")))
+                        .settings(JsonApiSettings.builder())
                         .build());
         elide.doScans();
         user = mock(User.class);
@@ -80,10 +84,9 @@ public class JsonApiTableExportOperationTest {
         asyncExecutorService = mock(AsyncExecutorService.class);
         engine = new FileResultStorageEngine(tempDir.toString(), true);
         when(asyncExecutorService.getElide()).thenReturn(elide);
-        when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
+        when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).baseUrl("https://elide.io").build());
         when(requestScope.getUser()).thenReturn(user);
         when(requestScope.getElideSettings()).thenReturn(elide.getElideSettings());
-        when(requestScope.getBaseUrlEndPoint()).thenReturn("https://elide.io");
     }
 
     @Test
@@ -174,8 +177,9 @@ public class JsonApiTableExportOperationTest {
     private void dataPrep() throws IOException {
         TableExport temp = new TableExport();
         DataStoreTransaction tx = dataStore.beginTransaction();
-        RequestScope scope = new RequestScope(null, null, NO_VERSION, null, tx, user, null, Collections.emptyMap(),
-                UUID.randomUUID(), elide.getElideSettings());
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope scope = RequestScope.builder().route(route).dataStoreTransaction(tx).user(user)
+                .requestId(UUID.randomUUID()).elideSettings(elide.getElideSettings()).build();
         tx.save(temp, scope);
         tx.commit(scope);
         tx.close();

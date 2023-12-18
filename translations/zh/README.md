@@ -1,6 +1,6 @@
 # Elide
 
-> _互联网 & 移动端应标准化API_
+> _互联网 & 移动端应用标准化API_
 
 ![Elide Logo](../../elide-logo.svg)
 
@@ -14,83 +14,83 @@
 ## 目录
 
 - [简介](#简介)
+- [支持分析查询](#支持分析查询)
 - [文档](#文档)
-- [安装使用](#安装使用)
-- [用法介绍](#用法介绍)
+- [安装](#安装)
+- [如何使用](#如何使用)
 - [数据安全](#数据安全)
 - [开发](#开发)
 - [开源许可](#开源许可)
+- [参考文献](#参考文献)
 
 ## 简介
 
-Elide是一个互联网和移动端应用数据API搭建平台，只需要一个简单的[JPA注释模型](http://blog.csdn.net/superdog007/article/details/22651577)
-就能帮您轻松搭建[GraphQL](https://graphql.org/)和[JSON](http://jsonapi.org.cn/) API web 服务。 
+[Elide](https://elide.io/) 是一个 Java 库，可让您轻松搭建以 [JPA注释模型](http://blog.csdn.net/superdog007/article/details/22651577) 驱动的 [GraphQL](https://graphql.org/) 或 [JSON API](http://jsonapi.org.cn/) Web
+服务。Elide 支持两种 API 形式。
 
-Elide 功能强大，包括：
+1. 用于读取和操作模型的 CRUD（创建、读取、更新、删除）API。
+2. 用于聚合零个或多个模型属性的度量的 Analytic API。
 
-### 标准完善的数据安全保障
+Elide 支持多种功能：
 
-Elide提供极具规则性，简单易懂的语法规则，让您轻松搞定实体（entity）的安全访问。
+### 安全性标准
 
-### 移动端性能优化 API
+通过声明的方式或者直观的权限语法来控制对字段和实体的访问。
 
-JSON-API和GraphQL使得开发者能够通过单次API接口访问获取与某个实体相关的所有数据，而且在移动端传输过程中过滤所有不
+### 适配移动设备的 API
+
+JSON-API 和 GraphQl 使开发人员在通过单次API接口访问就可获取整个对象的实体图，而且在移动端传输过程中过滤所有不
 必要的数据，只返回被请求的数据部分。我们为您精心设计的数据处理系统帮助您解决很多常见的数据应用开发问题，例如：
 
-* 在单次请求操作中实现创建实体数据，同时将其加入现有的实体库
-* 创建存储关系复杂的多个相关实体（实体关联图），并将它们并入现有的实体库
-* 你可以选择完全删除某个实体数据，也可以选择解除实体关联（并不删除任何数据）
-* 完全自由地修改实体关联定义
-* 修改实体数据的同时还可以访问新建的实体
+- 在单次请求操作中创建一个新实体数据并将其添加到现有实体库中。
+- 创建一组相关的复合对象（子图）并将其连接到现有的实体库中。
+- 区分删除对象与从关系中解关联对象(但不删除对象)。
+- 修改实体关联定义。
+- 在其他变异操作中引用新创建的对象。
 
-Elide还完全支持数据筛选，排序，分页。
+过滤、排序、分页和文本搜索都是开箱即用的。
 
-### 任何数据写入都可以保证原子性
+### 支持复杂的原子操作
 
-无论是JSON-API还是GraphQL，Elide支持单个请求中实现多个数据模型的修改操作。创建新的实体，添加实体关系，修改和删除实体保证
-事务的原子性（Atomicity）。
+Elide 支持在 JSON-API 或 GraphQL 中的单个请求中进行多个数据模型更改。创建新的实体，添加实体关系，在单个原子请求中一起修改或删除。
 
-### 支持自定义数据持久化机制
+## 支持分析查询
 
-你可以用Elide自定义您的持久化方法策略。您可以使用Elide默认支持的ORM或者使用自行开发的数据存储机制。
+Elide 支持对其强大的语义层构建的模型进行分析查询。Elide APIs 与 [Yavin](https://github.com/yavin-dev/framework) 协同工作，以能够可
+视化的探索和报告数据。
 
-### 数据模型一览无余
+### 自省模式
 
-您可以借助自动生成的Swagger文档或者GraphQL数据模型了解，学习，和编写Elide API查询语句。
+您可以通过生成的 Swagger 文档或 GraphQL 数据模型了解，探索、理解和编写针对 Elide API 的查询。
 
-### 配置轻松自由
+### 自定义
 
-您可以按照您的意愿轻松配置您需要的数据模型操作，比如添加复杂的二次实体数据运算，数据标注检查（data validation
-annotations），或者是自动以的访问请求中间链模块。
+您可以通过计算属性、数据验证注释和请求生命周期钩子，来自定义数据模型操作的行为。
+
+### 无关存储
+
+Elide 与您的特定持久性策略无关。使用 ORM 或提供您自己的数据存储实现。
 
 ## 文档
 
-更多使用指南，请参见[elide.io](http://elide.io/).
+关于 Elide 的更多信息可以在 [Elide.io](https://elide.io/) 上查找。
 
-### 教程（英文）
+## 安装
 
-[Create a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
+要尝试 Elide 示例服务，请查看这个 [Spring boot](https://github.com/yahoo/elide-spring-boot-example) 示例项目。
 
-[Custom Security With a Spring Boot/Elide Json API Server](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
+或者，使用 [Elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone)，它允许您快速配置嵌入在 Jetty 应用
+程序中运行的 Elide 的本地实例。
 
-[Logging Into a Spring Boot/Elide JSON API Server](https://dzone.com/articles/logging-into-a-spring-bootelide-json-api-server)
+## 如何使用
 
-[Securing a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/securing-a-json-api-rest-service-with-spring-boot)
+### 对于 CRUD APIs
 
-[Creating Entities in a Spring Boot/Elide JSON API Server](https://dzone.com/articles/creating-entities-in-a-spring-bootelide-json-api-s)
+使用 Elide 最简单的方法是利用 [JPA](https://en.wikipedia.org/wiki/Jakarta_Persistence) 将 Elide 模型映射到持久化:
 
-[Updating and Deleting with a Spring Boot/Elide JSON API Server](https://dzone.com/articles/updating-and-deleting-with-a-spring-bootelide-json)
+这些模型应该代表你的 Web Service 的领域模型:
 
-## 安装使用
-
-使用Elide最快捷的方法是用 [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone)，在一个嵌入式
-Jetty（embedded Jetty）服务器里运行一个单独的 Elide 软件。
-
-## 用法介绍
-
-要使用 Elide，需要创建一个用 JPA 注释过的数据模型（data models），作为你的 web service 的 domain model。
-
-```java
+```bash
 @Entity
 public class Book {
 
@@ -104,16 +104,15 @@ public class Book {
 }
 ```
 
-下一步是添加 Elide 注释，将你的数据模型在 web service 开放出来，然后配置访问权限：
+添加 Elide 注释，既可以通过 Web Service 公开你的模型，也可以定义访问的安全策略:
 
-
-```java
+```bash
 @Entity
 @Include(rootLevel = true)
 @ReadPermission("Everyone")
 @CreatePermission("Admin OR Publisher")
-@DeletePermission("Noone")
-@UpdatePermission("Noone")
+@DeletePermission("None")
+@UpdatePermission("None")
 public class Book {
 
     @Id
@@ -127,15 +126,15 @@ public class Book {
 }
 ```
 
-您可以给你的数据模型添加运行插件，以实现单独的业务需求，这主要是通过建立、读取、更新、删除（CRUD）来运行的：
+将生命周期挂钩添加到模型中，以嵌入自定义业务逻辑，通过 Web Service 执行内联的 CRUD 操作:
 
-```java
+```bash
 @Entity
 @Include(rootLevel = true)
 @ReadPermission("Everyone")
 @CreatePermission("Admin OR Publisher")
-@DeletePermission("Noone"
-@UpdatePermission("Noone")
+@DeletePermission("None")
+@UpdatePermission("None")
 @LifeCycleHookBinding(operation = UPDATE, hook = BookCreationHook.class, phase = PRECOMMIT)
 public class Book {
 
@@ -150,60 +149,66 @@ public class Book {
 }
 
 public class BookCreationHook implements LifeCycleHook<Book> {
-
     @Override
-    public void execute(LifeCycleHookBinding.Operation operation, Book book,
-                        RequestScope requestScope, Optional<ChangeSpec> changes) {
+    public void execute(LifeCycleHookBinding.Operation operation,
+                        LifeCycleHookBinding.TransactionPhase phase,
+                        Book book,
+                        RequestScope requestScope,
+                        Optional<ChangeSpec> changes) {
        //Do something
     }
 }
 ```
 
-您可以将一些表达式转化成访问权限设置，直接控制数据库存储访问：
+将表达式映射到被推送至持久层的安全方法或预测中:
 
-```java
-    public static class IsAdminUser extends UserCheck {
-        @Override
-        public boolean ok(User user) {
-            return isUserInRole(user, UserRole.admin);
-        }
+```bash
+@SecurityCheck("Admin")
+public static class IsAdminUser extends UserCheck {
+    @Override
+    public boolean ok(User user) {
+        return isUserInRole(user, UserRole.admin);
     }
-```
-
-最后需要将这些设置挂载到数据模型上，方法请参见 [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone):
-
-```java
-public class YourMain {
-  public static void main(String[] args) {
-
-    ElideStandaloneSettings settings = new ElideStandaloneSettings() {
-
-        @Override
-        public String getModelPackageName() {
-            //This needs to be changed to the package where your models live.
-            return "your.model.package";
-        }
-    
-        @Override
-        public Map<String, Class<? extends Check>> getCheckMappings() {
-            //Maps expression clauses to your security check functions & predicates
-            return new HashMap<String, Class<? extends Check>>() { {
-                put("Admin", IsAdminUser.class);
-            }
-        };
-    });
-
-    ElideStandalone elide = new ElideStandalone(settings);
-
-    elide.start();
-  }
 }
 ```
 
-更多 API 功能，请详见：
+要公开和查询这些模型，请遵循[入门指南](https://elide.io/pages/guide/v5/01-start.html)中记录的步骤。
 
-1. [*JSON-API*](http://elide.io/pages/guide/10-jsonapi.html)
-2. [*GraphQL*](http://elide.io/pages/guide/11-graphql.html)
+例如 API 的调用，请看:
+
+1. [*JSON-API*](https://elide.io/pages/guide/v5/10-jsonapi.html)
+2. [*GraphQL*](https://elide.io/pages/guide/v5/11-graphql.html)
+
+### 对于 Analytic APIs
+
+包括表、安全策略、表的规格和连接在内的 Analytic 模型既可以作为 pojo 创建，也可以通过友好的 HJSON 配置语言创建。
+
+```bash
+{
+  tables: [
+    {
+      name: Orders
+      table: order_details
+      measures: [
+        {
+          name: orderTotal
+          type: DECIMAL
+          definition: 'SUM({{$order_total}})'
+        }
+      ]
+      dimensions: [
+        {
+          name: orderId
+          type: TEXT
+          definition: '{{$order_id}}'
+        }
+      ]
+    }
+  ]
+}
+```
+
+关于配置或查询 Analytic 模型的更多信息可以在[这里](https://elide.io/pages/guide/v5/04-analytics.html)找到。
 
 ## 数据安全
 
@@ -211,13 +216,30 @@ public class YourMain {
 
 ## 开发
 
-请阅读[开发文档](CONTRIBUTING.md)，了解如何贡献代码。遇到bug或问题，我们欢迎您提交 issues，咨询，或者提交 pull
-requests.
+请阅读[开发文档](CONTRIBUTING.md)，了解如何贡献代码。遇到 bug 或问题，我们欢迎您提交 issues 咨询，或者提交 pull requests.
 
-如果您想给Elide贡献代码，请在IDE中添加[Lombok](https://projectlombok.org/)插件。
+如果您使用 IDE（例如 IntelliJ）进行开发，请在IDE中添加 [Lombok](https://projectlombok.org/) 插件。
 
-开源社区设在[spectrum](https://spectrum.chat/elide)，您也可以提交 issues。
+社区聊天目前处于[不和谐](https://discord.com/widget?id=869678398241398854&theme=dark)状态。点击[此处](https://discord.com/invite/3vh8ac57cc)加入讨论。留言将存档在[频谱](https://github.com/features/discussions/elide)上。
 
 ## 开源许可
-The use and distribution terms for this software are covered by the Apache License, Version 2.0
-(http://www.apache.org/licenses/LICENSE-2.0.html).
+
+该项目根据 [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.html) 开源许可证条款获得许可。请参阅[许可证](https://github.com/paion-data/elide/blob/master/LICENSE.txt)了解完整条款。
+
+## 参考文献
+
+Elide 视频简介
+
+[![Intro to Elide](http://img.youtube.com/vi/WeFzseAKbzs/0.jpg)](http://www.youtube.com/watch?v=WeFzseAKbzs "Intro to Elide")
+
+[使用 Spring Boot 和 Elide 创建 JSON API REST 服务](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
+
+[使用 Spring Boot/Elide Json API 服务器自定义安全权限](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
+
+[登录 Spring Boot/Elide JSON API 服务器](https://dzone.com/articles/logging-into-a-spring-bootelide-json-api-server)
+
+[使用 Spring Boot 和 Elide 保护 JSON API REST 服务](https://dzone.com/articles/securing-a-json-api-rest-service-with-spring-boot)
+
+[在 Spring Boot/Elide JSON API 服务器中创建实体](https://dzone.com/articles/creating-entities-in-a-spring-bootelide-json-api-s)
+
+[使用 Spring Boot/Elide JSON API 服务器更新和删除](https://dzone.com/articles/updating-and-deleting-with-a-spring-bootelide-json)

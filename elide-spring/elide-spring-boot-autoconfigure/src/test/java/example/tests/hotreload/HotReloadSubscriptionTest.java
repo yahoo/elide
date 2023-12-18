@@ -8,6 +8,7 @@ package example.tests.hotreload;
 
 import example.tests.SubscriptionTest;
 import org.junit.jupiter.api.BeforeAll;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(
@@ -15,6 +16,7 @@ import org.springframework.test.context.TestPropertySource;
                 "management.endpoints.web.exposure.include: *"
         }
 )
+@Import(SubscriptionTest.SerdeConfiguration.class)
 public class HotReloadSubscriptionTest extends SubscriptionTest {
 
     @Override

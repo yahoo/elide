@@ -13,7 +13,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 
 /**
- * A model intended to be ONLY created and read, but never updated
+ * A model intended to be ONLY created and read, but never updated.
  */
 @Include
 @Entity

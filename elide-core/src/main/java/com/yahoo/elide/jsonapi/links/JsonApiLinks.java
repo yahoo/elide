@@ -11,7 +11,7 @@ import java.util.Map;
 
 public interface JsonApiLinks {
     /**
-     * Links to be used in the Respose Entity.
+     * Links to be used in the Response Entity.
      * @param resource
      * @return
      */

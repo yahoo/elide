@@ -8,8 +8,7 @@ package com.yahoo.elide.core.filter.dialect.jsonapi;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,7 +37,7 @@ public interface SubqueryFilterDialect {
      * @return The root of an expression abstract syntax tree parsed from both the path and the query parameters.
      * @throws ParseException if unable to parse
      */
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams,
+    public Map<String, FilterExpression> parseTypedExpression(String path, Map<String, List<String>> filterParams,
                                                               String apiVersion)
             throws ParseException;
 }

@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
@@ -29,11 +29,13 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 
-import org.apache.http.NoHttpResponseException;
+import org.apache.hc.core5.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,8 +74,9 @@ public class AsyncExecutorServiceTest {
         );
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
         elide = new Elide(
-                new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                ElideSettings.builder().dataStore(inMemoryStore)
+                        .entityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                        .settings(JsonApiSettings.builder())
                         .build());
         asyncApiDao = mock(DefaultAsyncApiDao.class);
         testUser = mock(User.class);
@@ -120,7 +123,7 @@ public class AsyncExecutorServiceTest {
         when(queryObj.getRequestId()).thenReturn(id);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
         when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
-        when(scope.getApiVersion()).thenReturn(NO_VERSION);
+        when(scope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).build());
         when(scope.getUser()).thenReturn(testUser);
         JsonApiAsyncQueryOperation jsonOperation = new JsonApiAsyncQueryOperation(service, queryObj, scope);
         service.executeQuery(queryObj, jsonOperation);

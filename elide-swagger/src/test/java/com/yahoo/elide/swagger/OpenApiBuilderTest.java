@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.swagger;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,6 +26,7 @@ import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.core.utils.coerce.converters.TimeZoneSerde;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
@@ -36,6 +36,8 @@ import example.models.Author;
 import example.models.Book;
 import example.models.Product;
 import example.models.Publisher;
+import example.models.v2.BookV2;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -94,6 +96,39 @@ class OpenApiBuilderTest {
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
         openApi = builder.build().info(info);
+    }
+
+    @Test
+    void testApiVersion() {
+        String tag = "v2/book";
+        EntityDictionary dictionary = EntityDictionary.builder().build();
+        dictionary.bindEntity(BookV2.class);
+        OpenAPI openApi = new OpenApiBuilder(dictionary).apiVersion("2").build();
+        assertEquals(tag, openApi.getTags().get(0).getName());
+        Schema<?> schema = openApi.getComponents().getSchemas().get("v2_book");
+        assertNotNull(schema);
+        openApi.getPaths().forEach((path, pathItem) -> {
+          Operation get = pathItem.getGet();
+          if (get != null) {
+              get.getTags().contains(tag);
+          }
+          Operation post = pathItem.getPost();
+          if (post != null) {
+              post.getTags().contains(tag);
+          }
+          Operation patch = pathItem.getPatch();
+          if (patch != null) {
+              patch.getTags().contains(tag);
+          }
+          Operation delete = pathItem.getDelete();
+          if (delete != null) {
+              delete.getTags().contains(tag);
+          }
+          Operation put = pathItem.getPut();
+          if (put != null) {
+              put.getTags().contains(tag);
+          }
+        });
     }
 
     @Test
@@ -953,7 +988,7 @@ class OpenApiBuilderTest {
      * @param refTypeName The model name
      */
     private void verifyData(Content content, String refTypeName) {
-        verifyData(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName);
+        verifyData(content.get(JsonApi.MEDIA_TYPE).getSchema(), refTypeName);
     }
 
     /**
@@ -978,7 +1013,7 @@ class OpenApiBuilderTest {
      * @param included Whether or not the datum should have an 'included' section.
      */
     private void verifyDatum(Content content, String refTypeName, boolean included) {
-        verifyDatum(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName, included);
+        verifyDatum(content.get(JsonApi.MEDIA_TYPE).getSchema(), refTypeName, included);
     }
 
     /**
@@ -1006,7 +1041,7 @@ class OpenApiBuilderTest {
      * @param refTypeName The type field to match against
      */
     private void verifyDataRelationship(Content content, String refTypeName) {
-        verifyDataRelationship(content.get(JSONAPI_CONTENT_TYPE).getSchema(), refTypeName);
+        verifyDataRelationship(content.get(JsonApi.MEDIA_TYPE).getSchema(), refTypeName);
     }
 
     /**

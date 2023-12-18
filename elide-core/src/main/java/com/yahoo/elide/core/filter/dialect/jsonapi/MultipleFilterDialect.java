@@ -9,7 +9,6 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,7 +37,7 @@ public class MultipleFilterDialect implements JoinFilterDialect, SubqueryFilterD
 
     @Override
     public FilterExpression parseGlobalExpression(String path,
-                                                  MultivaluedMap<String, String> queryParams,
+                                                  Map<String, List<String>> queryParams,
                                                   String apiVersion) throws ParseException {
         if (joinDialects.isEmpty()) {
             throw new ParseException("Heterogeneous type filtering not supported");
@@ -49,7 +48,7 @@ public class MultipleFilterDialect implements JoinFilterDialect, SubqueryFilterD
 
     @Override
     public Map<String, FilterExpression> parseTypedExpression(String path,
-                                                              MultivaluedMap<String, String> queryParams,
+                                                              Map<String, List<String>> queryParams,
                                                               String apiVersion)
             throws ParseException {
 

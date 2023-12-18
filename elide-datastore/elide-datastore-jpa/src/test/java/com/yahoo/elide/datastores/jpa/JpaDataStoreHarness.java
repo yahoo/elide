@@ -39,6 +39,7 @@ import jakarta.persistence.Persistence;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -53,14 +54,24 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
     private DataStore store;
     private MetadataImplementor metadataImplementor;
     private final Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
+    private EntityManagerFactory entityManagerFactory;
+    private EntityManager entityManager;
 
     public JpaDataStoreHarness() {
         this(DEFAULT_LOGGER, true);
     }
 
+    public JpaDataStoreHarness(Map<String, Object> options) {
+        this(DEFAULT_LOGGER, true, options);
+    }
+
     public JpaDataStoreHarness(QueryLogger logger, boolean delegateToInMemoryStore) {
+        this(logger, delegateToInMemoryStore, new HashMap<>());
+    }
+
+    public JpaDataStoreHarness(QueryLogger logger, boolean delegateToInMemoryStore, Map<String, Object> initialOptions) {
+        Map<String, Object> options = new LinkedHashMap<>(initialOptions);
         ClassScanner scanner = new DefaultClassScanner();
-        Map<String, Object> options = new HashMap<>();
         ArrayList<Class<?>> bindClasses = new ArrayList<>();
 
         try {
@@ -79,10 +90,10 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
         options.put("jakarta.persistence.jdbc.url", JDBC);
         options.put("jakarta.persistence.jdbc.user", ROOT);
         options.put("jakarta.persistence.jdbc.password", ROOT);
-        options.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+        options.put("hibernate.dialect", "com.yahoo.elide.datastores.jpa.H2MySQLDialect");
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
+        this.entityManagerFactory = Persistence.createEntityManagerFactory("elide-tests", options);
 
         // method to force class initialization
         MetadataSources metadataSources = new MetadataSources(
@@ -114,8 +125,15 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
         resetSchema();
 
-        store = new JpaDataStore(
-                () -> emf.createEntityManager(),
+        store = buildJpaDataStore(entityManagerFactory, logger, delegateToInMemoryStore);
+    }
+
+    protected DataStore buildJpaDataStore(EntityManagerFactory emf, QueryLogger logger, boolean delegateToInMemoryStore) {
+        return new JpaDataStore(
+                () -> {
+                    this.entityManager = emf.createEntityManager();
+                    return this.entityManager;
+                },
                 entityManager -> new NonJtaTransaction(entityManager, txCancel, logger, delegateToInMemoryStore, true),
                 emf::getMetamodel
         );
@@ -141,5 +159,13 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
     @Override
     public void cleanseTestData() {
         resetSchema();
+    }
+
+    public EntityManager getEntityManager() {
+        return entityManager;
+    }
+
+    public EntityManagerFactory getEntityManagerFactory() {
+        return entityManagerFactory;
     }
 }

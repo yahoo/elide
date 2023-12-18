@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.integration.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.UNQUOTED_VALUE;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
@@ -30,14 +29,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.test.graphql.EnumFieldSerializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,7 +49,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import io.restassured.response.Response;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.SecurityContext;
 import lombok.Data;
 
@@ -89,7 +90,7 @@ public class AsyncIT extends AsyncApiIT {
 
         //Create Async Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .header("sleep", "1000")
                 .body(
                         data(
@@ -144,7 +145,7 @@ public class AsyncIT extends AsyncApiIT {
 
         //Create Async Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .header("sleep", "1000")
                 .body(
                         data(
@@ -350,7 +351,7 @@ public class AsyncIT extends AsyncApiIT {
     @Test
     public void jsonApiUnknownRequestTests() throws InterruptedException {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -432,7 +433,7 @@ public class AsyncIT extends AsyncApiIT {
     public void noReadEntityTests() throws InterruptedException {
         //Create Async Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -473,7 +474,7 @@ public class AsyncIT extends AsyncApiIT {
     @Test
     public void asyncQueryModelAdminReadPermissions() throws IOException {
 
-        ElideResponse response = null;
+        ElideResponse<String> response = null;
         String id = "edc4a871-dff2-4054-804e-d80075c08959";
         String query = "test-query";
 
@@ -492,14 +493,17 @@ public class AsyncIT extends AsyncApiIT {
         tx.commit(null);
         tx.close();
 
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(
-                                EntityDictionary.builder()
-                                        .checks(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS)
-                                        .build())
-                        .withAuditLogger(new TestAuditLogger()).build());
+        EntityDictionary entityDictionary = EntityDictionary.builder()
+                .checks(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS)
+                .build();
+
+        Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore).entityDictionary(entityDictionary)
+                .auditLogger(new TestAuditLogger())
+                .settings(JsonApiSettingsBuilder.withDefaults(entityDictionary))
+                .build());
 
         elide.doScans();
+        JsonApi jsonApi = new JsonApi(elide);
 
         User ownerUser = new User(() -> "owner-user");
         SecurityContextUser securityContextAdminUser = new SecurityContextUser(new SecurityContext() {
@@ -541,16 +545,17 @@ public class AsyncIT extends AsyncApiIT {
 
         String baseUrl = "/";
         // Principal is Owner
-        response = elide.get(baseUrl, "/asyncQuery/" + id, new MultivaluedHashMap<>(), ownerUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("/asyncQuery/" + id).apiVersion(NO_VERSION).build();
+        response = jsonApi.get(route, ownerUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         // Principal has Admin Role
-        response = elide.get(baseUrl, "/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextAdminUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        response = jsonApi.get(route, securityContextAdminUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         // Principal without Admin Role
-        response = elide.get(baseUrl, "/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_NOT_FOUND, response.getResponseCode());
+        response = jsonApi.get(route, securityContextNonAdminUser, null);
+        assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatus());
     }
 
     /**
@@ -564,7 +569,7 @@ public class AsyncIT extends AsyncApiIT {
 
         //Create Async Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .header("sleep", "1000")
                 .body(
                         data(

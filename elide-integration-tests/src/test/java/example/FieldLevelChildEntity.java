@@ -14,5 +14,6 @@ import jakarta.persistence.Table;
 @Table(name = "child_field_level")
 @Include(name = "fieldLevelChild")
 public class FieldLevelChildEntity extends FieldLevelParentSuperclass {
+    @SuppressWarnings("unused")
     private String childField;
 }

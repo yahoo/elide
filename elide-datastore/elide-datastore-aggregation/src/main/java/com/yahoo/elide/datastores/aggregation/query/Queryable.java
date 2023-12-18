@@ -105,7 +105,7 @@ public interface Queryable {
     }
 
     /**
-     * Retrieves a column by filter predicate
+     * Retrieves a column by filter predicate.
      * @param filterPredicate A predicate to search for column projections.
      * @return The column.
      */

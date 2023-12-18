@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
@@ -24,8 +22,9 @@ import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +34,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.audit.TestAuditLogger;
@@ -47,9 +46,11 @@ import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
@@ -75,7 +76,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.owasp.encoder.Encode;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response.Status;
 
 import java.io.IOException;
@@ -378,8 +378,8 @@ public class ResourceIT extends IntegrationTest {
         // To see the detail of the FilterExpression check, go to the bean of filterExpressionCheckObj and see
         // CheckRestrictUser.
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -393,8 +393,8 @@ public class ResourceIT extends IntegrationTest {
                 .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -408,8 +408,8 @@ public class ResourceIT extends IntegrationTest {
                 .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("2"));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -423,8 +423,8 @@ public class ResourceIT extends IntegrationTest {
                 .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("3"));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -446,8 +446,8 @@ public class ResourceIT extends IntegrationTest {
                 .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -473,8 +473,8 @@ public class ResourceIT extends IntegrationTest {
                 + "\"listOfAnotherObjs\":{\"data\":[]}}}]}";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/filterExpressionCheckObj")
                 .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected1));
 
@@ -483,8 +483,8 @@ public class ResourceIT extends IntegrationTest {
                 + "\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type"
                 + "\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}}}";
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/filterExpressionCheckObj/1")
                 .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected2));
 
@@ -492,15 +492,15 @@ public class ResourceIT extends IntegrationTest {
         String expected3 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\","
                 + "\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}}";
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/filterExpressionCheckObj/2")
                 .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected3));
 
         //test authentication fail querying with ID == 3
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/filterExpressionCheckObj/3")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -511,15 +511,15 @@ public class ResourceIT extends IntegrationTest {
                 + "\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{"
                 + "\"linkToParent\":{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}}}]}";
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/filterExpressionCheckObj/1/listOfAnotherObjs")
                 .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected5));
 
         //test authentication pass query a relation of object
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/anotherFilterExpressionCheckObj")
                 .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected5));
     }
@@ -606,8 +606,8 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testPatchAttrSingle() throws Exception {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -625,12 +625,12 @@ public class ResourceIT extends IntegrationTest {
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(equalTo(
                         datum(
                                 resource(
@@ -660,8 +660,8 @@ public class ResourceIT extends IntegrationTest {
 
         // update company address
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -679,12 +679,12 @@ public class ResourceIT extends IntegrationTest {
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/company/abc")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(equalTo(datum(COMPANY).toJSON()
                 ));
     }
@@ -711,8 +711,8 @@ public class ResourceIT extends IntegrationTest {
                 + "}";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent/3")
                 .then()
@@ -722,8 +722,8 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testPatchSetRel() throws Exception {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -746,8 +746,8 @@ public class ResourceIT extends IntegrationTest {
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -776,8 +776,8 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testPatchRemoveRelSingle() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -799,8 +799,8 @@ public class ResourceIT extends IntegrationTest {
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -827,8 +827,8 @@ public class ResourceIT extends IntegrationTest {
     public void testPatchRelNoUpdateSingle() {
         //Test a relationship update that leaves the resource unchanged.
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(PARENT2))
                 .patch("/parent/2")
                 .then()
@@ -836,8 +836,8 @@ public class ResourceIT extends IntegrationTest {
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -848,8 +848,8 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testPatchRelRemoveColl() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -868,8 +868,8 @@ public class ResourceIT extends IntegrationTest {
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -897,8 +897,8 @@ public class ResourceIT extends IntegrationTest {
                 include(CHILD2, CHILD3)).toJSON();
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2?include=children.friends")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -913,8 +913,8 @@ public class ResourceIT extends IntegrationTest {
                 include(CHILD1, CHILD2, CHILD3, CHILD4, CHILD5)).toJSON();
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent?include=children")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -928,8 +928,8 @@ public class ResourceIT extends IntegrationTest {
                 include(CHILD1, CHILD2, CHILD3, CHILD4, CHILD5, PARENT3)).toJSON();
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent?include=children,spouses")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -950,8 +950,8 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testGetIncludeBadRelation() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/1?include=children.BadRelation")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -962,8 +962,8 @@ public class ResourceIT extends IntegrationTest {
         String detail = "Resource 'type' field is missing or empty.";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body("{ \"data\": { \"id\": \"1\", \"attributes\": { \"firstName\": \"foo\" }}}")
                 .patch("/parent/1")
                 .then()
@@ -973,11 +973,11 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testInvalidJson() {
-        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: (String)\"{ ]\"; line: 1, column: 1])\n at [Source: (String)\"{ ]\"; line: 1, column: 4]";
+        String detail = "Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1])";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body("{ ]")
                 .patch("/parent/1")
                 .then()
@@ -991,8 +991,8 @@ public class ResourceIT extends IntegrationTest {
         String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent?sort=+firstName")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1005,8 +1005,8 @@ public class ResourceIT extends IntegrationTest {
         String expected = data(PARENT4, PARENT3, PARENT2, PARENT1).toJSON();
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent?sort=-firstName")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1015,11 +1015,11 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testGetRelEmptyColl() {
-        String expected = data(null).toJSON();
+        String expected = data((Resource[]) null).toJSON();
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4/relationships/children")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1031,8 +1031,8 @@ public class ResourceIT extends IntegrationTest {
         String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1048,8 +1048,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(relationships)
                 .patch("/parent/4/relationships/children")
                 .then()
@@ -1057,8 +1057,8 @@ public class ResourceIT extends IntegrationTest {
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4/relationships/children")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1068,8 +1068,8 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testNoDeleteExcludedRelationship() throws Exception {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body("{\"data\":{\"type\":\"excludedRelationship\",\"id\":\"1\"}}")
                 .delete("/parent/4/children/4/relationships/excludedRelationship")
                 .then()
@@ -1079,8 +1079,8 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testForbiddenDeleteEmptyCollectionRelationship() throws Exception {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body("{\"data\":[]}")
                 .delete("/parent/1/children/1/relationships/parents")
                 .then()
@@ -1090,30 +1090,30 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testDeleteParent() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .delete("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .body(isEmptyOrNullString());
+                .body(is(emptyOrNullString()));
     }
 
     @Test
     public void testDeleteWithCascade() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .delete("/invoice/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .body(isEmptyOrNullString());
+                .body(is(emptyOrNullString()));
     }
 
     @Test
     public void failDeleteParent() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .delete("/parent/678")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -1137,8 +1137,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(parent)
                 .post("/parent")
                 .then()
@@ -1181,8 +1181,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(parentInput)
                 .post("/parent")
                 .then()
@@ -1196,8 +1196,8 @@ public class ResourceIT extends IntegrationTest {
         String expected = "{\"errors\":[{\"detail\":\"Bad Request Body";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(request)
                 .post("/parent")
                 .then()
@@ -1257,8 +1257,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(childInput)
                 .post("/parent/4/children")
                 .then()
@@ -1266,8 +1266,8 @@ public class ResourceIT extends IntegrationTest {
                 .body(jsonEquals(childOutput, true));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1288,8 +1288,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(parentInput)
                 .post("/parent/678")
                 .then()
@@ -1308,8 +1308,8 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(childInput)
                 .post("/child")
                 .then()
@@ -1355,8 +1355,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(funInput)
                 .patch("/fun/1")
                 .then()
@@ -1397,8 +1397,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(funInput)
                 .patch("/fun/1")
                 .then()
@@ -1418,8 +1418,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/createDependentPatchExt.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createDependentPatchExt.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent")
                 .then()
@@ -1432,8 +1432,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/createChildRelateExisting.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createChildRelateExisting.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -1448,8 +1448,8 @@ public class ResourceIT extends IntegrationTest {
         String detail = "Patch extension operation cannot be null.";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -1465,8 +1465,8 @@ public class ResourceIT extends IntegrationTest {
                 + "ID (temporary or permanent) when assigning relationships.'";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -1481,8 +1481,8 @@ public class ResourceIT extends IntegrationTest {
         String detail = "Bad Request Body'Patch extension requires all objects to have an assigned path'";
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -1496,16 +1496,16 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.2.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4/children/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1518,16 +1518,16 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.json");
         String expected2 = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.2.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1542,31 +1542,31 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/removeObject.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/removeObject.2.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(req1)
                 .patch("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/5")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expectedDirect));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(req2)
                 .patch("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected2));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/5")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -1577,22 +1577,22 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/createAndRemoveParent.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createAndRemoveParent.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -1604,16 +1604,16 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/testAddRoot.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/testAddRoot.2.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/5")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1626,16 +1626,16 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.2.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent/1/relationships/children")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1648,16 +1648,16 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/removeSingleRelationship.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/removeSingleRelationship.2.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent/2/relationships/children")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1684,8 +1684,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 linkage(type("parent"), id("2"))
@@ -1696,8 +1696,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT)
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/1/children/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1721,8 +1721,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(
                         linkage(type("parent"), id("1"))
                 ))
@@ -1731,8 +1731,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT)
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/child/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1745,16 +1745,16 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/addRelationships.json");
         String expected2 = jsonParser.getJson("/ResourceIT/addRelationships.2.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent/1/relationships/children")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1766,8 +1766,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/checkJsonApiPatchWithError.req.json");
         String expected = jsonParser.getJson("/ResourceIT/checkJsonApiPatchWithError.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/parent")
                 .then()
@@ -1780,8 +1780,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadId.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtBadId.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -1794,8 +1794,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/patchExtAddUpdate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtAddUpdate.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -1810,8 +1810,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadValue.req.json");
 
         jsonApiMapper.getObjectMapper().readTree(given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -1826,8 +1826,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadDelete.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtBadDelete.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -1869,8 +1869,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(newParent)
                 .post("/parent")
                 .then()
@@ -1892,8 +1892,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(oneToOneRoot)
                 .post("/oneToOneRoot")
                 .then()
@@ -1901,8 +1901,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Verify it was actually created
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(oneToOneRoot)
                 .get("/oneToOneRoot/1")
                 .then()
@@ -1919,8 +1919,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(oneToOneNonRoot)
                 .post("/oneToOneRoot/1/otherObject")
                 .then()
@@ -1928,8 +1928,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Verify contents
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/oneToOneRoot/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1951,8 +1951,8 @@ public class ResourceIT extends IntegrationTest {
                 ));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/oneToOneRoot/1/otherObject")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -1985,8 +1985,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(obj))
                 .post("/yetAnotherPermission")
                 .then()
@@ -1994,8 +1994,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Verify contents
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/yetAnotherPermission")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -2015,8 +2015,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(oneToOneRoot)
                 .post("/oneToOneRoot")
                 .then()
@@ -2034,8 +2034,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Create other object
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(oneToOneNonRoot)
                 .post("/oneToOneRoot/1/otherObject")
                 .then()
@@ -2043,8 +2043,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Verify contents
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/oneToOneRoot/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -2078,8 +2078,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Create another object
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(updated)
                 .post("/oneToOneRoot/1/otherObject")
                 .then()
@@ -2087,8 +2087,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Verify contents
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/oneToOneRoot/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -2124,16 +2124,16 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(oneToOneRoot)
                 .post("/oneToOneRoot")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(oneToOneRoot)
                 .post("/oneToOneRoot/1")
                 .then()
@@ -2143,8 +2143,8 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testFilterIds() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2/relationships/children?filter[child.id]=3")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -2153,8 +2153,8 @@ public class ResourceIT extends IntegrationTest {
                                 linkage(type("child"), id("3"))
                         ).toJSON()));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2?include=children&filter[child.id]=3")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -2179,8 +2179,8 @@ public class ResourceIT extends IntegrationTest {
                         ).toJSON()
                 ));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent?include=children&filter[child.id]=4")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -2249,8 +2249,8 @@ public class ResourceIT extends IntegrationTest {
         String req = jsonParser.getJson("/ResourceIT/Issue608.req.json");
         String expected = jsonParser.getJson("/ResourceIT/Issue608.resp.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(req)
                 .patch("/parent")
                 .then()
@@ -2263,8 +2263,8 @@ public class ResourceIT extends IntegrationTest {
         String req = jsonParser.getJson("/ResourceIT/nestedPatchCreate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/nestedPatchCreate.resp.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(req)
                 .patch("/parent")
                 .then()
@@ -2285,16 +2285,16 @@ public class ResourceIT extends IntegrationTest {
                 + "  }]";
         String expected = jsonParser.getJson("/ResourceIT/testPatchExtNoReadPermForNew.resp.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(req)
                 .patch("/specialread")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(badReq)
                 .patch("/specialread")
                 .then()
@@ -2320,15 +2320,15 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(noShareBid1))
                 .post("/noShareBid")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(noShareBid2))
                 .post("/noShareBid/1/other")
                 .then()
@@ -2340,8 +2340,8 @@ public class ResourceIT extends IntegrationTest {
     public void testPatchExtNoCommit() {
         String req = jsonParser.getJson("/ResourceIT/testPatchExtNoCommit.req.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(req)
                 .patch("/")
                 .then()
@@ -2369,8 +2369,8 @@ public class ResourceIT extends IntegrationTest {
 
         //Create parent 5 and assign it to child 4 (for the strange security check).
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(parentOutput)
                 .post("/parent")
                 .then()
@@ -2382,8 +2382,8 @@ public class ResourceIT extends IntegrationTest {
         // to the original. This is flawed logic since you're deleting the original in the first place (and that check
         // succeeded if we got there).
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .delete("/parent/5/children/4")
                 .then()
                 .statusCode(204);
@@ -2407,8 +2407,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(invalid))
                 .post("resourceWithInvalidRelationship")
                 .then()
@@ -2418,13 +2418,13 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testSortByIdRootableTopLevel() {
         given()
-                .accept(JSONAPI_CONTENT_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent?sort=id")
                 .then()
                 .body(equalTo(data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON()));
 
         given()
-                .accept(JSONAPI_CONTENT_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent?sort=-id")
                 .then()
                 .body(equalTo(data(PARENT4, PARENT3, PARENT2, PARENT1).toJSON()));
@@ -2433,13 +2433,13 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testSortByIdNonRootableTopLevel() {
         given()
-                .accept(JSONAPI_CONTENT_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2/children?sort=id")
                 .then()
                 .body(equalTo(data(CHILD2, CHILD3).toJSON()));
 
         given()
-                .accept(JSONAPI_CONTENT_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2/children?sort=-id")
                 .then()
                 .body(equalTo(data(CHILD3, CHILD2).toJSON()));
@@ -2449,7 +2449,7 @@ public class ResourceIT extends IntegrationTest {
     public void testExceptionThrowingBean() {
         // Ensure web exception from bean gets bubbled up
         given()
-                .accept(JSONAPI_CONTENT_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/exceptionThrowingBean/1")
                 .then()
                 .statusCode(Status.GONE.getStatusCode());
@@ -2468,8 +2468,8 @@ public class ResourceIT extends IntegrationTest {
 
         //Create user with assigned id
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(resource))
                 .post("/assignedIdString")
                 .then()
@@ -2478,8 +2478,8 @@ public class ResourceIT extends IntegrationTest {
 
         //Fetch newly created user
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/assignedIdString/user1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -2494,8 +2494,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(modified))
                 .patch("/assignedIdString/user1")
                 .then()
@@ -2515,8 +2515,8 @@ public class ResourceIT extends IntegrationTest {
 
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(resource))
                 .post("/assignedIdLong")
                 .then()
@@ -2525,8 +2525,8 @@ public class ResourceIT extends IntegrationTest {
 
         //Fetch newly created user
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/assignedIdLong/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -2541,8 +2541,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(modified))
                 .patch("/assignedIdLong/1")
                 .then()
@@ -2559,8 +2559,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(resource))
                 .post("/assignedIdString")
                 .then()
@@ -2569,16 +2569,20 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build())
-                .withAuditLogger(new TestAuditLogger())
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build();
+        Elide elide = new Elide(ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(entityDictionary)
+                .auditLogger(new TestAuditLogger())
+                .settings(JsonApiSettingsBuilder.withDefaults(entityDictionary))
                 .build());
 
         elide.doScans();
+        JsonApi jsonApi = new JsonApi(elide);
 
         com.yahoo.elide.core.security.User user = new com.yahoo.elide.core.security.User(() -> "-1");
-        ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(baseUrl).path("parent/1/children").apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.get(route, user, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
         assertEquals("{\"data\":[]}", response.getBody());
     }
 
@@ -2603,8 +2607,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(patched))
                 .patch("/user/1")
                 .then()
@@ -2626,8 +2630,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(patched))
                 .patch("/user/1")
                 .then()
@@ -2669,8 +2673,8 @@ public class ResourceIT extends IntegrationTest {
 
         // First ensure we cannot update fields that are explicitly disallowed
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(badRequest))
                 .post("/createButNoUpdate")
                 .then()
@@ -2678,8 +2682,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Now check that updating allowed fields enables us to create the object
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(validRequest))
                 .post("/createButNoUpdate")
                 .then()
@@ -2688,8 +2692,8 @@ public class ResourceIT extends IntegrationTest {
 
         // Ensure we cannot update that newly created object
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(validRequest))
                 .patch("/createButNoUpdate/1")
                 .then()
@@ -2719,16 +2723,16 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(entity1))
                 .post("/createButNoUpdate")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(datum(entity2))
                 .post("/createButNoUpdate")
                 .then()
@@ -2740,8 +2744,8 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(relationships)
                 .post("/createButNoUpdate/2/relationships/toOneRelation")
                 .then()
@@ -2753,8 +2757,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/testPatchDeferredOnCreate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/testPatchDeferredOnCreate.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .body(request)
                 .patch("/")
                 .then()
@@ -2797,24 +2801,24 @@ public class ResourceIT extends IntegrationTest {
     public void testPaginationLimitOverrides() {
         // Well below the limit
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .get("/parent?page[size]=10")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
         // At the limit
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .get("/parent?page[size]=100000")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
         // Above the limit
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .get("/parent?page[size]=100001")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -2902,8 +2906,8 @@ public class ResourceIT extends IntegrationTest {
     public void testVersionedBookCreate() throws Exception {
         given()
                 .header("ApiVersion", "1.0")
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -2939,8 +2943,8 @@ public class ResourceIT extends IntegrationTest {
     public void testVersionedBookPatch() throws Exception {
         given()
                 .header("ApiVersion", "1.0")
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -2965,8 +2969,8 @@ public class ResourceIT extends IntegrationTest {
         String req = jsonParser.getJson("/ResourceIT/versionedPatchExtension.req.json");
         String expected = jsonParser.getJson("/ResourceIT/versionedPatchExtension.resp.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .contentType(JsonApi.JsonPatch.MEDIA_TYPE)
+                .accept(JsonApi.JsonPatch.MEDIA_TYPE)
                 .header("ApiVersion", "1.0")
                 .body(req)
                 .patch("/book")
@@ -3089,8 +3093,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4/children/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -3111,8 +3115,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -3135,8 +3139,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/5")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -3150,8 +3154,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected2));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/5")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -3162,8 +3166,8 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/atomicOpCreateAndRemoveParent.req.json");
         String expected = jsonParser.getJson("/ResourceIT/atomicOpCreateAndRemoveParent.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
@@ -3176,8 +3180,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/4")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -3197,8 +3201,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/5")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -3219,8 +3223,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -3241,8 +3245,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -3263,8 +3267,8 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)

@@ -10,11 +10,11 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import example.models.BaseId;
 import example.models.triggers.services.BillingService;
-
 import jakarta.inject.Inject;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Invoice for a group of purchased items.
@@ -22,6 +22,7 @@ import lombok.Data;
 @Entity(name = "customerInvoice")
 @Include(name = "customerInvoice")
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class Invoice extends BaseId {
     @Transient
     @Exclude
