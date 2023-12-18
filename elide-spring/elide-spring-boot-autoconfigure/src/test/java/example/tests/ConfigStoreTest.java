@@ -23,8 +23,8 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile.ConfigFileType;
-import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,11 +34,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.FileSystemUtils;
 
 import io.restassured.RestAssured;
-import jakarta.ws.rs.core.MediaType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -107,9 +107,11 @@ public class ConfigStoreTest {
 
     @Test
     public void testGraphQLNullContent() {
+        String expected = """
+                {"errors":[{"message":"Null or empty file content for models/tables/table1.hjson","extensions":{"classification":"DataFetchingException"}}]}""";
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         mutation(
                                 selection(
@@ -129,7 +131,7 @@ public class ConfigStoreTest {
                 .when()
                 .post("http://localhost:" + port + "/graphql")
                 .then()
-                .body(equalTo("{\"errors\":[{\"message\":\"Null or empty file content for models/tables/table1.hjson\"}]}"))
+                .body(equalTo(expected))
                 .statusCode(200);
     }
 
@@ -158,8 +160,8 @@ public class ConfigStoreTest {
                 + "}\\\"";
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         mutation(
                                 selection(
@@ -195,8 +197,8 @@ public class ConfigStoreTest {
                .statusCode(200);
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         selection(
                                 field("config",
@@ -229,8 +231,8 @@ public class ConfigStoreTest {
                 .statusCode(200);
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         mutation(
                             selection(
@@ -254,8 +256,8 @@ public class ConfigStoreTest {
                 .statusCode(200);
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         selection(
                                 field("config",
@@ -280,8 +282,8 @@ public class ConfigStoreTest {
         String hjson2 = "\\\"{\\\\n  namespaces:\\\\n  [\\\\n    {\\\\n      name: DemoNamespace3\\\\n      description: Namespace for Demo Purposes\\\\n      friendlyName: Demo Namespace\\\\n    }\\\\n  ]\\\\n}\\\"";
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         mutation(
                                 selection(
@@ -324,8 +326,8 @@ public class ConfigStoreTest {
                 .statusCode(200);
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         mutation(
                                 selection(
@@ -354,8 +356,8 @@ public class ConfigStoreTest {
     public void testTwoNamespaceCreationStatements() {
         String query = "{ \"query\": \" mutation saveChanges {\\n  one: config(op: UPSERT, data: {id:\\\"one\\\", path: \\\"models/namespaces/oneDemoNamespaces.hjson\\\", type: NAMESPACE, content: \\\"{\\\\n  namespaces:\\\\n  [\\\\n    {\\\\n      name: DemoNamespace2\\\\n      description: Namespace for Demo Purposes\\\\n      friendlyName: Demo Namespace\\\\n    }\\\\n  ]\\\\n}\\\"}) {\\n    edges {\\n      node {\\n        id\\n      }\\n    }\\n  }\\n  two: config(op: UPSERT, data: {id: \\\"two\\\", path: \\\"models/namespaces/twoDemoNamespaces.hjson\\\", type: NAMESPACE, content: \\\"{\\\\n  namespaces:\\\\n  [\\\\n    {\\\\n      name: DemoNamespace3\\\\n      description: Namespace for Demo Purposes\\\\n      friendlyName: Demo Namespace\\\\n    }\\\\n  ]\\\\n}\\\"}) {\\n    edges {\\n      node {\\n        id\\n      }\\n    }\\n  }\\n} \" }";
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body(query)
                 .when()
                 .post("http://localhost:" + port + "/graphql")
@@ -381,8 +383,8 @@ public class ConfigStoreTest {
                 .statusCode(200);
 
         given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
                         mutation(
                                 selection(
@@ -432,7 +434,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -506,7 +508,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -525,7 +527,7 @@ public class ConfigStoreTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -575,7 +577,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -620,7 +622,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -639,7 +641,7 @@ public class ConfigStoreTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -667,7 +669,7 @@ public class ConfigStoreTest {
         String hjson = "#!/bin/sh ...";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -712,7 +714,7 @@ public class ConfigStoreTest {
                 + "}";
 
         given()
-                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(
                                 resource(

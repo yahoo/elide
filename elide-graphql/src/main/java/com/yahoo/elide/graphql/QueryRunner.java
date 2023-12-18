@@ -9,27 +9,18 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.CustomErrorException;
-import com.yahoo.elide.core.exceptions.ErrorObjects;
-import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.GraphQLQuery;
 import com.yahoo.elide.graphql.parser.QueryParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.Version;
+import com.yahoo.elide.graphql.serialization.GraphQLModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import org.apache.commons.lang3.tuple.Pair;
-import org.owasp.encoder.Encode;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
@@ -39,13 +30,15 @@ import graphql.GraphQLException;
 import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
+import graphql.validation.ValidationError;
+import graphql.validation.ValidationErrorType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +53,6 @@ public class QueryRunner {
     @Getter
     private final Elide elide;
     private GraphQL api;
-    private ObjectMapper mapper;
 
     @Getter
     private String apiVersion;
@@ -87,29 +79,23 @@ public class QueryRunner {
     public QueryRunner(Elide elide, String apiVersion, DataFetcherExceptionHandler exceptionHandler) {
         this.elide = elide;
         this.apiVersion = apiVersion;
-        this.mapper = elide.getMapper().getObjectMapper();
 
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+        EntityDictionary dictionary = elide.getElideSettings().getEntityDictionary();
 
         NonEntityDictionary nonEntityDictionary = new NonEntityDictionary(
                 dictionary.getScanner(),
                 dictionary.getSerdeLookup());
 
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(nonEntityDictionary);
-        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(),
+        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getEntityDictionary(),
                 nonEntityDictionary, elide.getElideSettings(), fetcher, apiVersion);
 
-        api = GraphQL.newGraphQL(builder.build())
+        this.api = GraphQL.newGraphQL(builder.build())
                 .defaultDataFetcherExceptionHandler(exceptionHandler)
                 .queryExecutionStrategy(new AsyncSerialExecutionStrategy(exceptionHandler))
                 .build();
 
-        // TODO - add serializers to allow for custom handling of ExecutionResult and GraphQLError objects
-        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
-        SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
-        module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
-        module.addSerializer(GraphQLError.class, errorSerializer);
-        elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
+        elide.getElideSettings().getObjectMapper().registerModule(new GraphQLModule());
     }
 
     /**
@@ -119,7 +105,7 @@ public class QueryRunner {
      * @param user The user who issued the query.
      * @return The response.
      */
-    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user) {
+    public ElideResponse<String> run(String baseUrlEndPoint, String graphQLDocument, User user) {
         return run(baseUrlEndPoint, graphQLDocument, user, UUID.randomUUID());
     }
 
@@ -169,7 +155,7 @@ public class QueryRunner {
      * @param requestId the Request ID.
      * @return The response.
      */
-    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId) {
+    public ElideResponse<String> run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId) {
         return run(baseUrlEndPoint, graphQLDocument, user, requestId, null);
     }
 
@@ -180,9 +166,9 @@ public class QueryRunner {
      * @param requestId the Request ID.
      * @return The response.
      */
-    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId,
+    public ElideResponse<String> run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId,
                              Map<String, List<String>> requestHeaders) {
-        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+        ObjectMapper mapper = elide.getObjectMapper();
 
         List<GraphQLQuery> queries;
         try {
@@ -190,26 +176,25 @@ public class QueryRunner {
             }.parseDocument(graphQLDocument, mapper);
         } catch (IOException e) {
             log.debug("Invalid json body provided to GraphQL", e);
-            // NOTE: Can't get at isVerbose setting here for hardcoding to false. If necessary, we can refactor
-            // so this can be set appropriately.
-            return buildErrorResponse(mapper, new InvalidEntityBodyException(graphQLDocument), false);
+            return QueryRunner.handleRuntimeException(elide, new InvalidEntityBodyException(graphQLDocument, e));
         }
 
-        List<ElideResponse> responses = new ArrayList<>();
+        List<ElideResponse<?>> responses = new ArrayList<>();
         for (GraphQLQuery query : queries) {
             responses.add(executeGraphQLRequest(baseUrlEndPoint, mapper, user,
                     graphQLDocument, query, requestId, requestHeaders));
         }
 
         if (responses.size() == 1) {
-            return responses.get(0);
+            return map(responses.get(0), elide.getObjectMapper());
         }
 
         //Convert the list of responses into a single JSON Array.
         ArrayNode result = responses.stream()
                 .map(response -> {
                     try {
-                        return mapper.readTree(response.getBody());
+                        String body = mapper.writeValueAsString(response.getBody());
+                        return mapper.readTree(body);
                     } catch (IOException e) {
                         log.debug("Caught an IO exception while trying to read response body");
                         return JsonNodeFactory.instance.objectNode();
@@ -219,18 +204,21 @@ public class QueryRunner {
                         (arrayNode, node) -> arrayNode.add(node),
                         (left, right) -> left.addAll(right));
 
-        try {
+        // Build and elide response from the array of responses.
+        return map(ElideResponse.ok(result), elide.getObjectMapper());
+    }
 
-            //Build and elide response from the array of responses.
-            return ElideResponse.builder()
-                    .responseCode(HttpStatus.SC_OK)
-                    .body(mapper.writeValueAsString(result))
-                    .build();
-        } catch (IOException e) {
-            log.error("An unexpected error occurred trying to serialize array response.", e);
-            return ElideResponse.builder()
-                    .responseCode(HttpStatus.SC_INTERNAL_SERVER_ERROR)
-                    .build();
+    private static ElideResponse<String> map(ElideResponse<?> response, ObjectMapper objectMapper) {
+        if (response.getBody() instanceof String string) {
+            return ElideResponse.status(response.getStatus()).body(string);
+        } else {
+            try {
+                Object body = response.getBody();
+                return ElideResponse.status(response.getStatus())
+                        .body(body != null ? objectMapper.writeValueAsString(body) : null);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 
@@ -272,10 +260,9 @@ public class QueryRunner {
         return null;
     }
 
-    private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
+    private ElideResponse<?> executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
                                                 String graphQLDocument, GraphQLQuery query, UUID requestId,
                                                 Map<String, List<String>> requestHeaders) {
-        boolean isVerbose = false;
         String queryText = query.getQuery();
         boolean isMutation = isMutation(queryText);
 
@@ -285,20 +272,27 @@ public class QueryRunner {
 
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (query.getQuery() == null || query.getQuery().isEmpty()) {
-                return ElideResponse.builder().responseCode(HttpStatus.SC_BAD_REQUEST)
-                        .body("A `query` key is required.").build();
+                return ElideResponse.badRequest("A `query` key is required.");
             }
 
             // get variables from request for constructing entityProjections
             Map<String, Object> variables = query.getVariables();
 
-            //TODO - get API version.
             GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
                     apiVersion).make(queryText);
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrlEndPoint, tx, principal, apiVersion,
-                    elide.getElideSettings(), projectionInfo, requestId, requestHeaders);
-
-            isVerbose = requestScope.getPermissionExecutor().isVerbose();
+            Route route = Route.builder()
+                    .baseUrl(baseUrlEndPoint)
+                    .apiVersion(apiVersion)
+                    .headers(requestHeaders)
+                    .build();
+            GraphQLRequestScope requestScope = GraphQLRequestScope.builder()
+                    .route(route)
+                    .dataStoreTransaction(tx)
+                    .user(principal)
+                    .requestId(requestId)
+                    .elideSettings(elide.getElideSettings())
+                    .projectionInfo(projectionInfo)
+                    .build();
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.
@@ -320,7 +314,7 @@ public class QueryRunner {
             if (isMutation) {
                 if (!result.getErrors().isEmpty()) {
                     HashMap<String, Object> abortedResponseObject = new HashMap<>();
-                    abortedResponseObject.put("errors", result.getErrors());
+                    abortedResponseObject.put("errors", mapErrors(result.getErrors()));
                     abortedResponseObject.put("data", null);
                     // Do not commit. Throw OK response to process tx.close correctly.
                     throw new GraphQLException(mapper.writeValueAsString(abortedResponseObject));
@@ -339,148 +333,73 @@ public class QueryRunner {
                 requestScope.getPermissionExecutor().logCheckStats();
             }
 
-            return ElideResponse.builder().responseCode(HttpStatus.SC_OK).body(mapper.writeValueAsString(result))
-                    .build();
+            return ElideResponse.ok(result);
         } catch (IOException e) {
-            return handleNonRuntimeException(elide, e, graphQLDocument, isVerbose);
+            return handleNonRuntimeException(elide, e, graphQLDocument);
         } catch (RuntimeException e) {
-            return handleRuntimeException(elide, e, isVerbose);
+            return handleRuntimeException(elide, e);
         } finally {
             elide.getTransactionRegistry().removeRunningTransaction(requestId);
             elide.getAuditLogger().clear();
         }
     }
 
-    public static ElideResponse handleNonRuntimeException(
+    /**
+     * Generate more user friendly error messages.
+     *
+     * @param errors the errors to map
+     * @return the mapped errors
+     */
+    private List<GraphQLError> mapErrors(List<GraphQLError> errors) {
+        List<GraphQLError> result = new ArrayList<>(errors.size());
+        for (GraphQLError error : errors) {
+            if (error instanceof ValidationError validationError
+                    && ValidationErrorType.WrongType.equals(validationError.getValidationErrorType())) {
+                if (validationError.getDescription().contains("ElideRelationshipOp")) {
+                    String queryPath = String.join(" ", validationError.getQueryPath());
+                    RelationshipOp relationshipOp = Arrays.stream(RelationshipOp.values())
+                            .filter(op -> validationError.getDescription().contains(op.name()))
+                            .findFirst()
+                            .orElse(null);
+                    if (relationshipOp != null) {
+                        result.add(ValidationError.newValidationError()
+                                .description("Invalid operation: " + relationshipOp.name() + " is not permitted on "
+                                        + queryPath + ".")
+                                .extensions(validationError.getExtensions())
+                                .validationErrorType(validationError.getValidationErrorType())
+                                .sourceLocations(validationError.getLocations())
+                                .queryPath(validationError.getQueryPath())
+                                .build());
+                        continue;
+                    }
+                }
+            }
+            result.add(error);
+        }
+
+        return result;
+    }
+
+    public static ElideResponse<String> handleNonRuntimeException(
             Elide elide,
-            Exception error,
-            String graphQLDocument,
-            boolean isVerbose
+            Exception exception,
+            String graphQLDocument
     ) {
-        CustomErrorException mappedException = elide.mapError(error);
-        ObjectMapper mapper = elide.getMapper().getObjectMapper();
-
-        if (mappedException != null) {
-            return buildErrorResponse(mapper, mappedException, isVerbose);
-        }
-
-        if (error instanceof JsonProcessingException) {
-            log.debug("Invalid json body provided to GraphQL", error);
-            return buildErrorResponse(mapper, new InvalidEntityBodyException(graphQLDocument), isVerbose);
-        }
-
-        if (error instanceof IOException) {
-            log.error("Uncaught IO Exception by Elide in GraphQL", error);
-            return buildErrorResponse(mapper, new TransactionException(error), isVerbose);
-        }
-
-        log.error("Error or exception uncaught by Elide", error);
-        throw new RuntimeException(error);
+        boolean verbose = elide.getElideSettings().isVerboseErrors();
+        ObjectMapper mapper = elide.getObjectMapper();
+        GraphQLErrorContext errorContext = GraphQLErrorContext.builder().verbose(verbose).objectMapper(mapper)
+                .graphQLDocument(graphQLDocument).build();
+        GraphQLExceptionHandler exceptionHandler = elide.getSettings(GraphQLSettings.class)
+                .getGraphqlExceptionHandler();
+        return map(exceptionHandler.handleException(exception, errorContext), mapper);
     }
 
-    public static ElideResponse handleRuntimeException(Elide elide, RuntimeException error, boolean isVerbose) {
-        CustomErrorException mappedException = elide.mapError(error);
-        ObjectMapper mapper = elide.getMapper().getObjectMapper();
-
-        if (mappedException != null) {
-            return buildErrorResponse(mapper, mappedException, isVerbose);
-        }
-
-        if (error instanceof GraphQLException) {
-            GraphQLException e = (GraphQLException) error;
-            log.debug("GraphQLException", e);
-            String body = e.getMessage();
-            return ElideResponse.builder().responseCode(HttpStatus.SC_OK).body(body).build();
-        }
-
-        if (error instanceof HttpStatusException) {
-            HttpStatusException e = (HttpStatusException) error;
-
-            if (e instanceof ForbiddenAccessException) {
-                if (log.isDebugEnabled()) {
-                    log.debug("{}", ((ForbiddenAccessException) e).getLoggedMessage());
-                }
-            } else {
-                log.debug("Caught HTTP status exception {}", e.getStatus(), e);
-            }
-
-            return buildErrorResponse(mapper, new HttpStatusException(200, e.getMessage()) {
-                @Override
-                public int getStatus() {
-                    return 200;
-                }
-
-                @Override
-                public Pair<Integer, JsonNode> getErrorResponse() {
-                    return e.getErrorResponse();
-                }
-
-                @Override
-                public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-                    return e.getVerboseErrorResponse();
-                }
-
-                @Override
-                public String getVerboseMessage() {
-                    return e.getVerboseMessage();
-                }
-
-                @Override
-                public String toString() {
-                    return e.toString();
-                }
-            }, isVerbose);
-        }
-
-        if (error instanceof ConstraintViolationException) {
-            ConstraintViolationException e = (ConstraintViolationException) error;
-            log.debug("Constraint violation exception caught", e);
-            String message = "Constraint violation";
-            final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
-            for (ConstraintViolation<?> constraintViolation : e.getConstraintViolations()) {
-                errorObjectsBuilder.addError()
-                        .withDetail(constraintViolation.getMessage());
-                final String propertyPathString = constraintViolation.getPropertyPath().toString();
-                if (!propertyPathString.isEmpty()) {
-                    Map<String, Object> source = new HashMap<>(1);
-                    source.put("property", propertyPathString);
-                    errorObjectsBuilder.with("source", source);
-                }
-            }
-            return buildErrorResponse(
-                    mapper,
-                    new CustomErrorException(HttpStatus.SC_OK, message, errorObjectsBuilder.build()),
-                    isVerbose
-            );
-        }
-
-        log.error("Error or exception uncaught by Elide", error);
-        throw new RuntimeException(error);
-    }
-
-    public static ElideResponse buildErrorResponse(ObjectMapper mapper, HttpStatusException error, boolean isVerbose) {
-        JsonNode errorNode;
-        if (!(error instanceof CustomErrorException)) {
-            // get the error message and optionally encode it
-            String errorMessage = isVerbose ? error.getVerboseMessage() : error.getMessage();
-            errorMessage = Encode.forHtml(errorMessage);
-            ErrorObjects errors = ErrorObjects.builder().addError()
-                    .with("message", errorMessage).build();
-            errorNode = mapper.convertValue(errors, JsonNode.class);
-        } else {
-            errorNode = isVerbose
-                    ? error.getVerboseErrorResponse().getRight()
-                    : error.getErrorResponse().getRight();
-        }
-        String errorBody;
-        try {
-            errorBody = mapper.writeValueAsString(errorNode);
-        } catch (JsonProcessingException e) {
-            errorBody = errorNode.toString();
-        }
-        return ElideResponse.builder()
-                .responseCode(error.getStatus())
-                .body(errorBody)
-                .build();
+    public static ElideResponse<String> handleRuntimeException(Elide elide, RuntimeException exception) {
+        boolean verbose = elide.getElideSettings().isVerboseErrors();
+        ObjectMapper mapper = elide.getObjectMapper();
+        GraphQLErrorContext errorContext = GraphQLErrorContext.builder().verbose(verbose).objectMapper(mapper).build();
+        GraphQLExceptionHandler exceptionHandler = elide.getSettings(GraphQLSettings.class)
+                .getGraphqlExceptionHandler();
+        return map(exceptionHandler.handleException(exception, errorContext), mapper);
     }
 }

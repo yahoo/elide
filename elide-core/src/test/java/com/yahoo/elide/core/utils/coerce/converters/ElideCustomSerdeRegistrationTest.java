@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -45,10 +44,10 @@ public class ElideCustomSerdeRegistrationTest {
     public void testRegisterCustomSerde() {
 
         //Create a fake Elide.  Don't actually bind any entities.
-        HashMapDataStore wrapped = new HashMapDataStore(DefaultClassScanner.getInstance(), String.class.getPackage());
+        HashMapDataStore wrapped = new HashMapDataStore(new DefaultClassScanner(), String.class.getPackage());
         InMemoryDataStore store = new InMemoryDataStore(wrapped);
-        ElideSettings elideSettings = new ElideSettingsBuilder(store)
-                .withEntityDictionary(EntityDictionary.builder().build()).build();
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(store)
+                .entityDictionary(EntityDictionary.builder().build()).build();
         Elide elide = new Elide(elideSettings);
         elide.doScans();
         assertNotNull(CoerceUtil.lookup(Dummy.class));

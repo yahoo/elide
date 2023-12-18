@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -22,11 +21,14 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -60,15 +62,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -122,11 +125,14 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected static ElideSettings initSettings() {
-        return new ElideSettingsBuilder(null)
-                .withEntityDictionary(initDictionary())
-                .withAuditLogger(MOCK_AUDIT_LOGGER)
-                .withDefaultMaxPageSize(10)
-                .withDefaultPageSize(10)
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder();
+        return ElideSettings.builder().dataStore(null)
+                .entityDictionary(initDictionary())
+                .auditLogger(MOCK_AUDIT_LOGGER)
+                .maxPageSize(10)
+                .defaultPageSize(10)
+                .settings(jsonApiSettings)
+                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
                 .build();
     }
 
@@ -134,10 +140,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         super(
                 new Child(),
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
-                new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(),
-                        initSettings()
-                )
-        );
+                RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                        .requestId(UUID.randomUUID()).elideSettings(initSettings()).build());
 
         elideSettings = initSettings();
     }
@@ -157,11 +161,13 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected RequestScope buildRequestScope(DataStoreTransaction tx, User user) {
-        return buildRequestScope(null, tx, user, null);
+        return buildRequestScope("", tx, user, new LinkedHashMap<>());
     }
 
-    protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, MultivaluedMap<String, String> queryParams) {
-        return new RequestScope(null, path, NO_VERSION, null, tx, user, queryParams, null, UUID.randomUUID(), elideSettings);
+    protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, Map<String, List<String>> queryParams) {
+        Route route = Route.builder().path(path).apiVersion(NO_VERSION).parameters(queryParams).build();
+        return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(UUID.randomUUID())
+                .jsonApiDocument(new JsonApiDocument()).elideSettings(elideSettings).build();
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
@@ -170,16 +176,19 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         User goodUser = new TestUser("1");
-        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        RequestScope requestScope = RequestScope.builder().route(route)
+                .dataStoreTransaction(tx).user(goodUser).requestId(UUID.randomUUID()).elideSettings(elideSettings)
+                .build();
         return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
-        return new RequestScope(null, null, NO_VERSION, new JsonApiDocument(), null, user, null, null, UUID.randomUUID(),
-                new ElideSettingsBuilder(null)
-                    .withEntityDictionary(dictionary)
-                    .withAuditLogger(auditLogger)
-                    .build());
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null).entityDictionary(dictionary)
+                .auditLogger(auditLogger).settings(JsonApiSettings.builder()).build();
+        return JsonApiRequestScope.builder().route(route).user(user).requestId(UUID.randomUUID())
+                .jsonApiDocument(new JsonApiDocument()).elideSettings(elideSettings).build();
     }
 
     // Testing constructor, setId and non-null empty sets

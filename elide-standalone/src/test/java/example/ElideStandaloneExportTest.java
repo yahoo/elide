@@ -5,7 +5,6 @@
  */
 package example;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -21,6 +20,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
@@ -137,8 +137,8 @@ public class ElideStandaloneExportTest {
     public void testExportDynamicModel() throws InterruptedException {
         // Load Test data in Post Table
         given()
-        .contentType(JSONAPI_CONTENT_TYPE)
-        .accept(JSONAPI_CONTENT_TYPE)
+        .contentType(JsonApi.MEDIA_TYPE)
+        .accept(JsonApi.MEDIA_TYPE)
         .body(
             datum(
                 resource(
@@ -151,14 +151,14 @@ public class ElideStandaloneExportTest {
                 )
             )
         )
-        .post("/api/v1/post")
+        .post("/api/post")
         .then()
 
         .statusCode(HttpStatus.SC_CREATED);
 
         //Create Table Export
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -174,7 +174,7 @@ public class ElideStandaloneExportTest {
                                 )
                         ).toJSON())
                 .when()
-                .post("/api/v1/tableExport")
+                .post("/api/tableExport")
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
@@ -183,7 +183,7 @@ public class ElideStandaloneExportTest {
             Thread.sleep(10);
             Response response = given()
                     .accept("application/vnd.api+json")
-                    .get("/api/v1/tableExport/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d");
+                    .get("/api/tableExport/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d");
             String outputResponse = response.jsonPath().getString("data.attributes.status");
              //If Async Query is created and completed then validate results
             if (outputResponse.equals("COMPLETE")) {
@@ -207,7 +207,7 @@ public class ElideStandaloneExportTest {
                                 + "{ edges { node { id queryType status resultType result "
                                 + "{ url httpStatus recordCount } } } } }\","
                                 + "\"variables\":null }")
-                        .post("/graphql/api/v1")
+                        .post("/graphql/api")
                         .asString();
                 String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9265d\","
                         + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"CSV\","
@@ -229,7 +229,7 @@ public class ElideStandaloneExportTest {
         given()
                .accept(ContentType.JSON)
                .when()
-               .get("/api-docs/doc/test")
+               .get("/api-docs")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "argument", "metric",

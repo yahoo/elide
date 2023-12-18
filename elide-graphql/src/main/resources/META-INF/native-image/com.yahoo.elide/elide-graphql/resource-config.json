@@ -1,0 +1,12 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "definitions_fed.*graphqls$"
+      },
+      {
+        "pattern": "reports.proto"
+      }
+    ]
+  }
+}

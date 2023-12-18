@@ -12,10 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.TestUser;
 import com.google.common.collect.Sets;
 import example.Child;
@@ -51,13 +52,12 @@ public class LogMessageImplTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null,
-                new TestUser("aaron"), null, null,
-                UUID.randomUUID(),
-                new ElideSettingsBuilder(null)
-                        .withAuditLogger(new TestAuditLogger())
-                        .withEntityDictionary(dictionary)
-                        .build());
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        ElideSettings elideSettings = ElideSettings.builder().dataStore(null).auditLogger(new TestAuditLogger())
+                .entityDictionary(dictionary).build();
+
+        final RequestScope requestScope = RequestScope.builder().route(route).user(new TestUser("aaron"))
+                .requestId(UUID.randomUUID()).elideSettings(elideSettings).build();
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope.getUUIDFor(parent), requestScope);
         childRecord = new PersistentResource<>(child, parentRecord, "children", requestScope.getUUIDFor(child), requestScope);

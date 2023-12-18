@@ -5,7 +5,6 @@
  */
 package example.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -18,13 +17,14 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import io.restassured.response.Response;
-import jakarta.ws.rs.core.MediaType;
 
 /**
  * Executes Async tests with Aggregation Store disabled.
@@ -48,7 +48,7 @@ public class DisableAggStoreAsyncTest extends IntegrationTest {
     public void testAsyncApiFunctionDisabledAggStore() throws InterruptedException {
         //Create Async Request
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
                 .body(
                         data(
                                 resource(
@@ -95,8 +95,8 @@ public class DisableAggStoreAsyncTest extends IntegrationTest {
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
                                 + "{ edges { node { id queryType status result "
                                 + "{ responseBody httpStatus contentLength } } } } }\","

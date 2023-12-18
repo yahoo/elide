@@ -7,14 +7,15 @@ package com.yahoo.elide.async.hooks;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
+import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
-import com.yahoo.elide.async.models.AsyncAPI;
-import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.AsyncApi;
+import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.operation.GraphQLTableExportOperation;
-import com.yahoo.elide.async.operation.JSONAPITableExportOperation;
+import com.yahoo.elide.async.operation.JsonApiTableExportOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -32,7 +33,7 @@ import java.util.concurrent.Callable;
  * LifeCycle Hook for execution of TableExport.
  */
 @EqualsAndHashCode(callSuper = true)
-public class TableExportHook extends AsyncAPIHook<TableExport> {
+public class TableExportHook extends AsyncApiHook<TableExport> {
     private final Map<ResultType, TableExportFormatter> supportedFormatters;
     private final ResultStorageEngine engine;
 
@@ -46,18 +47,22 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
     @Override
     public void execute(Operation operation, TransactionPhase phase, TableExport export, RequestScope requestScope,
             Optional<ChangeSpec> changes) {
-        Callable<AsyncAPIResult> callable = getOperation(export, requestScope);
+        Callable<AsyncApiResult> callable = getOperation(export, requestScope);
         executeHook(operation, phase, export, requestScope, callable);
     }
 
     @Override
-    public void validateOptions(AsyncAPI export, RequestScope requestScope) {
+    public void validateOptions(AsyncApi export, RequestScope requestScope) {
+        AsyncSettings asyncSettings = requestScope.getElideSettings().getSettings(AsyncSettings.class);
+        if (!asyncSettings.getExport().isEnabled()) {
+            throw new InvalidOperationException("TableExport is not supported.");
+        }
         super.validateOptions(export, requestScope);
     }
 
     @Override
-    public Callable<AsyncAPIResult> getOperation(AsyncAPI export, RequestScope requestScope) {
-        Callable<AsyncAPIResult> operation = null;
+    public Callable<AsyncApiResult> getOperation(AsyncApi export, RequestScope requestScope) {
+        Callable<AsyncApiResult> operation = null;
         TableExport exportObj = (TableExport) export;
         ResultType resultType = exportObj.getResultType();
         QueryType queryType = exportObj.getQueryType();
@@ -72,7 +77,7 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
         if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
             operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine);
         } else if (queryType.equals(QueryType.JSONAPI_V1_0)) {
-            operation = new JSONAPITableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine);
+            operation = new JsonApiTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine);
         } else {
             throw new InvalidOperationException(queryType + "is not supported");
         }

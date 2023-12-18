@@ -73,30 +73,55 @@ public class JsonApiModelResolver extends ModelResolver {
         }
 
         /* Not an entity managed by Elide, let Swagger convert it */
-        String typeAlias;
-        try {
-            typeAlias = dictionary.getJsonAliasFor(clazzType);
-        } catch (IllegalArgumentException e) {
+        if (!dictionary.hasBinding(clazzType)
+                || !dictionary.getEntityBinding(clazzType).isElideModel()) {
             return super.resolve(annotatedType, context, next);
         }
 
+        return getEntitySchema(clazzType, context, next);
+    }
+
+    private Resource getEntitySchema(final Type<?> clazzType,
+                                     final ModelConverterContext context,
+                                     final Iterator<ModelConverter> next) {
         Resource entitySchema = new Resource();
+        entitySchema.name(dictionary.getJsonAliasFor(clazzType));
         entitySchema.description(getSchemaDescription(clazzType));
         entitySchema.setSecurityDescription(getClassPermissions(clazzType));
 
-        /* Populate the attributes */
+        Include include = getInclude(clazzType);
+        if (include != null && !StringUtils.isBlank(include.friendlyName())) {
+            entitySchema.setTitle(include.friendlyName());
+        }
+        io.swagger.v3.oas.annotations.media.Schema schema = getSchema(clazzType);
+        if (schema != null && !StringUtils.isBlank(schema.title())) {
+            entitySchema.setTitle(schema.title());
+        }
+
+        /* Populate */
+        populateAttributes(entitySchema, clazzType, context, next);
+        populateRelationships(entitySchema, clazzType);
+
+        return entitySchema;
+    }
+    private void populateAttributes(final Resource entitySchema, final Type<?> clazzType,
+                                    final ModelConverterContext context,
+                                    final Iterator<ModelConverter> next) {
         List<String> requiredAttributes = new ArrayList<>();
         List<String> attributeNames = dictionary.getAttributes(clazzType);
         for (String attributeName : attributeNames) {
             Type<?> attributeType = dictionary.getType(clazzType, attributeName);
 
             Schema<?> attribute = processAttribute(clazzType, attributeName, attributeType,
-                            context, next, requiredAttributes);
+                    context, next, requiredAttributes);
             entitySchema.addAttribute(attributeName, attribute);
         }
-        entitySchema.getAttributes().required(requiredAttributes);
+        if (!requiredAttributes.isEmpty()) {
+            entitySchema.getAttributes().required(requiredAttributes);
+        }
+    }
 
-        /* Populate the relationships */
+    private void populateRelationships(final Resource entitySchema, final Type<?> clazzType) {
         List<String> requiredRelationships = new ArrayList<>();
         List<String> relationshipNames = dictionary.getRelationships(clazzType);
         for (String relationshipName : relationshipNames) {
@@ -110,9 +135,11 @@ public class JsonApiModelResolver extends ModelResolver {
                 entitySchema.addRelationship(relationshipName, relationship);
             }
         }
-        entitySchema.getRelationships().required(requiredRelationships);
+        if (!requiredRelationships.isEmpty()) {
+            entitySchema.getRelationships().required(requiredRelationships);
+        }
 
-        entitySchema.name(typeAlias);
+        entitySchema.name(getSchemaName(clazzType));
 
         Include include = getInclude(clazzType);
         if (include != null) {
@@ -126,7 +153,15 @@ public class JsonApiModelResolver extends ModelResolver {
                 entitySchema.setTitle(schema.title());
             }
         }
-        return entitySchema;
+    }
+
+    protected String getSchemaName(Type<?> type) {
+        String schemaName = dictionary.getJsonAliasFor(type);
+        String apiVersion = EntityDictionary.getModelVersion(type);
+        if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+            schemaName = "v" + apiVersion + "_" + schemaName;
+        }
+        return schemaName;
     }
 
     @SuppressWarnings("rawtypes")

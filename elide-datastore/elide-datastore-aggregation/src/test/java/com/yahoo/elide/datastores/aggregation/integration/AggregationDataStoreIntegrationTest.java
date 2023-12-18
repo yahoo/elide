@@ -9,7 +9,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
@@ -21,7 +21,10 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.model.DBConfig;
@@ -62,7 +65,7 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
     public static HikariConfig config = new HikariConfig("/" + "jpah2db.properties");
 
     static {
-        VALIDATOR = new DynamicConfigValidator(DefaultClassScanner.getInstance(), "src/test/resources/configs");
+        VALIDATOR = new DynamicConfigValidator(new DefaultClassScanner(), "src/test/resources/configs");
 
         try {
             VALIDATOR.readAndValidateConfigs();
@@ -85,11 +88,14 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
                         dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
                     );
 
-                    Elide elide = new Elide(new ElideSettingsBuilder(getDataStore())
-                                    .withEntityDictionary(dictionary)
-                                    .withAuditLogger(new TestAuditLogger())
-                                    .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
-                                    .build());
+                    JsonApiMapper jsonApiMapper = new JsonApiMapper();
+                    Elide elide = new Elide(ElideSettings.builder().dataStore(getDataStore())
+                            .objectMapper(jsonApiMapper.getObjectMapper())
+                            .entityDictionary(dictionary).auditLogger(new TestAuditLogger()).serdes(serdes -> serdes
+                                    .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
+                            .settings(GraphQLSettingsBuilder.withDefaults(dictionary))
+                            .settings(JsonApiSettingsBuilder.withDefaults(dictionary).jsonApiMapper(jsonApiMapper))
+                            .build());
 
                     elide.doScans();
                     bind(elide).to(Elide.class).named("elide");

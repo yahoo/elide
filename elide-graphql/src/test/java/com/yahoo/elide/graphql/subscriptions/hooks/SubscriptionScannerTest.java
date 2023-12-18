@@ -26,12 +26,12 @@ public class SubscriptionScannerTest {
     @Test
     public void testLifeCycleHookBindings() {
         ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
-        ClassScanner classScanner = DefaultClassScanner.getInstance();
+        ClassScanner classScanner = new DefaultClassScanner();
         EntityDictionary dictionary = EntityDictionary.builder().scanner(classScanner).build();
 
         SubscriptionScanner subscriptionScanner = SubscriptionScanner.builder()
                 .connectionFactory(connectionFactory)
-                .dictionary(dictionary)
+                .entityDictionary(dictionary)
                 .scanner(classScanner)
                 .build();
 

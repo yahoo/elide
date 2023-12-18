@@ -12,27 +12,25 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
-import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
+import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
+import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
-import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -129,16 +127,16 @@ public class ElideResourceConfig extends ResourceConfig {
             }
 
             ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore,
-                    settings.getObjectMapper());
+                    settings.getJsonApiMapper());
             Elide elide = new Elide(elideSettings, new TransactionRegistry(),
-                    elideSettings.getDictionary().getScanner(), false);
+                    elideSettings.getEntityDictionary().getScanner(), false);
 
             // Bind elide instance for injection into endpoint
             bind(elide).to(Elide.class).named("elide");
 
             // Bind additional elements
             bind(elideSettings).to(ElideSettings.class);
-            bind(elideSettings.getDictionary()).to(EntityDictionary.class);
+            bind(elideSettings.getEntityDictionary()).to(EntityDictionary.class);
             bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
 
             // Binding async service
@@ -152,15 +150,15 @@ public class ElideResourceConfig extends ResourceConfig {
                 Elide elide,
                 EntityDictionary dictionary
         ) {
-            AsyncAPIDAO asyncAPIDao = asyncProperties.getAPIDAO();
-            if (asyncAPIDao == null) {
-                asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
+            AsyncApiDao asyncApiDao = asyncProperties.getAsyncApiDao();
+            if (asyncApiDao == null) {
+                asyncApiDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
             }
-            bind(asyncAPIDao).to(AsyncAPIDAO.class);
+            bind(asyncApiDao).to(AsyncApiDao.class);
 
             ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
             ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
-            AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncAPIDao,
+            AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncApiDao,
                     Optional.of(settings.getDataFetcherExceptionHandler()));
             bind(asyncExecutorService).to(AsyncExecutorService.class);
 
@@ -179,9 +177,9 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 // Initialize the Formatters.
                 Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-                supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide,
+                supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide,
                         asyncProperties.csvWriteHeader()));
-                supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+                supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
 
                 // Binding TableExport LifeCycleHook
                 TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
@@ -203,7 +201,7 @@ public class ElideResourceConfig extends ResourceConfig {
             if (asyncProperties.enableCleanup()) {
                 AsyncCleanerService.init(elide, asyncProperties.getQueryMaxRunTime(),
                         asyncProperties.getQueryRetentionDuration(),
-                        asyncProperties.getQueryCancellationCheckInterval(), asyncAPIDao);
+                        asyncProperties.getQueryCancellationCheckInterval(), asyncApiDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         }
@@ -233,6 +231,9 @@ public class ElideResourceConfig extends ResourceConfig {
                         asyncProperties.enabled())).to(Set.class).named("elideAllModels");
                 bind(settings.getDataFetcherExceptionHandler()).to(DataFetcherExceptionHandler.class)
                         .named("dataFetcherExceptionHandler");
+                if (settings.getRouteResolver() != null) {
+                    bind(settings.getRouteResolver()).to(RouteResolver.class).named("routeResolver");
+                }
             }
         });
 
@@ -264,7 +265,7 @@ public class ElideResourceConfig extends ResourceConfig {
                             settings.getSubscriptionProperties().getConnectionFactory());
                 }
 
-                EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+                EntityDictionary dictionary = elide.getElideSettings().getEntityDictionary();
 
                 if (settings.enableApiDocs()) {
                     List<ApiDocsEndpoint.ApiDocsRegistration> apiDocs = settings.buildApiDocs(dictionary);
@@ -311,26 +312,10 @@ public class ElideResourceConfig extends ResourceConfig {
         return healthCheckRegistry;
     }
 
-    // TODO Remove this method when ElideSettings has all the settings.
-    // Then the check can be done in TableExportHook.
-    // Trying to avoid adding too many individual properties to ElideSettings for now.
-    // https://github.com/yahoo/elide/issues/1803
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideStandaloneAsyncSettings asyncProperties, Map<ResultType, TableExportFormatter> supportedFormatters,
             ResultStorageEngine engine) {
-        TableExportHook tableExportHook = null;
-        if (asyncProperties.enableExport()) {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
+        return new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
                     supportedFormatters, engine);
-        } else {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
-                    supportedFormatters, engine) {
-                @Override
-                public void validateOptions(AsyncAPI export, RequestScope requestScope) {
-                    throw new InvalidOperationException("TableExport is not supported.");
-                }
-            };
-        }
-        return tableExportHook;
     }
 }

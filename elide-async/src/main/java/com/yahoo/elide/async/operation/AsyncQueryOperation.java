@@ -6,8 +6,8 @@
 package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.async.models.AsyncAPI;
-import com.yahoo.elide.async.models.AsyncAPIResult;
+import com.yahoo.elide.async.models.AsyncApi;
+import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -26,30 +26,30 @@ import java.util.concurrent.Callable;
  * AsyncQuery Execute Operation Interface.
  */
 @Slf4j
-public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
+public abstract class AsyncQueryOperation implements Callable<AsyncApiResult> {
     @Getter private AsyncExecutorService service;
     private AsyncQuery queryObj;
     private RequestScope scope;
 
-    public AsyncQueryOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
+    public AsyncQueryOperation(AsyncExecutorService service, AsyncApi queryObj, RequestScope scope) {
         this.service = service;
         this.queryObj = (AsyncQuery) queryObj;
         this.scope = scope;
     }
 
     @Override
-    public AsyncAPIResult call() throws URISyntaxException {
-        ElideResponse response = null;
+    public AsyncApiResult call() throws URISyntaxException {
+        ElideResponse<String> response = null;
         log.debug("AsyncQuery Object from request: {}", queryObj);
         response = execute(queryObj, scope);
         nullResponseCheck(response);
 
         AsyncQueryResult queryResult = new AsyncQueryResult();
-        queryResult.setHttpStatus(response.getResponseCode());
+        queryResult.setHttpStatus(response.getStatus());
         queryResult.setCompletedOn(new Date());
         queryResult.setResponseBody(response.getBody());
         queryResult.setContentLength(response.getBody().length());
-        if (response.getResponseCode() == 200) {
+        if (response.getStatus() == 200) {
             queryResult.setRecordCount(calculateRecordCount(queryObj, response));
         }
         return queryResult;
@@ -57,18 +57,18 @@ public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
 
     /**
      * Calculate Record Count in the response.
-     * @param queryObj AsyncAPI type object.
+     * @param queryObj AsyncApi type object.
      * @param response ElideResponse object.
      * @return Integer record count
      */
-    public abstract Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse response);
+    public abstract Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse<String> response);
 
     /**
      * Check if Elide Response is NULL.
      * @param response ElideResponse object.
      * @throws IllegalStateException IllegalStateException Exception.
      */
-    public void nullResponseCheck(ElideResponse response) {
+    public void nullResponseCheck(ElideResponse<String> response) {
         if (response == null) {
             throw new IllegalStateException("No Response for request returned");
         }
@@ -76,12 +76,12 @@ public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
 
     /**
      * Execute the Async Query Request.
-     * @param queryObj AsyncAPI type object.
+     * @param queryObj AsyncApi type object.
      * @param scope RequestScope.
      * @return response ElideResponse object.
      * @throws URISyntaxException URISyntaxException Exception.
      */
-    public abstract ElideResponse execute(AsyncAPI queryObj, RequestScope scope)  throws URISyntaxException;
+    public abstract ElideResponse<String> execute(AsyncApi queryObj, RequestScope scope)  throws URISyntaxException;
 
     /**
      * Safe method of extracting 'foo.bar.length()' expressions from com.jayway.jsonpath.  This protects

@@ -8,6 +8,7 @@ package com.yahoo.elide.jsonapi.models;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +43,27 @@ class OperationTest {
                 }
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
+        Operation operation = objectMapper.readValue(json, Operation.class);
+        assertEquals(Operation.OperationCode.UPDATE, operation.getOperationCode());
+        Resource resource = objectMapper.treeToValue(operation.getData(), Resource.class);
+        assertEquals("articles", resource.getType());
+    }
+
+    @Test
+    void readSingleReadEnumsUsingToString() throws JsonProcessingException {
+        String json = """
+                {
+                  "op": "update",
+                  "data": {
+                    "type": "articles",
+                    "id": "13",
+                    "attributes": {
+                      "title": "To TDD or Not"
+                    }
+                  }
+                }
+                """;
+        ObjectMapper objectMapper = new ObjectMapper().enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
         Operation operation = objectMapper.readValue(json, Operation.class);
         assertEquals(Operation.OperationCode.UPDATE, operation.getOperationCode());
         Resource resource = objectMapper.treeToValue(operation.getData(), Resource.class);

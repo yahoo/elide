@@ -1847,7 +1847,7 @@ public class NoCacheAggregationDataStoreIntegrationTest extends AggregationDataS
     }
 
     /**
-     * Check if AggregationBeforeJoinOptimizer works with alias
+     * Check if AggregationBeforeJoinOptimizer works with alias.
      * @throws Exception
      */
     @Test
@@ -2137,7 +2137,7 @@ public class NoCacheAggregationDataStoreIntegrationTest extends AggregationDataS
                 )
         ).toGraphQLSpec();
 
-        String expected = "Invalid operation: SalesNamespace_orderDetails is read only.";
+        String expected = "Invalid operation: UPSERT is not permitted on SalesNamespace_orderDetails.";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }

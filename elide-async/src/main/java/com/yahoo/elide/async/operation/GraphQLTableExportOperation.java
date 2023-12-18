@@ -8,13 +8,14 @@ package com.yahoo.elide.async.operation;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.export.validator.NoRelationshipsProjectionValidator;
-import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -39,7 +40,7 @@ import java.util.UUID;
 public class GraphQLTableExportOperation extends TableExportOperation {
 
     public GraphQLTableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncAPI export, RequestScope scope, ResultStorageEngine engine) {
+            AsyncApi export, RequestScope scope, ResultStorageEngine engine) {
         super(formatter, service, export, scope, engine,
                         Arrays.asList(new NoRelationshipsProjectionValidator()));
     }
@@ -49,9 +50,10 @@ public class GraphQLTableExportOperation extends TableExportOperation {
             Map<String, List<String>> additionalRequestHeaders) {
         UUID requestId = UUID.fromString(export.getRequestId());
         User user = scope.getUser();
-        String apiVersion = scope.getApiVersion();
-        return new GraphQLRequestScope("", tx, user, apiVersion, getService().getElide().getElideSettings(),
-                null, requestId, additionalRequestHeaders);
+        String apiVersion = scope.getRoute().getApiVersion();
+        Route route = Route.builder().baseUrl("").apiVersion(apiVersion).headers(additionalRequestHeaders).build();
+        return GraphQLRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(requestId)
+                .elideSettings(getService().getElide().getElideSettings()).build();
     }
 
     @Override
@@ -60,14 +62,14 @@ public class GraphQLTableExportOperation extends TableExportOperation {
         try {
             String graphQLDocument = export.getQuery();
             Elide elide = getService().getElide();
-            ObjectMapper mapper = elide.getMapper().getObjectMapper();
+            ObjectMapper mapper = elide.getObjectMapper();
 
             JsonNode node = QueryRunner.getTopLevelNode(mapper, graphQLDocument);
             Map<String, Object> variables = QueryRunner.extractVariables(mapper, node);
             String queryString = QueryRunner.extractQuery(node);
 
             projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
-                            scope.getApiVersion()).make(queryString);
+                            scope.getRoute().getApiVersion()).make(queryString);
 
         } catch (IOException e) {
             throw new IllegalStateException(e);

@@ -17,7 +17,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -80,8 +79,8 @@ public class InMemoryStoreTransactionTest {
         dictionary.bindEntity(Editor.class);
         dictionary.bindEntity(Publisher.class);
 
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(EntityDictionary.builder().build())
+        elideSettings = ElideSettings.builder().dataStore(null)
+                .entityDictionary(EntityDictionary.builder().build())
                 .build();
 
         author1 = new Author();
@@ -564,7 +563,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testInMemoryDataStore() {
-        HashMapDataStore wrapped = new HashMapDataStore(DefaultClassScanner.getInstance(), Book.class.getPackage());
+        HashMapDataStore wrapped = new HashMapDataStore(new DefaultClassScanner(), Book.class.getPackage());
         InMemoryDataStore store = new InMemoryDataStore(wrapped);
         DataStoreTransaction tx = store.beginReadTransaction();
         assertEquals(InMemoryStoreTransaction.class, tx.getClass());

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.jsonapi.parser.state;
 
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
@@ -14,6 +13,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionC
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -27,9 +27,9 @@ import java.util.function.Supplier;
 @Slf4j
 public class StateContext {
     private BaseState currentState;
-    private final RequestScope requestScope;
+    private final JsonApiRequestScope requestScope;
 
-    public StateContext(BaseState initialState, RequestScope requestScope) {
+    public StateContext(BaseState initialState, JsonApiRequestScope requestScope) {
         currentState = initialState;
         this.requestScope = requestScope;
     }
@@ -39,7 +39,7 @@ public class StateContext {
         return requestScope.getJsonApiDocument();
     }
 
-    public RequestScope getRequestScope() {
+    public JsonApiRequestScope getRequestScope() {
         return requestScope;
     }
 

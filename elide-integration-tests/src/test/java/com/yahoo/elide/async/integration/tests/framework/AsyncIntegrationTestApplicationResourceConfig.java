@@ -13,9 +13,11 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
-import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
+import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
+import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
@@ -23,12 +25,12 @@ import com.yahoo.elide.async.integration.tests.AsyncIT;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
-import com.yahoo.elide.async.models.security.AsyncAPIInlineChecks;
+import com.yahoo.elide.async.models.security.AsyncApiInlineChecks;
 import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.audit.InMemoryLogger;
@@ -37,6 +39,9 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
+
 import example.TestCheckMappings;
 import example.models.triggers.Invoice;
 import example.models.triggers.InvoiceCompletionHook;
@@ -71,14 +76,14 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
     private static Map<String, Class<? extends Check>> defineMappings() {
         Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
-        map.put(AsyncAPIInlineChecks.AsyncAPIOwner.PRINCIPAL_IS_OWNER,
-                        AsyncAPIInlineChecks.AsyncAPIOwner.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIAdmin.PRINCIPAL_IS_ADMIN,
-                        AsyncAPIInlineChecks.AsyncAPIAdmin.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIStatusValue.VALUE_IS_CANCELLED,
-                        AsyncAPIInlineChecks.AsyncAPIStatusValue.class);
-        map.put(AsyncAPIInlineChecks.AsyncAPIStatusQueuedValue.VALUE_IS_QUEUED,
-                        AsyncAPIInlineChecks.AsyncAPIStatusQueuedValue.class);
+        map.put(AsyncApiInlineChecks.AsyncApiOwner.PRINCIPAL_IS_OWNER,
+                        AsyncApiInlineChecks.AsyncApiOwner.class);
+        map.put(AsyncApiInlineChecks.AsyncApiAdmin.PRINCIPAL_IS_ADMIN,
+                        AsyncApiInlineChecks.AsyncApiAdmin.class);
+        map.put(AsyncApiInlineChecks.AsyncApiStatusValue.VALUE_IS_CANCELLED,
+                        AsyncApiInlineChecks.AsyncApiStatusValue.class);
+        map.put(AsyncApiInlineChecks.AsyncApiStatusQueuedValue.VALUE_IS_QUEUED,
+                        AsyncApiInlineChecks.AsyncApiStatusQueuedValue.class);
         return Collections.unmodifiableMap(map);
     }
 
@@ -101,20 +106,27 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                Elide elide = new Elide(new ElideSettingsBuilder(AsyncIT.getDataStore())
-                        .withAuditLogger(LOGGER)
-                        .withJoinFilterDialect(multipleFilterStrategy)
-                        .withSubqueryFilterDialect(multipleFilterStrategy)
-                        .withEntityDictionary(dictionary)
-                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
-                        .withExportApiPath("/export")
+                JsonApiSettingsBuilder jsonApiSettings = JsonApiSettingsBuilder.withDefaults(dictionary).joinFilterDialect(multipleFilterStrategy)
+                        .subqueryFilterDialect(multipleFilterStrategy);
+
+                GraphQLSettingsBuilder graphqlSettings = GraphQLSettingsBuilder.withDefaults(dictionary).path("/graphQL");
+
+                AsyncSettingsBuilder asyncSettings = AsyncSettings.builder().export(export -> export.enabled(true).path("/export"));
+
+                Elide elide = new Elide(ElideSettings.builder().dataStore(AsyncIT.getDataStore())
+                        .auditLogger(LOGGER)
+                        .entityDictionary(dictionary)
+                        .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
+                        .settings(jsonApiSettings)
+                        .settings(graphqlSettings)
+                        .settings(asyncSettings)
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
                 elide.doScans();
 
-                AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
-                bind(asyncAPIDao).to(AsyncAPIDAO.class);
+                AsyncApiDao asyncAPIDao = new DefaultAsyncApiDao(elide.getElideSettings(), elide.getDataStore());
+                bind(asyncAPIDao).to(AsyncApiDao.class);
 
                 ExecutorService executorService = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
@@ -127,8 +139,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                     bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
                     Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, true));
-                    supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+                    supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide, true));
+                    supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
 
                     // Binding TableExport LifeCycleHook
                     TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, Duration.ofSeconds(10L),

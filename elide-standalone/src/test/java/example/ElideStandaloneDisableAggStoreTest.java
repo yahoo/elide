@@ -5,7 +5,6 @@
  */
 package example;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
@@ -15,6 +14,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 
@@ -66,7 +66,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
         given()
                 .accept(ContentType.JSON)
                 .when()
-                .get("/api-docs/doc/test")
+                .get("/api-docs")
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "asyncQuery"));
@@ -76,8 +76,8 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
     @Test
     public void testJsonAPIPost() {
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                     datum(
                         resource(
@@ -90,7 +90,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
                         )
                     )
                 )
-                .post("/api/v1/post")
+                .post("/api/post")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
     }
@@ -100,7 +100,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
     public void metaDataTest() {
         given()
                 .accept("application/vnd.api+json")
-                .get("/api/v1/namespace/default") //"default" namespace added by Agg Store.
+                .get("/api/namespace/default") //"default" namespace added by Agg Store.
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND); // Metadatastore is disabled, so not found.
     }

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
@@ -20,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,8 +88,8 @@ public class BookAuthorIT extends IntegrationTest {
 
         // Create Author: Ernest Hemingway
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(HEMINGWAY).toJSON()
                 )
@@ -99,8 +99,8 @@ public class BookAuthorIT extends IntegrationTest {
 
         // Create Book: The Old Man and the Sea
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(THE_OLD_MAN_AND_THE_SEA).toJSON()
                 )
@@ -110,8 +110,8 @@ public class BookAuthorIT extends IntegrationTest {
 
         // Create Relationship: Ernest Hemingway -> The Old Man and the Sea
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(HEMINGWAY_RELATIONSHIP).toJSON()
                 )
@@ -121,8 +121,8 @@ public class BookAuthorIT extends IntegrationTest {
 
         // Create Author: Orson Scott Card
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(ORSON_SCOTT_CARD).toJSON()
                 )
@@ -132,8 +132,8 @@ public class BookAuthorIT extends IntegrationTest {
 
         // Create Book: Ender's Game
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(ENDERS_GAME).toJSON()
                 )
@@ -143,8 +143,8 @@ public class BookAuthorIT extends IntegrationTest {
 
         // Create Relationship: Orson Scott Card -> Ender's Game
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(ORSON_RELATIONSHIP).toJSON()
                 )
@@ -154,8 +154,8 @@ public class BookAuthorIT extends IntegrationTest {
 
         // Create Book: For Whom the Bell Tolls
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(FOR_WHOM_THE_BELL_TOLLS).toJSON()
                 )
@@ -165,8 +165,8 @@ public class BookAuthorIT extends IntegrationTest {
 
         // Create Relationship: Ernest Hemingway -> For Whom the Bell Tolls
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
                 .body(
                         datum(HEMINGWAY_RELATIONSHIP).toJSON()
                 )
@@ -179,8 +179,8 @@ public class BookAuthorIT extends IntegrationTest {
     public void testSparseSingleDataFieldValue() throws Exception {
         JsonNode responseBody = mapper.readTree(
                 given()
-                        .contentType(JSONAPI_CONTENT_TYPE)
-                        .accept(JSONAPI_CONTENT_TYPE)
+                        .contentType(JsonApi.MEDIA_TYPE)
+                        .accept(JsonApi.MEDIA_TYPE)
                         .param("include", "authors")
                         .param("fields[book]", "title")
                         .get("/book")
@@ -211,8 +211,8 @@ public class BookAuthorIT extends IntegrationTest {
     public void testSparseTwoDataFieldValuesNoIncludes() throws Exception {
         JsonNode responseBody = mapper.readTree(
                 given()
-                        .contentType(JSONAPI_CONTENT_TYPE)
-                        .accept(JSONAPI_CONTENT_TYPE)
+                        .contentType(JsonApi.MEDIA_TYPE)
+                        .accept(JsonApi.MEDIA_TYPE)
                         .param("fields[book]", "title,language")
                         .get("/book")
                         .then()
@@ -238,8 +238,8 @@ public class BookAuthorIT extends IntegrationTest {
     public void testSparseNoFilters() throws Exception {
         JsonNode responseBody = mapper.readTree(
                 given()
-                        .contentType(JSONAPI_CONTENT_TYPE)
-                        .accept(JSONAPI_CONTENT_TYPE)
+                        .contentType(JsonApi.MEDIA_TYPE)
+                        .accept(JsonApi.MEDIA_TYPE)
                         .param("include", "authors")
                         .get("/book")
                         .then()
@@ -277,8 +277,8 @@ public class BookAuthorIT extends IntegrationTest {
     public void testTwoSparseFieldFilters() throws Exception {
         JsonNode responseBody = mapper.readTree(
                 given()
-                        .contentType(JSONAPI_CONTENT_TYPE)
-                        .accept(JSONAPI_CONTENT_TYPE)
+                        .contentType(JsonApi.MEDIA_TYPE)
+                        .accept(JsonApi.MEDIA_TYPE)
                         .param("include", "authors")
                         .param("fields[book]", "title,genre,authors")
                         .param("fields[author]", "name")

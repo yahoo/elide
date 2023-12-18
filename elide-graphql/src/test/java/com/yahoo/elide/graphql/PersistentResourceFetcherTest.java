@@ -17,7 +17,6 @@ import static org.mockito.Mockito.spy;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -25,6 +24,8 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -34,7 +35,6 @@ import example.Book;
 import example.Price;
 import example.Pseudonym;
 import example.Publisher;
-import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,8 +49,8 @@ import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -83,14 +83,19 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     public void initializeQueryRunner() {
         RSQLFilterDialect filterDialect = RSQLFilterDialect.builder().dictionary(dictionary).build();
 
-        hashMapDataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage());
+        hashMapDataStore = new HashMapDataStore(new DefaultClassScanner(), Author.class.getPackage());
 
-        settings = new ElideSettingsBuilder(hashMapDataStore)
-                .withEntityDictionary(dictionary)
-                .withJoinFilterDialect(filterDialect)
-                .withSubqueryFilterDialect(filterDialect)
-                .withGraphQLFederation(true)
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+        GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettings.builder()
+                .federation(federation -> federation.enabled(true));
+
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().joinFilterDialect(filterDialect)
+                .subqueryFilterDialect(filterDialect);
+
+        settings = ElideSettings.builder().dataStore(hashMapDataStore)
+                .entityDictionary(dictionary)
+                .serdes(serdes -> serdes.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC")))
+                .settings(graphqlSettings)
+                .settings(jsonApiSettings)
                 .build();
 
         settings.getSerdes().forEach(CoerceUtil::register);
@@ -100,6 +105,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         elide.doScans();
 
         runner = new QueryRunner(elide, NO_VERSION, dataFetcherExceptionHandler);
+        this.mapper = elide.getObjectMapper();
     }
 
     protected void initializeMocks() {
@@ -198,9 +204,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse, Map<String, Object> variables)
             throws Exception {
-        ElideResponse response = runGraphQLRequest(graphQLRequest, variables);
-
-        JsonNode data = mapper.readTree(response.getBody()).get("data");
+        ElideResponse<?> response = runGraphQLRequest(graphQLRequest, variables);
+        String body = getBody(response);
+        JsonNode data = mapper.readTree(body).get("data");
         assertNotNull(data);
 
         assertEquals(
@@ -210,9 +216,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryFailsWith(String graphQLRequest, String expectedMessage) throws Exception {
-        ElideResponse response = runGraphQLRequest(graphQLRequest, new HashMap<>());
-
-        JsonNode errors = mapper.readTree(response.getBody()).get("errors");
+        ElideResponse<?> response = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        String body = getBody(response);
+        JsonNode errors = mapper.readTree(body).get("errors");
         assertNotNull(errors);
         assertTrue(errors.size() > 0);
         JsonNode message = errors.get(0).get("message");
@@ -222,16 +228,16 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryFails(String graphQLRequest) throws IOException {
-        ElideResponse result = runGraphQLRequest(graphQLRequest, new HashMap<>());
-
-        assertTrue(result.getBody().contains("errors"));
+        ElideResponse<?> result = runGraphQLRequest(graphQLRequest, new HashMap<>());
+        String body = mapper.writeValueAsString(result.getBody());
+        assertTrue(body.contains("errors"));
     }
 
     protected void assertParsingFails(String graphQLRequest) {
         assertThrows(Exception.class, () -> new GraphQLEntityProjectionMaker(settings).make(graphQLRequest));
     }
 
-    protected ElideResponse runGraphQLRequest(String graphQLRequest, Map<String, Object> variables)
+    protected ElideResponse<String> runGraphQLRequest(String graphQLRequest, Map<String, Object> variables)
             throws IOException {
         String requestWithEnvelope = toGraphQLQuery(graphQLRequest, variables);
 
@@ -246,13 +252,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
     public String loadGraphQLRequest(String fileName) throws IOException {
         try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/requests/" + fileName)) {
-            return FileUtils.readFully(new InputStreamReader(in));
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
     public String loadGraphQLResponse(String fileName) throws IOException {
         try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/responses/" + fileName)) {
-            return FileUtils.readFully(new InputStreamReader(in));
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
@@ -289,5 +295,12 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     @FunctionalInterface
     protected interface EvaluationFunction {
         void evaluate(String graphQLRequest, String graphQLResponse) throws Exception;
+    }
+
+    protected String getBody(ElideResponse<?> response) throws JsonProcessingException {
+        if (response.getBody() instanceof String value) {
+            return value;
+        }
+        return mapper.writeValueAsString(response.getBody());
     }
 }

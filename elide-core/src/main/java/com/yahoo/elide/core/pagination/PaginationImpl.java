@@ -13,13 +13,13 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableMap;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -122,9 +122,9 @@ public class PaginationImpl implements Pagination {
 
         this.limit = clientLimit != null
                 ? clientLimit
-                : (paginate != null ? paginate.defaultLimit() : systemDefaultLimit);
+                : (paginate != null ? paginate.defaultPageSize() : systemDefaultLimit);
 
-        int maxLimit = paginate != null ? paginate.maxLimit() : systemMaxLimit;
+        int maxLimit = paginate != null ? paginate.maxPageSize() : systemMaxLimit;
 
         String pageSizeLabel = pageByPages ? "size" : "limit";
 
@@ -173,7 +173,7 @@ public class PaginationImpl implements Pagination {
      * @throws InvalidValueException invalid query parameter
      */
     public static PaginationImpl parseQueryParams(Type<?> entityClass,
-                                                  final MultivaluedMap<String, String> queryParams,
+                                                  final Map<String, List<String>> queryParams,
                                                   ElideSettings elideSettings)
             throws InvalidValueException {
 
@@ -237,7 +237,7 @@ public class PaginationImpl implements Pagination {
                 offset,
                 limit,
                 elideSettings.getDefaultPageSize(),
-                elideSettings.getDefaultMaxPageSize(),
+                elideSettings.getMaxPageSize(),
                 pageData.containsKey(PaginationKey.totals) ? true : null,
                 pageByPages);
     }
@@ -259,7 +259,7 @@ public class PaginationImpl implements Pagination {
                 null,
                 null,
                 elideSettings.getDefaultPageSize(),
-                elideSettings.getDefaultMaxPageSize(),
+                elideSettings.getMaxPageSize(),
                 null,
                 false);
     }
@@ -273,8 +273,8 @@ public class PaginationImpl implements Pagination {
                 entityClass,
                 null,
                 null,
-                DEFAULT_PAGE_LIMIT,
-                MAX_PAGE_LIMIT,
+                DEFAULT_PAGE_SIZE,
+                MAX_PAGE_SIZE,
                 null,
                 false);
     }

@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +25,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
@@ -41,8 +41,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -52,7 +54,7 @@ public class ConfigDataStoreTest {
     @Test
     public void testLoadObjects() {
         String configRoot = "src/test/resources/validator/valid";
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigDataStoreTransaction tx = store.beginReadTransaction();
@@ -130,7 +132,7 @@ public class ConfigDataStoreTest {
     public void testCreate(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigFile newFile = createFile("test", store, false);
@@ -150,7 +152,7 @@ public class ConfigDataStoreTest {
         //This path is read only (Classpath)...
         String configRoot = "src/test/resources/validator/valid";
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         assertThrows(UnsupportedOperationException.class,
@@ -161,7 +163,7 @@ public class ConfigDataStoreTest {
     public void testCreateInvalid(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         assertThrows(BadRequestException.class,
@@ -172,7 +174,7 @@ public class ConfigDataStoreTest {
     public void testCreateValidateOnly(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
@@ -188,7 +190,7 @@ public class ConfigDataStoreTest {
     public void testUpdate(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         createFile("test", store, false);
@@ -207,7 +209,7 @@ public class ConfigDataStoreTest {
     public void testUpdateWithPermissionError(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigFile createdFile = createFile("test", store, false);
@@ -229,7 +231,7 @@ public class ConfigDataStoreTest {
     public void testDeleteWithPermissionError(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigFile createdFile = createFile("test", store, false);
@@ -253,7 +255,7 @@ public class ConfigDataStoreTest {
     @Test
     public void testCreateWithPermissionError(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         File file = configPath.toFile();
@@ -271,7 +273,7 @@ public class ConfigDataStoreTest {
     public void testDelete(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
 
         ConfigFile newFile = createFile("test", store, false);
@@ -281,6 +283,7 @@ public class ConfigDataStoreTest {
         tx.delete(newFile, scope);
 
         tx.flush(scope);
+        when(scope.getRoute()).thenReturn(Route.builder().build());
         tx.commit(scope);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
@@ -295,7 +298,7 @@ public class ConfigDataStoreTest {
     public void testMultipleFileOperations(@TempDir Path configPath) {
         String configRoot = configPath.toFile().getPath();
 
-        Validator validator = new DynamicConfigValidator(DefaultClassScanner.getInstance(), configRoot);
+        Validator validator = new DynamicConfigValidator(new DefaultClassScanner(), configRoot);
         ConfigDataStore store = new ConfigDataStore(configRoot, validator);
         ConfigDataStoreTransaction tx = store.beginTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -341,6 +344,7 @@ public class ConfigDataStoreTest {
         tx.delete(invalid, scope);
 
         tx.flush(scope);
+        when(scope.getRoute()).thenReturn(Route.builder().build());
         tx.commit(scope);
 
         ConfigDataStoreTransaction readTx = store.beginReadTransaction();
@@ -394,7 +398,9 @@ public class ConfigDataStoreTest {
         RequestScope scope = mock(RequestScope.class);
 
         if (validateOnly) {
-            when(scope.getRequestHeaderByName(eq(VALIDATE_ONLY_HEADER))).thenReturn("true");
+            when(scope.getRoute()).thenReturn(Route.builder().headers(Map.of(VALIDATE_ONLY_HEADER, Arrays.asList("true"))).build());
+        } else {
+            when(scope.getRoute()).thenReturn(Route.builder().build());
         }
 
         tx.createObject(newFile, scope);
@@ -436,6 +442,7 @@ public class ConfigDataStoreTest {
 
         ConfigDataStoreTransaction tx = store.beginTransaction();
         RequestScope scope = mock(RequestScope.class);
+        when(scope.getRoute()).thenReturn(Route.builder().build());
 
         tx.save(updatedFile, scope);
         tx.flush(scope);

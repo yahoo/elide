@@ -8,7 +8,11 @@ package com.yahoo.elide.standalone.config;
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
+import com.yahoo.elide.Serdes;
+import com.yahoo.elide.Serdes.SerdesBuilder;
+import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -16,8 +20,12 @@ import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
-import com.yahoo.elide.core.exceptions.ErrorMapper;
+import com.yahoo.elide.core.exceptions.ExceptionLogger;
+import com.yahoo.elide.core.exceptions.ExceptionMappers;
+import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
@@ -42,7 +50,17 @@ import com.yahoo.elide.datastores.aggregation.validator.TemplateConfigValidator;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.graphql.DefaultGraphQLErrorMapper;
+import com.yahoo.elide.graphql.DefaultGraphQLExceptionHandler;
+import com.yahoo.elide.graphql.GraphQLErrorMapper;
+import com.yahoo.elide.graphql.GraphQLExceptionHandler;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.jsonapi.DefaultJsonApiErrorMapper;
+import com.yahoo.elide.jsonapi.DefaultJsonApiExceptionHandler;
+import com.yahoo.elide.jsonapi.JsonApiErrorMapper;
+import com.yahoo.elide.jsonapi.JsonApiExceptionHandler;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.store.ConfigDataStore;
@@ -51,8 +69,10 @@ import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
@@ -86,6 +106,8 @@ import java.util.function.Function;
  * Interface for configuring an ElideStandalone application.
  */
 public interface ElideStandaloneSettings {
+    public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
+
     /**
      * The OpenAPI Specification Version.
      */
@@ -147,43 +169,133 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Override this to customize the {@link JsonApiSettingsBuilder}.
+     *
+     * @param dictionary the dictionary
+     * @param mapper the mapper
+     * @return the JsonApiSettingsBuilder
+     */
+    default JsonApiSettingsBuilder getJsonApiSettingsBuilder(EntityDictionary dictionary, JsonApiMapper mapper) {
+        return JsonApiSettingsBuilder.withDefaults(dictionary)
+                .path(getJsonApiPathSpec().replace("/*", ""))
+                .joinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .subqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
+                .jsonApiMapper(mapper)
+                .jsonApiExceptionHandler(getJsonApiExceptionHandler());
+    }
+
+    /**
+     * Override this to customize the {@link GraphQLSettingsBuilder}.
+     *
+     * @param dictionary the dictionary
+     * @return the GraphQLSettingsBuilder
+     */
+    default GraphQLSettingsBuilder getGraphQLSettingsBuilder(EntityDictionary dictionary) {
+        return GraphQLSettingsBuilder.withDefaults(dictionary)
+                .path(getGraphQLApiPathSpec().replace("/*", ""))
+                .graphqlExceptionHandler(getGraphQLExceptionHandler());
+    }
+
+    /**
+     * Override this to customize the {@link AsyncSettingsBuilder}.
+     *
+     * @return the AsyncSettingsBuilder
+     */
+    default AsyncSettingsBuilder getAsyncSettingsBuilder() {
+        return AsyncSettings.builder().export(export -> export
+                .enabled(getAsyncProperties().enableExport())
+                .path(getAsyncProperties().getExportApiPathSpec().replace("/*", "")));
+    }
+
+    /**
+     * Override this to customize the {@link ElideSettingsBuilder}.
+     * <p>
+     * The following example only customizes the {@link ElideSettingsBuilder#maxPageSize}.
+     *
+     * <pre>
+     * public ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary, DataStore dataStore,
+     *         JsonApiMapper mapper) {
+     *     return ElideStandaloneSettings.super.getElideSettingsBuilder(dictionary, dataStore, mapper)
+     *           .maxPageSize(1000);
+     * }
+     * </pre>
+     *
+     * @param dictionary the dictionary
+     * @param dataStore the data store
+     * @param mapper the mapper
+     * @return the ElideSettingsBuilder
+     *
+     * @see #getJsonApiSettingsBuilder(EntityDictionary, JsonApiMapper)
+     * @see #getGraphQLSettingsBuilder(EntityDictionary)
+     * @see #getAsyncSettingsBuilder()
+     */
+    default ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary, DataStore dataStore,
+            JsonApiMapper mapper) {
+        ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
+                .entityDictionary(dictionary)
+                .baseUrl(getBaseUrl())
+                .objectMapper(mapper.getObjectMapper())
+                .auditLogger(getAuditLogger())
+                .maxPageSize(getMaxPageSize())
+                .defaultPageSize(getDefaultPageSize());
+
+        if (verboseErrors()) {
+            builder.verboseErrors(true);
+        }
+
+        if (enableJsonApi()) {
+            builder.settings(getJsonApiSettingsBuilder(dictionary, mapper));
+        }
+
+        if (enableGraphQL()) {
+            builder.settings(getGraphQLSettingsBuilder(dictionary));
+        }
+
+        if (getAsyncProperties().enabled()) {
+            builder.settings(getAsyncSettingsBuilder());
+        }
+
+        builder.serdes(serdes -> serdes.entries(entries -> {
+            entries.clear();
+            getSerdesBuilder().build().entrySet().stream().forEach(entry -> {
+                entries.put(entry.getKey(), entry.getValue());
+            });
+        }));
+        return builder;
+    }
+
+    /**
+     * Override this to customize the {@link SerdesBuilder}.
+     *
+     * @return the SerdesBuilder
+     */
+    default SerdesBuilder getSerdesBuilder() {
+        SerdesBuilder serdesBuilder = Serdes.builder().withDefaults();
+        if (enableISO8601Dates()) {
+            serdesBuilder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+        }
+        return serdesBuilder;
+    }
+
+    /**
      * Elide settings to be used for bootstrapping the Elide service. By default, this method constructs an
      * ElideSettings object using the application overrides provided in this class. If this method is overridden,
      * the returned settings object is used over any additional Elide setting overrides.
-     *
+     * <p>
      * That is to say, if you intend to override this method, expect to fully configure the ElideSettings object to
      * your needs.
+     * <p>
+     * Alternatively override {@link #getElideSettingsBuilder} to only customize the settings you wish to change.
      *
      * @param dictionary EntityDictionary object.
-     * @param dataStore Dastore object
+     * @param dataStore DataStore object
      * @param mapper Object mapper
      * @return Configured ElideSettings object.
+     *
+     * @see #getElideSettingsBuilder(EntityDictionary, DataStore, JsonApiMapper)
      */
     default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, JsonApiMapper mapper) {
-
-        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(dictionary)
-                .withErrorMapper(getErrorMapper())
-                .withJoinFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withSubqueryFilterDialect(RSQLFilterDialect.builder().dictionary(dictionary).build())
-                .withBaseUrl(getBaseUrl())
-                .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
-                .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
-                .withJsonApiMapper(mapper)
-                .withAuditLogger(getAuditLogger());
-
-        if (verboseErrors()) {
-            builder.withVerboseErrors();
-        }
-
-        if (getAsyncProperties().enableExport()) {
-            builder.withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
-        }
-
-        if (enableISO8601Dates()) {
-            builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
-        }
-
+        ElideSettingsBuilder builder = getElideSettingsBuilder(dictionary, dataStore, mapper);
         return builder.build();
     }
 
@@ -215,21 +327,21 @@ public interface ElideStandaloneSettings {
     /**
      * API root path specification for JSON-API. Namely, this is the mount point of your API.
      * By default it will look something like:
-     *   <strong>yourcompany.com/api/v1/YOUR_ENTITY</strong>
+     *   <strong>yourcompany.com/api/YOUR_ENTITY</strong>
      *
-     * @return Default: /api/v1/*
+     * @return Default: /api/*
      */
     default String getJsonApiPathSpec() {
-        return "/api/v1/*";
+        return "/api/*";
     }
 
     /**
      * API root path specification for the GraphQL endpoint. Namely, this is the root uri for GraphQL.
      *
-     * @return Default: /graphql/api/v1
+     * @return Default: /graphql/api
      */
     default String getGraphQLApiPathSpec() {
-        return "/graphql/api/v1/*";
+        return "/graphql/api/*";
     }
 
     /**
@@ -246,7 +358,7 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: True
      */
-    default boolean enableJSONAPI() {
+    default boolean enableJsonApi() {
         return true;
     }
 
@@ -360,9 +472,13 @@ public interface ElideStandaloneSettings {
                     .title(getApiTitle())
                     .version(apiVersion);
             OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
+            if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                // Path needs to be set
+                builder.basePath("/" + "v" + apiVersion);
+            }
             String moduleBasePath = getJsonApiPathSpec().replace("/*", "");
             OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
-            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("test", () -> openApi, getOpenApiVersion().getValue(),
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("", () -> openApi, getOpenApiVersion().getValue(),
                     apiVersion));
         });
 
@@ -624,12 +740,68 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Get the error mapper for this Elide instance. By default no errors will be mapped.
+     * Get the exception mappers for this Elide instance. By default no exceptions will be mapped.
      *
-     * @return error mapper implementation
+     * @return the exception mappers.
      */
-    default ErrorMapper getErrorMapper() {
-        return error -> null;
+    default ExceptionMappers getExceptionMappers() {
+        return null;
+    }
+
+    /**
+     * Gets the json api error mapper.
+     *
+     * @return the json api error mapper.
+     */
+    default JsonApiErrorMapper getJsonApiErrorMapper() {
+        return new DefaultJsonApiErrorMapper();
+    }
+
+    /**
+     * Gets the json api exception handler.
+     *
+     * @return the json api exception handler.
+     */
+    default JsonApiExceptionHandler getJsonApiExceptionHandler() {
+        return new DefaultJsonApiExceptionHandler(getExceptionLogger(), getExceptionMappers(),
+                getJsonApiErrorMapper());
+    }
+
+    /**
+     * Gets the graphql error mapper.
+     *
+     * @return the graphql error mapper.
+     */
+    default GraphQLErrorMapper getGraphQLErrorMapper() {
+        return new DefaultGraphQLErrorMapper();
+    }
+
+    /**
+     * Gets the graphql exception handler.
+     *
+     * @return the graphql exception handler.
+     */
+    default GraphQLExceptionHandler getGraphQLExceptionHandler() {
+        return new DefaultGraphQLExceptionHandler(getExceptionLogger(), getExceptionMappers(),
+                getGraphQLErrorMapper());
+    }
+
+    /**
+     * Gets the exception logger.
+     *
+     * @return the exception logger.
+     */
+    default ExceptionLogger getExceptionLogger() {
+        return new Slf4jExceptionLogger();
+    }
+
+    /**
+     * Get the JsonApiMapper for Elide.
+     *
+     * @return object mapper.
+     */
+    default JsonApiMapper getJsonApiMapper() {
+        return new JsonApiMapper(getObjectMapper());
     }
 
     /**
@@ -637,8 +809,8 @@ public interface ElideStandaloneSettings {
      *
      * @return object mapper.
      */
-    default JsonApiMapper getObjectMapper() {
-        return new JsonApiMapper();
+    default ObjectMapper getObjectMapper() {
+        return DEFAULT_OBJECT_MAPPER;
     }
 
     /**
@@ -648,5 +820,38 @@ public interface ElideStandaloneSettings {
      */
     default DataFetcherExceptionHandler getDataFetcherExceptionHandler() {
         return new SimpleDataFetcherExceptionHandler();
+    }
+
+    /**
+     * Gets the route resolver to determine the API version.
+     *
+     * @return the route resolver
+     */
+    default RouteResolver getRouteResolver() {
+        return null;
+    }
+
+    /**
+     * The maximum pagination size a client can request.
+     * <p>
+     * The {@link com.yahoo.elide.annotation.Paginate#maxPageSize()} annotation
+     * takes precendence.
+     *
+     * @return the max page size
+     */
+    default int getMaxPageSize() {
+        return Pagination.MAX_PAGE_SIZE;
+    }
+
+    /**
+     * Default pagination size for collections if the client doesn't paginate.
+     * <p>
+     * The {@link com.yahoo.elide.annotation.Paginate#defaultPageSize()} annotation
+     * takes precendence.
+     *
+     * @return the default page size
+     */
+    default int getDefaultPageSize() {
+        return Pagination.DEFAULT_PAGE_SIZE;
     }
 }

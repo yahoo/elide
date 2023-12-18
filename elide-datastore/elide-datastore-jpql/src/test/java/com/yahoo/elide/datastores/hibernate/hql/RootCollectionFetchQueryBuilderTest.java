@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.hibernate.hql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -25,6 +26,8 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.datastores.jpql.porting.Query;
+import com.yahoo.elide.datastores.jpql.porting.SingleResultQuery;
 import com.yahoo.elide.datastores.jpql.query.RootCollectionFetchQueryBuilder;
 import example.Author;
 import example.Book;
@@ -84,6 +87,28 @@ public class RootCollectionFetchQueryBuilderTest {
         actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootFetchWithId() {
+        Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
+
+        FilterPredicate idPredicate = new InPredicate(idPath, 1);
+
+        EntityProjection entityProjection = EntityProjection
+                .builder()
+                .type(Book.class)
+                .filterExpression(idPredicate)
+                .build();
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                entityProjection,
+                dictionary,
+                new TestSessionWrapper()
+        );
+
+        Query query = builder.build();
+        assertTrue(query instanceof SingleResultQuery);
     }
 
     @Test

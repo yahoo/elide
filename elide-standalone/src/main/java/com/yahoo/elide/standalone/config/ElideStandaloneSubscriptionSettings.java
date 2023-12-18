@@ -8,7 +8,9 @@ package com.yahoo.elide.standalone.config;
 import static com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket.DEFAULT_USER_FACTORY;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilderCustomizer;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 
@@ -131,7 +133,7 @@ public interface ElideStandaloneSubscriptionSettings {
 
                 //Things you probably don't care about...
                 .scanner(elide.getScanner())
-                .dictionary(elide.getElideSettings().getDictionary())
+                .entityDictionary(elide.getElideSettings().getEntityDictionary())
                 .connectionFactory(connectionFactory)
                 .build();
 
@@ -146,10 +148,18 @@ public interface ElideStandaloneSubscriptionSettings {
      * @return Web socket configuration.
      */
     default ServerEndpointConfig serverEndpointConfig(
-            ElideStandaloneSettings settings
+            ElideStandaloneSettings settings, boolean pathParameter
     ) {
+        String path = getPath();
+        if (pathParameter) {
+            if (!path.endsWith("/")) {
+                path = path + "/";
+            }
+            path += "{path}";
+        }
         return ServerEndpointConfig.Builder
-                .create(SubscriptionWebSocket.class, getPath())
+                .create(SubscriptionWebSocket.class, path)
+                .subprotocols(SubscriptionWebSocket.SUPPORTED_WEBSOCKET_SUBPROTOCOLS)
                 .configurator(SubscriptionWebSocketConfigurator.builder()
                         .baseUrl(getPath())
                         .sendPingOnSubscribe(shouldSendPingOnSubscribe())
@@ -159,12 +169,34 @@ public interface ElideStandaloneSubscriptionSettings {
                         .maxIdleTimeout(getIdleTimeout())
                         .connectionFactory(getConnectionFactory())
                         .userFactory(getUserFactory())
-                        .auditLogger(settings.getAuditLogger())
-                        .verboseErrors(settings.verboseErrors())
-                        .errorMapper(settings.getErrorMapper())
+                        .elideSettingsBuilderCustomizer(getElideSettingsBuilderCustomizer(settings))
                         .dataFetcherExceptionHandler(settings.getDataFetcherExceptionHandler())
                         .build())
                 .build();
+    }
 
+    /**
+     * Gets the {@link ElideSettingsBuilderCustomizer} for customizing the subscription web socket.
+     *
+     * @param settings
+     * @return
+     */
+    default ElideSettingsBuilderCustomizer getElideSettingsBuilderCustomizer(ElideStandaloneSettings settings) {
+        return elideSettingsBuilder -> {
+            elideSettingsBuilder
+                    .maxPageSize(settings.getMaxPageSize())
+                    .defaultPageSize(settings.getDefaultPageSize())
+                    .objectMapper(settings.getObjectMapper())
+                    .auditLogger(settings.getAuditLogger())
+                    .verboseErrors(settings.verboseErrors());
+            elideSettingsBuilder.getSettings(GraphQLSettingsBuilder.class)
+                    .graphqlExceptionHandler(settings.getGraphQLExceptionHandler());
+            elideSettingsBuilder.serdes(serdes -> serdes.entries(entries -> {
+                entries.clear();
+                settings.getSerdesBuilder().build().entrySet().stream().forEach(entry -> {
+                    entries.put(entry.getKey(), entry.getValue());
+                });
+            }));
+        };
     }
 }

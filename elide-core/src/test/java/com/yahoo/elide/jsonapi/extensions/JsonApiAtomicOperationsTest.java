@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
@@ -20,7 +19,9 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.JsonApiAtomicOperationsException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.Results;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,14 +33,12 @@ import example.Company;
 import example.Person;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.glassfish.jersey.internal.util.collection.ImmutableMultivaluedMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -56,15 +55,18 @@ public class JsonApiAtomicOperationsTest {
         this.dataStore = new HashMapDataStore(Arrays.asList(Book.class, Company.class, Person.class));
         EntityDictionary entityDictionary = EntityDictionary.builder().build();
         this.dataStore.populateEntityDictionary(entityDictionary);
-        this.settings = new ElideSettingsBuilder(this.dataStore).withEntityDictionary(entityDictionary)
-                .withJsonApiMapper(new JsonApiMapper()).build();
+        JsonApiMapper jsonApiMapper = new JsonApiMapper();
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().jsonApiMapper(jsonApiMapper);
+        this.settings = ElideSettings.builder().dataStore(this.dataStore).entityDictionary(entityDictionary)
+                .objectMapper(jsonApiMapper.getObjectMapper()).settings(jsonApiSettings).build();
     }
 
     Supplier<Pair<Integer, JsonNode>> doInTransaction(
             Function<JsonApiAtomicOperationsRequestScope, Supplier<Pair<Integer, JsonNode>>> callback) {
         try (DataStoreTransaction transaction = this.dataStore.beginTransaction()) {
-            JsonApiAtomicOperationsRequestScope scope = new JsonApiAtomicOperationsRequestScope("https://elide.io", "", "", transaction, null,
-                    UUID.randomUUID(), ImmutableMultivaluedMap.empty(), new HashMap<>(), settings);
+            Route route = Route.builder().baseUrl("https://elide.io").build();
+            JsonApiAtomicOperationsRequestScope scope = new JsonApiAtomicOperationsRequestScope(route, transaction, null,
+                    UUID.randomUUID(), settings);
             Supplier<Pair<Integer, JsonNode>> result = callback.apply(scope);
 
             scope.saveOrCreateObjects();
@@ -135,7 +137,7 @@ public class JsonApiAtomicOperationsTest {
             try {
                 return JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
             } catch (JsonApiAtomicOperationsException e) {
-                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getBody().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals("Bad Request Body&#39;Atomic Operations extension ref must specify the type member.&#39;",
                         error.get("detail").asText());
@@ -163,7 +165,7 @@ public class JsonApiAtomicOperationsTest {
             try {
                 return JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
             } catch (JsonApiAtomicOperationsException e) {
-                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getBody().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals("Bad Request Body&#39;Atomic Operations extension add resource operation may only specify the href member.&#39;",
                         error.get("detail").asText());
@@ -192,7 +194,7 @@ public class JsonApiAtomicOperationsTest {
             try {
                 return JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
             } catch (JsonApiAtomicOperationsException e) {
-                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getBody().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals("Bad Request Body&#39;Atomic Operations extension operation cannot contain both ref and href members.&#39;",
                         error.get("detail").asText());
@@ -221,7 +223,7 @@ public class JsonApiAtomicOperationsTest {
             try {
                 return JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
             } catch (JsonApiAtomicOperationsException e) {
-                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getBody().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals("Bad Request Body&#39;Atomic Operations extension ref cannot contain both id and lid members.&#39;",
                         error.get("detail").asText());
@@ -244,7 +246,7 @@ public class JsonApiAtomicOperationsTest {
             try {
                 return JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
             } catch (JsonApiAtomicOperationsException e) {
-                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getBody().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals(
                         "Bad Request Body&#39;Atomic Operations extension operation requires either ref or href members to be specified.&#39;",
@@ -272,7 +274,7 @@ public class JsonApiAtomicOperationsTest {
             try {
                 return JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
             } catch (JsonApiAtomicOperationsException e) {
-                ObjectNode error = (ObjectNode) e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                ObjectNode error = (ObjectNode) e.getErrorResponse().getBody().get(0).get("errors").get(0);
                 assertEquals("400", error.get("status").asText());
                 assertEquals(
                         "Bad Request Body&#39;Atomic Operations extension operation requires either ref or href members to be specified.&#39;",
@@ -300,7 +302,7 @@ public class JsonApiAtomicOperationsTest {
             try {
                 return JsonApiAtomicOperations.processAtomicOperations(this.dataStore, null, operationsDoc, scope);
             } catch (JsonApiAtomicOperationsException e) {
-                JsonNode error = e.getErrorResponse().getValue().get(0).get("errors").get(0);
+                JsonNode error = e.getErrorResponse().getBody().get(0).get("errors").get(0);
                 assertEquals("404", error.get("status").asText());
                 assertEquals("Unknown collection author", error.get("detail").asText());
                 return null;

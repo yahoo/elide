@@ -14,7 +14,7 @@ import lombok.Setter;
 
 @Entity
 @Include
-@Paginate(maxLimit = 10, defaultLimit = 10)
+@Paginate(maxPageSize = 10, defaultPageSize = 10)
 public class EntityWithPaginateMaxLimit extends BaseId {
     @Getter
     @Setter

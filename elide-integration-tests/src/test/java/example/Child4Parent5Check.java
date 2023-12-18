@@ -12,7 +12,7 @@ import com.yahoo.elide.core.security.checks.OperationCheck;
 import java.util.Optional;
 
 /**
- * Contrived check to disallow updates on Child 4 through parent 10
+ * Contrived check to disallow updates on Child 4 through parent 10.
  */
 public class Child4Parent5Check extends OperationCheck<Child> {
     @Override

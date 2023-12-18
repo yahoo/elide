@@ -14,13 +14,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,12 +37,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,6 +49,7 @@ import java.util.Set;
 public class DataStoreIT extends IntegrationTest {
     private final ObjectMapper mapper;
     private final Elide elide;
+    private final JsonApi jsonApi;
     private final User goodUser;
     private final User badUser;
 
@@ -73,12 +76,15 @@ public class DataStoreIT extends IntegrationTest {
         checks.put("filterCheck", Filtered.FilterCheck.class);
         checks.put("filterCheck3", Filtered.FilterCheck3.class);
 
-        elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withAuditLogger(new TestAuditLogger())
-                .withEntityDictionary(EntityDictionary.builder().checks(checks).build())
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(checks).build();
+        elide = new Elide(ElideSettings.builder().dataStore(dataStore)
+                .auditLogger(new TestAuditLogger())
+                .entityDictionary(entityDictionary)
+                .settings(JsonApiSettingsBuilder.withDefaults(entityDictionary))
                 .build());
 
         elide.doScans();
+        jsonApi = new JsonApi(elide);
     }
 
     @BeforeEach
@@ -135,10 +141,12 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testRootEntityFormulaFetch() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
-        ElideResponse response = elide.get(BASEURL, "/book", queryParams, goodUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
+                .build();
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -153,10 +161,12 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testSubcollectionEntityFormulaFetch() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
-        ElideResponse response = elide.get(BASEURL, "/author/1/books", queryParams, goodUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams)
+                .apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -171,11 +181,13 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testRootEntityFormulaWithFilter() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
-        ElideResponse response = elide.get(BASEURL, "/book", queryParams, goodUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
+                .build();
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(1, result.get(DATA).size());
@@ -186,11 +198,13 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testSubCollectionEntityFormulaWithFilter() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
-        ElideResponse response = elide.get(BASEURL, "/author/1/books", queryParams, goodUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams)
+                .apiVersion(NO_VERSION).build();
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(1, result.get(DATA).size());
@@ -201,11 +215,13 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testRootEntityFormulaWithSorting() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("sort", Arrays.asList("-chapterCount"));
-        ElideResponse response = elide.get(BASEURL, "/book", queryParams, goodUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(BASEURL).path("/book").parameters(queryParams).apiVersion(NO_VERSION)
+                .build();
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -220,11 +236,13 @@ public class DataStoreIT extends IntegrationTest {
 
     @Test
     public void testSubcollectionEntityFormulaWithSorting() throws Exception {
-        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("sort", Arrays.asList("-chapterCount"));
-        ElideResponse response = elide.get(BASEURL, "/author/1/books", queryParams, goodUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(BASEURL).path("/author/1/books").parameters(queryParams).apiVersion(NO_VERSION)
+                .build();
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -245,8 +263,10 @@ public class DataStoreIT extends IntegrationTest {
                 linkage(type("filtered"), id("3"))
         );
 
-        ElideResponse response = elide.get(BASEURL, "filtered", new MultivaluedHashMap<>(), goodUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(BASEURL).path("filtered").apiVersion(NO_VERSION)
+                .build();
+        ElideResponse<String> response = jsonApi.get(route, goodUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
         assertEquals(data.toJSON(), response.getBody());
     }
 
@@ -256,9 +276,10 @@ public class DataStoreIT extends IntegrationTest {
                 linkage(type("filtered"), id("1")),
                 linkage(type("filtered"), id("3"))
         );
-
-        ElideResponse response = elide.get(BASEURL, "filtered", new MultivaluedHashMap<>(), badUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        Route route = Route.builder().baseUrl(BASEURL).path("filtered").apiVersion(NO_VERSION)
+                .build();
+        ElideResponse<String> response = jsonApi.get(route, badUser, null);
+        assertEquals(HttpStatus.SC_OK, response.getStatus());
         assertEquals(data.toJSON(), response.getBody());
     }
 }

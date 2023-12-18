@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -26,6 +25,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
@@ -107,8 +107,8 @@ public class PermissionToFilterExpressionVisitorTest {
         checks.put(GE_FILTER, Permissions.GreaterThanOrEqualFilterExpression.class);
 
         dictionary = TestDictionary.getTestDictionary(checks);
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
+        elideSettings = ElideSettings.builder().dataStore(null)
+                .entityDictionary(dictionary)
                 .build();
 
         requestScope = newRequestScope();
@@ -239,7 +239,9 @@ public class PermissionToFilterExpressionVisitorTest {
     //
     public RequestScope newRequestScope() {
         User john = new TestUser("John");
-        return requestScope = new RequestScope(null, null, NO_VERSION, null, null, john, null, null, UUID.randomUUID(), elideSettings);
+        Route route = Route.builder().apiVersion(NO_VERSION).build();
+        return requestScope = RequestScope.builder().route(route).user(john).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

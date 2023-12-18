@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -19,6 +18,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
+import com.yahoo.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -32,7 +32,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
     @Test
     public void getEscapedItem() {
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
             .when()
             .get("/item?filter[item]=name==*-luc*")
             .then()
@@ -44,7 +44,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
     public void testObjectIndexing() {
        /* Add a new item */
        given()
-           .contentType(JSONAPI_CONTENT_TYPE)
+           .contentType(JsonApi.MEDIA_TYPE)
            .body(
                    data(
                        resource(
@@ -63,7 +63,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* This query hits the index */
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
             .when()
             .get("/item?filter[item]=name=ini=*DrU*")
             .then()
@@ -72,7 +72,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* This query hits the DB */
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
             .when()
             .get("/item")
             .then()
@@ -81,7 +81,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* Delete the newly added item */
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
             .when()
             .delete("/item/1000")
             .then()
@@ -89,7 +89,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* This query hits the index */
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
             .when()
             .get("/item?filter[item]=name==*dru*")
             .then()
@@ -98,7 +98,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* This query hits the DB */
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
+            .contentType(JsonApi.MEDIA_TYPE)
             .when()
             .get("/item")
             .then()

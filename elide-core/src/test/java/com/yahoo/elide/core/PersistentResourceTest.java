@@ -40,6 +40,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
@@ -89,8 +90,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 
 import io.reactivex.Observable;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import nocreate.NoCreateEntity;
 
 import java.math.BigDecimal;
@@ -101,6 +100,7 @@ import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +125,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @BeforeEach
     public void beforeTest() {
         reset(tx);
+    }
+
+    static void add(Map<String, List<String>> params, String key, String value) {
+        params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
     }
 
     @Test
@@ -622,7 +626,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     /**
-     * Avoid NPE when PATCH or POST defines relationship with null id
+     * Avoid NPE when PATCH or POST defines relationship with null id.
      * <pre>
      * <code>
      * "relationships": {
@@ -902,17 +906,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         @SuppressWarnings("resource")
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(
-                null,
-                null,
-                NO_VERSION,
-                null,
-                tx,
-                goodUser,
-                null,
-                null,
-                UUID.randomUUID(),
-                elideSettings);
+        RequestScope goodScope = RequestScope.builder().route(Route.builder().apiVersion(NO_VERSION).build())
+                .dataStoreTransaction(tx).user(goodUser).requestId(UUID.randomUUID()).elideSettings(elideSettings)
+                .build();
 
         // null resource in toMany relationship is not valid
         List<Resource> idList = new ArrayList<>();
@@ -1038,8 +1034,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.getToManyRelation(eq(tx), any(), any(), any()))
                 .thenReturn(new DataStoreIterableBuilder(Sets.newHashSet(child1)).build());
 
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[child.name]", "paul john");
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "filter[child.name]", "paul john");
         RequestScope goodScope = buildRequestScope("/child", tx, goodUser, queryParams);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
@@ -2850,18 +2846,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Route route = Route.builder().path("/book").apiVersion(NO_VERSION).build();
         JsonApiJsonPatchRequestScope parentScope = new JsonApiJsonPatchRequestScope(
-                null,
-                "/book",
-                NO_VERSION,
+                route,
                 tx,
                 new TestUser("1"),
                 UUID.randomUUID(),
-                null,
-                Collections.emptyMap(),
                 elideSettings);
         JsonApiJsonPatchRequestScope scope = new JsonApiJsonPatchRequestScope(
-                parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
+                parentScope.getRoute().getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works
         assertEquals(parentScope.getUpdateStatusCode(), scope.getUpdateStatusCode());
         assertEquals(parentScope.getObjectEntityCache(), scope.getObjectEntityCache());
@@ -2879,9 +2872,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testFilterExpressionByType() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[author.name][infix]",
                 "Hemingway"
         );
@@ -2900,9 +2893,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testFilterExpressionCollection() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add(
+        add(queryParams,
                 "filter[book.authors.name][infix]",
                 "Hemingway"
         );
@@ -2922,9 +2915,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testSparseFields() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
 
-        queryParams.add("fields[author]", "name");
+        add(queryParams, "fields[author]", "name");
 
         RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class),
                 new TestUser("1"), queryParams);

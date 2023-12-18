@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.spring.config;
 
+import com.yahoo.elide.core.request.Pagination;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
@@ -54,14 +56,26 @@ public class ElideConfigProperties {
     private JpaStoreProperties jpaStore = new JpaStoreProperties();
 
     /**
-     * Default pagination size for collections if the client doesn't paginate.
+     * Settings for the API Versioning Strategy.
      */
-    private int pageSize = 500;
+    @NestedConfigurationProperty
+    private ApiVersioningStrategyProperties apiVersioningStrategy = new ApiVersioningStrategyProperties();
+
+    /**
+     * Default pagination size for collections if the client doesn't paginate.
+     * <p>
+     * The {@link com.yahoo.elide.annotation.Paginate#defaultPageSize()} annotation
+     * takes precendence.
+     */
+    private int defaultPageSize = Pagination.DEFAULT_PAGE_SIZE;
 
     /**
      * The maximum pagination size a client can request.
+     * <p>
+     * The {@link com.yahoo.elide.annotation.Paginate#maxPageSize()} annotation
+     * takes precendence.
      */
-    private int maxPageSize = 10000;
+    private int maxPageSize = Pagination.MAX_PAGE_SIZE;
 
     /**
      * The base service URL that clients use in queries.  Elide will reference this name

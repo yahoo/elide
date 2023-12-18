@@ -170,7 +170,7 @@ public class Resource {
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
         EntityDictionary dictionary = requestScope.getDictionary();
 
-        Type<?> cls = dictionary.getEntityClass(type, requestScope.getApiVersion());
+        Type<?> cls = dictionary.getEntityClass(type, requestScope.getRoute().getApiVersion());
 
         if (cls == null) {
             throw new UnknownEntityException(type);

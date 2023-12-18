@@ -48,7 +48,7 @@ There will two kinds of models:
 #### ArtifactGroup.java
 
   ```java
-  @Include(rootLevel = true, type = "group")
+  @Include(rootLevel = true, name = "group")
   @Table(name="ArtifactGroup")
   @Entity
   public class ArtifactGroup {
@@ -67,8 +67,8 @@ There will two kinds of models:
 #### ArtifactProduct.java
 
   ```java
-  @Include(type = "product")
-  @Table(name="ArtifactProduct")
+  @Include(name = "product")
+  @Table(name = "ArtifactProduct")
   @Entity
   public class ArtifactProduct {
       @Id
@@ -89,8 +89,8 @@ There will two kinds of models:
 #### ArtifactVersion.java
 
   ```java
-  @Include(type = "version")
-  @Table(name="ArtifactVersion")
+  @Include(name = "version")
+  @Table(name = "ArtifactVersion")
   @Entity
   public class ArtifactVersion {
       @Id

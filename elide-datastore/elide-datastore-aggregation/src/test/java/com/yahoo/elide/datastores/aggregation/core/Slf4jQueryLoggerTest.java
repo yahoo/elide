@@ -13,8 +13,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import org.junit.jupiter.api.Test;
 
-import jakarta.ws.rs.core.MultivaluedHashMap;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +36,7 @@ public class Slf4jQueryLoggerTest {
                 new User(null),
                 headers,
                 "1.0",
-                new MultivaluedHashMap<>(),
+                new HashMap<>(),
                 "/sales");
     }
 

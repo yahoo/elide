@@ -70,10 +70,10 @@ public class AnotherFilterExpressionCheckObj extends BaseId {
         return new FilterPredicate(path1, op, value);
     }
 
-    public static class CheckActsLikeFilter extends FilterExpressionCheck {
+    public static class CheckActsLikeFilter extends FilterExpressionCheck<Object> {
 
         @Override
-        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type<?> entityClass, RequestScope requestScope) {
             return createFilterPredicate();
         }
 

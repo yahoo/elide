@@ -8,63 +8,61 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
+import com.yahoo.elide.jsonapi.JsonApiRequestScope;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
+import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
  * Utility subclass that helps construct RequestScope objects for testing.
  */
-public class TestRequestScope extends RequestScope {
+public class TestRequestScope extends JsonApiRequestScope {
 
-    private MultivaluedMap queryParamOverrides = null;
+    private Map<String, List<String>> queryParamOverrides = null;
 
-    public TestRequestScope(String baseURL,
-                            DataStoreTransaction transaction,
-                            User user,
-                            EntityDictionary dictionary) {
-        super(baseURL, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, null, UUID.randomUUID(),
-                new ElideSettingsBuilder(null)
-                        .withEntityDictionary(dictionary)
-                        .withJSONApiLinks(new DefaultJSONApiLinks())
-                        .withJsonApiPath("/json")
-                        .build());
+    public TestRequestScope(String baseURL, DataStoreTransaction transaction, User user, EntityDictionary dictionary) {
+        super(Route.builder().baseUrl(baseURL).apiVersion(NO_VERSION).build(), transaction, user, UUID.randomUUID(),
+                ElideSettings.builder().dataStore(null).entityDictionary(dictionary)
+                        .settings(JsonApiSettings.builder().path("/json")
+                                .links(links -> links.enabled(true).jsonApiLinks(new DefaultJsonApiLinks())))
+                        .build(),
+                null, new JsonApiDocument());
     }
 
-    public TestRequestScope(DataStoreTransaction transaction,
-                        User user,
-                        EntityDictionary dictionary) {
-        super(null, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, null, UUID.randomUUID(),
-                new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
-                .build());
+    public TestRequestScope(DataStoreTransaction transaction, User user, EntityDictionary dictionary) {
+        super(Route.builder().apiVersion(NO_VERSION).build(), transaction, user, UUID.randomUUID(), ElideSettings
+                .builder().dataStore(null).entityDictionary(dictionary).settings(JsonApiSettings.builder()).build(),
+                null, new JsonApiDocument());
     }
 
-    public TestRequestScope(EntityDictionary dictionary,
-                            String path,
-                            MultivaluedMap<String, String> queryParams) {
-        super(null, path, NO_VERSION, new JsonApiDocument(), null, null, queryParams, null, UUID.randomUUID(),
-                new ElideSettingsBuilder(null)
-                        .withEntityDictionary(dictionary)
-                        .build());
+    public TestRequestScope(EntityDictionary dictionary, String path, Map<String, List<String>> queryParams) {
+        super(Route.builder().path(path).apiVersion(NO_VERSION).parameters(queryParams).build(), null, null,
+                UUID.randomUUID(), ElideSettings.builder().dataStore(null).entityDictionary(dictionary)
+                        .settings(JsonApiSettings.builder()).build(),
+                null, new JsonApiDocument());
     }
 
-    public void setQueryParams(MultivaluedMap<String, String> queryParams) {
+    public void setQueryParams(Map<String, List<String>> queryParams) {
         this.queryParamOverrides = queryParams;
     }
 
     @Override
-    public MultivaluedMap<String, String> getQueryParams() {
+    public Route getRoute() {
         if (queryParamOverrides != null) {
-            return queryParamOverrides;
+            Route copy = super.getRoute();
+            return Route.builder().baseUrl(copy.getBaseUrl()).path(copy.getPath()).parameters(queryParamOverrides)
+                    .headers(copy.getHeaders()).apiVersion(copy.getApiVersion()).build();
         }
-        return super.getQueryParams();
+        return super.getRoute();
     }
 }

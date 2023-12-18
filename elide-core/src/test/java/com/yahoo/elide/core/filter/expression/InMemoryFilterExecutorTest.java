@@ -9,14 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.predicates.FalsePredicate;
-import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.GEPredicate;
 import com.yahoo.elide.core.filter.predicates.GTPredicate;
+import com.yahoo.elide.core.filter.predicates.HasMemberPredicate;
+import com.yahoo.elide.core.filter.predicates.HasNoMemberPredicate;
 import com.yahoo.elide.core.filter.predicates.InInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.filter.predicates.InfixInsensitivePredicate;
@@ -29,10 +30,14 @@ import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.predicates.NotInInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.NotInPredicate;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.filter.predicates.NotSubsetOfPredicate;
+import com.yahoo.elide.core.filter.predicates.NotSupersetOfPredicate;
 import com.yahoo.elide.core.filter.predicates.PostfixInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
+import com.yahoo.elide.core.filter.predicates.SubsetOfPredicate;
+import com.yahoo.elide.core.filter.predicates.SupersetOfPredicate;
 import com.yahoo.elide.core.filter.predicates.TruePredicate;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
@@ -77,7 +82,7 @@ public class InMemoryFilterExecutorTest {
                     EntityDictionary.DEFAULT_INJECTOR,
                     CoerceUtil::lookup,
                     Collections.emptySet(), //excluded entities
-                    DefaultClassScanner.getInstance()
+                    new DefaultClassScanner()
             );
         }
 
@@ -95,6 +100,7 @@ public class InMemoryFilterExecutorTest {
     InMemoryFilterExecutorTest() {
         EntityDictionary dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Author.class);
+        dictionary.bindEntity(Book.class);
         RequestScope requestScope = Mockito.mock(RequestScope.class);
         when(requestScope.getDictionary()).thenReturn(dictionary);
         visitor = new InMemoryFilterExecutor(requestScope);
@@ -245,10 +251,10 @@ public class InMemoryFilterExecutorTest {
         // When name is empty and books are empty
         author.setAwards(new HashSet<>());
 
-        expression = new FilterPredicate(authorAwardsElement, Operator.HASMEMBER, Arrays.asList(""));
+        expression = new HasMemberPredicate(authorAwardsElement, "");
         fn = expression.accept(visitor);
         assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorAwardsElement, Operator.HASNOMEMBER, Arrays.asList(""));
+        expression = new HasNoMemberPredicate(authorAwardsElement, "");
         fn = expression.accept(visitor);
         assertTrue(fn.test(author));
 
@@ -256,13 +262,62 @@ public class InMemoryFilterExecutorTest {
         // When name and books are not empty
         author.setAwards(Arrays.asList("Bookery prize"));
 
-        expression = new FilterPredicate(authorAwardsElement, Operator.HASMEMBER, Arrays.asList("Bookery prize"));
+        expression = new HasMemberPredicate(authorAwardsElement, "Bookery prize");
         fn = expression.accept(visitor);
         assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorAwardsElement, Operator.HASNOMEMBER, Arrays.asList("National Book Awards"));
+        expression = new HasNoMemberPredicate(authorAwardsElement, "National Book Awards");
         fn = expression.accept(visitor);
         assertTrue(fn.test(author));
 
+    }
+
+    @Test
+    public void hasMemberPredicateToManyNullTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+
+        Book book = new Book();
+        book.setId(1L);
+        book.setLanguage("en");
+
+        Book book2 = new Book();
+        book2.setId(2L);
+        book2.setLanguage("de");
+        author.getBooks().add(book2);
+
+        PathElement bookLanguageElement = new PathElement(Book.class, String.class, "language");
+        Path paths = new Path(List.of(authorBooksElement, bookLanguageElement));
+
+        expression = new HasMemberPredicate(paths, null);
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new HasNoMemberPredicate(paths, null);
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        expression = new HasMemberPredicate(paths, "null");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new HasNoMemberPredicate(paths, "null");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        // When language is null
+        book2.setLanguage(null);
+
+        expression = new HasMemberPredicate(paths, null);
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new HasNoMemberPredicate(paths, null);
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+        expression = new HasMemberPredicate(paths, "null");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new HasNoMemberPredicate(paths, "null");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
     }
 
     @Test
@@ -465,6 +520,119 @@ public class InMemoryFilterExecutorTest {
         expression = new OrFilterExpression(
                 new InPredicate(authorIdElement, 0L),
                 new InPredicate(authorNameElement, "Fail"));
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+    }
+
+    @Test
+    public void subsetOfPredicateTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        // When name is empty and books are empty
+        author.setAwards(new HashSet<>());
+
+        // Empty set is a subset of all sets
+        expression = new SubsetOfPredicate(authorAwardsElement, "");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+
+        // When name and books are not empty
+        author.setAwards(Arrays.asList("Bookery prize"));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "National Book Awards");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "National Book Awards", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        author.setAwards(Arrays.asList("Bookery prize", "National Book Awards"));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize", "National Book Awards");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "National Book Awards", "Bookery prize");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize", "National Book Awards", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "National Book Awards", "Bookery prize", "Test");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+        expression = new SubsetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new NotSubsetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+    }
+
+    @Test
+    public void supersetOfPredicateTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        // When name is empty and books are empty
+        author.setAwards(new HashSet<>());
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+
+        // When name and books are not empty
+        author.setAwards(Arrays.asList("Bookery prize"));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "National Book Awards");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize", "Test");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "National Book Awards", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        author.setAwards(Arrays.asList("Bookery prize", "National Book Awards"));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize", "National Book Awards");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "National Book Awards", "Bookery prize");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize", "National Book Awards", "Test");
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "National Book Awards", "Bookery prize", "Test");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+        expression = new SupersetOfPredicate(authorAwardsElement, "Bookery prize");
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new NotSupersetOfPredicate(authorAwardsElement, "Bookery prize");
         fn = expression.accept(visitor);
         assertFalse(fn.test(author));
     }

@@ -98,8 +98,8 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     }
 
     protected DataStoreTransaction getTransaction(RequestScope scope) {
-        DataStore dataStore = hashMapDataStores.computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR);
-        return transactions.computeIfAbsent(scope.getApiVersion(),
+        DataStore dataStore = hashMapDataStores.computeIfAbsent(scope.getRoute().getApiVersion(), REQUEST_ERROR);
+        return transactions.computeIfAbsent(scope.getRoute().getApiVersion(),
                 key -> dataStore.beginReadTransaction());
     }
 

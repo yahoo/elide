@@ -28,12 +28,12 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -59,13 +59,13 @@ public class EntityProjectionMaker
     public static final String INCLUDE = "include";
 
     private EntityDictionary dictionary;
-    private MultivaluedMap<String, String> queryParams;
+    private Map<String, List<String>> queryParams;
     private Map<String, Set<String>> sparseFields;
     private RequestScope scope;
 
     public EntityProjectionMaker(EntityDictionary dictionary, RequestScope scope) {
         this.dictionary = dictionary;
-        this.queryParams = scope.getQueryParams();
+        this.queryParams = scope.getRoute().getParameters();
         sparseFields = RequestScope.parseSparseFields(queryParams);
         this.scope = scope;
     }
@@ -138,9 +138,9 @@ public class EntityProjectionMaker
             Type<?> entityClass = getEntityClass(parentClass, entityName);
             FilterExpression filter = scope.getExpressionForRelation(parentClass, entityName).orElse(null);
 
-            Sorting sorting = SortingImpl.parseQueryParams(scope.getQueryParams(), entityClass, dictionary);
+            Sorting sorting = SortingImpl.parseQueryParams(scope.getRoute().getParameters(), entityClass, dictionary);
             Pagination pagination = PaginationImpl.parseQueryParams(entityClass,
-                    scope.getQueryParams(), scope.getElideSettings());
+                    scope.getRoute().getParameters(), scope.getElideSettings());
 
             return NamedEntityProjection.builder()
                     .name(entityName)
@@ -277,9 +277,9 @@ public class EntityProjectionMaker
                 filter = scope.getExpressionForRelation(parentClass, collectionNameText).orElse(null);
             }
 
-            Sorting sorting = SortingImpl.parseQueryParams(scope.getQueryParams(), entityClass, dictionary);
+            Sorting sorting = SortingImpl.parseQueryParams(scope.getRoute().getParameters(), entityClass, dictionary);
             Pagination pagination = PaginationImpl.parseQueryParams(entityClass,
-                    scope.getQueryParams(), scope.getElideSettings());
+                    scope.getRoute().getParameters(), scope.getElideSettings());
 
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
@@ -301,7 +301,7 @@ public class EntityProjectionMaker
             //entityLabel represents a root collection.
             if (parentClass == null) {
 
-                Type<?> entityClass = dictionary.getEntityClass(entityLabel, scope.getApiVersion());
+                Type<?> entityClass = dictionary.getEntityClass(entityLabel, scope.getRoute().getApiVersion());
 
                 if (entityClass != null) {
                     return entityClass;
@@ -339,7 +339,7 @@ public class EntityProjectionMaker
                             .value(argumentType.getDefaultValue())
                             .build();
                 })
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Set<Argument> getDefaultEntityArguments(Type<?> entityClass) {
@@ -351,7 +351,7 @@ public class EntityProjectionMaker
                             .value(argumentType.getDefaultValue())
                             .build();
                 })
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Set<Attribute> getSparseAttributes(Type<?> entityClass) {
@@ -363,7 +363,8 @@ public class EntityProjectionMaker
         } else {
             Set<String> allRelationships = new LinkedHashSet<>(dictionary.getRelationships(entityClass));
             validateSparseFields(sparseFieldsForEntity, allAttributes, allRelationships, entityClass);
-            sparseFieldsForEntity = Sets.intersection(allAttributes, sparseFieldsForEntity);
+            // sparseFieldsForEntity must be the first parameter to retain the order
+            sparseFieldsForEntity = Sets.intersection(sparseFieldsForEntity, allAttributes);
         }
 
         return sparseFieldsForEntity.stream()
@@ -372,7 +373,7 @@ public class EntityProjectionMaker
                     .type(dictionary.getType(entityClass, attributeName))
                     .arguments(getDefaultAttributeArguments(entityClass, attributeName))
                     .build())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Map<String, EntityProjection> getSparseRelationships(Type<?> entityClass) {
@@ -384,7 +385,8 @@ public class EntityProjectionMaker
         } else {
             Set<String> allAttributes = new LinkedHashSet<>(dictionary.getAttributes(entityClass));
             validateSparseFields(sparseFieldsForEntity, allAttributes, allRelationships, entityClass);
-            sparseFieldsForEntity = Sets.intersection(allRelationships, sparseFieldsForEntity);
+            // sparseFieldsForEntity must be the first parameter to retain the order
+            sparseFieldsForEntity = Sets.intersection(sparseFieldsForEntity, allRelationships);
         }
 
         return sparseFieldsForEntity.stream()
@@ -431,7 +433,7 @@ public class EntityProjectionMaker
             return queryParams.get(INCLUDE).stream()
                     .flatMap(param -> Arrays.stream(param.split(",")))
                     .map(pathString -> new Path(entityClass, dictionary, pathString))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         return new LinkedHashSet<>();
@@ -444,6 +446,6 @@ public class EntityProjectionMaker
                         .alias(entry.getKey())
                         .projection(entry.getValue())
                         .build())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

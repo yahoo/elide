@@ -286,7 +286,7 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     /**
-     * Nested Queries with filter - Pagination
+     * Nested Queries with filter - Pagination.
      * @throws Exception
      */
     @Test

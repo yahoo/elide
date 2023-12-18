@@ -18,6 +18,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.toJson;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -25,19 +26,22 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.ExceptionMappers;
+import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
-
+import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import example.models.versioned.BookV2;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,6 +93,7 @@ public class GraphQLEndpointTest {
     private final DataFetcherExceptionHandler dataFetcherExceptionHandler = Mockito.spy(new SimpleDataFetcherExceptionHandler());
 
     private Elide elide;
+    private ExceptionMappers exceptionMappers;
 
     public static class User implements Principal {
         String log = "";
@@ -124,12 +129,13 @@ public class GraphQLEndpointTest {
         Mockito.when(user2.getUserPrincipal()).thenReturn(new User().withName("2"));
         Mockito.when(user3.getUserPrincipal()).thenReturn(new User().withName("3"));
         Mockito.when(uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080/graphql"));
+        Mockito.when(uriInfo.getQueryParameters()).thenReturn(new MultivaluedHashMap<>());
         Mockito.when(requestHeaders.getRequestHeaders()).thenReturn(new MultivaluedHashMap<>());
     }
 
     @BeforeEach
     public void setupTest() throws Exception {
-        HashMapDataStore inMemoryStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
+        HashMapDataStore inMemoryStore = new HashMapDataStore(new DefaultClassScanner(),
                 Book.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
@@ -137,17 +143,23 @@ public class GraphQLEndpointTest {
         checkMappings.put(UserChecks.IS_USER_2, UserChecks.IsUserId.Two.class);
         checkMappings.put(CommitChecks.IS_NOT_USER_3, CommitChecks.IsNotUser3.class);
 
+        exceptionMappers = Mockito.mock(ExceptionMappers.class);
+
+        EntityDictionary entityDictionary = EntityDictionary.builder().checks(checkMappings).build();
         elide = spy(
                 new Elide(
-                    new ElideSettingsBuilder(inMemoryStore)
-                            .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
-                            .withAuditLogger(audit)
-                            .build())
+                    ElideSettings.builder().dataStore(inMemoryStore)
+                            .entityDictionary(entityDictionary)
+                            .auditLogger(audit)
+                                .settings(GraphQLSettingsBuilder.withDefaults(entityDictionary).graphqlExceptionHandler(
+                                        new DefaultGraphQLExceptionHandler(new Slf4jExceptionLogger(), exceptionMappers,
+                                                new DefaultGraphQLErrorMapper())))
+                                .build())
 
                 );
 
         elide.doScans();
-        endpoint = new GraphQLEndpoint(elide, Optional.of(dataFetcherExceptionHandler));
+        endpoint = new GraphQLEndpoint(elide, Optional.of(dataFetcherExceptionHandler), Optional.empty());
 
         DataStoreTransaction tx = inMemoryStore.beginTransaction();
 
@@ -234,7 +246,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -287,7 +299,7 @@ public class GraphQLEndpointTest {
 
         Map<String, String> variables = new HashMap<>();
         variables.put("bookId", "1");
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest, variables));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest, variables));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -315,7 +327,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -335,7 +347,7 @@ public class GraphQLEndpointTest {
         //Empty response because the collection is skipped because of failed user check.
         String expected = "{\"data\":{\"book\":{\"edges\":[]}}}";
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -360,9 +372,9 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
-        verify(elide).mapError(any());
+        verify(exceptionMappers).toErrorResponse(any(), any());
     }
 
     @Test
@@ -387,12 +399,12 @@ public class GraphQLEndpointTest {
            )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         JsonNode node = extract200Response(response);
         Iterator<JsonNode> errors = node.get("errors").elements();
         assertTrue(errors.hasNext());
         assertTrue(errors.next().get("message").asText().contains("No id provided, cannot persist incidents"));
-        verify(elide).mapError(any());
+        verify(exceptionMappers).toErrorResponse(any(), any());
     }
 
     @Test
@@ -421,7 +433,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
         verify(dataFetcherExceptionHandler).handleException(any());
 
@@ -449,7 +461,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post("", uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -493,7 +505,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
 
         assertHasErrors(response);
 
@@ -540,7 +552,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -585,7 +597,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
 
         String expectedLog = "On Title Update Pre Security\nOn Title Update Pre Commit\nOn Title Update Post Commit\n";
@@ -618,7 +630,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
 
         verify(audit, Mockito.times(1)).log(Mockito.any());
         verify(audit, Mockito.times(1)).commit();
@@ -667,7 +679,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
 
         graphQLRequest = document(
@@ -720,7 +732,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -749,9 +761,9 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user3, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user3, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
-        verify(elide).mapError(any());
+        verify(exceptionMappers).toErrorResponse(any(), any());
     }
 
     @Test
@@ -804,7 +816,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -829,9 +841,9 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
-        verify(elide).mapError(any());
+        verify(exceptionMappers).toErrorResponse(any(), any());
     }
 
 
@@ -907,7 +919,7 @@ public class GraphQLEndpointTest {
         ).toResponse();
 
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -973,7 +985,7 @@ public class GraphQLEndpointTest {
         ).toResponse();
 
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -1057,8 +1069,24 @@ public class GraphQLEndpointTest {
         variables.put("author1", "1");
         variables.put("author2", "2");
 
-        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest, variables));
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest, variables));
         assert200EqualBody(response, graphQLResponse);
+    }
+
+    @Test
+    public void testInvalidApiVersion() throws IOException {
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
+        entityDictionary.bindEntity(BookV2.class);
+        Elide elide = new Elide(
+                ElideSettings.builder().entityDictionary(entityDictionary).settings(GraphQLSettings.builder()).build());
+        GraphQLEndpoint graphqlEndpoint = new GraphQLEndpoint(elide, Optional.empty(), Optional.empty());
+        Response response = graphqlEndpoint.post("/v1", uriInfo, requestHeaders, user1, null);
+        Object entity = response.getEntity();
+        assertEquals(400, response.getStatus());
+        assertInstanceOf(String.class, entity);
+        if (entity instanceof String value) {
+            assertTrue(value.contains("Invalid API Version"));
+        }
     }
 
     private static String graphQLRequestToJSON(String request) {

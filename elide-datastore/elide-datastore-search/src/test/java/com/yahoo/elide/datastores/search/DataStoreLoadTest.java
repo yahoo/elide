@@ -314,8 +314,8 @@ public class DataStoreLoadTest {
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
         PaginationImpl pagination = new PaginationImpl(Item.class, 0, 1,
-                PaginationImpl.DEFAULT_PAGE_LIMIT,
-                PaginationImpl.MAX_PAGE_LIMIT,
+                PaginationImpl.DEFAULT_PAGE_SIZE,
+                PaginationImpl.MAX_PAGE_SIZE,
                 true,
                 false);
 
@@ -344,8 +344,8 @@ public class DataStoreLoadTest {
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
         PaginationImpl pagination = new PaginationImpl(Item.class, 1, 1,
-                PaginationImpl.DEFAULT_PAGE_LIMIT,
-                PaginationImpl.MAX_PAGE_LIMIT,
+                PaginationImpl.DEFAULT_PAGE_SIZE,
+                PaginationImpl.MAX_PAGE_SIZE,
                 true,
                 false);
 
