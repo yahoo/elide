@@ -578,16 +578,17 @@ public enum Operator {
             if (leftHandSide instanceof Collection<?> collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
                 for (Object left : collection) {
                     if (!rightHandSide.stream().anyMatch(object -> predicate.test(left, object))) {
+                        // An element on the leftHandSide is not present on the rightHandSide
                         return false;
                     }
                 }
+                // Every element on leftHandSide is present on rightHandSide
+                return true;
             } else {
-                if (leftHandSide != null
-                        && !rightHandSide.stream().anyMatch(object -> predicate.test(leftHandSide, object))) {
-                    return false;
-                }
+                // This happens when leftHandSide is null
+                // An empty set is a subset of every set
+                return true;
             }
-            return true;
         };
     }
 
@@ -608,10 +609,11 @@ public enum Operator {
                     }
                 }
             } else {
-                for (Object right : rightHandSide) {
-                    if (!predicate.test(right, leftHandSide)) {
-                        return false;
-                    }
+                // This happens when leftHandSide is null
+                // If the rightHandSide is not also an empty set then
+                // the leftHandSide is not a superset of the rightHandSide
+                if (!rightHandSide.isEmpty()) {
+                    return false;
                 }
             }
             return true;
