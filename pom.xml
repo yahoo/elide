@@ -138,7 +138,7 @@
         <swagger-api.version>2.2.19</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
         <tomcat.version>10.1.16</tomcat.version>
-        <mockito.version>5.7.0</mockito.version>
+        <mockito.version>5.8.0</mockito.version>
 
 
         <build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
