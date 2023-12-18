@@ -232,6 +232,35 @@ public enum Operator {
             return entity -> !hasMember(fieldPath, values, requestScope).test(entity);
         }
     },
+
+    SUBSETOF("subsetof", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return subsetOf(fieldPath, values, requestScope);
+        }
+    },
+
+    NOTSUBSETOF("notsubsetof", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return entity -> !subsetOf(fieldPath, values, requestScope).test(entity);
+        }
+    },
+
+    SUPERSETOF("supersetof", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return supersetOf(fieldPath, values, requestScope);
+        }
+    },
+
+    NOTSUPERSETOF("notsupersetof", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return entity -> !supersetOf(fieldPath, values, requestScope).test(entity);
+        }
+    },
+
     BETWEEN("between", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
@@ -536,6 +565,60 @@ public enum Operator {
         };
     }
 
+    private static <T> Predicate<T> subsetOf(Path fieldPath, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            Type<?> valueClass = fieldPath.lastElement().get().getFieldType();
+
+            Object leftHandSide = getFieldValue(entity, fieldPath, requestScope);
+
+            BiPredicate<Object, Object> predicate = (a, b) -> a.equals(b);
+
+            List<?> rightHandSide = values.stream().map(value -> CoerceUtil.coerce(value, valueClass)).toList();
+
+            if (leftHandSide instanceof Collection<?> collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
+                for (Object left : collection) {
+                    if (!rightHandSide.stream().anyMatch(object -> predicate.test(left, object))) {
+                        // An element on the leftHandSide is not present on the rightHandSide
+                        return false;
+                    }
+                }
+                // Every element on leftHandSide is present on rightHandSide
+                return true;
+            } else {
+                // This happens when leftHandSide is null
+                // An empty set is a subset of every set
+                return true;
+            }
+        };
+    }
+
+    private static <T> Predicate<T> supersetOf(Path fieldPath, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            Type<?> valueClass = fieldPath.lastElement().get().getFieldType();
+
+            Object leftHandSide = getFieldValue(entity, fieldPath, requestScope);
+
+            BiPredicate<Object, Object> predicate = (a, b) -> a.equals(b);
+
+            List<?> rightHandSide = values.stream().map(value -> CoerceUtil.coerce(value, valueClass)).toList();
+
+            if (leftHandSide instanceof Collection<?> collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
+                for (Object right : rightHandSide) {
+                    if (!collection.stream().anyMatch(object -> predicate.test(right, object))) {
+                        return false;
+                    }
+                }
+            } else {
+                // This happens when leftHandSide is null
+                // If the rightHandSide is not also an empty set then
+                // the leftHandSide is not a superset of the rightHandSide
+                if (!rightHandSide.isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    }
     /**
      * Return value of field/path for given entity. For example this.book.author
      *

@@ -23,6 +23,8 @@ import static com.yahoo.elide.core.filter.Operator.NOT;
 import static com.yahoo.elide.core.filter.Operator.NOTBETWEEN;
 import static com.yahoo.elide.core.filter.Operator.NOTEMPTY;
 import static com.yahoo.elide.core.filter.Operator.NOTNULL;
+import static com.yahoo.elide.core.filter.Operator.NOTSUBSETOF;
+import static com.yahoo.elide.core.filter.Operator.NOTSUPERSETOF;
 import static com.yahoo.elide.core.filter.Operator.NOT_INFIX;
 import static com.yahoo.elide.core.filter.Operator.NOT_INFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.NOT_INSENSITIVE;
@@ -34,6 +36,8 @@ import static com.yahoo.elide.core.filter.Operator.POSTFIX;
 import static com.yahoo.elide.core.filter.Operator.POSTFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.PREFIX;
 import static com.yahoo.elide.core.filter.Operator.PREFIX_CASE_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.SUBSETOF;
+import static com.yahoo.elide.core.filter.Operator.SUPERSETOF;
 import static com.yahoo.elide.core.filter.Operator.TRUE;
 import static com.yahoo.elide.core.utils.TypeHelper.getFieldAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getPathAlias;
@@ -326,6 +330,22 @@ public class FilterTranslator implements FilterOperation<String> {
 
         if (! GLOBAL_OPERATOR_GENERATORS.containsKey(HASNOMEMBER)) {
             GLOBAL_OPERATOR_GENERATORS.put(HASNOMEMBER, new HasMemberJPQLGenerator(dictionary, true));
+        }
+
+        if (! GLOBAL_OPERATOR_GENERATORS.containsKey(SUBSETOF)) {
+            GLOBAL_OPERATOR_GENERATORS.put(SUBSETOF, new SubsetOfJPQLGenerator(dictionary));
+        }
+
+        if (! GLOBAL_OPERATOR_GENERATORS.containsKey(NOTSUBSETOF)) {
+            GLOBAL_OPERATOR_GENERATORS.put(NOTSUBSETOF, new SubsetOfJPQLGenerator(dictionary, true));
+        }
+
+        if (! GLOBAL_OPERATOR_GENERATORS.containsKey(SUPERSETOF)) {
+            GLOBAL_OPERATOR_GENERATORS.put(SUPERSETOF, new SupersetOfJPQLGenerator(dictionary));
+        }
+
+        if (! GLOBAL_OPERATOR_GENERATORS.containsKey(NOTSUPERSETOF)) {
+            GLOBAL_OPERATOR_GENERATORS.put(NOTSUPERSETOF, new SupersetOfJPQLGenerator(dictionary, true));
         }
         this.operatorGenerators = new HashMap<>(GLOBAL_OPERATOR_GENERATORS);
         this.predicateOverrides = new HashMap<>(GLOBAL_PREDICATE_OVERRIDES);
