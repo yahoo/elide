@@ -1,5 +1,27 @@
 # Change Log
 
+## 7.0.1
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/f2ceb9d8a88ab843c7c71b54d5e39ac23e80b7ed) Add @key support for GraphQL Federation (#3100)
+ * [view commit](https://github.com/yahoo/elide/commit/43a292e0ed6a0517851802997c7c6b9e0efb8248) Support second level cache (#3097)
+ * [view commit](https://github.com/yahoo/elide/commit/a943f439e0304231e40fe0e40cca991d375ee3fb) Adds the subsetOf and supersetOf predicates (#3048) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/3d26016f631889c297ec8608e16827a2deb7126a) Closes #3101 JsonApi.patch NullPointerException when missing headers (#3102) 
+ * [view commit](https://github.com/yahoo/elide/commit/5c393085d08fb300140d837561b6d39613431b53) Upgrade to httpclient5 (#3042) 
+ * [view commit](https://github.com/yahoo/elide/commit/c7649bfbff7afb7f37b5faa6039cfadc29078493) Fix flaky tests in EntityDictionaryTest.java (#3111) 
+ * [view commit](https://github.com/yahoo/elide/commit/80439b651e47dfa67edf2f6bad81c835a3c73cff) Fix javadoc warnings (#3113) 
+ * [view commit](https://github.com/yahoo/elide/commit/845956c5838b6858743d6992c8a8f6dd6f6fadcd) Use JSONAssert to compare JSON strings (#3116) 
+ * [view commit](https://github.com/yahoo/elide/commit/ce69bcf857d5f496b0951554b43150a5c0ad36d5) Fix elide-integration-tests build warnings (#3115) 
+ * [view commit](https://github.com/yahoo/elide/commit/eeea9b9a930e7db37ff3a96844c5bee1e7641724) Upgrade dependencies for Spring Boot 3.2.0 (#3114) 
+ * [view commit](https://github.com/yahoo/elide/commit/afb7fbeb454b24efcd48ed88c87787d25fd27e03) Bump logback.version from 1.4.7 to 1.4.14 (#3119) 
+ * [view commit](https://github.com/yahoo/elide/commit/c428fa994e85a8c00b4d27218d9a5b1b973e80fa) Bump org.apache.maven.plugins:maven-release-plugin from 2.5.3 to 3.0.1 (#3104) 
+ * [view commit](https://github.com/yahoo/elide/commit/84031645ccc9459119f09bf408ba076788b79dea) Bump jetty.version from 12.0.3 to 12.0.4 (#3122) 
+ * [view commit](https://github.com/yahoo/elide/commit/94579edefee6a9fa93d63eca3808781fa3c3b7be) Bump org.codehaus.mojo:build-helper-maven-plugin from 3.4.0 to 3.5.0 (#3123) 
+ * [view commit](https://github.com/yahoo/elide/commit/81b701cc5178bdd2867adfc2bb47703a43c170f0) Bump rest-assured.version from 5.3.2 to 5.4.0 (#3124) 
+ * [view commit](https://github.com/yahoo/elide/commit/094b9cb57176312b87e6fa681de4e4599ffbf639) Bump mockito.version from 5.7.0 to 5.8.0 (#3128) 
+ * [view commit](https://github.com/yahoo/elide/commit/d307c3079afa8a929889aa46f9df92f8721c4aef) Bump org.graalvm.buildtools:native-maven-plugin from 0.9.22 to 0.9.28 (#3126) 
+
 ## 7.0.0
 Official 7.0 release.  This version includes major refactoring of settings, configuration, and error handling.
 
