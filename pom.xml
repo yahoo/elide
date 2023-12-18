@@ -141,7 +141,7 @@
         <mockito.version>5.7.0</mockito.version>
 
 
-        <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
         <checkstyle.version>10.12.5</checkstyle.version>
         <dependency-check-maven.version>8.4.3</dependency-check-maven.version>
