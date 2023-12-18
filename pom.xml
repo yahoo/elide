@@ -144,7 +144,7 @@
         <build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
         <checkstyle.version>10.12.5</checkstyle.version>
-        <dependency-check-maven.version>8.4.3</dependency-check-maven.version>
+        <dependency-check-maven.version>9.0.7</dependency-check-maven.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
