@@ -160,7 +160,7 @@
         <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
         <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
         <maven-scm-provider-gitexe.version>1.13.0</maven-scm-provider-gitexe.version>
-        <maven-scm-api.version>1.13.0</maven-scm-api.version>
+        <maven-scm-api.version>2.0.1</maven-scm-api.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
         <versioneye-maven-plugin.version>3.11.4</versioneye-maven-plugin.version>
         <wagon-ssh-external.version>3.5.3</wagon-ssh-external.version>
