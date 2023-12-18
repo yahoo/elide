@@ -30,7 +30,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.compress.utils.Lists;
+import com.google.common.collect.Lists;
 
 import lombok.ToString;
 

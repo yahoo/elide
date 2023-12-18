@@ -386,10 +386,10 @@ class PaginateIT extends IntegrationTest {
         String url = "/book?filter[book.publishDate][lt]=1454638927411&page[size]=2";
         Response response = get(url).then().extract().response();
 
-        List allBooks = response.path("data.attributes");
+        List<?> allBooks = response.path("data.attributes");
         assertEquals(2, allBooks.size());
 
-        List filteredBooks = response.path("data.findAll { it.attributes.publishDate < 1454638927411L }");
+        List<?> filteredBooks = response.path("data.findAll { it.attributes.publishDate < 1454638927411L }");
         assertEquals(allBooks.size(), filteredBooks.size());
     }
 

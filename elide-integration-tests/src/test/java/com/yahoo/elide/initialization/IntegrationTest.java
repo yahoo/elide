@@ -20,9 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.hamcrest.CustomTypeSafeMatcher;
@@ -37,6 +37,7 @@ import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Integration test initializer.  Tests are intended to run sequentially (so they don't stomp on each other's data).
@@ -89,10 +90,12 @@ public abstract class IntegrationTest {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
 
             if (StringUtils.isNotEmpty(dataStoreSupplierName)) {
-                return Class.forName(dataStoreSupplierName).asSubclass(DataStoreTestHarness.class).newInstance();
+                return Class.forName(dataStoreSupplierName).asSubclass(DataStoreTestHarness.class)
+                        .getDeclaredConstructor().newInstance();
             }
             return new InMemoryDataStoreHarness();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ClassCastException e) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ClassCastException
+                | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new IllegalStateException(e);
         }
     }

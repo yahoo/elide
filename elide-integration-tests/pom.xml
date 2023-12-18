@@ -63,8 +63,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-webapp</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -100,11 +100,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
         </dependency>
@@ -123,6 +118,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -179,20 +179,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>gmaven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generateStubs</goal>
-                            <goal>compile</goal>
-                            <goal>generateTestStubs</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.owasp</groupId>

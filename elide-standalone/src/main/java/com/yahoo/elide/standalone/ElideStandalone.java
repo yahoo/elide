@@ -14,11 +14,11 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import io.dropwizard.metrics.servlet.InstrumentedFilter;

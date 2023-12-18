@@ -14,7 +14,16 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class JsonParser {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public JsonParser() {
+        this(DEFAULT_OBJECT_MAPPER);
+    }
+
+    public JsonParser(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Parse provided string into JsonNode.

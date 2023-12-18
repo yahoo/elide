@@ -30,7 +30,7 @@ public class AsyncDelayStoreTransaction extends TransactionWrapper {
     }
 
     @Override
-    public DataStoreIterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+    public <T> DataStoreIterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         try {
             log.debug("LoadObjects Sleep for delay test");
 

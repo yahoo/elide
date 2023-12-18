@@ -50,6 +50,11 @@
             <version>7.0.1-SNAPSHOT</version>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- JPA -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
@@ -85,6 +90,20 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
+            <!-- Redis result storage engine is not used by default -->
+            <optional>true</optional>
+            <exclusions>
+                <!-- JSON commands not used -->
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+                <!-- JSON commands not used -->
+                <exclusion>
+                    <groupId>org.json</groupId>
+                    <artifactId>json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Test -->
@@ -130,6 +149,22 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- H2 -->
         <dependency>
             <groupId>com.h2database</groupId>
@@ -163,20 +198,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>gmaven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generateStubs</goal>
-                            <goal>compile</goal>
-                            <goal>generateTestStubs</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
