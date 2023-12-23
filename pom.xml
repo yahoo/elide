@@ -130,8 +130,8 @@
         <rxjava.version>2.2.21</rxjava.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
         <slf4j.version>2.0.9</slf4j.version>
-        <spring-boot.version>3.2.0</spring-boot.version>
-        <spring-framework.version>6.1.1</spring-framework.version>
+        <spring-boot.version>3.2.1</spring-boot.version>
+        <spring-framework.version>6.1.2</spring-framework.version>
 
         <spring-cloud-commons.version>4.0.4</spring-cloud-commons.version>
         <springdoc.version>2.2.0</springdoc.version>
@@ -417,11 +417,6 @@
                 <groupId>io.reactivex.rxjava2</groupId>
                 <artifactId>rxjava</artifactId>
                 <version>${rxjava.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>${spring-framework.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.owasp.encoder</groupId>

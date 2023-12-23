@@ -74,6 +74,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
+            <version>${spring-framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
