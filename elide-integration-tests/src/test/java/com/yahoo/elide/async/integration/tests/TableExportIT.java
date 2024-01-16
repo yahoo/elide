@@ -158,11 +158,11 @@ public class TableExportIT extends AsyncApiIT {
                         equalTo("http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cf830a"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
-        String expected = "\"title\"\n"
-                + "\"For Whom the Bell Tolls\"\n"
-                + "\"Song of Ice and Fire\"\n"
-                + "\"Ender's Game\"\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf830a"));
+        String expected = "\"title\"\r\n"
+                + "\"For Whom the Bell Tolls\"\r\n"
+                + "\"Song of Ice and Fire\"\r\n"
+                + "\"Ender's Game\"\r\n";
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf830a"));
     }
 
     /**
@@ -270,11 +270,11 @@ public class TableExportIT extends AsyncApiIT {
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        String expected = "\"title\"\n"
-                + "\"Ender's Game\"\n"
-                + "\"Song of Ice and Fire\"\n"
-                + "\"For Whom the Bell Tolls\"\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf828e"));
+        String expected = "\"title\"\r\n"
+                + "\"Ender's Game\"\r\n"
+                + "\"Song of Ice and Fire\"\r\n"
+                + "\"For Whom the Bell Tolls\"\r\n";
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf828e"));
     }
 
     /**
@@ -407,11 +407,11 @@ public class TableExportIT extends AsyncApiIT {
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        String expected = "\"bookName\"\n"
-                + "\"Ender's Game\"\n"
-                + "\"Song of Ice and Fire\"\n"
-                + "\"For Whom the Bell Tolls\"\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab28e"));
+        String expected = "\"bookName\"\r\n"
+                + "\"Ender's Game\"\r\n"
+                + "\"Song of Ice and Fire\"\r\n"
+                + "\"For Whom the Bell Tolls\"\r\n";
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab28e"));
     }
 
     /**
