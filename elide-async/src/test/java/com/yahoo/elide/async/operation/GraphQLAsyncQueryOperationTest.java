@@ -20,7 +20,6 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.request.route.Route;
-import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,6 @@ import java.util.Map;
 
 public class GraphQLAsyncQueryOperationTest {
 
-    private User user;
     private Elide elide;
     private RequestScope requestScope;
     private Map<String, QueryRunner> runners = new HashMap<>();
@@ -40,7 +38,6 @@ public class GraphQLAsyncQueryOperationTest {
 
     @BeforeEach
     public void setupMocks() {
-        user = mock(User.class);
         elide = mock(Elide.class);
         requestScope = mock(RequestScope.class);
         when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion("v1").build());
@@ -57,7 +54,7 @@ public class GraphQLAsyncQueryOperationTest {
         String responseBody = "{\"data\":{\"book\":{\"edges\":[{\"node\":{\"id\":\"1\",\"title\":\"Ender's Game\"}},"
                 + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"
                 + "{\"node\":{\"id\":\"3\",\"title\":\"For Whom the Bell Tolls\"}}]}}}";
-        ElideResponse response = ElideResponse.status(200).body(responseBody);
+        ElideResponse<String> response = ElideResponse.status(200).body(responseBody);
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
@@ -76,7 +73,7 @@ public class GraphQLAsyncQueryOperationTest {
     public void testProcessQueryGraphQlInvalidResponse() throws URISyntaxException {
         AsyncQuery queryObj = new AsyncQuery();
         String responseBody = "ResponseBody";
-        ElideResponse response = ElideResponse.status(200).body(responseBody);
+        ElideResponse<String> response = ElideResponse.status(200).body(responseBody);
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);

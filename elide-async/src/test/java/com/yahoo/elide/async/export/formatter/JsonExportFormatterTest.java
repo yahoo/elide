@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -30,6 +30,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -37,6 +42,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Consumer;
 
 public class JsonExportFormatterTest {
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
@@ -56,6 +62,26 @@ public class JsonExportFormatterTest {
                         .build());
         elide.doScans();
         scope = mock(RequestScope.class);
+    }
+
+    public String stringValueOf(Consumer<OutputStream> sink) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            sink.accept(outputStream);
+            return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public String format(TableExportFormatter formatter,  EntityProjection entityProjection,
+            TableExport tableExport, PersistentResource resource) {
+        return stringValueOf(outputStream -> {
+            try (ResourceWriter writer = formatter.newResourceWriter(outputStream, entityProjection, tableExport)) {
+                writer.write(resource);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
     }
 
     @Test
@@ -88,15 +114,18 @@ public class JsonExportFormatterTest {
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(queryObj);
         when(persistentResource.getRequestScope()).thenReturn(scope);
-        when(persistentResource.toResource(any(), any())).thenReturn(resource);
+        when(persistentResource.getAttribute(any(Attribute.class))).thenAnswer(invocation -> {
+            Attribute attribute = invocation.getArgument(0);
+            return resourceAttributes.get(attribute.getName());
+        });
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = formatter.format(persistentResource, 1);
+        String output = format(formatter, null, null, persistentResource);
         assertTrue(output.contains(start));
     }
 
     @Test
-    public void testResourceToJSON() {
+    public void testResourceToJSON() throws IOException {
         JsonExportFormatter formatter = new JsonExportFormatter(elide);
         TableExport queryObj = new TableExport();
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
@@ -119,11 +148,19 @@ public class JsonExportFormatterTest {
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(queryObj);
         when(persistentResource.getRequestScope()).thenReturn(scope);
-        when(persistentResource.toResource(any(), any())).thenReturn(resource);
+        when(persistentResource.getAttribute(any(Attribute.class))).thenAnswer(invocation -> {
+            Attribute attribute = invocation.getArgument(0);
+            return resourceAttributes.get(attribute.getName());
+        });
         when(scope.getEntityProjection()).thenReturn(projection);
 
-        String output = formatter.resourceToJSON(elide.getObjectMapper(), persistentResource);
-        assertTrue(output.contains(start));
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ResourceWriter writer = formatter.newResourceWriter(outputStream, projection, queryObj);
+            writer.write(persistentResource);
+            writer.close();
+            String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+            assertTrue(output.contains(start));
+        }
     }
 
     @Test
@@ -131,7 +168,7 @@ public class JsonExportFormatterTest {
         JsonExportFormatter formatter = new JsonExportFormatter(elide);
         PersistentResource persistentResource = null;
 
-        String output = formatter.format(persistentResource, 1);
-        assertNull(output);
+        String output = format(formatter, null, null, persistentResource);
+        assertEquals("[\n]\n", output);
     }
 }

@@ -72,7 +72,6 @@ public class TableExportIT extends AsyncApiIT {
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String queryType;
         private Integer asyncAfterSeconds;
-        @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String resultType;
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String status;
@@ -159,11 +158,11 @@ public class TableExportIT extends AsyncApiIT {
                         equalTo("http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cf830a"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
-        String expected = "\"title\"\n"
-                + "\"For Whom the Bell Tolls\"\n"
-                + "\"Song of Ice and Fire\"\n"
-                + "\"Ender's Game\"\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf830a"));
+        String expected = "\"title\"\r\n"
+                + "\"For Whom the Bell Tolls\"\r\n"
+                + "\"Song of Ice and Fire\"\r\n"
+                + "\"Ender's Game\"\r\n";
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf830a"));
     }
 
     /**
@@ -211,7 +210,7 @@ public class TableExportIT extends AsyncApiIT {
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"Ender's Game\"}\n"
                 + "]\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf831a"));
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf831a"));
 
     }
 
@@ -271,11 +270,11 @@ public class TableExportIT extends AsyncApiIT {
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        String expected = "\"title\"\n"
-                + "\"Ender's Game\"\n"
-                + "\"Song of Ice and Fire\"\n"
-                + "\"For Whom the Bell Tolls\"\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf828e"));
+        String expected = "\"title\"\r\n"
+                + "\"Ender's Game\"\r\n"
+                + "\"Song of Ice and Fire\"\r\n"
+                + "\"For Whom the Bell Tolls\"\r\n";
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf828e"));
     }
 
     /**
@@ -349,7 +348,7 @@ public class TableExportIT extends AsyncApiIT {
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"For Whom the Bell Tolls\"}\n"
                 + "]\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf829e"));
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf829e"));
     }
 
     /**
@@ -408,11 +407,11 @@ public class TableExportIT extends AsyncApiIT {
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        String expected = "\"title\"\n"
-                + "\"Ender's Game\"\n"
-                + "\"Song of Ice and Fire\"\n"
-                + "\"For Whom the Bell Tolls\"\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab28e"));
+        String expected = "\"bookName\"\r\n"
+                + "\"Ender's Game\"\r\n"
+                + "\"Song of Ice and Fire\"\r\n"
+                + "\"For Whom the Bell Tolls\"\r\n";
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab28e"));
     }
 
     /**
@@ -486,7 +485,7 @@ public class TableExportIT extends AsyncApiIT {
                 + ",{\"bookName\":\"Song of Ice and Fire\"}\n"
                 + ",{\"bookName\":\"For Whom the Bell Tolls\"}\n"
                 + "]\n";
-        assertEquals(expected.replaceAll("\n", System.lineSeparator()), getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab29e"));
+        assertEquals(expected, getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab29e"));
     }
 
     /**
@@ -578,7 +577,7 @@ public class TableExportIT extends AsyncApiIT {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body(containsString("errors"))
-                .body(containsString("Validation error (WrongType@[tableExport]) : argument &#39;data.resultType&#39;"));
+                .body(containsString("Formatter unavailable for XLS"));
     }
 
     /**

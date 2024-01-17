@@ -7,12 +7,13 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
+import com.yahoo.elide.async.export.formatter.ResourceWriter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
 import com.yahoo.elide.async.export.validator.Validator;
 import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncApiResult;
-import com.yahoo.elide.async.models.FileExtensionType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -30,6 +31,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -42,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 /**
  * TableExport Execute Operation Interface.
@@ -55,15 +59,18 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
     private RequestScope scope;
     private ResultStorageEngine engine;
     private List<Validator> validators = new ArrayList<>(Arrays.asList(new SingleRootProjectionValidator()));
+    private ResultTypeFileExtensionMapper resultTypeFileExtensionMapper;
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncApi exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators) {
+            AsyncApi exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators,
+            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
         this.formatter = formatter;
         this.service = service;
         this.exportObj = (TableExport) exportObj;
         this.scope = scope;
         this.engine = engine;
         this.validators.addAll(validators);
+        this.resultTypeFileExtensionMapper = resultTypeFileExtensionMapper;
     }
 
     @Override
@@ -95,19 +102,19 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
                 observableResults = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
             }
 
-            Observable<String> results = Observable.empty();
-            String preResult = formatter.preFormat(projection, exportObj);
-            results = observableResults.map(resource -> {
-                this.recordNumber++;
-                return formatter.format(resource, recordNumber);
-            });
-            String postResult = formatter.postFormat(projection, exportObj);
+            Observable<PersistentResource> results = observableResults;
+            Consumer<OutputStream> data = outputStream -> {
+                try (ResourceWriter writer = formatter.newResourceWriter(outputStream, projection, exportObj)) {
+                    results.subscribe(resource -> {
+                        this.recordNumber++;
+                        writer.write(resource);
+                    });
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            };
 
-            // Stitch together Pre-Formatted, Formatted, Post-Formatted results of Formatter in single observable.
-            Observable<String> interimResults = concatStringWithObservable(preResult, results, true);
-            Observable<String> finalResults = concatStringWithObservable(postResult, interimResults, false);
-
-            TableExportResult result = storeResults(exportObj, engine, finalResults);
+            TableExportResult result = storeResults(exportObj, engine, data);
 
             if (result != null && result.getMessage() != null) {
                 throw new IllegalStateException(result.getMessage());
@@ -184,10 +191,8 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
                 baseURL = baseURL.substring(0, baseURL.length() - graphqlApiPath.length());
             }
         }
-        String extension = this.engine.isExtensionEnabled()
-                ? exportObj.getResultType().getFileExtensionType().getExtension()
-                : FileExtensionType.NONE.getExtension();
-        return baseURL + downloadPath + "/" + exportObj.getId() + extension;
+        String tableExportID = getTableExportID(exportObj);
+        return baseURL + downloadPath + "/" + tableExportID;
     }
 
     /**
@@ -198,8 +203,15 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      * @return TableExportResult object.
      */
     protected TableExportResult storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
-            Observable<String> result) {
-        return resultStorageEngine.storeResults(exportObj, result);
+            Consumer<OutputStream> result) {
+        return resultStorageEngine.storeResults(getTableExportID(exportObj), result);
+    }
+
+    protected String getTableExportID(TableExport exportObj) {
+        String extension = resultTypeFileExtensionMapper != null
+                ? resultTypeFileExtensionMapper.getFileExtension(exportObj.getResultType())
+                : "";
+        return exportObj.getId() + extension;
     }
 
     private void validateProjections(Collection<EntityProjection> projections) {

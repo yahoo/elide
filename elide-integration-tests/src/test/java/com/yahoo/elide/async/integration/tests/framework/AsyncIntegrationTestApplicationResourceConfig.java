@@ -19,6 +19,7 @@ import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
+import com.yahoo.elide.async.export.formatter.XlsxExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
 import com.yahoo.elide.async.integration.tests.AsyncIT;
@@ -135,16 +136,17 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 // Create ResultStorageEngine
                 Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
                 if (storageDestination != null) { // TableExport is enabled
-                    ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString(), false);
+                    ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString());
                     bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
-                    Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
+                    Map<String, TableExportFormatter> supportedFormatters = new HashMap<>();
                     supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide, true));
                     supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
+                    supportedFormatters.put(ResultType.XLSX, new XlsxExportFormatter(elide, true));
 
                     // Binding TableExport LifeCycleHook
                     TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, Duration.ofSeconds(10L),
-                            supportedFormatters, resultStorageEngine);
+                            supportedFormatters, resultStorageEngine, null);
                     dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);

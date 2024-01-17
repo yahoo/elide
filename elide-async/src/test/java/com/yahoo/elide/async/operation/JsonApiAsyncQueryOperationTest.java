@@ -19,7 +19,6 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.request.route.Route;
-import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +28,6 @@ import java.net.URISyntaxException;
 
 public class JsonApiAsyncQueryOperationTest {
 
-    private User user;
     private Elide elide;
     private JsonApi jsonApi;
     private RequestScope requestScope;
@@ -37,7 +35,6 @@ public class JsonApiAsyncQueryOperationTest {
 
     @BeforeEach
     public void setupMocks() {
-        user = mock(User.class);
         elide = mock(Elide.class);
         jsonApi = mock(JsonApi.class);
         requestScope = mock(RequestScope.class);
@@ -54,7 +51,7 @@ public class JsonApiAsyncQueryOperationTest {
                 + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                 + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}";
-        ElideResponse<String> response = new ElideResponse(200, responseBody);
+        ElideResponse<String> response = ElideResponse.status(200).body(responseBody);
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
@@ -73,7 +70,7 @@ public class JsonApiAsyncQueryOperationTest {
     public void testProcessQueryNonSuccessResponse() throws URISyntaxException {
         AsyncQuery queryObj = new AsyncQuery();
         String responseBody = "ResponseBody";
-        ElideResponse<String> response = new ElideResponse(201, responseBody);
+        ElideResponse<String> response = ElideResponse.status(201).body(responseBody);
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);

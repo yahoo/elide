@@ -6,18 +6,21 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
-import com.yahoo.elide.async.models.FileExtensionType;
-import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.async.io.ByteSinkOutputStream;
 import com.yahoo.elide.async.models.TableExportResult;
 
-import io.reactivex.Observable;
 import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.UnifiedJedis;
 
-import java.util.Iterator;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
 
 /**
  * Implementation of ResultStorageEngine that stores results on Redis Cluster.
@@ -27,58 +30,69 @@ import java.util.Iterator;
 @Slf4j
 @Getter
 public class RedisResultStorageEngine implements ResultStorageEngine {
-    @Setter private UnifiedJedis jedis;
-    @Setter private boolean enableExtension;
-    @Setter private long expirationSeconds;
-    @Setter private long batchSize;
+    private static final int DEFAULT_BUFFER_SIZE = 8192;
+    @Setter
+    private UnifiedJedis jedis;
+    @Setter
+    private long expirationSeconds;
+    @Setter
+    private long batchSize;
+    @Setter
+    private int bufferSize = DEFAULT_BUFFER_SIZE;
 
     /**
      * Constructor.
-     * @param jedis Jedis Connection Pool to Redis clusteer.
-     * @param enableExtension Enable file extensions.
-     * @param expirationSeconds Expiration Time for results on Redis.
-     * @param batchSize Batch Size for retrieving from Redis.
+     *
+     * @param jedis                         Jedis Connection Pool to Redis clusteer.
+     * @param expirationSeconds             Expiration Time for results on Redis.
+     * @param batchSize                     Batch Size for retrieving from Redis.
      */
-    public RedisResultStorageEngine(UnifiedJedis jedis, boolean enableExtension, long expirationSeconds,
-            long batchSize) {
+    public RedisResultStorageEngine(UnifiedJedis jedis, long expirationSeconds, long batchSize) {
         this.jedis = jedis;
-        this.enableExtension = enableExtension;
         this.expirationSeconds = expirationSeconds;
         this.batchSize = batchSize;
     }
 
     @Override
-    public TableExportResult storeResults(TableExport tableExport, Observable<String> result) {
+    public TableExportResult storeResults(String tableExportID, Consumer<OutputStream> result) {
         log.debug("store TableExportResults for Download");
-        String extension = this.isExtensionEnabled()
-                ? tableExport.getResultType().getFileExtensionType().getExtension()
-                : FileExtensionType.NONE.getExtension();
-
         TableExportResult exportResult = new TableExportResult();
-        String key = tableExport.getId() + extension;
-
-        result
-            .map(record -> record)
-            .subscribe(
-                    recordCharArray -> {
-                        jedis.rpush(key, recordCharArray);
-                    },
-                    throwable -> {
-                        StringBuilder message = new StringBuilder();
-                        message.append(throwable.getClass().getCanonicalName()).append(" : ");
-                        message.append(throwable.getMessage());
-                        exportResult.setMessage(message.toString());
-
-                        throw new IllegalStateException(STORE_ERROR, throwable);
-                    }
-            );
+        String key = tableExportID;
+        try (OutputStream outputStream = newBufferedOutputStream(key, bufferSize)) {
+            result.accept(outputStream);
+        } catch (IOException e) {
+            setMessage(exportResult, e);
+            throw new UncheckedIOException(STORE_ERROR, e);
+        } catch (UncheckedIOException e) {
+            setMessage(exportResult, e);
+            throw e;
+        } catch (RuntimeException e) {
+            setMessage(exportResult, e);
+            throw new UncheckedIOException(STORE_ERROR, new IOException(e));
+        }
         jedis.expire(key, expirationSeconds);
-
         return exportResult;
     }
 
+    protected void setMessage(TableExportResult exportResult, Exception e) {
+        StringBuilder message = new StringBuilder();
+        message.append(e.getClass().getCanonicalName()).append(" : ");
+        message.append(e.getMessage());
+        exportResult.setMessage(message.toString());
+    }
+
+    protected OutputStream newBufferedOutputStream(String key, int size) {
+        return new BufferedOutputStream(newOutputStream(key), size);
+    }
+
+    protected OutputStream newOutputStream(String key) {
+        return new RedisOutputStream(data -> {
+            jedis.rpush(key.getBytes(StandardCharsets.UTF_8), data);
+        }, () -> jedis.rpush(key.getBytes(StandardCharsets.UTF_8), new byte[] {}));
+    }
+
     @Override
-    public Observable<String> getResultsByID(String tableExportID) {
+    public Consumer<OutputStream> getResultsByID(String tableExportID) {
         log.debug("getTableExportResultsByID");
 
         long recordCount = jedis.llen(tableExportID);
@@ -86,41 +100,61 @@ public class RedisResultStorageEngine implements ResultStorageEngine {
         if (recordCount == 0) {
             throw new IllegalStateException(RETRIEVE_ERROR);
         } else {
-            // Workaround for Local variable defined in an enclosing scope must be final or effectively final;
-            // use Array.
-            long[] recordRead = {0}; // index to start.
-            return Observable.fromIterable(() -> new Iterator<String>() {
-                @Override
-                public boolean hasNext() {
-                        return recordRead[0] < recordCount;
-                }
-                @Override
-                public String next() {
-                    StringBuilder record = new StringBuilder();
-                    long end = recordRead[0] + batchSize - 1; // index of last element.
+            return outputStream -> {
+                long recordRead = 0;
+                while (recordRead < recordCount) {
+                    long end = recordRead + batchSize - 1; // index of last element.
 
                     if (end >= recordCount) {
                         end = recordCount - 1;
                     }
 
-                    Iterator<String> itr = jedis.lrange(tableExportID, recordRead[0], end).iterator();
-
-                    // Combine the list into a single string.
-                    while (itr.hasNext()) {
-                        String str = itr.next();
-                        record.append(str).append(System.lineSeparator());
+                    for (byte[] data : jedis.lrange(tableExportID.getBytes(StandardCharsets.UTF_8), recordRead, end)) {
+                        try {
+                            outputStream.write(data);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
                     }
-                    recordRead[0] = end + 1; //index for next element to be read
-
-                    // Removing the last line separator because ExportEndPoint will add 1 more.
-                    return record.substring(0, record.length() - System.lineSeparator().length());
+                    recordRead = end + 1; //index for next element to be read
                 }
-            });
+            };
         }
     }
 
-    @Override
-    public boolean isExtensionEnabled() {
-        return this.enableExtension;
+    public static class RedisOutputStream extends ByteSinkOutputStream {
+        private final Runnable onEmpty;
+        private boolean empty = true;
+
+        public RedisOutputStream(Consumer<byte[]> byteSink, Runnable onEmpty) {
+            super(byteSink);
+            this.onEmpty = onEmpty;
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            this.empty = false;
+            super.write(b);
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            this.empty = false;
+            super.write(b);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            this.empty = false;
+            super.write(b, off, len);
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            if (this.empty && onEmpty != null) {
+                onEmpty.run();
+            }
+        }
     }
 }

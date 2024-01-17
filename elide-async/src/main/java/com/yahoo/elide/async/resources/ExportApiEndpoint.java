@@ -8,7 +8,6 @@ package com.yahoo.elide.async.resources;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 
-import io.reactivex.Observable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -27,9 +26,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.OutputStream;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * Default endpoint/servlet for using Elide and Async Export.
@@ -73,44 +74,37 @@ public class ExportApiEndpoint {
         });
 
         exportApiProperties.getExecutor().submit(() -> {
-            Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
-
-            StreamingOutput streamingOutput = outputStream ->
-                observableResults
-                .subscribe(
-                        resultString -> outputStream.write(resultString.concat(System.lineSeparator()).getBytes()),
-                        error -> {
-                            String message = error.getMessage();
-                            try {
-                                log.debug(message);
-                                if (message != null && message.equals(ResultStorageEngine.RETRIEVE_ERROR)) {
-                                    httpServletResponse.sendError(HttpStatus.SC_NOT_FOUND, asyncQueryId + " Not Found");
-                                } else {
-                                    httpServletResponse.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                                }
-                            } catch (IllegalStateException e) {
-                                // If stream was flushed, Attachment download has already started.
-                                // response.sendError causes java.lang.IllegalStateException:
-                                // Cannot call sendError() after the response has been committed.
-                                // This will return 200 status.
-                                // Add error message in the attachment as a way to signal errors.
-                                outputStream.write(
-                                        "Error Occured...."
-                                        .concat(System.lineSeparator())
-                                        .getBytes()
-                                        );
-                                log.debug(e.getMessage());
-                            } finally {
-                                outputStream.flush();
-                                outputStream.close();
-                            }
-                        },
-                        () -> {
-                            outputStream.flush();
-                            outputStream.close();
+            Consumer<OutputStream> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
+            StreamingOutput streamingOutput = outputStream -> {
+                try {
+                    observableResults.accept(outputStream);
+                } catch (RuntimeException e) {
+                    String message = e.getMessage();
+                    try {
+                        log.debug(message);
+                        if (message != null && message.equals(ResultStorageEngine.RETRIEVE_ERROR)) {
+                            httpServletResponse.sendError(HttpStatus.SC_NOT_FOUND, asyncQueryId + " Not Found");
+                        } else {
+                            httpServletResponse.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
                         }
-                );
-
+                    } catch (IllegalStateException ise) {
+                        // If stream was flushed, Attachment download has already started.
+                        // response.sendError causes java.lang.IllegalStateException:
+                        // Cannot call sendError() after the response has been committed.
+                        // This will return 200 status.
+                        // Add error message in the attachment as a way to signal errors.
+                        outputStream.write(
+                                "Error Occured...."
+                                .concat(System.lineSeparator())
+                                .getBytes()
+                                );
+                        log.debug(ise.getMessage());
+                    }
+                } finally {
+                    outputStream.flush();
+                    outputStream.close();
+                }
+            };
             asyncResponse.resume(Response.ok(streamingOutput, MediaType.APPLICATION_OCTET_STREAM)
                     .header("Content-Disposition", "attachment; filename=" + asyncQueryId).build());
         });

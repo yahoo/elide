@@ -12,13 +12,11 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
-import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
@@ -57,7 +55,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -170,20 +167,16 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                 if (resultStorageEngine == null) {
-                    resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination(),
-                            asyncProperties.appendFileExtension());
+                    resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination());
                 }
                 bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
-                // Initialize the Formatters.
-                Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
-                supportedFormatters.put(ResultType.CSV, new CsvExportFormatter(elide,
-                        asyncProperties.csvWriteHeader()));
-                supportedFormatters.put(ResultType.JSON, new JsonExportFormatter(elide));
-
                 // Binding TableExport LifeCycleHook
                 TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
-                        asyncProperties, supportedFormatters, resultStorageEngine);
+                        asyncProperties, asyncProperties.getTableExportFormattersBuilder(elide).build(),
+                        resultStorageEngine,
+                        asyncProperties.appendFileExtension() ? asyncProperties.getResultTypeFileExtensionMapper()
+                                : null);
                 dictionary.bindTrigger(TableExport.class, CREATE, PREFLUSH, tableExportHook, false);
                 dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                 dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
@@ -313,9 +306,9 @@ public class ElideResourceConfig extends ResourceConfig {
     }
 
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
-            ElideStandaloneAsyncSettings asyncProperties, Map<ResultType, TableExportFormatter> supportedFormatters,
-            ResultStorageEngine engine) {
+            ElideStandaloneAsyncSettings asyncProperties, Map<String, TableExportFormatter> supportedFormatters,
+            ResultStorageEngine engine, ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
         return new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfter(),
-                    supportedFormatters, engine);
+                    supportedFormatters, engine, resultTypeFileExtensionMapper);
     }
 }

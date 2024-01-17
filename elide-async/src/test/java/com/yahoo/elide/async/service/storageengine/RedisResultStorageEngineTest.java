@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.async.service.storageengine;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -13,18 +14,23 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.reactivex.Observable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.observers.TestObserver;
 import io.reactivex.plugins.RxJavaPlugins;
 import redis.clients.jedis.JedisPooled;
-import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.embedded.RedisServer;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Test cases for RedisResultStorageEngine.
@@ -34,7 +40,6 @@ public class RedisResultStorageEngineTest {
     private static final int PORT = 6379;
     private static final int EXPIRATION_SECONDS = 120;
     private static final int BATCH_SIZE = 2;
-    private static final boolean EXTENSION_SUPPORT = false;
     private JedisPooled jedisPool;
     private RedisServer redisServer;
     RedisResultStorageEngine engine;
@@ -44,12 +49,27 @@ public class RedisResultStorageEngineTest {
         redisServer = new RedisServer(PORT);
         redisServer.start();
         jedisPool = new JedisPooled(HOST, PORT);
-        engine = new RedisResultStorageEngine(jedisPool, EXTENSION_SUPPORT, EXPIRATION_SECONDS, BATCH_SIZE);
+        engine = new RedisResultStorageEngine(jedisPool, EXPIRATION_SECONDS, BATCH_SIZE);
     }
 
     @AfterEach
     public void destroy() throws IOException {
         redisServer.stop();
+    }
+
+    public void write(OutputStream outputStream, String[] inputs) {
+        boolean first = true;
+        for (String input : inputs) {
+            try {
+                if (!first) {
+                    outputStream.write('\n');
+                }
+                outputStream.write(input.getBytes(StandardCharsets.UTF_8));
+                first = false;
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
     }
 
     @Test
@@ -65,7 +85,7 @@ public class RedisResultStorageEngineTest {
         String validOutput = "";
         String[] input = validOutput.split("\n");
 
-        storeResults(queryId, Observable.fromArray(input));
+        storeResults(queryId, outputStream -> write(outputStream, input));
 
         // verify contents of stored files are readable and match original
         verifyResults("store_empty_results_success", Arrays.asList(validOutput));
@@ -77,16 +97,46 @@ public class RedisResultStorageEngineTest {
         String validOutput = "hi\nhello";
         String[] input = validOutput.split("\n");
 
-        storeResults(queryId, Observable.fromArray(input));
+        storeResults(queryId, outputStream -> write(outputStream, input));
 
         // verify contents of stored files are readable and match original
         verifyResults("store_results_success", Arrays.asList(validOutput));
     }
 
+    @Test
+    public void testStoreBinaryResults() throws IOException {
+        String queryId = "store_results_binary";
+        byte[] data;
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            for (int x = 0; x < 1000; x++) {
+                outputStream.write("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8));
+            }
+            data = outputStream.toByteArray();
+        }
+        storeResults(queryId, outputStream -> {
+           try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
+               zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
+               zipOutputStream.putNextEntry(new ZipEntry("test.txt"));
+               zipOutputStream.write(data);
+               zipOutputStream.closeEntry();
+           } catch (IOException e) {
+               throw new UncheckedIOException(e);
+           }
+        });
+
+        byte[] results = readResultBytes(queryId);
+        try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(results))) {
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
+            assertEquals("test.txt", zipEntry.getName());
+            byte[] result = zipInputStream.readAllBytes();
+            assertArrayEquals(data, result);
+        }
+    }
+
     // Redis server does not exist.
     @Test
     public void testStoreResultsFail() throws IOException {
-        Consumer<? super Throwable> old = RxJavaPlugins.getErrorHandler();
+        io.reactivex.functions.Consumer<? super Throwable> old = RxJavaPlugins.getErrorHandler();
 
         try {
             RxJavaPlugins.setErrorHandler(e -> {
@@ -94,9 +144,9 @@ public class RedisResultStorageEngineTest {
             });
 
             destroy();
-            assertThrows(JedisConnectionException.class, () ->
+            assertThrows(UncheckedIOException.class, () ->
                     storeResults("store_results_fail",
-                            Observable.fromArray(new String[]{"hi", "hello"}))
+                            outputStream -> write(outputStream, new String[]{"hi", "hello"}))
             );
         } finally {
             RxJavaPlugins.setErrorHandler(old);
@@ -110,7 +160,7 @@ public class RedisResultStorageEngineTest {
         String validOutput = "hi\nhello\nbye";
         String[] input = validOutput.split("\n");
 
-        storeResults(queryId, Observable.fromArray(input));
+        storeResults(queryId, outputStream -> write(outputStream, input));
 
         // 2 onnext calls will be returned.
         // 1st call will have 2 records combined together as one. hi and hello.
@@ -119,19 +169,36 @@ public class RedisResultStorageEngineTest {
     }
 
     private void verifyResults(String queryId, List<String> expected) {
-        TestObserver<String> subscriber = new TestObserver<>();
-
-        Observable<String> observable = engine.getResultsByID(queryId);
-
-        observable.subscribe(subscriber);
-        subscriber.assertComplete();
-        assertEquals(subscriber.getEvents().iterator().next(), expected.stream().map(data -> data.replaceAll("\n", System.lineSeparator())).collect(Collectors.toList()));
+        String results = readResults(queryId);
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
+        for (String input : expected) {
+            if (!first) {
+                builder.append('\n');
+            }
+            builder.append(input);
+            first = false;
+        }
+        assertEquals(builder.toString(), results);
     }
 
-    private void storeResults(String queryId, Observable<String> storable) {
+    private String readResults(String queryId) {
+        return new String(readResultBytes(queryId), StandardCharsets.UTF_8);
+    }
+
+    private byte[] readResultBytes(String queryId) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            engine.getResultsByID(queryId).accept(outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void storeResults(String queryId, Consumer<OutputStream> storable) {
         TableExport query = new TableExport();
         query.setId(queryId);
 
-        engine.storeResults(query, storable);
+        engine.storeResults(query.getId(), storable);
     }
 }
