@@ -14,6 +14,8 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.DefaultResultTypeFileExtensionMapper;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.JsonExportFormatter;
 import com.yahoo.elide.async.models.ArtifactGroup;
 import com.yahoo.elide.async.models.QueryType;
@@ -56,6 +58,7 @@ public class GraphQLTableExportOperationTest {
     private RequestScope requestScope;
     private AsyncExecutorService asyncExecutorService;
     private ResultStorageEngine engine;
+    private ResultTypeFileExtensionMapper resultTypeFileExtensionMapper = new DefaultResultTypeFileExtensionMapper();
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
@@ -81,7 +84,7 @@ public class GraphQLTableExportOperationTest {
         user = mock(User.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
-        engine = new FileResultStorageEngine(tempDir.toString(), false);
+        engine = new FileResultStorageEngine(tempDir.toString());
         when(asyncExecutorService.getElide()).thenReturn(elide);
         when(requestScope.getRoute()).thenReturn(Route.builder().apiVersion(NO_VERSION).baseUrl("https://elide.io").build());
         when(requestScope.getUser()).thenReturn(user);
@@ -100,11 +103,11 @@ public class GraphQLTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope, engine);
+                queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d", queryResultObj.getUrl().toString());
+        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d.csv", queryResultObj.getUrl().toString());
         assertEquals(1, queryResultObj.getRecordCount());
     }
 
@@ -120,7 +123,7 @@ public class GraphQLTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope, engine);
+                queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -139,7 +142,7 @@ public class GraphQLTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JsonExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope, engine);
+                queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -157,7 +160,7 @@ public class GraphQLTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JsonExportFormatter(elide),
-                        asyncExecutorService, queryObj, requestScope, engine);
+                        asyncExecutorService, queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -178,7 +181,7 @@ public class GraphQLTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JsonExportFormatter(elide),
-                        asyncExecutorService, queryObj, requestScope, engine);
+                        asyncExecutorService, queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -199,7 +202,7 @@ public class GraphQLTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JsonExportFormatter(elide),
-                        asyncExecutorService, queryObj, requestScope, engine);
+                        asyncExecutorService, queryObj, requestScope, engine, resultTypeFileExtensionMapper);
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());

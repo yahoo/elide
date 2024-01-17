@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Yahoo Inc.
+ * Copyright 2023, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -14,14 +14,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.OutputStream;
 
 /**
- * JSON output format implementation.
+ * XLSX output format implementation.
  */
-public class CsvExportFormatter implements TableExportFormatter {
+public class XlsxExportFormatter implements TableExportFormatter {
 
     private boolean writeHeader = true;
     private ObjectMapper objectMapper;
 
-    public CsvExportFormatter(Elide elide, boolean writeHeader) {
+    public XlsxExportFormatter(Elide elide, boolean writeHeader) {
         this.writeHeader = writeHeader;
         this.objectMapper = elide.getObjectMapper();
     }
@@ -29,6 +29,6 @@ public class CsvExportFormatter implements TableExportFormatter {
     @Override
     public ResourceWriter newResourceWriter(OutputStream outputStream, EntityProjection entityProjection,
             TableExport tableExport) {
-        return new CsvResourceWriter(outputStream, objectMapper, writeHeader, entityProjection);
+        return new XlsxResourceWriter(outputStream, objectMapper, writeHeader, entityProjection);
     }
 }

@@ -12,8 +12,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,9 +30,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class TableExport extends AsyncApi {
 
-    @Enumerated(EnumType.STRING)
     @NotNull
-    private ResultType resultType; //CSV, JSON
+    private String resultType; //CSV, JSON
 
     @Embedded
     private TableExportResult result;

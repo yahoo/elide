@@ -6,19 +6,10 @@
 package com.yahoo.elide.async.models;
 
 /**
- * ENUM of supported result types.
+ * Result type for table export.
  */
-public enum ResultType {
-    JSON(FileExtensionType.JSON),
-    CSV(FileExtensionType.CSV);
-
-    private final FileExtensionType fileExtensionType;
-
-    ResultType(FileExtensionType fileExtensionType) {
-        this.fileExtensionType = fileExtensionType;
-    }
-
-    public FileExtensionType getFileExtensionType() {
-        return fileExtensionType;
-    }
+public abstract class ResultType {
+    public static final String JSON = "JSON";
+    public static final String CSV = "CSV";
+    public static final String XLSX = "XLSX";
 }

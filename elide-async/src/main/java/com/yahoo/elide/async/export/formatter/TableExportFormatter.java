@@ -6,8 +6,9 @@
 package com.yahoo.elide.async.export.formatter;
 
 import com.yahoo.elide.async.models.TableExport;
-import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.EntityProjection;
+
+import java.io.OutputStream;
 
 /**
  * Interface which is used to format PersistentResource to output format.
@@ -15,28 +16,13 @@ import com.yahoo.elide.core.request.EntityProjection;
 public interface TableExportFormatter {
 
     /**
-     * Format PersistentResource.
-     * @param resource PersistentResource to format
-     * @param recordNumber Record Number being processed.
-     * @return output string
+     * Factory method to create the resource writer used to generate this format.
+     *
+     * @param outputStream the output stream to write to
+     * @param entityProjection the entity projection
+     * @param tableExport the table export
+     * @return the resource writer
      */
-    public String format(PersistentResource resource, Integer recordNumber);
-
-    /**
-     * Pre Format Action.
-     * Example: Generate Header, Metadata etc.
-     * @param projection Entity projection.
-     * @param query TableExport type object.
-     * @return output string
-     */
-    public String preFormat(EntityProjection projection, TableExport query);
-
-    /**
-     * Post Format Action.
-     * Example: Generate Metadata, Stats etc.
-     * @param projection Entity projection.
-     * @param query TableExport type object.
-     * @return output string
-     */
-    public String postFormat(EntityProjection projection, TableExport query);
+    ResourceWriter newResourceWriter(OutputStream outputStream, EntityProjection entityProjection,
+            TableExport tableExport);
 }

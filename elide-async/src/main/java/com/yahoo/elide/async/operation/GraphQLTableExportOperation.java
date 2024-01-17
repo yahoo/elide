@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.export.validator.NoRelationshipsProjectionValidator;
 import com.yahoo.elide.async.models.AsyncApi;
@@ -40,9 +41,10 @@ import java.util.UUID;
 public class GraphQLTableExportOperation extends TableExportOperation {
 
     public GraphQLTableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncApi export, RequestScope scope, ResultStorageEngine engine) {
-        super(formatter, service, export, scope, engine,
-                        Arrays.asList(new NoRelationshipsProjectionValidator()));
+            AsyncApi export, RequestScope scope, ResultStorageEngine engine,
+            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
+        super(formatter, service, export, scope, engine, Arrays.asList(new NoRelationshipsProjectionValidator()),
+                resultTypeFileExtensionMapper);
     }
 
     @Override

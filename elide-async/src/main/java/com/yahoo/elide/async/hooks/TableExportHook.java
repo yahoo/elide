@@ -8,11 +8,11 @@ package com.yahoo.elide.async.hooks;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
 import com.yahoo.elide.async.AsyncSettings;
+import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.models.AsyncApi;
 import com.yahoo.elide.async.models.AsyncApiResult;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.operation.GraphQLTableExportOperation;
 import com.yahoo.elide.async.operation.JsonApiTableExportOperation;
@@ -34,14 +34,17 @@ import java.util.concurrent.Callable;
  */
 @EqualsAndHashCode(callSuper = true)
 public class TableExportHook extends AsyncApiHook<TableExport> {
-    private final Map<ResultType, TableExportFormatter> supportedFormatters;
+    private final Map<String, TableExportFormatter> supportedFormatters;
     private final ResultStorageEngine engine;
+    private final ResultTypeFileExtensionMapper resultTypeFileExtensionMapper;
 
     public TableExportHook (AsyncExecutorService asyncExecutorService, Duration maxAsyncAfter,
-            Map<ResultType, TableExportFormatter> supportedFormatters, ResultStorageEngine engine) {
+            Map<String, TableExportFormatter> supportedFormatters, ResultStorageEngine engine,
+            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper) {
         super(asyncExecutorService, maxAsyncAfter);
         this.supportedFormatters = supportedFormatters;
         this.engine = engine;
+        this.resultTypeFileExtensionMapper = resultTypeFileExtensionMapper;
     }
 
     @Override
@@ -64,7 +67,7 @@ public class TableExportHook extends AsyncApiHook<TableExport> {
     public Callable<AsyncApiResult> getOperation(AsyncApi export, RequestScope requestScope) {
         Callable<AsyncApiResult> operation = null;
         TableExport exportObj = (TableExport) export;
-        ResultType resultType = exportObj.getResultType();
+        String resultType = exportObj.getResultType();
         QueryType queryType = exportObj.getQueryType();
         com.yahoo.elide.core.RequestScope scope = (com.yahoo.elide.core.RequestScope) requestScope;
 
@@ -75,9 +78,11 @@ public class TableExportHook extends AsyncApiHook<TableExport> {
         }
 
         if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
-            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine);
+            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine,
+                    resultTypeFileExtensionMapper);
         } else if (queryType.equals(QueryType.JSONAPI_V1_0)) {
-            operation = new JsonApiTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine);
+            operation = new JsonApiTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine,
+                    resultTypeFileExtensionMapper);
         } else {
             throw new InvalidOperationException(queryType + "is not supported");
         }
