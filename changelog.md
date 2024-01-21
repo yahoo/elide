@@ -1,5 +1,19 @@
 # Change Log
 
+## 7.0.2
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/a196f753bb0b9323de7037742c395d4c07524e3b) Refactor table export (#3129) 
+ * [view commit](https://github.com/yahoo/elide/commit/5e959b2da7dccd10bbed4b6345110687d003e90d) Bump hibernate.version from 6.4.0.Final to 6.4.1.Final (#3136) 
+ * [view commit](https://github.com/yahoo/elide/commit/aac347539b5815102b024252430ff7e78756d31f) Bump org.owasp:dependency-check-maven from 8.4.3 to 9.0.8 (#3143) 
+ * [view commit](https://github.com/yahoo/elide/commit/9aed390bdc53dc58a81f2a1d8fc2925af9ded461) Bump org.glassfish.jersey:jersey-bom from 3.1.3 to 3.1.5 (#3131) 
+ * [view commit](https://github.com/yahoo/elide/commit/2e9e9d468d47e01efb3a454fedcdf67be962d013) Bump hibernate-search.version from 6.2.2.Final to 6.2.3.Final (#3139) 
+ * [view commit](https://github.com/yahoo/elide/commit/e153c62332a714a540b88f00dbc33a4cf0daac08) Bump jetty.version from 12.0.4 to 12.0.5 (#3137) 
+ * [view commit](https://github.com/yahoo/elide/commit/6132139e926c0f960dc030905c19174e06e2baa6) Bump org.apache.maven.plugins:maven-compiler-plugin (#3142) 
+ * [view commit](https://github.com/yahoo/elide/commit/39f6d5fa2c3351b60458fd30d1738d98483a1cc8) Bump spring-boot from 3.2.0 to 3.2.1 (#3133) 
+ * [view commit](https://github.com/yahoo/elide/commit/76f8a3903a0f78ac1262254a06cd9def0afd1a14) Bump com.fasterxml.jackson:jackson-bom from 2.16.0 to 2.16.1 (#3141) 
+ * [view commit](https://github.com/yahoo/elide/commit/3b0922e512a69cbadd6269b9e0e34ff2c69578a9) Bump org.springdoc:springdoc-openapi-starter-common from 2.2.0 to 2.3.0 (#3140) 
+ * [view commit](https://github.com/yahoo/elide/commit/073963b84caea7d983910731aad8c0526c785bb8) Bump spring-boot.version from 3.2.0 to 3.2.2 (#3145) 
+
 ## 7.0.1
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/f2ceb9d8a88ab843c7c71b54d5e39ac23e80b7ed) Add @key support for GraphQL Federation (#3100)
