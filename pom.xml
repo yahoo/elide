@@ -24,6 +24,7 @@
         <module>elide-test</module>
         <module>elide-async</module>
         <module>elide-standalone</module>
+        <module>elide-quarkus</module>
         <module>elide-spring</module>
         <module>elide-bom</module>
     </modules>

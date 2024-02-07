@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-quarkus-extension-parent</artifactId>
+    <version>7.0.3-SNAPSHOT</version>
+  </parent>
+  <artifactId>elide-quarkus-extension</artifactId>
+  <name>Elide Quarkus Extension - Runtime</name>
+  <packaging>jar</packaging>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Yahoo! Inc.</name>
+    <url>http://www.yahoo.com</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>Yahoo Inc.</name>
+      <url>https://github.com/yahoo</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+    <url>https://github.com/yahoo/elide.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-arc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-datastore-aggregation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-datastore-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-test-helpers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-orm</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-server-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-core-spi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-swagger</artifactId>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-bootstrap-maven-plugin</artifactId>
+        <version>3.0.0.Beta1</version>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>extension-descriptor</goal>
+            </goals>
+            <configuration>
+              <deployment>${project.groupId}:${project.artifactId}-deployment:${project.version}</deployment>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>io.quarkus</groupId>
+              <artifactId>quarkus-extension-processor</artifactId>
+              <version>${quarkus.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
