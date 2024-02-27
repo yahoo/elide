@@ -102,7 +102,6 @@ public class ElideBeans {
     @ApplicationScoped
     public EntityDictionary produceDictionary(ClassScanner scanner, Injector injector) {
         LOG.debug("Creating EntityDictionary bean");
-        System.out.println("Creating EntityDictionary bean");
         return EntityDictionary.builder().scanner(scanner).injector(injector).build();
     }
 
