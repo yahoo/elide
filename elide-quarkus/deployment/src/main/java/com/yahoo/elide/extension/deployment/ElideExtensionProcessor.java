@@ -61,7 +61,7 @@ import java.util.List;
 class ElideExtensionProcessor {
     private static final Logger LOG = Logger.getLogger(ElideExtensionProcessor.class.getName());
 
-    private static final String FEATURE = "elide-extension";
+    private static final String FEATURE = "elide";
 
     @BuildStep
     FeatureBuildItem feature() {
