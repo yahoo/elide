@@ -31,7 +31,7 @@ import java.util.Set;
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 public class Right {
     @JsonIgnore
     private long id;
