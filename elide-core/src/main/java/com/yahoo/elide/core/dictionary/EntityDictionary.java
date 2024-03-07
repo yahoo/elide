@@ -738,7 +738,7 @@ public class EntityDictionary {
             String inverseMappedBy = inverseMapping.getValue();
 
             if (relation.equals(inverseMappedBy)
-                    && getParameterizedType(inverseType, inverseRelationName).equals(clsBinding.entityClass)) {
+                    && getParameterizedType(inverseType, inverseRelationName).isAssignableFrom(clsBinding.entityClass)) {
                 return inverseRelationName;
             }
 
