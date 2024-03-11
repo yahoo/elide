@@ -141,7 +141,7 @@
         <mockito.version>5.8.0</mockito.version>
         <build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
-        <checkstyle.version>10.12.5</checkstyle.version>
+        <checkstyle.version>10.14.1</checkstyle.version>
         <dependency-check-maven.version>9.0.8</dependency-check-maven.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
