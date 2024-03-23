@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <version>7.0.3</version>
+  <version>7.0.4-SNAPSHOT</version>
   <artifactId>elide-quarkus-extension-parent</artifactId>
   <packaging>pom</packaging>
   <name>Elide Quarkus Extension - Parent</name>
@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>7.0.3</version>
+    <version>7.0.4-SNAPSHOT</version>
   </parent>
 
   <licenses>
@@ -35,7 +35,7 @@
   <scm>
     <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
     <url>https://github.com/yahoo/elide.git</url>
-    <tag>7.0.3</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <modules>
@@ -51,7 +51,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.version>3.7.4</quarkus.version>
-    <elide.version>7.0.3</elide.version>
+    <elide.version>7.0.4-SNAPSHOT</elide.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
   </properties>
