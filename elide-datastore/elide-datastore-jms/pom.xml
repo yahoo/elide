@@ -52,12 +52,6 @@
             <artifactId>jackson-core</artifactId>
         </dependency>
 
-        <!-- Subscription deserialization -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

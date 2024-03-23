@@ -45,13 +45,13 @@
   </modules>
   <properties>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
-    <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
+    <failsafe-plugin.version>3.2.5</failsafe-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <quarkus.version>3.7.0</quarkus.version> <!-- waiting for this to be released, for official H8 6.4 support -->
+    <quarkus.version>3.7.4</quarkus.version>
     <elide.version>7.0.3-SNAPSHOT</elide.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>

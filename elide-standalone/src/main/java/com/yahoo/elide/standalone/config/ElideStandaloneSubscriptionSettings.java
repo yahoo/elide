@@ -135,6 +135,7 @@ public interface ElideStandaloneSubscriptionSettings {
                 .scanner(elide.getScanner())
                 .entityDictionary(elide.getElideSettings().getEntityDictionary())
                 .connectionFactory(connectionFactory)
+                .objectMapper(elide.getElideSettings().getObjectMapper())
                 .build();
 
         scanner.bindLifecycleHooks();

@@ -11,12 +11,11 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
+import com.yahoo.elide.graphql.subscriptions.serialization.GraphQLSubscriptionModule;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSContext;
@@ -32,6 +31,7 @@ import java.util.function.Function;
 @Builder
 public class SubscriptionScanner {
     private ConnectionFactory connectionFactory;
+    private ObjectMapper objectMapper;
     private EntityDictionary entityDictionary;
     private ClassScanner scanner;
 
@@ -46,13 +46,7 @@ public class SubscriptionScanner {
 
     public void bindLifecycleHooks() {
 
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        CoerceUtil.getSerdes().forEach((cls, serde) -> {
-            gsonBuilder.registerTypeAdapter(cls, new SubscriptionFieldSerde(serde, cls));
-        });
-        gsonBuilder.addSerializationExclusionStrategy(new SubscriptionExclusionStrategy()).serializeNulls();
-
-        Gson gson = gsonBuilder.create();
+        ObjectMapper objectMapper = this.objectMapper.copy().registerModule(new GraphQLSubscriptionModule());
 
         Function<JMSContext, JMSProducer> producerFactory = (context) -> {
             JMSProducer producer = context.createProducer();
@@ -72,7 +66,7 @@ public class SubscriptionScanner {
             for (Subscription.Operation operation : operations) {
                 switch (operation) {
                     case UPDATE: {
-                        addUpdateHooks(ClassType.of(modelType), entityDictionary, producerFactory, gson);
+                        addUpdateHooks(ClassType.of(modelType), entityDictionary, producerFactory, objectMapper);
                         break;
                     }
                     case DELETE: {
@@ -80,7 +74,7 @@ public class SubscriptionScanner {
                                 modelType,
                                 LifeCycleHookBinding.Operation.DELETE,
                                 LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                                new NotifyTopicLifeCycleHook(connectionFactory, producerFactory, gson),
+                                new NotifyTopicLifeCycleHook(connectionFactory, objectMapper, producerFactory),
                                 false
                         );
                         break;
@@ -90,7 +84,7 @@ public class SubscriptionScanner {
                                 modelType,
                                 LifeCycleHookBinding.Operation.CREATE,
                                 LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                                new NotifyTopicLifeCycleHook(connectionFactory, producerFactory, gson),
+                                new NotifyTopicLifeCycleHook(connectionFactory, objectMapper, producerFactory),
                                 false
                         );
                         break;
@@ -104,7 +98,7 @@ public class SubscriptionScanner {
             Type<?> model,
             EntityDictionary dictionary,
             Function<JMSContext, JMSProducer> producerFactory,
-            Gson gson
+            ObjectMapper objectMapper
     ) {
         dictionary.getAllExposedFields(model).stream().forEach(fieldName -> {
             SubscriptionField subscriptionField =
@@ -116,7 +110,7 @@ public class SubscriptionScanner {
                         fieldName,
                         LifeCycleHookBinding.Operation.UPDATE,
                         LifeCycleHookBinding.TransactionPhase.POSTCOMMIT,
-                        new NotifyTopicLifeCycleHook(connectionFactory, producerFactory, gson)
+                        new NotifyTopicLifeCycleHook(connectionFactory, objectMapper, producerFactory)
                 );
             }
         });

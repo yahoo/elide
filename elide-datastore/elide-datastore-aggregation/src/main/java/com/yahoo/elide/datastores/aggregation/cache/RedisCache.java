@@ -17,16 +17,16 @@ import redis.clients.jedis.UnifiedJedis;
  */
 public class RedisCache implements Cache {
     @Setter private UnifiedJedis jedis;
-    @Setter private long defaultExprirationMinutes;
+    @Setter private long defaultExpirationMinutes;
 
     /**
      * Constructor.
      * @param jedis Jedis Connection Pool to Redis clusteer.
-     * @param defaultExprirationMinutes Expiration Time for results on Redis.
+     * @param defaultExpirationMinutes Expiration Time for results on Redis.
      */
-    public RedisCache(UnifiedJedis jedis, long defaultExprirationMinutes) {
+    public RedisCache(UnifiedJedis jedis, long defaultExpirationMinutes) {
         this.jedis = jedis;
-        this.defaultExprirationMinutes = defaultExprirationMinutes;
+        this.defaultExpirationMinutes = defaultExpirationMinutes;
     }
 
     @Override
@@ -38,6 +38,6 @@ public class RedisCache implements Cache {
     public void put(Object key, QueryResult result) {
         byte[] keyBytes = SerializationUtils.serialize(key);
         jedis.set(keyBytes, SerializationUtils.serialize(result));
-        jedis.expire(keyBytes, defaultExprirationMinutes * 60);
+        jedis.expire(keyBytes, defaultExpirationMinutes * 60);
     }
 }

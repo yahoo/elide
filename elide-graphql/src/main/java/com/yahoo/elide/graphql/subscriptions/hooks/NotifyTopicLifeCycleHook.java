@@ -13,7 +13,8 @@ import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.type.Type;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.inject.Inject;
 import jakarta.jms.ConnectionFactory;
@@ -40,18 +41,19 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
     private ConnectionFactory connectionFactory;
 
     @Inject
-    private Function<JMSContext, JMSProducer> createProducer;
+    private ObjectMapper objectMapper;
 
-    private Gson gson;
+    @Inject
+    private Function<JMSContext, JMSProducer> createProducer;
 
     public NotifyTopicLifeCycleHook(
             ConnectionFactory connectionFactory,
-            Function<JMSContext, JMSProducer> createProducer,
-            Gson gson
+            ObjectMapper objectMapper,
+            Function<JMSContext, JMSProducer> createProducer
     ) {
         this.connectionFactory = connectionFactory;
         this.createProducer = createProducer;
-        this.gson = gson;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -90,9 +92,13 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             JMSProducer producer = createProducer.apply(context);
             Destination destination = context.createTopic(topicName);
 
-            String message = gson.toJson(object);
-            log.debug("Serializing {}", message);
-            producer.send(destination, message);
+            try {
+                String message = objectMapper.writeValueAsString(object);
+                log.debug("Serializing {}", message);
+                producer.send(destination, message);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
+            }
         }
     }
 }
