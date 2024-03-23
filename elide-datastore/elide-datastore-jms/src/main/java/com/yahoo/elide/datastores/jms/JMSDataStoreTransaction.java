@@ -16,7 +16,7 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.jms.Destination;
 import jakarta.jms.JMSConsumer;
@@ -36,7 +36,7 @@ import java.util.Set;
 public class JMSDataStoreTransaction implements DataStoreTransaction {
     private JMSContext context;
     private EntityDictionary dictionary;
-    private Gson gson;
+    private ObjectMapper objectMapper;
     private long timeoutInMs;
     private List<JMSConsumer> consumers;
 
@@ -44,13 +44,14 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
      * Constructor.
      * @param context JMS Context
      * @param dictionary Elide Entity Dictionary
-     * @param gson Gson serializer to convert Elide models to topic messages.
+     * @param objectMapper serializer to convert Elide models to topic messages.
      * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
      */
-    public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary, Gson gson, long timeoutInMs) {
+    public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary, ObjectMapper objectMapper,
+            long timeoutInMs) {
         this.context = context;
-        this.gson = gson;
         this.dictionary = dictionary;
+        this.objectMapper = objectMapper;
         this.timeoutInMs = timeoutInMs;
         this.consumers = new ArrayList<>();
     }
@@ -96,7 +97,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
         return new MessageIterable<>(
                 consumer,
                 timeoutInMs,
-                new MessageDeserializer<>(entityProjection.getType(), gson)
+                new MessageDeserializer<>(entityProjection.getType(), objectMapper)
         );
     }
 
