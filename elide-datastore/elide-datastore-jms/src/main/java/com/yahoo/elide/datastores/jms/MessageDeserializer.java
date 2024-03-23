@@ -8,7 +8,8 @@ package com.yahoo.elide.datastores.jms;
 
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
@@ -22,23 +23,23 @@ import java.util.function.Function;
  */
 public class MessageDeserializer<T> implements Function<Message, T> {
     private Type<?> type;
-    private Gson gson;
+    private ObjectMapper objectMapper;
 
     /**
      * Constructor.
      * @param type The type to deserialize to.
-     * @param gson Gson serializer to convert Elide models to topic messages.
+     * @param objectMapper serializer to convert Elide models to topic messages.
      */
-    public MessageDeserializer(Type<?> type, Gson gson) {
+    public MessageDeserializer(Type<?> type, ObjectMapper objectMapper) {
         this.type = type;
-        this.gson = gson;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public T apply(Message message) {
         try {
-            return (T) gson.fromJson(((TextMessage) message).getText(), type.getUnderlyingClass().get());
-        } catch (JMSException e) {
+            return (T) objectMapper.readValue(((TextMessage) message).getText(), type.getUnderlyingClass().get());
+        } catch (JsonProcessingException | JMSException e) {
             throw new InternalServerErrorException(e);
         }
     }

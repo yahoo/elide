@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide;
 
+import com.yahoo.elide.core.SerdeRegistrations;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -14,17 +15,11 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.util.Set;
 
 
@@ -121,7 +116,7 @@ public class Elide {
             injector.inject(serde);
 
             ElideTypeConverter converter = clazz.getAnnotation(ElideTypeConverter.class);
-            Class baseType = converter.type();
+            Class<?> baseType = converter.type();
             registerCustomSerde(baseType, serde, converter.name());
 
             for (Class type : converter.subTypes()) {
@@ -134,23 +129,14 @@ public class Elide {
         }
     }
 
-    protected void registerCustomSerde(Class<?> type, Serde serde, String name) {
+    protected <S, T> void registerCustomSerde(Class<T> type, Serde<S, T> serde, String name) {
         log.info("Registering serde for type : {}", type);
         CoerceUtil.register(type, serde);
         registerCustomSerdeInObjectMapper(type, serde, name);
     }
 
-    protected void registerCustomSerdeInObjectMapper(Class<?> type, Serde serde, String name) {
-        ObjectMapper objectMapper = this.objectMapper;
-        objectMapper.registerModule(new SimpleModule(name)
-                .addSerializer(type, new JsonSerializer<Object>() {
-                    @Override
-                    public void serialize(Object obj, JsonGenerator jsonGenerator,
-                                          SerializerProvider serializerProvider)
-                            throws IOException, JsonProcessingException {
-                        jsonGenerator.writeObject(serde.serialize(obj));
-                    }
-                }));
+    protected <S, T> void registerCustomSerdeInObjectMapper(Class<T> type, Serde<S, T> serde, String name) {
+        SerdeRegistrations.register(objectMapper, type, serde, name);
     }
 
     protected Set<Class<?>> registerCustomSerdeScan() {

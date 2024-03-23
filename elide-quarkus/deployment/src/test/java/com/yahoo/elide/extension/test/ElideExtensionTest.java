@@ -78,7 +78,7 @@ public class ElideExtensionTest {
                 .then()
                 .log().all()
                 .statusCode(HttpStatus.SC_CREATED);
-        RestAssured.when().get("/jsonapi/book").then().log().all().statusCode(200);
+        RestAssured.when().get("/test-jsonapi/book").then().log().all().statusCode(200);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class ElideExtensionTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(wrapped)
-                .post("/graphql")
+                .post("/test-graphql")
                 .then()
                 .log().all()
                 .statusCode(HttpStatus.SC_OK);
@@ -131,12 +131,12 @@ public class ElideExtensionTest {
 
     @Test
     public void testSwaggerCollectionEndpoint() {
-        RestAssured.when().get("/apiDocs").then().log().all().statusCode(200);
+        RestAssured.when().get("/test-apiDocs").then().log().all().statusCode(200);
     }
 
     @Test
     public void testSwaggerApiEndpoint() {
-        RestAssured.when().get("/apiDocs/api").then().log().all().statusCode(200);
+        RestAssured.when().get("/test-apiDocs/api").then().log().all().statusCode(200);
     }
 
     @Test
