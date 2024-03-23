@@ -8,6 +8,7 @@ package com.yahoo.elide.spring.config;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.graphql.subscriptions.hooks.SubscriptionScanner;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
@@ -44,17 +45,17 @@ public class ElideSubscriptionScanningConfiguration {
         Elide elide = refreshableElide.getElide();
 
         SubscriptionScanner scanner = SubscriptionScanner.builder()
-
-                //Things you may want to override...
+                // Things you may want to override...
                 .deliveryDelay(Message.DEFAULT_DELIVERY_DELAY)
                 .messagePriority(Message.DEFAULT_PRIORITY)
                 .timeToLive(Message.DEFAULT_TIME_TO_LIVE)
                 .deliveryMode(Message.DEFAULT_DELIVERY_MODE)
 
-                //Things you probably don't care about...
+                // Things you probably don't care about...
                 .scanner(elide.getScanner())
                 .entityDictionary(elide.getElideSettings().getEntityDictionary())
                 .connectionFactory(connectionFactory)
+                .objectMapper(elide.getElideSettings().getObjectMapper())
                 .build();
 
         scanner.bindLifecycleHooks();
