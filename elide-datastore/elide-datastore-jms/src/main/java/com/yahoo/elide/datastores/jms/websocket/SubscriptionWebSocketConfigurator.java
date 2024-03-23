@@ -21,6 +21,8 @@ import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.graphql.serialization.GraphQLModule;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.jms.ConnectionFactory;
@@ -44,7 +46,6 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Configurator {
-
     protected ConnectionFactory connectionFactory;
 
     @Builder.Default
@@ -86,9 +87,13 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
             EntityDictionary dictionary = EntityDictionary.builder().injector(injector).build();
 
-            DataStore store = buildDataStore(dictionary);
+            ObjectMapper objectMapper;
+            ElideSettings.ElideSettingsBuilder builder = getElideSettingsBuilder(dictionary);
+            objectMapper = builder.build().getObjectMapper();
+            DataStore store = buildDataStore(dictionary, objectMapper);
+            builder.dataStore(store);
 
-            Elide elide = buildElide(store, dictionary);
+            Elide elide = buildElide(builder);
 
             return endpointClass.cast(buildWebSocket(elide));
         }
@@ -136,10 +141,10 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
         }
     }
 
-    protected Elide buildElide(DataStore store, EntityDictionary dictionary) {
+    protected ElideSettings.ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary) {
         GraphQLSettings.GraphQLSettingsBuilder graphqlSettings = GraphQLSettingsBuilder.withDefaults(dictionary);
 
-        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(store)
+        ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder()
                 .baseUrl(baseUrl)
                 .settings(graphqlSettings)
                 .entityDictionary(dictionary)
@@ -149,18 +154,19 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
         if (elideSettingsBuilderCustomizer != null) {
             elideSettingsBuilderCustomizer.customize(builder);
         }
+        return builder;
+    }
 
+    protected Elide buildElide(ElideSettings.ElideSettingsBuilder builder) {
         Elide elide = new Elide(builder.build());
-
         elide.doScans();
-
         return elide;
     }
 
-    protected DataStore buildDataStore(EntityDictionary dictionary) {
+    protected DataStore buildDataStore(EntityDictionary dictionary, ObjectMapper objectMapper) {
         return new JMSDataStore(
                 dictionary.getScanner(),
-                connectionFactory, dictionary, null);
+                connectionFactory, dictionary, objectMapper, null);
     }
 
     protected SubscriptionWebSocket buildWebSocket(Elide elide) {
