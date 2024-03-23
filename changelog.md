@@ -1,5 +1,26 @@
 # Change Log
 
+## 7.0.3
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/f93582df7e1f31252e06ee5e36ff4ee786639d2e) Experimental Quarkus extension code, copied from @aklish and updated for Elide 7 and Quarkus 3.7 (#3160) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/61e9ded5fc5c4425b5bad671f0c22020418c89f4) Inverse relationship type calculation (#3172) (#3173) 
+ * [view commit](https://github.com/yahoo/elide/commit/867e3f3f0c38e583128be1f9fe2f20c50127f0dc) Bump Quarkus Version, Small cleanup (#3170) 
+ * [view commit](https://github.com/yahoo/elide/commit/96bc1a573401969d7e0d8cfcba5e6dc9f7d93038) Replace Gson with Jackson for Subscriptions (#3167) 
+ * [view commit](https://github.com/yahoo/elide/commit/f0985e26ec95297c012c7c8ac59ceaf83d6b0558) Update elide-spring-boot-autoconfigure docs (#3168) 
+ * [view commit](https://github.com/yahoo/elide/commit/a49f8f735b40d7abee28f4e7dff1de3fffc2274e) Bump spring-framework.version from 6.1.2 to 6.1.3 (#3149) 
+ * [view commit](https://github.com/yahoo/elide/commit/736dd8eee27090d524e0faeaa7d4719894b9038e) Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.2.2 to 3.2.5 (#3150) 
+ * [view commit](https://github.com/yahoo/elide/commit/e698d66899a936922fbb07571b3f789e12d8ef46) Bump tomcat.version from 10.1.16 to 10.1.18 (#3153) 
+ * [view commit](https://github.com/yahoo/elide/commit/22b818c6d225b8d326a5dec892481704fc65d99b) Bump com.jayway.jsonpath:json-path from 2.8.0 to 2.9.0 (#3155) 
+ * [view commit](https://github.com/yahoo/elide/commit/51a990cc0757987570b49c5ba4253cbebf400318) Bump org.apache.httpcomponents.client5:httpclient5 from 5.2.1 to 5.3.1 (#3157) 
+ * [view commit](https://github.com/yahoo/elide/commit/c8b37452b0c6f8ed834685baba35071d56ab37a3) Bump slf4j.version from 2.0.9 to 2.0.12 (#3161) 
+ * [view commit](https://github.com/yahoo/elide/commit/a6f29e08552461bef7019d55a5b53b5bde33da5c) Bump hibernate.version from 6.4.1.Final to 6.4.4.Final (#3162) 
+ * [view commit](https://github.com/yahoo/elide/commit/923ad7fd9d5da2df3cf18dc932b0ddb0e4aa30ae) Bump org.apache.commons:commons-compress from 1.25.0 to 1.26.1 (#3176) 
+ * [view commit](https://github.com/yahoo/elide/commit/01e7725773960197de836198ec9f578d8dfc1413) Bump org.apache.tomcat.embed:tomcat-embed-core from 10.1.16 to 10.1.19 (#3177) 
+ * [view commit](https://github.com/yahoo/elide/commit/6617dad8d5fd45878d09cc70072131ac39e8c2aa) Bump com.google.guava:guava from 32.1.3-jre to 33.1.0-jre (#3179) 
+ * [view commit](https://github.com/yahoo/elide/commit/6587380fe41abfe3bcabac27d66c5bf532e3ec86) Bump org.apache.maven.plugins:maven-gpg-plugin from 3.0.1 to 3.2.1 (#3181) 
+
 ## 7.0.2
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/a196f753bb0b9323de7037742c395d4c07524e3b) Refactor table export (#3129) 
