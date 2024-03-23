@@ -7,10 +7,10 @@
 package com.yahoo.elide.extension.deployment;
 
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.SecurityCheck;
-//import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.security.checks.prefab.Collections;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
@@ -27,7 +27,7 @@ import com.yahoo.elide.jsonapi.serialization.KeySerializer;
 import com.yahoo.elide.jsonapi.serialization.MetaDeserializer;
 import com.yahoo.elide.swagger.OpenApiDocument;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
-//import com.yahoo.elide.swagger.resources.DocEndpoint;
+
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.impl.SimpleLog;
 import org.jboss.jandex.AnnotationInstance;
@@ -36,14 +36,11 @@ import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 
-//import graphql.execution.DataFetcherExceptionHandler;
-//import graphql.execution.SimpleDataFetcherExceptionHandler;
 import graphql.schema.GraphQLSchema;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerListenerBuildItem;
 import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
-//import io.quarkus.arc.runtime.AdditionalBean;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
@@ -56,7 +53,6 @@ import io.quarkus.resteasy.server.common.deployment.ResteasyDeploymentCustomizer
 import io.quarkus.undertow.deployment.ServletInitParamBuildItem;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
-//import io.swagger.models.Swagger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +61,7 @@ import java.util.List;
 class ElideExtensionProcessor {
     private static final Logger LOG = Logger.getLogger(ElideExtensionProcessor.class.getName());
 
-    private static final String FEATURE = "elide-extension";
+    private static final String FEATURE = "elide";
 
     @BuildStep
     FeatureBuildItem feature() {

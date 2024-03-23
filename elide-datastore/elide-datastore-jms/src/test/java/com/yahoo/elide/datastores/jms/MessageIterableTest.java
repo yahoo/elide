@@ -13,7 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.type.ClassType;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import jakarta.jms.JMSConsumer;
@@ -43,7 +43,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 1000,
-                new MessageDeserializer(ClassType.of(String.class), new GsonBuilder().create())).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new ObjectMapper())).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());
@@ -67,7 +67,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 0,
-                new MessageDeserializer(ClassType.of(String.class), new GsonBuilder().create())).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new ObjectMapper())).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());
@@ -87,7 +87,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 -1,
-                new MessageDeserializer(ClassType.of(String.class), new GsonBuilder().create())).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new ObjectMapper())).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());
