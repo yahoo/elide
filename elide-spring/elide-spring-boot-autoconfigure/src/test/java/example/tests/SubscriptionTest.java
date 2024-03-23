@@ -215,9 +215,15 @@ public class SubscriptionTest extends IntegrationTest {
                     .then()
                     .statusCode(HttpStatus.SC_NO_CONTENT);
 
-            verify(serde, atLeast(2)).deserialize(assertArg(arg -> {
+            verify(serde, atLeast(1)).deserialize(assertArg(arg -> {
                assertThat(arg).isEqualTo("2007-12-03T10:15:30+01:00");
             }));
+
+            OffsetDateTime expected = OffsetDateTime.parse("2007-12-03T10:15:30+01:00");
+            verify(serde, atLeast(1)).serialize(assertArg(arg -> {
+                assertEquals(expected.toInstant(), arg.toInstant());
+            }));
+
         }
     }
 }

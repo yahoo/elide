@@ -48,6 +48,7 @@ import jakarta.websocket.Session;
 import jakarta.websocket.WebSocketContainer;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -259,8 +260,12 @@ public class ElideStandaloneSubscriptionTest extends ElideStandaloneTest {
 
             assertEquals(1, results.size());
             assertEquals(0, results.get(0).getErrors().size());
-            verify(serde, atLeast(2)).deserialize(assertArg(arg -> {
+            verify(serde, atLeast(1)).deserialize(assertArg(arg -> {
                 assertEquals("2019-01-01T00:00Z", arg);
+            }));
+            Date expected = Date.from(Instant.parse("2019-01-01T00:00:00Z"));
+            verify(serde, atLeast(1)).serialize(assertArg(arg -> {
+                assertEquals(expected, arg);
             }));
         }
     }

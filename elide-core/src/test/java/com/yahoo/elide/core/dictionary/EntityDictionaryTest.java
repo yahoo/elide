@@ -55,6 +55,7 @@ import example.Parent;
 import example.Price;
 import example.Publisher;
 import example.Right;
+import example.Righter;
 import example.StringId;
 import example.User;
 import example.models.generics.Employee;
@@ -116,6 +117,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(User.class);
         bindEntity(Left.class);
         bindEntity(Right.class);
+        bindEntity(Righter.class);
         bindEntity(StringId.class);
         bindEntity(Friend.class);
         bindEntity(FieldAnnotations.class);
@@ -487,6 +489,22 @@ public class EntityDictionaryTest extends EntityDictionary {
                 "children",
                 getRelationInverse(ClassType.of(Child.class), "parents"),
                 "The inverse relationship of children should be parents");
+    }
+
+    @Test
+    public void testGetInverseRelationshipOnPolymorphicBaseType() {
+        assertEquals(
+                "one2many",
+                getRelationInverse(ClassType.of(Right.class), "many2one"),
+                "The inverse relationship of one2many should be many2one");
+    }
+
+    @Test
+    public void testGetInverseRelationshipOnPolymorphicDerivedType() {
+        assertEquals(
+                "one2many",
+                getRelationInverse(ClassType.of(Righter.class), "many2one"),
+                "The inverse relationship of one2many should be many2one");
     }
 
     @Test
@@ -1097,7 +1115,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(ClassType.of(BookV2.class)));
 
         models = getBoundClassesByVersion(NO_VERSION);
-        assertEquals(21, models.size());
+        assertEquals(22, models.size());
     }
 
     @Test
