@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.type.ClassType;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Book;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +24,7 @@ public class MessageDeserializerTest {
         when(message.getText()).thenReturn("{ \"title\": \"Foo\", \"id\" : 123 }");
 
         MessageDeserializer<Book> deserializer = new MessageDeserializer(ClassType.of(Book.class),
-                new GsonBuilder().create());
+                new ObjectMapper());
 
         Book book = deserializer.apply(message);
         assertEquals("Foo", book.getTitle());
