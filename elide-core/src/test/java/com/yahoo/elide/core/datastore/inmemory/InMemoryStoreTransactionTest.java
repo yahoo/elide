@@ -604,6 +604,7 @@ public class InMemoryStoreTransactionTest {
             "example.PrimitiveId",
             "example.Publisher",
             "example.Right",
+            "example.Righter",
             "example.StringId",
             "example.UpdateAndCreate",
             "example.User",
