@@ -72,7 +72,7 @@ public class JMSDataStoreTest {
 
         store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class),
                 ClassType.of(Chat.class)),
-                connectionFactory, dictionary, Duration.ofMillis(2500L));
+                connectionFactory, dictionary, new ObjectMapper(), Duration.ofMillis(2500L));
         store.populateEntityDictionary(dictionary);
     }
 
