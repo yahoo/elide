@@ -60,6 +60,11 @@ import example.StringId;
 import example.User;
 import example.models.generics.Employee;
 import example.models.generics.Manager;
+import example.models.lifecycle.HookOrderOnClass;
+import example.models.lifecycle.HookOrderOnClassMultiple;
+import example.models.lifecycle.HookOrderOnField;
+import example.models.lifecycle.OrderOneHook;
+import example.models.lifecycle.OrderTwoHook;
 import example.models.packageinfo.ExcludedPackageLevel;
 import example.models.packageinfo.IncludedPackageLevel;
 import example.models.packageinfo.excluded.ExcludedSubPackage;
@@ -136,6 +141,9 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(ExcludedBySuperClass.class);
         bindEntity(StrictNoTransfer.class);
         bindEntity(NoTransferBiDirectional.class);
+        bindEntity((HookOrderOnClass.class));
+        bindEntity((HookOrderOnField.class));
+        bindEntity((HookOrderOnClassMultiple.class));
 
         checkNames.forcePut("user has all access", Role.ALL.class);
     }
@@ -1115,7 +1123,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(ClassType.of(BookV2.class)));
 
         models = getBoundClassesByVersion(NO_VERSION);
-        assertEquals(22, models.size());
+        assertEquals(25, models.size());
     }
 
     @Test
@@ -1251,5 +1259,66 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary entityDictionary = EntityDictionary.builder()
                 .entitiesToExclude(Set.of(ClassType.of(TestCheck.class))).build();
         assertEquals(1, entityDictionary.getEntitiesToExclude().size());
+    }
+
+    @Test
+    public void testBindTriggerOrderingOnClassMultiple() throws Exception {
+        List<LifeCycleHook> presecurity = getTriggers(
+                ClassType.of(HookOrderOnClassMultiple.class),
+                LifeCycleHookBinding.Operation.CREATE,
+                LifeCycleHookBinding.TransactionPhase.PRESECURITY).stream().toList();
+        List<LifeCycleHook> precommit = getTriggers(
+                ClassType.of(HookOrderOnClassMultiple.class),
+                LifeCycleHookBinding.Operation.CREATE,
+                LifeCycleHookBinding.TransactionPhase.PRECOMMIT).stream().toList();
+
+        assertEquals(2, presecurity.size());
+        assertEquals(OrderOneHook.class, presecurity.get(0).getClass());
+        assertEquals(OrderTwoHook.class, presecurity.get(1).getClass());
+        assertEquals(2, precommit.size());
+        assertEquals(OrderTwoHook.class, precommit.get(0).getClass());
+        assertEquals(OrderOneHook.class, precommit.get(1).getClass());
+    }
+
+    @Test
+    public void testBindTriggerOrderingOnClass() throws Exception {
+        List<LifeCycleHook> presecurity = getTriggers(
+                ClassType.of(HookOrderOnClass.class),
+                LifeCycleHookBinding.Operation.CREATE,
+                LifeCycleHookBinding.TransactionPhase.PRESECURITY,
+                "").stream().toList();
+        List<LifeCycleHook> precommit = getTriggers(
+                ClassType.of(HookOrderOnClass.class),
+                LifeCycleHookBinding.Operation.CREATE,
+                LifeCycleHookBinding.TransactionPhase.PRECOMMIT,
+                "").stream().toList();
+
+        assertEquals(2, presecurity.size());
+        assertEquals(OrderOneHook.class, presecurity.get(0).getClass());
+        assertEquals(OrderTwoHook.class, presecurity.get(1).getClass());
+        assertEquals(2, precommit.size());
+        assertEquals(OrderTwoHook.class, precommit.get(0).getClass());
+        assertEquals(OrderOneHook.class, precommit.get(1).getClass());
+    }
+
+    @Test
+    public void testBindTriggerOrderingOnField() throws Exception {
+        List<LifeCycleHook> presecurity = getTriggers(
+                ClassType.of(HookOrderOnField.class),
+                LifeCycleHookBinding.Operation.CREATE,
+                LifeCycleHookBinding.TransactionPhase.PRESECURITY,
+                "description").stream().toList();
+        List<LifeCycleHook> precommit = getTriggers(
+                ClassType.of(HookOrderOnField.class),
+                LifeCycleHookBinding.Operation.CREATE,
+                LifeCycleHookBinding.TransactionPhase.PRECOMMIT,
+                "description").stream().toList();
+
+        assertEquals(2, presecurity.size());
+        assertEquals(OrderOneHook.class, presecurity.get(0).getClass());
+        assertEquals(OrderTwoHook.class, presecurity.get(1).getClass());
+        assertEquals(2, precommit.size());
+        assertEquals(OrderTwoHook.class, precommit.get(0).getClass());
+        assertEquals(OrderOneHook.class, precommit.get(1).getClass());
     }
 }
