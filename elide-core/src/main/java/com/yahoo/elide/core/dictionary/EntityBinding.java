@@ -26,6 +26,7 @@ import com.yahoo.elide.core.type.Member;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Type;
 import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -112,9 +113,9 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, CascadeType[]> relationshipToCascadeTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
     public final MultiValuedMap<Triple<String, Operation, TransactionPhase>, LifeCycleHook> fieldTriggers =
-            new HashSetValuedHashMap<>();
+            new ArrayListValuedHashMap<>();
     public final MultiValuedMap<Pair<Operation, TransactionPhase>, LifeCycleHook> classTriggers =
-            new HashSetValuedHashMap<>();
+            new ArrayListValuedHashMap<>();
     public final ConcurrentHashMap<String, Type<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
