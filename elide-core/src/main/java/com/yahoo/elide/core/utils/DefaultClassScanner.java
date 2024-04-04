@@ -47,11 +47,17 @@ public class DefaultClassScanner implements ClassScanner {
 
     @Override
     public Set<Class<?>> getAnnotatedClasses(String packageName, Class<? extends Annotation> annotation) {
-        return startupCache.get(annotation.getCanonicalName()).stream()
-                .filter(clazz ->
-                        clazz.getPackage().getName().equals(packageName)
-                                || clazz.getPackage().getName().startsWith(packageName + "."))
+        LinkedHashSet<Class<?>> annotatedClasses = startupCache.get(annotation.getCanonicalName()).stream()
+                .filter(clazz -> clazz.getPackage().getName().equals(packageName)
+                        || clazz.getPackage().getName().startsWith(packageName + "."))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        // Check if the annotated class collection obtained is empty
+        if (annotatedClasses.isEmpty()) {
+            throw new IllegalArgumentException("No annotated classes found in the specified package: " + packageName);
+        }
+
+        return annotatedClasses;
     }
 
     @Override
