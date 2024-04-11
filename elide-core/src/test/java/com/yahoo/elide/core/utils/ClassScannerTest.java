@@ -5,14 +5,16 @@
  */
 package com.yahoo.elide.core.utils;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.annotation.Include;
 import org.junit.jupiter.api.Test;
 
 import jakarta.persistence.Entity;
 
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ClassScannerTest {
 
