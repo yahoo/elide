@@ -23,4 +23,5 @@ jobs:
           distribution: 'adopt'
       - name: Run unit & integration tests
         run: mvn -B clean verify
+#        run: mvn -B clean verify
 
