@@ -33,21 +33,21 @@ public class ClassScannerTest {
     @Test
     public void testGetAnnotatedClasses() {
         Set<Class<?>> classes = scanner.getAnnotatedClasses("example", Include.class);
-        assertEquals(33, classes.size(), "Actual: " + classes);
+        assertEquals(36, classes.size(), "Actual: " + classes);
         classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(Include.class)));
     }
 
     @Test
     public void testGetAllAnnotatedClasses() {
         Set<Class<?>> classes = scanner.getAnnotatedClasses(Include.class);
-        assertEquals(45, classes.size(), "Actual: " + classes);
+        assertEquals(48, classes.size(), "Actual: " + classes);
         classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(Include.class)));
     }
 
     @Test
     public void testGetAnyAnnotatedClasses() {
         Set<Class<?>> classes = scanner.getAnnotatedClasses(Include.class, Entity.class);
-        assertEquals(56, classes.size());
+        assertEquals(59, classes.size());
         for (Class<?> cls : classes) {
             assertTrue(cls.isAnnotationPresent(Include.class)
                     || cls.isAnnotationPresent(Entity.class));
