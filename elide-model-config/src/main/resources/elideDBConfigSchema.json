@@ -68,7 +68,7 @@
                         "description": "The Elide Dialect to use for query generation.",
                         "format": "javaClassName",
                         "examples": [
-                            "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect"
+                            "com.paiondata.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect"
                         ]
                     },
                     "propertyMap": {
@@ -120,7 +120,7 @@
                     "url": "jdbc:mysql://localhost/elide?serverTimezone=UTC",
                     "driver": "com.mysql.jdbc.Driver",
                     "user": "guest1",
-                    "dialect": "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect"
+                    "dialect": "com.paiondata.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect"
                 }
             ]
         }

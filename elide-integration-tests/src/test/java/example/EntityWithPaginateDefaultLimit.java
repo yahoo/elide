@@ -5,8 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.Paginate;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.Paginate;
 
 import jakarta.persistence.Entity;
 import lombok.Getter;

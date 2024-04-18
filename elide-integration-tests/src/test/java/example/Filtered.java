@@ -5,18 +5,18 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.security.RequestScope;
-import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
-import com.yahoo.elide.core.type.Type;
+import com.paiondata.elide.annotation.CreatePermission;
+import com.paiondata.elide.annotation.DeletePermission;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.UpdatePermission;
+import com.paiondata.elide.core.Path;
+import com.paiondata.elide.core.filter.Operator;
+import com.paiondata.elide.core.filter.expression.FilterExpression;
+import com.paiondata.elide.core.filter.predicates.FilterPredicate;
+import com.paiondata.elide.core.security.RequestScope;
+import com.paiondata.elide.core.security.checks.FilterExpressionCheck;
+import com.paiondata.elide.core.type.Type;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 

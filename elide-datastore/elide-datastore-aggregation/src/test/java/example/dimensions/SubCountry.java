@@ -5,8 +5,8 @@
  */
 package example.dimensions;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.datastores.aggregation.annotation.FriendlyName;
 import org.hibernate.annotations.Subselect;
 
 import jakarta.persistence.Column;

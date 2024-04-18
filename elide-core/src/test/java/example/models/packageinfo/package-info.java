@@ -7,4 +7,4 @@
 @Include(name = "example", description = "Example Package", friendlyName = "Example")
 package example.models.packageinfo;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;

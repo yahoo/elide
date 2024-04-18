@@ -5,7 +5,7 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;

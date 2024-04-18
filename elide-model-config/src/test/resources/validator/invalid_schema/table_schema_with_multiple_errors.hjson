@@ -43,7 +43,7 @@
           description : very awesome score
           definition: 'MAX({{score}})'
           // unsupported: class name (@ is not allowed)
-          maker: 'com.yahoo.elide.datastores.aggregation.query@DefaultMetricProjectionMaker.class'
+          maker: 'com.paiondata.elide.datastores.aggregation.query@DefaultMetricProjectionMaker.class'
           tags: ['PUBLIC']
         }
       ]

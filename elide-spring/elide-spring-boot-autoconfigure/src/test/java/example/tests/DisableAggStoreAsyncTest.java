@@ -5,19 +5,19 @@
  */
 package example.tests;
 
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.data;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.id;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.jsonapi.JsonApi;
+import com.paiondata.elide.core.exceptions.HttpStatus;
+import com.paiondata.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;

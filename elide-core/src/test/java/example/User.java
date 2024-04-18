@@ -5,9 +5,9 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.ComputedAttribute;
+import com.paiondata.elide.annotation.Exclude;
+import com.paiondata.elide.annotation.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;

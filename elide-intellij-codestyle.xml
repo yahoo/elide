@@ -6,7 +6,7 @@
       <emptyLine />
       <package name="" withSubpackages="true" static="true" />
       <emptyLine />
-      <package name="com.yahoo" withSubpackages="true" static="false" />
+      <package name="com.paiondata" withSubpackages="true" static="false" />
       <emptyLine />
       <package name="com" withSubpackages="true" static="false" />
       <emptyLine />
@@ -27,7 +27,7 @@
     <option name="IMPORT_LAYOUT_TABLE">
       <value>
         <emptyLine />
-        <package name="com.yahoo" withSubpackages="true" static="false" />
+        <package name="com.paiondata" withSubpackages="true" static="false" />
         <emptyLine />
         <package name="com" withSubpackages="true" static="false" />
         <emptyLine />

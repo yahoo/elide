@@ -7,19 +7,19 @@ package example;
 
 import static example.TimeGrainDefinitions.DATE_FORMAT;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
-import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
-import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.paiondata.elide.datastores.aggregation.annotation.ColumnMeta;
+import com.paiondata.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.paiondata.elide.datastores.aggregation.annotation.FriendlyName;
+import com.paiondata.elide.datastores.aggregation.annotation.Join;
+import com.paiondata.elide.datastores.aggregation.annotation.MetricFormula;
+import com.paiondata.elide.datastores.aggregation.annotation.TableMeta;
+import com.paiondata.elide.datastores.aggregation.annotation.Temporal;
+import com.paiondata.elide.datastores.aggregation.annotation.TimeGrainDefinition;
+import com.paiondata.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.paiondata.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.paiondata.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import example.dimensions.Country;
 import example.dimensions.SubCountry;
 

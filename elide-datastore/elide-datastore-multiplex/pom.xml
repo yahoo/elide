@@ -8,9 +8,9 @@
     <description>Elide entity manager for multiple data store support</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
-        <groupId>com.yahoo.elide</groupId>
+        <groupId>com.paiondata.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>7.0.6-SNAPSHOT</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -35,13 +35,13 @@
     </scm>
 
     <properties>
-        <dataStoreHarness>com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableDataStoreHarness</dataStoreHarness>
+        <dataStoreHarness>com.paiondata.elide.datastores.multiplex.bridgeable.BridgeableDataStoreHarness</dataStoreHarness>
     </properties>
 
     <dependencies>
         <!-- Elide dependencies (include test dependencies) -->
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
+            <groupId>com.paiondata.elide</groupId>
             <artifactId>elide-core</artifactId>
         </dependency>
 

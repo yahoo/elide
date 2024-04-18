@@ -6,7 +6,7 @@
 
 package example.models.jpa.usertypes;
 
-import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.paiondata.elide.core.exceptions.InvalidValueException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

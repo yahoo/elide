@@ -5,13 +5,13 @@
  */
 package example.dimensions;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
-import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
+import com.paiondata.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.paiondata.elide.datastores.aggregation.annotation.ColumnMeta;
+import com.paiondata.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.paiondata.elide.datastores.aggregation.annotation.TableMeta;
+import com.paiondata.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;

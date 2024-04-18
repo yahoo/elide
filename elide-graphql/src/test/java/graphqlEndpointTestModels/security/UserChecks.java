@@ -5,8 +5,8 @@
  */
 package graphqlEndpointTestModels.security;
 
-import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.core.security.checks.UserCheck;
+import com.paiondata.elide.core.security.User;
+import com.paiondata.elide.core.security.checks.UserCheck;
 
 import java.security.Principal;
 

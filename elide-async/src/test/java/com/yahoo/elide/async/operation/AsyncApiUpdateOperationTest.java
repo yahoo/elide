@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.operation;
+package com.paiondata.elide.async.operation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -11,10 +11,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncApi;
-import com.yahoo.elide.async.models.AsyncApiResult;
-import com.yahoo.elide.async.service.dao.AsyncApiDao;
+import com.paiondata.elide.Elide;
+import com.paiondata.elide.async.models.AsyncApi;
+import com.paiondata.elide.async.models.AsyncApiResult;
+import com.paiondata.elide.async.service.dao.AsyncApiDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

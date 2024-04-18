@@ -6,11 +6,11 @@
 
 package example.models.v2;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
-import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
+import com.paiondata.elide.annotation.CreatePermission;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.UpdatePermission;
+import com.paiondata.elide.graphql.subscriptions.annotations.Subscription;
+import com.paiondata.elide.graphql.subscriptions.annotations.SubscriptionField;
 
 import example.checks.AdminCheck;
 

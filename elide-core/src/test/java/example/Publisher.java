@@ -5,14 +5,14 @@
  */
 package example;
 
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+import static com.paiondata.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.paiondata.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 
-import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.FilterExpressionPath;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.Exclude;
+import com.paiondata.elide.annotation.FilterExpressionPath;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.LifeCycleHookBinding;
+import com.paiondata.elide.annotation.ReadPermission;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

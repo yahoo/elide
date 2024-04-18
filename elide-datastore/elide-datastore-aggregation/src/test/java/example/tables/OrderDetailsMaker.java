@@ -6,8 +6,8 @@
 
 package example.tables;
 
-import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.TableSQLMaker;
+import com.paiondata.elide.datastores.aggregation.query.Query;
+import com.paiondata.elide.datastores.aggregation.query.TableSQLMaker;
 
 public class OrderDetailsMaker implements TableSQLMaker {
     /**

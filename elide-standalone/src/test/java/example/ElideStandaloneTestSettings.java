@@ -5,15 +5,15 @@
  */
 package example;
 
-import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
-import com.yahoo.elide.jsonapi.links.DefaultJsonApiLinks;
-import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
-import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
-import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
+import com.paiondata.elide.core.dictionary.EntityDictionary;
+import com.paiondata.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.paiondata.elide.jsonapi.JsonApiMapper;
+import com.paiondata.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
+import com.paiondata.elide.jsonapi.links.DefaultJsonApiLinks;
+import com.paiondata.elide.standalone.config.ElideStandaloneAnalyticSettings;
+import com.paiondata.elide.standalone.config.ElideStandaloneAsyncSettings;
+import com.paiondata.elide.standalone.config.ElideStandaloneSettings;
+import com.paiondata.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import example.models.Post;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 

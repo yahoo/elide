@@ -3,11 +3,11 @@ First, thanks for taking the time to contribute to our project! There are many w
 
 ### Questions
 
-If you have a question that needs an answer, [create an issue](https://github.com/yahoo/elide/issues/new), and label it as a question.
+If you have a question that needs an answer, [create an issue](https://github.com/paion-data/elide/issues/new), and label it as a question.
 
 ### Issues for bugs or feature requests
 
-If you encounter any bugs in the code, or want to request a new feature or enhancement, please [create an issue](https://github.com/yahoo/elide/issues/new) to report it. Kindly add a label to indicate what type of issue it is.
+If you encounter any bugs in the code, or want to request a new feature or enhancement, please [create an issue](https://github.com/paion-data/elide/issues/new) to report it. Kindly add a label to indicate what type of issue it is.
 
 ### Contribute Code
 We welcome your pull requests for bug fixes. To implement something new, please create an issue first so we can discuss it together.
@@ -18,12 +18,12 @@ Please follow [best practices](https://github.com/trein/dev-best-practices/wiki/
 - Make sure your code respects existing formatting conventions. In general, follow
   the same coding style as the code that you are modifying. If you are using
   IntelliJ, you can import our code style settings xml:
-  [elide-intellij-codestyle.xml](https://github.com/yahoo/elide/raw/master/elide-intellij-codestyle.xml)
-  or [elide-eclipse.importorder](https://github.com/yahoo/elide/raw/master/elide-eclipse.importorder).
-- Do add/update [documentation](https://github.com/yahoo/elide-doc) appropriately for the change you are making.
+  [elide-intellij-codestyle.xml](https://github.com/paion-data/elide/raw/master/elide-intellij-codestyle.xml)
+  or [elide-eclipse.importorder](https://github.com/paion-data/elide/raw/master/elide-eclipse.importorder).
+- Do add/update [documentation](https://github.com/paion-data/elide-doc) appropriately for the change you are making.
 - Bugfixes should include a unit test or integration test reproducing the issue.
 - Do not use author tags/information in the code.
-- Always include license header on each file your create. See [this example](https://github.com/yahoo/elide/blob/master/elide-core/src/main/java/com/yahoo/elide/Elide.java)
+- Always include license header on each file your create. See [this example](https://github.com/paion-data/elide/blob/master/elide-core/src/main/java/com/yahoo/elide/Elide.java)
 - Try to keep pull requests short and submit separate ones for unrelated
   features, but feel free to combine simple bugfixes/tests into one pull request.
 - Keep the number of commits small and combine commits for related changes.

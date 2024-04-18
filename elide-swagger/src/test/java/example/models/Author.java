@@ -5,7 +5,7 @@
  */
 package example.models;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.persistence.Entity;

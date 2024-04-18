@@ -5,17 +5,17 @@
  */
 package example.tests;
 
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.id;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
 
-import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.jsonapi.JsonApi;
+import com.paiondata.elide.core.exceptions.HttpStatus;
+import com.paiondata.elide.jsonapi.JsonApi;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 

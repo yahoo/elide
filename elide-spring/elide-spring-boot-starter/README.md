@@ -12,7 +12,7 @@ Opinionated jar which packages dependencies to get started with Elide and Spring
 
 ```xml
    <dependency>
-       <groupId>com.yahoo.elide</groupId>
+       <groupId>com.paiondata.elide</groupId>
        <artifactId>elide-spring-boot-starter</artifactId>
        <version>${elide.version}</version>
    </dependency>

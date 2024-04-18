@@ -8,10 +8,10 @@ package example;
 
 import static example.checks.InternalBookCheck.HIDDEN_BOOK;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
-import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
+import com.paiondata.elide.graphql.subscriptions.annotations.Subscription;
+import com.paiondata.elide.graphql.subscriptions.annotations.SubscriptionField;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;

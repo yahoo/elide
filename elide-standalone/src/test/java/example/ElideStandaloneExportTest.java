@@ -5,13 +5,13 @@
  */
 package example;
 
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.data;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.id;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -19,11 +19,11 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.jsonapi.JsonApi;
-import com.yahoo.elide.standalone.ElideStandalone;
-import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
-import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
+import com.paiondata.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.paiondata.elide.jsonapi.JsonApi;
+import com.paiondata.elide.standalone.ElideStandalone;
+import com.paiondata.elide.standalone.config.ElideStandaloneAnalyticSettings;
+import com.paiondata.elide.standalone.config.ElideStandaloneAsyncSettings;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

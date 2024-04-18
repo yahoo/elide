@@ -6,7 +6,7 @@
 
 package example.embeddedid;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;
 
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;

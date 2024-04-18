@@ -5,7 +5,7 @@
  */
 package example.models.jpa;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

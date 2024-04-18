@@ -7,12 +7,12 @@ package example;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.modelconfig.DynamicConfiguration;
-import com.yahoo.elide.standalone.ElideStandalone;
-import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
+import com.paiondata.elide.core.utils.ClassScanner;
+import com.paiondata.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.paiondata.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.paiondata.elide.modelconfig.DynamicConfiguration;
+import com.paiondata.elide.standalone.ElideStandalone;
+import com.paiondata.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

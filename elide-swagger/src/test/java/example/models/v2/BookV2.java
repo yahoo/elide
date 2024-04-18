@@ -5,11 +5,11 @@
  */
 package example.models.v2;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
+import com.paiondata.elide.annotation.CreatePermission;
+import com.paiondata.elide.annotation.DeletePermission;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.UpdatePermission;
 
 import example.models.Author;
 import example.models.Publisher;

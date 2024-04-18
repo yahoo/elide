@@ -5,10 +5,10 @@
  */
 package example.models;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
+import com.paiondata.elide.annotation.CreatePermission;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.UpdatePermission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;

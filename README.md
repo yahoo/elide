@@ -6,7 +6,7 @@
 
 [![Discord](https://img.shields.io/discord/869678398241398854)](https://discord.com/widget?id=869678398241398854&theme=dark)
 [![Build Status](https://cd.screwdriver.cd/pipelines/6103/badge)](https://cd.screwdriver.cd/pipelines/6103)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.paiondata.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.paiondata.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
 [![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/context:java)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/alerts)
@@ -71,7 +71,7 @@ More information about Elide can be found at [elide.io](https://elide.io/).
 
 To try out an Elide example service, check out this [Spring boot example project](https://github.com/yahoo/elide-spring-boot-example).
 
-Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance of Elide running inside an embedded Jetty application.
+Alternatively, use [elide-standalone](https://github.com/paion-data/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance of Elide running inside an embedded Jetty application.
 
 ## Usage 
 

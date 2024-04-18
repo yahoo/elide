@@ -1,7 +1,0 @@
-[
-  {
-    "name": "com.yahoo.elide.datastores.multiplex.MultiplexManager",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  }
-]

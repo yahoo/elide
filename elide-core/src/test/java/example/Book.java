@@ -5,17 +5,17 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.ComputedRelationship;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.FilterExpressionPath;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.security.ChangeSpec;
-import com.yahoo.elide.core.security.RequestScope;
-import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.paiondata.elide.annotation.Audit;
+import com.paiondata.elide.annotation.ComputedRelationship;
+import com.paiondata.elide.annotation.CreatePermission;
+import com.paiondata.elide.annotation.DeletePermission;
+import com.paiondata.elide.annotation.FilterExpressionPath;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.UpdatePermission;
+import com.paiondata.elide.core.security.ChangeSpec;
+import com.paiondata.elide.core.security.RequestScope;
+import com.paiondata.elide.core.security.checks.OperationCheck;
 import example.Author.AuthorType;
 
 import jakarta.persistence.ElementCollection;

@@ -6,12 +6,12 @@
 
 package example.tests;
 
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.id;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,13 +23,13 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import com.yahoo.elide.SerdesBuilderCustomizer;
-import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.utils.coerce.converters.OffsetDateTimeSerde;
-import com.yahoo.elide.core.utils.coerce.converters.Serde;
-import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
-import com.yahoo.elide.graphql.GraphQLExceptionHandler;
-import com.yahoo.elide.jsonapi.JsonApi;
+import com.paiondata.elide.SerdesBuilderCustomizer;
+import com.paiondata.elide.core.exceptions.InvalidEntityBodyException;
+import com.paiondata.elide.core.utils.coerce.converters.OffsetDateTimeSerde;
+import com.paiondata.elide.core.utils.coerce.converters.Serde;
+import com.paiondata.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
+import com.paiondata.elide.graphql.GraphQLExceptionHandler;
+import com.paiondata.elide.jsonapi.JsonApi;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

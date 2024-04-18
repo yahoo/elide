@@ -3,9 +3,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.yahoo.elide</groupId>
+    <groupId>com.paiondata.elide</groupId>
     <artifactId>elide-quarkus-extension-parent</artifactId>
-    <version>7.0.3-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
   </parent>
   <artifactId>elide-quarkus-extension-integration-tests</artifactId>
   <name>Elide Quarkus Extension - Integration Tests</name>
@@ -42,7 +42,7 @@
       <artifactId>quarkus-resteasy</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.yahoo.elide</groupId>
+      <groupId>com.paiondata.elide</groupId>
       <artifactId>elide-extension</artifactId>
       <version>${project.version}</version>
     </dependency>

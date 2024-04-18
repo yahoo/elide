@@ -7,4 +7,4 @@
 @Include(friendlyName = "Dimensions", description = "Dimensions")
 package example.dimensions;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;

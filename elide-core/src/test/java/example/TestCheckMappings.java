@@ -5,10 +5,10 @@
  */
 package example;
 
-import com.yahoo.elide.core.PersistentResourceTest;
-import com.yahoo.elide.core.security.PermissionExecutorTest;
-import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.paiondata.elide.core.PersistentResourceTest;
+import com.paiondata.elide.core.security.PermissionExecutorTest;
+import com.paiondata.elide.core.security.checks.Check;
+import com.paiondata.elide.core.security.checks.prefab.Role;
 import com.google.common.collect.ImmutableMap;
 
 /**

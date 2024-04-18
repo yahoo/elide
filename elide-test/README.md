@@ -5,7 +5,7 @@ A set of helpers for testing Elide web services
 ## Installation
 ```xml
 <dependency>
-  <groupId>com.yahoo.elide</groupId>
+  <groupId>com.paiondata.elide</groupId>
   <artifactId>elide-test-helpers</artifactId>
   <version>${elide.verison}</version>
   <scope>test</scope>
@@ -17,7 +17,7 @@ A set of helpers for testing Elide web services
 The `JsonApiDSL` can be used to build JSON:API documents in a typesafe way.
 
 ```java
-package com.yahoo.elideinstnace.integration
+package com.paiondata.elideinstnace.integration
 
 import org.apache.http.HttpStatus;
 import org.junit.Test;

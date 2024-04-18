@@ -1,0 +1,108 @@
+[
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.ArgumentDefinition",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.Column",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.Dimension",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.Metric",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.Namespace",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.Table",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.TableSource",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.TimeDimension",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.metadata.models.TimeDimensionGrain",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.query.DefaultMetricProjectionMaker",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Day$DaySerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Hour$HourSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.ISOWeek$ISOWeekSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Minute$MinuteSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Month$MonthSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Quarter$QuarterSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Second$SecondSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Time",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Time$TimeSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Week$WeekSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.datastores.aggregation.timegrains.Year$YearSerde",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  }
+]

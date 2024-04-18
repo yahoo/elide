@@ -31,7 +31,7 @@ This tutorial will use elide-standalone, and all of the code is [available here]
 To include `elide-standalone` into your project, add the single dependency:
 ```xml
 <dependency>
-  <groupId>com.yahoo.elide</groupId>
+  <groupId>com.paiondata.elide</groupId>
   <artifactId>elide-standalone</artifactId>
   <version>LATEST</version>
 </dependency>
@@ -346,7 +346,7 @@ Here are the respective responses:
             "commonName": "Elide",
             "description": "The magical library powering this project"
             },
-            "id": "com.yahoo.elide",
+            "id": "com.paiondata.elide",
             "relationships": {
             "products": {
                 "data": [
@@ -389,7 +389,7 @@ Here are the respective responses:
                     "node": {
                     "commonName": "Elide",
                     "description": "The magical library powering this project",
-                    "name": "com.yahoo.elide"
+                    "name": "com.paiondata.elide"
                     }
                 }
                 ]

@@ -19,5 +19,5 @@ The integration tests must be executed against a concrete data store implementat
 1. Change "Use classpath of module" to the data store you want to run the integration test against 
     (e.g. `elide-datastore-jpa`)
 1. Set the dataStoreHarness property in VM options
-    (e.g. `-DdataStoreHarness=com.yahoo.elide.datastores.jpa.JpaDataStoreHarness`)
+    (e.g. `-DdataStoreHarness=com.paiondata.elide.datastores.jpa.JpaDataStoreHarness`)
 

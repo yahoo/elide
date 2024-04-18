@@ -5,7 +5,7 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 

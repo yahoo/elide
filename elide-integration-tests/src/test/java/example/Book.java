@@ -5,12 +5,12 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.ComputedRelationship;
-import com.yahoo.elide.annotation.FilterExpressionPath;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.Paginate;
-import com.yahoo.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.Audit;
+import com.paiondata.elide.annotation.ComputedRelationship;
+import com.paiondata.elide.annotation.FilterExpressionPath;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.Paginate;
+import com.paiondata.elide.annotation.ReadPermission;
 import org.hibernate.annotations.Formula;
 
 import jakarta.persistence.Column;

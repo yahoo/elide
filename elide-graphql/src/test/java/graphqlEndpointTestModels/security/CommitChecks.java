@@ -5,8 +5,8 @@
  */
 package graphqlEndpointTestModels.security;
 
-import com.yahoo.elide.core.security.RequestScope;
-import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.paiondata.elide.core.security.RequestScope;
+import com.paiondata.elide.core.security.checks.OperationCheck;
 
 import java.security.Principal;
 import java.util.Optional;

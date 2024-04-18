@@ -62,10 +62,10 @@ and then configured by setting the property `hibernate.search.backend.analysis.c
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
     <persistence-unit name="searchDataStoreTest">
-        <class>com.yahoo.elide.datastores.search.models.Item</class>
+        <class>com.paiondata.elide.datastores.search.models.Item</class>
 
         <properties>
-            <property name="hibernate.search.backend.analysis.configurer" value="class:com.yahoo.elide.datastores.search.TestLuceneAnalysisConfigurer"/>
+            <property name="hibernate.search.backend.analysis.configurer" value="class:com.paiondata.elide.datastores.search.TestLuceneAnalysisConfigurer"/>
             <property name="hibernate.search.backend.directory.type" value="local-heap"/>
             ...
         </properties>

@@ -5,8 +5,8 @@
  */
 package example.models.lifecycle;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.LifeCycleHookBinding;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Data;

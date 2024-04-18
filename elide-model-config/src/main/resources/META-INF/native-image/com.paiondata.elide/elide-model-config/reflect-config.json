@@ -1,0 +1,92 @@
+[
+  {
+    "name": "com.paiondata.elide.modelconfig.jsonformats.ValidateArgsPropertiesValidator",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.jsonformats.ValidateDimPropertiesValidator",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.jsonformats.ValidateTimeDimPropertiesValidator",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.Argument",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.DBConfig",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.Dimension",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.ElideDBConfig",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.ElideNamespaceConfig",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.ElideSecurityConfig",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.ElideSQLDBConfig",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.ElideTableConfig",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.Grain",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.Join",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.Measure",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.NamespaceConfig",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.Rule",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.Table",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.modelconfig.model.TableSource",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  }
+]

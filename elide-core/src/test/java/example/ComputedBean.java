@@ -5,9 +5,9 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.core.RequestScope;
+import com.paiondata.elide.annotation.ComputedAttribute;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.core.RequestScope;
 
 import jakarta.persistence.Entity;
 
@@ -29,7 +29,7 @@ public class ComputedBean {
     }
 
     @ComputedAttribute
-    public String getTestWithSecurityScope(com.yahoo.elide.core.security.RequestScope requestScope) {
+    public String getTestWithSecurityScope(com.paiondata.elide.core.security.RequestScope requestScope) {
         return "test3";
     }
 

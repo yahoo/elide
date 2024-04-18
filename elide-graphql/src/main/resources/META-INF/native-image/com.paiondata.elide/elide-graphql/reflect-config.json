@@ -1,0 +1,98 @@
+[
+  {
+    "name": "com.paiondata.elide.graphql.models.GraphQLError",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.models.GraphQLErrors",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.serialization.ExecutionResultDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.serialization.ExecutionResultSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.serialization.GraphQLErrorDeserializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.serialization.GraphQLErrorSerializer",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.SerializeId",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.SubscriptionWebSocket",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.SubscriptionWebSocket$UserFactory",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.protocol.AbstractProtocolMessage",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.protocol.AbstractProtocolMessageWithID",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.protocol.Complete",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.protocol.ConnectionAck",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.protocol.MessageType",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.protocol.Next",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.protocol.Subscribe",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.graphql.subscriptions.websocket.protocol.Subscribe$Payload",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "graphql.schema.GraphQLSchema",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  }
+]

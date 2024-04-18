@@ -5,10 +5,10 @@
  */
 package example.models;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.paiondata.elide.annotation.CreatePermission;
+import com.paiondata.elide.annotation.DeletePermission;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.core.security.checks.prefab.Role;
 
 import jakarta.persistence.Entity;
 import lombok.Getter;

@@ -9,4 +9,4 @@
 @ApiVersion(version = "3.0")
 package example.models.jpa.v3;
 
-import com.yahoo.elide.annotation.ApiVersion;
+import com.paiondata.elide.annotation.ApiVersion;

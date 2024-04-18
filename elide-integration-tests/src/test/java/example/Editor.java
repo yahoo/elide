@@ -5,18 +5,18 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.ComputedRelationship;
-import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.FilterExpressionPath;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
-import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
-import com.yahoo.elide.core.type.Type;
+import com.paiondata.elide.annotation.Audit;
+import com.paiondata.elide.annotation.ComputedAttribute;
+import com.paiondata.elide.annotation.ComputedRelationship;
+import com.paiondata.elide.annotation.Exclude;
+import com.paiondata.elide.annotation.FilterExpressionPath;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
+import com.paiondata.elide.core.Path;
+import com.paiondata.elide.core.filter.predicates.FilterPredicate;
+import com.paiondata.elide.core.filter.predicates.NotNullPredicate;
+import com.paiondata.elide.core.security.checks.FilterExpressionCheck;
+import com.paiondata.elide.core.type.Type;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -81,7 +81,7 @@ public class Editor {
 
     public static class FieldPathFilterExpression extends FilterExpressionCheck<Object> {
         @Override
-        public FilterPredicate getFilterExpression(Type<?> entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Type<?> entityClass, com.paiondata.elide.core.security.RequestScope requestScope) {
             Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
             return new NotNullPredicate(path);
         }

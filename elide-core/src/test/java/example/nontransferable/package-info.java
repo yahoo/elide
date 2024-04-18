@@ -7,5 +7,5 @@
 @Include
 package example.nontransferable;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.NonTransferable;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.NonTransferable;

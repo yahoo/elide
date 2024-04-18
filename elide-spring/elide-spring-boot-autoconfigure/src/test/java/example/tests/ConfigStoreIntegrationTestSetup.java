@@ -5,15 +5,15 @@
  */
 package example.tests;
 
-import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.dictionary.Injector;
-import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.modelconfig.DynamicConfiguration;
-import com.yahoo.elide.modelconfig.store.models.ConfigChecks;
-import com.yahoo.elide.spring.config.ElideConfigProperties;
+import com.paiondata.elide.core.dictionary.EntityDictionary;
+import com.paiondata.elide.core.dictionary.Injector;
+import com.paiondata.elide.core.security.checks.Check;
+import com.paiondata.elide.core.type.Type;
+import com.paiondata.elide.core.utils.ClassScanner;
+import com.paiondata.elide.core.utils.coerce.CoerceUtil;
+import com.paiondata.elide.modelconfig.DynamicConfiguration;
+import com.paiondata.elide.modelconfig.store.models.ConfigChecks;
+import com.paiondata.elide.spring.config.ElideConfigProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;

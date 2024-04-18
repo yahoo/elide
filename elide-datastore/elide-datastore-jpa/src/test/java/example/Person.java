@@ -5,8 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.jpa.usertypes.JsonType;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.datastores.jpa.usertypes.JsonType;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;

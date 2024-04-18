@@ -5,7 +5,7 @@
  */
 package example.nontransferable;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;
 import example.BaseId;
 
 import jakarta.persistence.Entity;

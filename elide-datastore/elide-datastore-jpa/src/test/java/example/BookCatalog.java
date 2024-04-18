@@ -6,10 +6,10 @@
 
 package example;
 
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
+import static com.paiondata.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.LifeCycleHookBinding;
 import example.hook.BookCatalogOnCreateHook;
 
 import jakarta.persistence.Entity;

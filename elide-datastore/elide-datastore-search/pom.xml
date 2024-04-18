@@ -10,9 +10,9 @@
     <url>https://github.com/yahoo/elide/tree/master/elide-datastore/elide-datastore-search</url>
 
     <parent>
-        <groupId>com.yahoo.elide</groupId>
+        <groupId>com.paiondata.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>7.0.6-SNAPSHOT</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -38,12 +38,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
+            <groupId>com.paiondata.elide</groupId>
             <artifactId>elide-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
+            <groupId>com.paiondata.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
             <scope>test</scope>
         </dependency>
@@ -54,11 +54,11 @@
             <artifactId>jakarta.persistence-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-        </dependency> 
+        </dependency>
 
         <dependency>
             <groupId>org.hibernate.search</groupId>
@@ -77,17 +77,17 @@
         </dependency>
 
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
+            <groupId>com.paiondata.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>7.0.6-SNAPSHOT</version>
+            <version>1.0-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
+            <groupId>com.paiondata.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>7.0.6-SNAPSHOT</version>
+            <version>1.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

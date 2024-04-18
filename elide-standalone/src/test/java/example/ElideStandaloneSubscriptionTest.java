@@ -5,12 +5,12 @@
  */
 package example;
 
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.id;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.paiondata.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -21,14 +21,14 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import com.yahoo.elide.Serdes.SerdesBuilder;
-import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
-import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
-import com.yahoo.elide.graphql.GraphQLExceptionHandler;
-import com.yahoo.elide.jsonapi.JsonApi;
-import com.yahoo.elide.standalone.ElideStandalone;
-import com.yahoo.elide.standalone.config.ElideStandaloneSubscriptionSettings;
+import com.paiondata.elide.Serdes.SerdesBuilder;
+import com.paiondata.elide.core.exceptions.InvalidEntityBodyException;
+import com.paiondata.elide.core.utils.coerce.converters.ISO8601DateSerde;
+import com.paiondata.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
+import com.paiondata.elide.graphql.GraphQLExceptionHandler;
+import com.paiondata.elide.jsonapi.JsonApi;
+import com.paiondata.elide.standalone.ElideStandalone;
+import com.paiondata.elide.standalone.config.ElideStandaloneSubscriptionSettings;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;

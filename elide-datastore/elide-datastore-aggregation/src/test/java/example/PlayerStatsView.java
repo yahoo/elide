@@ -5,14 +5,14 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
-import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.datastores.aggregation.annotation.ArgumentDefinition;
+import com.paiondata.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.paiondata.elide.datastores.aggregation.annotation.Join;
+import com.paiondata.elide.datastores.aggregation.annotation.MetricFormula;
+import com.paiondata.elide.datastores.aggregation.annotation.TableMeta;
+import com.paiondata.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.paiondata.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 
 import jakarta.persistence.Id;
 import lombok.Data;

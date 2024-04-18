@@ -5,7 +5,7 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Exclude;
+import com.paiondata.elide.annotation.Exclude;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

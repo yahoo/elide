@@ -5,7 +5,7 @@
  */
 package example;
 
-import com.yahoo.elide.datastores.jpa.usertypes.JsonConverter;
+import com.paiondata.elide.datastores.jpa.usertypes.JsonConverter;
 
 public class AddressFragment {
     public String street;

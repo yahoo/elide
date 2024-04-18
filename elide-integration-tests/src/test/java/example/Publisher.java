@@ -5,9 +5,9 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.FilterExpressionPath;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.FilterExpressionPath;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;

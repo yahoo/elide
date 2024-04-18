@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.models;
+package com.paiondata.elide.async.models;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Convert;

@@ -6,8 +6,8 @@
 
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.graphql.subscriptions.annotations.SubscriptionField;
 
 import jakarta.persistence.Id;
 import lombok.Data;

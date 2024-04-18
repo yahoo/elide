@@ -6,8 +6,8 @@
 
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.LifeCycleHookBinding;
 import example.hooks.ChatBotCreateHook;
 
 import jakarta.persistence.Id;

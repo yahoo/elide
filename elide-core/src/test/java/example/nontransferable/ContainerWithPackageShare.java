@@ -5,7 +5,7 @@
  */
 package example.nontransferable;
 
-import com.yahoo.elide.annotation.NonTransferable;
+import com.paiondata.elide.annotation.NonTransferable;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

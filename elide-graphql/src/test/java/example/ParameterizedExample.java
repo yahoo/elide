@@ -5,8 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.core.type.ParameterizedModel;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.core.type.ParameterizedModel;
 
 import jakarta.persistence.Id;
 

@@ -5,9 +5,9 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.paiondata.elide.datastores.aggregation.annotation.TableMeta;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

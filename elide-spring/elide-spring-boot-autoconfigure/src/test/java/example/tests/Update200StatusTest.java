@@ -7,9 +7,9 @@ package example.tests;
 
 import static io.restassured.RestAssured.given;
 
-import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.yahoo.elide.jsonapi.JsonApi;
-import com.yahoo.elide.test.jsonapi.JsonApiDSL;
+import com.paiondata.elide.core.exceptions.HttpStatus;
+import com.paiondata.elide.jsonapi.JsonApi;
+import com.paiondata.elide.test.jsonapi.JsonApiDSL;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;

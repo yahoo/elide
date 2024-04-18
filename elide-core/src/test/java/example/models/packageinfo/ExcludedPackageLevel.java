@@ -6,7 +6,7 @@
 
 package example.models.packageinfo;
 
-import com.yahoo.elide.annotation.Exclude;
+import com.paiondata.elide.annotation.Exclude;
 import example.models.BaseId;
 
 import jakarta.persistence.Entity;

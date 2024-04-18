@@ -1,0 +1,22 @@
+[
+  {
+    "name": "com.paiondata.elide.async.models.security.AsyncApiInlineChecks$AsyncApiAdmin",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.async.models.security.AsyncApiInlineChecks$AsyncApiOwner",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.async.models.security.AsyncApiInlineChecks$AsyncApiStatusQueuedValue",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.paiondata.elide.async.models.security.AsyncApiInlineChecks$AsyncApiStatusValue",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true
+  }
+]

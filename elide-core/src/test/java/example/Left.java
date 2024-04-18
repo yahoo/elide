@@ -5,10 +5,10 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.NonTransferable;
-import com.yahoo.elide.annotation.UpdatePermission;
+import com.paiondata.elide.annotation.DeletePermission;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.NonTransferable;
+import com.paiondata.elide.annotation.UpdatePermission;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;

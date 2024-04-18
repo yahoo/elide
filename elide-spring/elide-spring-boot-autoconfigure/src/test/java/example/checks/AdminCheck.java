@@ -6,9 +6,9 @@
 
 package example.checks;
 
-import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.core.security.RequestScope;
-import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.paiondata.elide.annotation.SecurityCheck;
+import com.paiondata.elide.core.security.RequestScope;
+import com.paiondata.elide.core.security.checks.OperationCheck;
 
 import java.util.Optional;
 

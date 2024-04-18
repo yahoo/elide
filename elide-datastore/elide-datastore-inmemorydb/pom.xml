@@ -12,9 +12,9 @@
     <description>Elide data store for a demonstrative in-memory datastore support</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
-        <groupId>com.yahoo.elide</groupId>
+        <groupId>com.paiondata.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>7.0.6-SNAPSHOT</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -39,26 +39,26 @@
     </scm>
 
     <properties>
-        <dataStoreHarness>com.yahoo.elide.initialization.InMemoryDataStoreHarness</dataStoreHarness>
+        <dataStoreHarness>com.paiondata.elide.initialization.InMemoryDataStoreHarness</dataStoreHarness>
         <excludeTags>skipInMemory</excludeTags>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
+            <groupId>com.paiondata.elide</groupId>
             <artifactId>elide-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
+            <groupId>com.paiondata.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>7.0.6-SNAPSHOT</version>
+            <version>1.0-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
+            <groupId>com.paiondata.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
             <scope>test</scope>
         </dependency>

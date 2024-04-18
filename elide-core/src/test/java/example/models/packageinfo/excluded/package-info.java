@@ -7,4 +7,4 @@
 @Exclude
 package example.models.packageinfo.excluded;
 
-import com.yahoo.elide.annotation.Exclude;
+import com.paiondata.elide.annotation.Exclude;

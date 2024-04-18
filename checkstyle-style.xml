@@ -27,7 +27,7 @@
       <metadata name="net.sf.eclipsecs.core.comment" value="Not enough groups to handle unusual Elide import order.  Used special formatting for thirdPartyPackageRegExp to leave java and javax to the end."/>
       <property name="severity" value="error"/>
       <property name="customImportOrderRules" value="STATIC###SPECIAL_IMPORTS###STANDARD_JAVA_PACKAGE###THIRD_PARTY_PACKAGE"/>
-      <property name="specialImportsRegExp" value="^(com\.yahoo)\."/>
+      <property name="specialImportsRegExp" value="^(com\.paiondata)\."/>
       <property name="standardPackageRegExp" value="^(com|example|org)\."/>
       <property name="thirdPartyPackageRegExp" value="^([^j]|j[^a]|ja[^v]|java[^x.]).*"/>
       <property name="sortImportsInGroupAlphabetically" value="true"/>
@@ -208,14 +208,14 @@
     <property name="message" value="Non-ASCII character"/>
   </module>
   <module name="RegexpHeader">
-    <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a yahoo/apache copyright block."/>
+    <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a paiondata/apache copyright block."/>
     <property name="severity" value="error"/>
     <property name="headerFile" value="${config_loc}/java.header"/>
     <property name="multiLines" value="2"/>
     <property name="fileExtensions" value="java,groovy,g4"/>
   </module>
   <module name="RegexpHeader">
-    <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a yahoo/apache copyright block."/>
+    <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a paiondata/apache copyright block."/>
     <property name="severity" value="error"/>
     <property name="headerFile" value="${config_loc}/xml.header"/>
     <property name="fileExtensions" value="xml"/>

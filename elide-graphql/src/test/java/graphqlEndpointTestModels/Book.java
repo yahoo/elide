@@ -5,19 +5,19 @@
  */
 package graphqlEndpointTestModels;
 
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
+import static com.paiondata.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.paiondata.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.paiondata.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+import static com.paiondata.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
+import com.paiondata.elide.annotation.Audit;
+import com.paiondata.elide.annotation.ComputedAttribute;
+import com.paiondata.elide.annotation.CreatePermission;
+import com.paiondata.elide.annotation.DeletePermission;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.LifeCycleHookBinding;
+import com.paiondata.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.UpdatePermission;
 
 import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;

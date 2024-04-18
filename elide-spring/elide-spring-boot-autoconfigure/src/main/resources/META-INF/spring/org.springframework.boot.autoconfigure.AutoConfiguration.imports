@@ -1,4 +1,4 @@
-com.yahoo.elide.spring.config.ElideAutoConfiguration
-com.yahoo.elide.spring.config.ElideAsyncConfiguration
-com.yahoo.elide.spring.config.ElideSubscriptionConfiguration
-com.yahoo.elide.spring.config.ElideSubscriptionScanningConfiguration
+com.paiondata.elide.spring.config.ElideAutoConfiguration
+com.paiondata.elide.spring.config.ElideAsyncConfiguration
+com.paiondata.elide.spring.config.ElideSubscriptionConfiguration
+com.paiondata.elide.spring.config.ElideSubscriptionScanningConfiguration

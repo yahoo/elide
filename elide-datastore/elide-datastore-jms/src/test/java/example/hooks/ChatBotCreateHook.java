@@ -8,11 +8,11 @@ package example.hooks;
 
 import static example.Chat.CHAT;
 
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.core.lifecycle.LifeCycleHook;
-import com.yahoo.elide.core.security.ChangeSpec;
-import com.yahoo.elide.core.security.RequestScope;
-import com.yahoo.elide.graphql.subscriptions.hooks.NotifyTopicLifeCycleHook;
+import com.paiondata.elide.annotation.LifeCycleHookBinding;
+import com.paiondata.elide.core.lifecycle.LifeCycleHook;
+import com.paiondata.elide.core.security.ChangeSpec;
+import com.paiondata.elide.core.security.RequestScope;
+import com.paiondata.elide.graphql.subscriptions.hooks.NotifyTopicLifeCycleHook;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Chat;
 import example.ChatBot;

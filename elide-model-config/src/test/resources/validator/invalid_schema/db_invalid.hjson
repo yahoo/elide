@@ -6,7 +6,7 @@
       url: jdbc:db2:localhost:50000/testdb
       driver: 11COM.ibm.db2.jdbc.net.DB2Driver
       user: guestdb2
-      dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDBDialec
+      dialect: com.paiondata.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDBDialec
       propertyMap:
       {
         hibernate.show_sql: null

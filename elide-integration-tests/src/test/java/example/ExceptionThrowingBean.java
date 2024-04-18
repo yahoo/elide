@@ -5,8 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.ComputedAttribute;
+import com.paiondata.elide.annotation.Include;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

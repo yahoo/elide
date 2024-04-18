@@ -7,7 +7,7 @@ package example.tests;
 
 import static io.restassured.RestAssured.given;
 
-import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.paiondata.elide.core.exceptions.HttpStatus;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;

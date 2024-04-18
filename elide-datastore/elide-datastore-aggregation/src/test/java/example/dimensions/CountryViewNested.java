@@ -5,9 +5,9 @@
  */
 package example.dimensions;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.datastores.aggregation.annotation.FriendlyName;
+import com.paiondata.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;

@@ -5,8 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.annotation.ReadPermission;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

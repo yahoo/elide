@@ -5,8 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.core.security.checks.UserCheck;
+import com.paiondata.elide.core.security.User;
+import com.paiondata.elide.core.security.checks.UserCheck;
 
 /**
  * Useful for testing permissions based on different users.

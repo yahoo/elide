@@ -6,8 +6,8 @@
 
 package example.models.triggers;
 
-import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Exclude;
+import com.paiondata.elide.annotation.Include;
 import example.models.BaseId;
 import example.models.triggers.services.BillingService;
 import jakarta.inject.Inject;

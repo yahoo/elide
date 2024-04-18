@@ -8,8 +8,8 @@ package example;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
-import com.yahoo.elide.standalone.ElideStandalone;
-import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
+import com.paiondata.elide.standalone.ElideStandalone;
+import com.paiondata.elide.standalone.config.ElideStandaloneAnalyticSettings;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeAll;

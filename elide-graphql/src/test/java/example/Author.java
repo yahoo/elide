@@ -5,11 +5,11 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
-import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
+import com.paiondata.elide.annotation.Audit;
+import com.paiondata.elide.annotation.ComputedAttribute;
+import com.paiondata.elide.annotation.Include;
+import com.paiondata.elide.graphql.subscriptions.annotations.Subscription;
+import com.paiondata.elide.graphql.subscriptions.annotations.SubscriptionField;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

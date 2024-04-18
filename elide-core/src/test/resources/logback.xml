@@ -26,7 +26,7 @@
     <neverBlock>true</neverBlock>
   </appender>
 
-  <logger name="com.yahoo.elide" level="TRACE" />
+  <logger name="com.paiondata.elide" level="TRACE" />
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />

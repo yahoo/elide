@@ -6,7 +6,7 @@
 
 package example.models.versioned;
 
-import com.yahoo.elide.annotation.Include;
+import com.paiondata.elide.annotation.Include;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
