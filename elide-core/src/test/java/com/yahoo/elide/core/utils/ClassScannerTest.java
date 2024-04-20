@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.annotation.Include;
@@ -52,5 +53,12 @@ public class ClassScannerTest {
             assertTrue(cls.isAnnotationPresent(Include.class)
                     || cls.isAnnotationPresent(Entity.class));
         }
+    }
+
+    @Test
+    public void testGetAnnotatedClassesNoClassesFound() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            scanner.getAnnotatedClasses("nonexistent.package", Include.class);
+        }, "No annotated classes found in the specified package: nonexistent.package");
     }
 }
