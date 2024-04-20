@@ -134,7 +134,7 @@
         <spring-boot.version>3.2.2</spring-boot.version>
         <spring-framework.version>6.1.3</spring-framework.version>
         <spring-cloud-commons.version>4.0.4</spring-cloud-commons.version>
-        <springdoc.version>2.3.0</springdoc.version>
+        <springdoc.version>2.5.0</springdoc.version>
         <swagger-api.version>2.2.19</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
         <tomcat.version>10.1.19</tomcat.version>
