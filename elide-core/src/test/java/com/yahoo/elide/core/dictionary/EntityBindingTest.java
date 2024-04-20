@@ -22,6 +22,7 @@ import jakarta.persistence.OneToOne;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 public class EntityBindingTest {
     private static EntityBinding entityBinding;
 
