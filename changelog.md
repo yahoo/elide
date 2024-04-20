@@ -1,5 +1,18 @@
 # Change Log
 
+## 7.0.4
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/19de457d52532e686c4e219404be3d3c3cca1202) Entity scan on non-existing data model package silences error (#3197) 
+ * [view commit](https://github.com/yahoo/elide/commit/23558f203e8d3c603f909093e7e3c9d3c8d5f471) ELIDE-3132: Maintain hook ordering. (#3190) 
+ * [view commit](https://github.com/yahoo/elide/commit/d0f16d9f79bc8f31b072db3d75c60d19314564e7) Bump io.github.classgraph:classgraph from 4.8.165 to 4.8.170 (#3199) 
+ * [view commit](https://github.com/yahoo/elide/commit/d2f317ae5914fff6d9cc54d2c416813d2d2e917b) Bump org.springdoc:springdoc-openapi-starter-common from 2.3.0 to 2.5.0 (#3198) 
+ * [view commit](https://github.com/yahoo/elide/commit/6b876fd8096b6ecae39d16170c1565ce05021804) Bump org.owasp:dependency-check-maven from 9.0.8 to 9.1.0 (#3194) 
+ * [view commit](https://github.com/yahoo/elide/commit/a6f56b62a07d31e133aec2e4b1b3b641c21bd88a) Bump com.github.jknack:handlebars-helpers from 4.3.1 to 4.4.0 (#3183) 
+ * [view commit](https://github.com/yahoo/elide/commit/de7104c5662151d2d44f162d79e09dd29c4fac89) Bump org.apache.maven.plugins:maven-surefire-plugin (#3185) 
+ * [view commit](https://github.com/yahoo/elide/commit/2ca0f59fbffd44298174f996a16070af70636c84) Bump quarkus.version from 3.7.4 to 3.9.4 (#3200) 
+ * [view commit](https://github.com/yahoo/elide/commit/791efcae0117deb4b9e7c5fb18da23fec614827a) Bump org.springframework.cloud:spring-cloud-context from 4.0.4 to 4.1.2 (#3193) 
+ * [view commit](https://github.com/yahoo/elide/commit/e1b589504d60535498a1de9127bb564f69af9467) Bump spring-boot.version from 3.2.2 to 3.2.5 (#3201)
+
 ## 7.0.3
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/f93582df7e1f31252e06ee5e36ff4ee786639d2e) Experimental Quarkus extension code, copied from @aklish and updated for Elide 7 and Quarkus 3.7 (#3160) 
