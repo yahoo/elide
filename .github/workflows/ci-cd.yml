@@ -38,3 +38,19 @@ jobs:
       - name: Run unit & integration tests
         run: mvn -B install
 
+  release:
+    name: Release to Maven Central
+    if: github.ref == 'refs/heads/master'
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release
+        uses: paion-data/maven-central-release-action@master
+        with:
+          user: QubitPi
+          email: jack20220723@gmail.com
+          gpg-keyname: ${{ secrets.GPG_KEYNAME }}
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          server-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          server-password: ${{ secrets.MAVEN_CENTRAL_TOKEN }}

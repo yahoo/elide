@@ -46,6 +46,10 @@
 
     <developers>
         <developer>
+            <name>Paion Data</name>
+            <url>https://github.com/paion-data</url>
+        </developer>
+        <developer>
             <name>Yahoo Inc.</name>
             <url>https://github.com/yahoo</url>
         </developer>
@@ -63,8 +67,8 @@
     </distributionManagement>
 
     <scm>
-        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
-        <url>https://github.com/yahoo/elide.git</url>
+        <developerConnection>scm:git:ssh://git@github.com/paion-data/elide.git</developerConnection>
+        <url>https://github.com/paion-data/elide.git</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -582,28 +586,24 @@
 
     <profiles>
         <profile>
-            <id>ossrh</id>
-            <properties>
-                <gpg.executable>gpg</gpg.executable>
-                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
-                <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
-                <gpg.defaultKeyring>false</gpg.defaultKeyring>
-                <gpg.homedir>${env.SD_SOURCE_DIR}/screwdriver/deploy</gpg.homedir>
-                <gpg.publickeyring>pubring.gpg</gpg.publickeyring>
-                <gpg.secretkeyring>secring.gpg</gpg.secretkeyring>
-            </properties>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
+            <id>release</id>
             <build>
                 <plugins>
                     <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.4.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <tokenAuth>true</tokenAuth>
+                            <autoPublish>true</autoPublish>
+                            <publishingServerId>${gpg.keyname}</publishingServerId>
+                        </configuration>
+                    </plugin>
+                    <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${maven-gpg-plugin.version}</version>
+                        <version>3.1.0</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -616,20 +616,11 @@
                                         <arg>--pinentry-mode</arg>
                                         <arg>loopback</arg>
                                     </gpgArguments>
+                                    <keyname>${gpg.keyname}</keyname>
+                                    <passphraseServerId>${gpg.keyname}</passphraseServerId>
                                 </configuration>
                             </execution>
                         </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${nexus-staging-maven-plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                            </configuration>
                     </plugin>
                 </plugins>
             </build>
