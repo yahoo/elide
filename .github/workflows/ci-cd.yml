@@ -54,3 +54,4 @@ jobs:
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
           server-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           server-password: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          version-properties: elide.version
