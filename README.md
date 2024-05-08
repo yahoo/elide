@@ -2,16 +2,10 @@
 
 > _Opinionated APIs for web & mobile applications._
 
-![Elide Logo](elide-logo.svg)
+<img src="elide-logo.svg"/>
 
-[![Discord](https://img.shields.io/discord/869678398241398854)](https://discord.com/widget?id=869678398241398854&theme=dark)
-[![Build Status](https://cd.screwdriver.cd/pipelines/6103/badge)](https://cd.screwdriver.cd/pipelines/6103)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.paiondata.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.paiondata.elide/elide-core)
-[![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
-[![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/context:java)
-[![Total Alerts](https://img.shields.io/lgtm/alerts/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/alerts)
-[![Mentioned in Awesome Java](https://awesome.re/mentioned-badge.svg)](https://github.com/akullpp/awesome-java)
-[![Mentioned in Awesome GraphQL](https://awesome.re/mentioned-badge.svg)](https://github.com/chentsulin/awesome-graphql)
+[![Maven Central Version][Maven Central Version Badge]][Maven Central Version URL]
+[![Coverage Status](https://coveralls.io/repos/github/paion-data/elide/badge.svg?branch=master)](https://coveralls.io/github/paion-data/elide?branch=master)
 
 *Read this in other languages: [中文](translations/zh/README.md).*
 
@@ -233,3 +227,6 @@ Intro to Elide video
 [Creating Entities in a Spring Boot/Elide JSON API Server](https://dzone.com/articles/creating-entities-in-a-spring-bootelide-json-api-s)
 
 [Updating and Deleting with a Spring Boot/Elide JSON API Server](https://dzone.com/articles/updating-and-deleting-with-a-spring-bootelide-json)
+
+[Maven Central Version Badge]: https://img.shields.io/maven-central/v/com.paiondata.elide/elide-parent-pom?style=for-the-badge&logo=apachemaven&labelColor=1B1C30&color=4D9FEA
+[Maven Central Version URL]: https://central.sonatype.com/namespace/com.paiondata.elide

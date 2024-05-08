@@ -36,7 +36,7 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Run unit & integration tests
-        run: mvn -B install
+        run: mvn -B install -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
 
   release:
     name: Release to Maven Central
