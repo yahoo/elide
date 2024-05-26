@@ -205,7 +205,7 @@ public class EntityHydrator implements Iterable<Object> {
 
     @Override
     public Iterator<Object> iterator() {
-        return new Iterator<> () {
+        return new Iterator<>() {
 
             Object next = null;
             MutableInt counter = new MutableInt(0);

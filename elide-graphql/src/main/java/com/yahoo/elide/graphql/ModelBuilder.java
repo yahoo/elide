@@ -98,6 +98,8 @@ public class ModelBuilder {
     private FederationVersion federationVersion;
     private Optional<FederationSchema> federationSchema;
 
+    private final GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer;
+
     @Builder
     @Data
     public static class RelationshipOpKey {
@@ -127,6 +129,7 @@ public class ModelBuilder {
 
         this.enableFederation = graphQLSettings.getFederation().isEnabled();
         this.federationVersion = graphQLSettings.getFederation().getVersion();
+        this.graphqlFieldDefinitionCustomizer = graphQLSettings.getGraphqlFieldDefinitionCustomizer();
 
         if (this.enableFederation) {
             this.federationSchema = Optional
@@ -463,12 +466,14 @@ public class ModelBuilder {
             if (attributeType == null) {
                 continue;
             }
-
-            builder.field(newFieldDefinition()
-                    .name(attribute)
+            GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition().name(attribute)
                     .arguments(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
-                    .type((GraphQLOutputType) attributeType)
-            );
+                    .type((GraphQLOutputType) attributeType);
+            if (this.graphqlFieldDefinitionCustomizer != null) {
+                this.graphqlFieldDefinitionCustomizer.customize(fieldDefinition, entityClass, attributeClass, attribute,
+                        dataFetcher, entityDictionary);
+            }
+            builder.field(fieldDefinition);
         }
 
         for (String relationship : entityDictionary.getElideBoundRelationships(entityClass)) {
@@ -482,13 +487,18 @@ public class ModelBuilder {
             GraphQLArgument relationshipOpArg = getRelationshipOp(entityClass, relationship, relationshipClass);
             if (relationshipOpArg != null) {
                 if (type.isToOne()) {
-                    builder.field(newFieldDefinition().name(relationship)
+                    GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition().name(relationship)
                             .argument(relationshipOpArg)
                             .argument(buildInputObjectArgument(relationshipClass, false))
                             .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
-                            .type(new GraphQLTypeReference(relationshipEntityName)));
+                            .type(new GraphQLTypeReference(relationshipEntityName));
+                    if (this.graphqlFieldDefinitionCustomizer != null) {
+                        this.graphqlFieldDefinitionCustomizer.customize(fieldDefinition, entityClass, relationshipClass,
+                                relationship, dataFetcher, entityDictionary);
+                    }
+                    builder.field(fieldDefinition);
                 } else {
-                    builder.field(newFieldDefinition().name(relationship)
+                    GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition().name(relationship)
                             .argument(relationshipOpArg)
                             .argument(filterArgument)
                             .argument(sortArgument)
@@ -497,7 +507,12 @@ public class ModelBuilder {
                             .argument(idArgument)
                             .argument(buildInputObjectArgument(relationshipClass, true))
                             .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
-                            .type(new GraphQLTypeReference(relationshipEntityName)));
+                            .type(new GraphQLTypeReference(relationshipEntityName));
+                    if (this.graphqlFieldDefinitionCustomizer != null) {
+                        this.graphqlFieldDefinitionCustomizer.customize(fieldDefinition, entityClass, relationshipClass,
+                                relationship, dataFetcher, entityDictionary);
+                    }
+                    builder.field(fieldDefinition);
                 }
             }
         }
