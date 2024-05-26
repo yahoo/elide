@@ -55,7 +55,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
         String expected =
-            "SELECT COUNT(DISTINCT example_Book) "
+            "SELECT COUNT(example_Book) "
             + "FROM example.Book AS example_Book";
 
         String actual = query.getQueryText();
@@ -75,7 +75,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 entityProjection, dictionary, new TestSessionWrapper()
         )
                 .build();
-        String expected = "SELECT COUNT(DISTINCT example_Book) FROM example.Book AS example_Book";
+        String expected = "SELECT COUNT(example_Book) FROM example.Book AS example_Book";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
         assertEquals(expected, actual);
@@ -92,7 +92,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 entityProjection, dictionary, new TestSessionWrapper()
         )
                 .build();
-        String expected = "SELECT COUNT(DISTINCT example_Book) FROM example.Book AS example_Book";
+        String expected = "SELECT COUNT(example_Book) FROM example.Book AS example_Book";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
         assertEquals(expected, actual);

@@ -69,7 +69,9 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
             joinClause = "";
         }
 
-        Query query = session.createQuery("SELECT COUNT(DISTINCT "
+        boolean requiresDistinct = joinClause != null && !joinClause.isEmpty();
+
+        Query query = session.createQuery("SELECT COUNT(" + (requiresDistinct ? DISTINCT  + " " : "")
                 + entityAlias
                 + ") "
                 + FROM
