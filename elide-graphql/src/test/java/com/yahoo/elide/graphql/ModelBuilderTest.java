@@ -416,8 +416,7 @@ public class ModelBuilderTest {
 
     @Test
     public void testGraphQLFieldDefinitionCustomizer() {
-        GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer = new AnnotationGraphQLFieldDefinitionDescriptionCustomizer<>(
-                GraphQLDescription.class, annotation -> annotation.value());
+        GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer = DefaultGraphQLFieldDefinitionCustomizer.INSTANCE;
         DataFetcher<?> fetcher = mock(DataFetcher.class);
         ElideSettings settings = ElideSettings.builder().entityDictionary(dictionary).settings(GraphQLSettingsBuilder
                 .withDefaults(dictionary).graphqlFieldDefinitionCustomizer(graphqlFieldDefinitionCustomizer)).build();

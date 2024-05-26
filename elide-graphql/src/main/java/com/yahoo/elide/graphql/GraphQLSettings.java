@@ -151,7 +151,8 @@ public class GraphQLSettings implements Settings {
         protected FilterDialect filterDialect;
         protected GraphQLExceptionHandler graphqlExceptionHandler = new DefaultGraphQLExceptionHandler(
                 new Slf4jExceptionLogger(), BasicExceptionMappers.builder().build(), new DefaultGraphQLErrorMapper());
-        protected GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer = null;
+        protected GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer =
+                DefaultGraphQLFieldDefinitionCustomizer.INSTANCE;
 
         protected abstract S self();
 

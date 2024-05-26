@@ -7,7 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.graphql.GraphQLDescription;
+import com.yahoo.elide.graphql.annotation.GraphQLDescription;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import com.fasterxml.jackson.annotation.JsonIgnore;

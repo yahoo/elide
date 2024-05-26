@@ -19,11 +19,12 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.graphql.GraphQLDescription;
 import com.yahoo.elide.graphql.GraphQLFieldDefinitionCustomizer;
 import com.yahoo.elide.graphql.GraphQLScalars;
 import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.annotation.GraphQLDescription;
+
 import example.Address;
 import example.Author;
 import example.Book;
