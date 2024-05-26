@@ -1,5 +1,22 @@
 # Change Log
 
+## 7.0.5
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/7925edc78c8c013c6db9acc69051b36b929cc55f) Allow customization of GraphQLFieldDefinition (#3216) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/61a9361f3d3b11b0c3a442d908e69add88177073) Apply DISTINCT for RootCollectionPageTotalsQueryBuilder only on JOINS (#3210) 
+ * [view commit](https://github.com/yahoo/elide/commit/23b81ea09e662b1a499daf755fe407acf04193ff) Bump slf4j.version from 2.0.12 to 2.0.13 (#3203) 
+ * [view commit](https://github.com/yahoo/elide/commit/d3ec411b2f7e8490f7aa1be5af603755ed75a398) Bump io.github.classgraph:classgraph from 4.8.170 to 4.8.172 (#3209) 
+ * [view commit](https://github.com/yahoo/elide/commit/1aa7c9b410fbe2d3e4aa6bb2b4844f60230f381b) Bump org.projectlombok:lombok from 1.18.30 to 1.18.32 (#3206) 
+ * [view commit](https://github.com/yahoo/elide/commit/af5450c9f978438f65f1ffb04ef3f7ff44b81d1d) Bump org.apache.maven.plugins:maven-jar-plugin from 3.3.0 to 3.4.1 (#3207) 
+ * [view commit](https://github.com/yahoo/elide/commit/ab28e2b2719e3f2c755070b3f754adea971fdc5d) Bump mockito.version from 5.8.0 to 5.11.0 (#3205) 
+ * [view commit](https://github.com/yahoo/elide/commit/ca972c8f43f767a241ef69b48ac2e5b6c53e308a) Bump logback.version from 1.4.14 to 1.5.6 (#3204) 
+ * [view commit](https://github.com/yahoo/elide/commit/3d6d7dbbef4996bc7024efb1890388ac1429f1f0) Bump org.apache.maven.scm:maven-scm-api from 2.0.1 to 2.1.0 (#3208) 
+ * [view commit](https://github.com/yahoo/elide/commit/bf5e20733b3a6b47707194d59a8c9343255607e0) Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.4.1 to 3.6.3 (#3202) 
+ * [view commit](https://github.com/yahoo/elide/commit/79551ee78fe34d89b84476edab2288922318b96d) Bump com.puppycrawl.tools:checkstyle from 10.12.5 to 10.16.0 (#3211) 
+ * [view commit](https://github.com/yahoo/elide/commit/eda310227424618eee2d5c2c857cd37f508b28cd) Remove spring-boot-properties-migrator (#3215) 
+
 ## 7.0.4
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/19de457d52532e686c4e219404be3d3c3cca1202) Entity scan on non-existing data model package silences error (#3197) 
