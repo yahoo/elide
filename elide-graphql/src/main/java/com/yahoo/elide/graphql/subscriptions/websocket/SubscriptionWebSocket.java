@@ -146,7 +146,7 @@ public class SubscriptionWebSocket extends Endpoint {
                     new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup);
 
             SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary,
-                    new SubscriptionDataFetcher(nonEntityDictionary), apiVersion);
+                    elide.getElideSettings(), new SubscriptionDataFetcher(nonEntityDictionary), apiVersion);
 
             try {
                 GraphQL api = GraphQL.newGraphQL(builder.build())

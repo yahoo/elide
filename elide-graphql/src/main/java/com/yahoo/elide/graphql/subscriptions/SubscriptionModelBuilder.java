@@ -10,12 +10,15 @@ import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLObjectType.newObject;
 
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.GraphQLConversionUtils;
+import com.yahoo.elide.graphql.GraphQLFieldDefinitionCustomizer;
 import com.yahoo.elide.graphql.GraphQLNameUtils;
 import com.yahoo.elide.graphql.GraphQLScalars;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
@@ -59,16 +62,21 @@ public class SubscriptionModelBuilder {
     private Set<Type<?>> excludedEntities;  //Client controlled models to skip.
     private Set<Type<?>> relationshipTypes; //Keeps track of which relationship models need to be built.
 
+    private final GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer;
+
     public static final String TOPIC_ARGUMENT = "topic";
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
      * @param entityDictionary elide entity dictionary
      * @param nonEntityDictionary elide non-entity dictionary
+     * @param settings elide settings
      * @param dataFetcher graphQL data fetcher
+     * @param apiVersion api version
      */
     public SubscriptionModelBuilder(EntityDictionary entityDictionary,
                         NonEntityDictionary nonEntityDictionary,
+                        ElideSettings settings,
                         DataFetcher<?> dataFetcher, String apiVersion) {
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
         this.entityDictionary = entityDictionary;
@@ -83,6 +91,11 @@ public class SubscriptionModelBuilder {
                 .name("filter")
                 .type(Scalars.GraphQLString)
                 .build();
+
+        GraphQLSettings graphQLSettings = settings.getSettings(GraphQLSettings.class);
+        this.graphqlFieldDefinitionCustomizer = graphQLSettings != null
+                ? graphQLSettings.getGraphqlFieldDefinitionCustomizer()
+                : null;
     }
 
     public void withExcludedEntities(Set<Type<?>> excludedEntities) {
@@ -213,11 +226,14 @@ public class SubscriptionModelBuilder {
                 continue;
             }
 
-            builder.field(newFieldDefinition()
-                    .name(attribute)
+            GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition().name(attribute)
                     .arguments(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
-                    .type((GraphQLOutputType) attributeType)
-            );
+                    .type((GraphQLOutputType) attributeType);
+            if (this.graphqlFieldDefinitionCustomizer != null) {
+                this.graphqlFieldDefinitionCustomizer.customize(fieldDefinition, entityClass, attributeClass, attribute,
+                        dataFetcher, entityDictionary);
+            }
+            builder.field(fieldDefinition);
         }
 
         for (String relationship : entityDictionary.getElideBoundRelationships(entityClass)) {
@@ -235,15 +251,23 @@ public class SubscriptionModelBuilder {
             String relationshipEntityName = nameUtils.toOutputTypeName(relationshipClass);
 
             if (type.isToOne()) {
-                builder.field(newFieldDefinition()
+                GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition()
                         .name(relationship)
-                        .type(new GraphQLTypeReference(relationshipEntityName))
-                        .build());
+                        .type(new GraphQLTypeReference(relationshipEntityName));
+                if (this.graphqlFieldDefinitionCustomizer != null) {
+                    this.graphqlFieldDefinitionCustomizer.customize(fieldDefinition, entityClass, relationshipClass,
+                            relationship, dataFetcher, entityDictionary);
+                }
+                builder.field(fieldDefinition);
             } else {
-                builder.field(newFieldDefinition()
+                GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition()
                         .name(relationship)
-                        .type(new GraphQLList(new GraphQLTypeReference(relationshipEntityName)))
-                        .build());
+                        .type(new GraphQLList(new GraphQLTypeReference(relationshipEntityName)));
+                if (this.graphqlFieldDefinitionCustomizer != null) {
+                    this.graphqlFieldDefinitionCustomizer.customize(fieldDefinition, entityClass, relationshipClass,
+                            relationship, dataFetcher, entityDictionary);
+                }
+                builder.field(fieldDefinition);
             }
         }
 
