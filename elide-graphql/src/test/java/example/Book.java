@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.graphql.annotation.GraphQLDescription;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -76,6 +77,7 @@ public class Book {
     }
 
     @SubscriptionField
+    @GraphQLDescription("The title of the book")
     public String getTitle() {
         return title;
     }
@@ -85,6 +87,7 @@ public class Book {
     }
 
     @SubscriptionField
+    @GraphQLDescription("The genre of the book")
     public String getGenre() {
         return genre;
     }
@@ -144,6 +147,7 @@ public class Book {
 
     @SubscriptionField
     @ManyToMany
+    @GraphQLDescription("The authors of the book")
     public Collection<Author> getAuthors() {
         return authors;
     }
@@ -154,6 +158,7 @@ public class Book {
 
     @SubscriptionField
     @OneToMany(mappedBy = "book")
+    @GraphQLDescription("The previews of the book")
     public Collection<Preview> getPreviews() {
         return previews;
     }
