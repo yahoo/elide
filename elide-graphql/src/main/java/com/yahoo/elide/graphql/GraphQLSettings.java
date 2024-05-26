@@ -67,14 +67,17 @@ public class GraphQLSettings implements Settings {
     private final Federation federation;
     private final FilterDialect filterDialect;
     private final GraphQLExceptionHandler graphqlExceptionHandler;
+    private final GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer;
 
     public GraphQLSettings(boolean enabled, String path, Federation federation, FilterDialect filterDialect,
-            GraphQLExceptionHandler graphqlExceptionHandler) {
+            GraphQLExceptionHandler graphqlExceptionHandler,
+            GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer) {
         this.enabled = enabled;
         this.path = path;
         this.federation = federation;
         this.filterDialect = filterDialect;
         this.graphqlExceptionHandler = graphqlExceptionHandler;
+        this.graphqlFieldDefinitionCustomizer = graphqlFieldDefinitionCustomizer;
     }
 
     /**
@@ -118,7 +121,7 @@ public class GraphQLSettings implements Settings {
                 this.processor.accept(this);
             }
             return new GraphQLSettings(this.enabled, this.path, this.federation.build(), this.filterDialect,
-                    this.graphqlExceptionHandler);
+                    this.graphqlExceptionHandler, this.graphqlFieldDefinitionCustomizer);
         }
 
         @Override
@@ -148,6 +151,8 @@ public class GraphQLSettings implements Settings {
         protected FilterDialect filterDialect;
         protected GraphQLExceptionHandler graphqlExceptionHandler = new DefaultGraphQLExceptionHandler(
                 new Slf4jExceptionLogger(), BasicExceptionMappers.builder().build(), new DefaultGraphQLErrorMapper());
+        protected GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer =
+                DefaultGraphQLFieldDefinitionCustomizer.INSTANCE;
 
         protected abstract S self();
 
@@ -199,10 +204,21 @@ public class GraphQLSettings implements Settings {
          * Sets the {@link GraphQLExceptionHandler}.
          *
          * @param graphqlExceptionHandler the exception handler
-         * @return
+         * @return the builder
          */
         public S graphqlExceptionHandler(GraphQLExceptionHandler graphqlExceptionHandler) {
             this.graphqlExceptionHandler = graphqlExceptionHandler;
+            return self();
+        }
+
+        /**
+         * Sets the {@link GraphQLFieldDefinitionCustomizer}.
+         *
+         * @param graphqlFieldDefinitionCustomizer the customizer
+         * @return the builder
+         */
+        public S graphqlFieldDefinitionCustomizer(GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer) {
+            this.graphqlFieldDefinitionCustomizer = graphqlFieldDefinitionCustomizer;
             return self();
         }
     }
