@@ -68,6 +68,28 @@ public class QueryRunnerTest extends GraphQLTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
+            "fragment CoreFields { ... }\nmutation { ... }",
+            "fragment OtherFields { ... }\n\nmutation { ... }",
+            "   fragment SomeFields { ... }\n\nmutation { ... }",
+            "fragment MultipleFragments { ... }\n  fragment AnotherFragment { ... }\nmutation { ... }"
+    })
+    public void testIsMutationWithFragmentBefore(String input) {
+        assertTrue(QueryRunner.isMutation(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "mutation { ... } fragment LaterFields { ... }",
+            "mutation { ... }\nfragment AnotherLater { ... }",
+            "mutation { ... }\n\n   fragment FarLater { ... }",
+            "mutation { ... }\nfragment OneMore { ... }\nfragment AndAnother { ... }"
+    })
+    public void testIsMutationWithFragmentAfter(String input) {
+        assertTrue(QueryRunner.isMutation(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
             "#abcd\n  #befd\n query",
             "query",
             "QUERY",

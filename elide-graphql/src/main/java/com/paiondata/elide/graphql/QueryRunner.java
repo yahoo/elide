@@ -43,6 +43,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Entry point for REST endpoints to execute GraphQL queries.
@@ -61,6 +63,9 @@ public class QueryRunner {
     private static final String OPERATION_NAME = "operationName";
     private static final String VARIABLES = "variables";
     private static final String MUTATION = "mutation";
+    private static final String FRAGMENT = "fragment";
+    private static final String PATTERN_REGEX = "(?<=\\}\\s*)" + Pattern.quote(MUTATION);
+    private static final Pattern PATTERN = Pattern.compile(PATTERN_REGEX, Pattern.UNICODE_CHARACTER_CLASS);
 
     /**
      * Builds a new query runner.
@@ -134,6 +139,17 @@ public class QueryRunner {
 
         query = withoutComments.toString().trim();
 
+        if (query.startsWith(FRAGMENT)) {
+            //Use a regular expression to match "}(any amount of whitespace)*mutation".
+            //There can be only Spaces between "}" and "mutation", and no other characters
+            Matcher matcher = PATTERN.matcher(query);
+
+            //Find the first match
+            if (matcher.find()) {
+                //Returns the portion of the string starting with the matched "mutation"
+                query =  query.substring(matcher.start());
+            }
+        }
         return query.startsWith(MUTATION);
     }
 
