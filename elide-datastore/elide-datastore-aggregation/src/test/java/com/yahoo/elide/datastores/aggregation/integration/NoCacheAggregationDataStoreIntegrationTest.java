@@ -35,12 +35,15 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.test.graphql.elements.Arguments;
 import example.PlayerStats;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import graphql.introspection.GoodFaithIntrospection;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.ws.rs.core.MediaType;
@@ -61,6 +64,7 @@ public class NoCacheAggregationDataStoreIntegrationTest extends AggregationDataS
 
     public NoCacheAggregationDataStoreIntegrationTest() {
         super();
+        GoodFaithIntrospection.enabledJvmWide(false); // due to testGraphQLSchema
     }
 
     @Override
@@ -77,6 +81,20 @@ public class NoCacheAggregationDataStoreIntegrationTest extends AggregationDataS
 
     @Test
     public void testGraphQLSchema() throws IOException {
+        /*
+         * Note that the following query triggers the following from the GoodFaithIntrospection.
+         *
+         * {
+         *   "errors": [
+         *     {
+         *       "message": "This request is not asking for introspection in good faith - __Type.fields is present too often!",
+         *       "extensions": {
+         *         "classification": "BadFaithIntrospection"
+         *       }
+         *     }
+         *   ]
+         * }
+         */
         String graphQLRequest = "{"
                 + "__type(name: \"PlayerStatsWithViewEdge\") {"
                 + "   name "
