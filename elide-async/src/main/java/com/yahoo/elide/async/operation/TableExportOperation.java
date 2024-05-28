@@ -26,9 +26,9 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 
-import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -89,7 +89,7 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
             validateProjections(projections);
             EntityProjection projection = projections.iterator().next();
 
-            Observable<PersistentResource> observableResults = Observable.empty();
+            Flux<PersistentResource> observableResults = Flux.empty();
 
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
 
@@ -102,12 +102,16 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
                 observableResults = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
             }
 
-            Observable<PersistentResource> results = observableResults;
+            Flux<PersistentResource> results = observableResults;
             Consumer<OutputStream> data = outputStream -> {
                 try (ResourceWriter writer = formatter.newResourceWriter(outputStream, projection, exportObj)) {
                     results.subscribe(resource -> {
                         this.recordNumber++;
-                        writer.write(resource);
+                        try {
+                            writer.write(resource);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
                     });
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -145,14 +149,14 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
         return exportResult;
     }
 
-    private Observable<String> concatStringWithObservable(String toConcat, Observable<String> observable,
+    private Flux<String> concatStringWithFlux(String toConcat, Flux<String> observable,
             boolean stringFirst) {
         if (toConcat == null) {
             return observable;
         }
 
-        return stringFirst ? Observable.just(toConcat).concatWith(observable)
-                : observable.concatWith(Observable.just(toConcat));
+        return stringFirst ? Flux.just(toConcat).concatWith(observable)
+                : observable.concatWith(Flux.just(toConcat));
     }
 
     /**
@@ -199,7 +203,7 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      * Store Export Results using the ResultStorageEngine.
      * @param exportObj TableExport type object.
      * @param resultStorageEngine ResultStorageEngine instance.
-     * @param result Observable of String Results to store.
+     * @param result Flux of String Results to store.
      * @return TableExportResult object.
      */
     protected TableExportResult storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
