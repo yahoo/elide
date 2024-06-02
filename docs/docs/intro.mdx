@@ -1,0 +1,613 @@
+---
+sidebar_position: 1
+title: Getting Started
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+So You Want An API?
+-------------------
+
+The easiest way to get started with Elide is to use the [Spring Boot starter dependency]. The starter bundles all of 
+the dependencies we will need to stand up a web service. This tutorial uses the starter, and all of the code is 
+[available here][elide-demo].
+
+Don't like Spring/Spring Boot? - check out the same getting starting guide using Jetty/Jersey and
+[Elide standalone](elide-standalone).
+
+Adding Elide as a Dependency
+----------------------------
+
+To include elide into our spring project, add the single starter dependency:
+
+```xml	
+<dependency>
+    <groupId>com.paiondata.elide</groupId>
+    <artifactId>elide-spring-boot-starter</artifactId>
+    <version>${elide.version}</version>
+</dependency>
+```
+
+Creating Models
+---------------
+
+**Elide models** are some of the most important code in any Elide project. Our models are the view of our data that we 
+wish to expose. In this example we will be modeling a software artifact repository since most developers have a 
+high-level familiarity with artifact repositories such as Maven, Artifactory, npm, and the like.
+
+There will 2 kinds of models:
+
+1. **Models that we intend to both read & write**. These models are created by defining Java classes.  For this 
+   example, that includes `ArtifactGroup`, `ArtifactProduct`, and `ArtifactVersion`.  For brevity we will omit package 
+   names and import statements.
+2. **Read-only models** that we intend to run analytic queries against. These models can be created with Java classes 
+   or with a HJSON configuration language.  For this example, we will use the latter to create a `Downloads` model.
+
+<Tabs>
+  <TabItem value="ArtifactGroup.java" label="ArtifactGroup.java" default>
+
+  ```java
+  @Include(rootLevel = true, name = "group")
+  @Entity
+  public class ArtifactGroup {
+      @Id
+      private String name = "";
+  
+      private String commonName = "";
+  
+      private String description = "";
+  
+      @OneToMany(mappedBy = "group")
+      private List<ArtifactProduct> products = new ArrayList<>();
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="ArtifactProduct.java" label="ArtifactProduct.java">
+
+  ```java
+  @Include(name = "product")
+  @Entity
+  public class ArtifactProduct {
+      @Id
+      private String name = "";
+  
+      private String commonName = "";
+  
+      private String description = "";
+  
+      @ManyToOne
+      private ArtifactGroup group = null;
+  
+      @OneToMany(mappedBy = "artifact")
+      private List<ArtifactVersion> versions = new ArrayList<>();
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="ArtifactVersion.java" label="ArtifactVersion.java">
+
+  ```java
+  @Include(name = "version")
+  @Entity
+  public class ArtifactVersion {
+      @Id
+      private String name = "";
+  
+      private Date createdAt = new Date();
+  
+      @ManyToOne
+      private ArtifactProduct artifact;
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="artifactDownloads.hjson" label="artifactDownloads.hjson">
+
+  ```hjson
+  {
+    tables: [
+      {
+        name: Downloads
+        table: downloads
+        description:
+        '''
+        Analytics for artifact downloads.
+        '''
+        joins: [
+          {
+            name: artifactGroup
+            to: group
+            kind: toOne
+            type: left
+            definition: '{{group_id}} = {{artifactGroup.name}}'
+          },
+          {
+            name: artifactProduct
+            to: product
+            kind: toOne
+            definition: '{{product_id}} = {{artifactProduct.name}}'
+          }
+        ]
+        dimensions: [
+          {
+            name: group
+            type: TEXT
+            definition: '{{artifactGroup.name}}'
+          }
+          {
+            name: product
+            type: TEXT
+            definition: '{{artifactProduct.name}}'
+          }
+          {
+            name: date
+            type: TIME
+            definition: '{{date}}'
+            grains: [{
+              type: DAY
+            }]
+          }
+        ]
+        measures: [
+          {
+            name: downloads
+            type: INTEGER
+            definition: 'SUM({{downloads}})'
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+Spinning up the API
+-------------------
+
+So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create
+the schema in the database that our models will use. Our example uses liquibase to manage the schema. Our example will
+execute the [database migrations][demo-schema] to configure the database with some test data automatically. This demo
+uses *Postgres*. Feel free to modify the migration script if a different database provider is used.
+
+We may notice the example liquibase migration script adds an extra table, `AsyncQuery`. This is only required if
+leveraging Elide's [asynchronous API](clientapis/asyncapi) to manage long-running analytic queries.
+
+There may be more tables in our database than models in our project or vice versa. Similarly, there may be more columns
+in a table than in a particular model or vice versa. Not only will our models work just fine, but we expect that models
+will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building
+micro-services - **each service in your system can expose only the slice of the database that it requires**.
+
+### Classes
+
+Bringing life to our API is trivially easy.  We need a single Application class:
+
+```java
+/**
+ * Example app using elide-spring.
+ */
+@SpringBootApplication
+public class App {
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(App.class, args);
+    }
+}
+```
+
+### Supporting Files
+
+The application is configured with a Spring application YAML file (broken into sections below).
+
+The Elide Spring starter uses a JPA data store (the thing that talks to the database). This can be configured like any
+other Spring data source and JPA provider.  The one below uses an H2 in-memory database:
+
+```yaml
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: 'org.hibernate.dialect.H2Dialect'
+        '[default_batch_fetch_size]': 100
+        '[use_scrollable_resultset]': true
+    hibernate:
+      naming:
+        physical-strategy: 'org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl'
+      ddl-auto: 'validate'
+  datasource:
+    url: 'jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1'
+    username: 'sa'
+    password: ''
+    driver-class-name: 'org.h2.Driver'
+```
+
+Elide has its own configuration to turn on APIs and setup their URL paths:
+
+```yaml
+elide:
+  json-api:
+    path: /api/v1
+    enabled: true
+  graphql:
+    path: /graphql/api/v1
+    enabled: true
+  api-docs:
+    path: /doc
+    enabled: true
+    version: openapi_3_0
+```
+
+The following configuration enables Elide's asynchronous API for analytic queries:
+
+```yaml
+  async:
+    enabled: true
+    thread-pool-size: 7
+    cleanup:
+      enabled: true
+      query-max-run-time: 65s
+      query-retention-duration: 7d
+```
+
+To enable analytic queries, we have to turn on the the aggregation data store.  This example also enables HJSON configuration for analytic models:
+
+```yaml
+  aggregation-store:
+    enabled: true
+    default-dialect: h2
+    dynamic-config:
+      path: src/main/resources/analytics
+      enabled: true
+```
+
+### Running
+
+With these new classes, we have two options for running our project. We can either run the `App` class using our
+favorite IDE, or we can run the service from the command line:
+
+```console
+java -jar target/elide-spring-boot-1.0.jar
+```
+
+Our example requires the following environment variables to be set to work correctly with Postgres.
+
+1. JDBC_DATABASE_URL
+2. JDBC_DATABASE_USERNAME
+3. JDBC_DATABASE_PASSWORD
+
+If we don't set them, the example will use the H2 in memory database.
+
+With the `App` class and application YAML file, we can now run our API.
+
+We can now run the following curl commands to see some of the sample data that the liquibase migrations added for us.
+
+<Tabs>
+  <TabItem value="JSON-API" label="JSON-API" default>
+
+  ```console
+  curl http://localhost:8080/api/v1/group
+  ```
+
+  </TabItem>
+  <TabItem value="GraphQL" label="GraphQL">
+
+  ```console
+  curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
+    "http://localhost:8080/graphql/api/v1" \
+    -d'{ 
+           "query" : "{ group { edges { node { name commonName description } } } }"
+       }'
+  ```
+
+  </TabItem>
+</Tabs>
+
+Here are the respective responses:
+
+<Tabs>
+  <TabItem value="JSON-API" label="JSON-API" default>
+
+  ```json
+  {
+      "data": [
+          {
+              "attributes": {
+                  "commonName": "Example Repository",
+                  "description": "The code for this project"
+              },
+              "id": "com.example.repository",
+              "relationships": {
+                  "products": {
+                      "data": [
+                          {
+                              "id": "elide-demo",
+                              "type": "product"
+                          }
+                      ]
+                  }
+              },
+              "type": "group"
+          },
+          {
+              "attributes": {
+                  "commonName": "Elide",
+                  "description": "The magical library powering this project"
+              },
+              "id": "com.yahoo.elide",
+              "relationships": {
+                  "products": {
+                      "data": [
+                          {
+                              "id": "elide-core",
+                              "type": "product"
+                          },
+                          {
+                              "id": "elide-standalone",
+                              "type": "product"
+                          },
+                          {
+                              "id": "elide-datastore-hibernate5",
+                              "type": "product"
+                          }
+                      ]
+                  }
+              },
+              "type": "group"
+          }
+      ]
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="GraphQL" label="GraphQL">
+
+  ```json
+  {
+      "data": {
+          "group": {
+              "edges": [
+                  {
+                      "node": {
+                          "commonName": "Example Repository",
+                          "description": "The code for this project",
+                          "name": "com.example.repository"
+                      }
+                  },
+                  {
+                      "node": {
+                          "commonName": "Elide",
+                          "description": "The magical library powering this project",
+                          "name": "com.yahoo.elide"
+                      }
+                  }
+              ]
+          }
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+Looking at More Data
+--------------------
+
+We can navigate through the entity relationship graph defined in the models and explore relationships:
+
+```
+List groups:                 group/
+Show a group:                group/<group id>
+List a group's products:     group/<group id>/products/
+Show a product:              group/<group id>/products/<product id>
+List a product's versions:   group/<group id>/products/<product id>/versions/
+Show a version:              group/<group id>/products/<product id>/versions/<version id>
+```
+
+Writing Data
+------------
+
+So far we have defined our views on the database and exposed those views over HTTP. This is great progress, but so far
+we have only read data from the database.
+
+### Inserting Data
+
+Fortunately for us adding data is just as easy as reading data. For now let’s use cURL to put data in the database.
+
+<Tabs>
+  <TabItem value="JSON-API" label="JSON-API" default>
+
+  ```console
+  curl -X POST http://localhost:8080/api/v1/group/com.example.repository/products -H"Content-Type: application/vnd.api+json" -H"Accept: application/vnd.api+json" -d '{"data": {"type": "product", "id": "elide-demo"}}'
+  ```
+
+  </TabItem>
+  <TabItem value="GraphQL" label="GraphQL">
+
+  ```console
+  curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
+    "http://localhost:8080/graphql/api/v1" \
+    -d'{ "query" : "mutation { group(ids: [\"com.example.repository\"]) { edges { node { products(op: UPSERT, data: {name: \"elide-demo\"}) { edges { node { name } } } } } } }" }'
+  ```
+
+  </TabItem>
+</Tabs>
+
+When we run that cURL call we should see a bunch of json returned, that is our newly inserted object!
+
+<Tabs>
+  <TabItem value="JSON-API" label="JSON-API" default>
+
+  ```json
+  {
+      "data": [
+          {
+              "attributes": {
+                  "commonName": "",
+                  "description": ""
+              },
+              "id": "elide-demo",
+              "relationships": {
+                  "group": {
+                      "data": {
+                          "id": "com.example.repository",
+                          "type": "group"
+                      }
+                  },
+                  "versions": {
+                      "data": []
+                  }
+              },
+              "type": "product"
+          }
+      ]
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="GraphQL" label="GraphQL">
+
+  ```json
+  {
+      "data":{
+          "group":{
+              "edges":[
+                  {
+                      "node":{
+                          "products":{
+                              "edges":[
+                                  {
+                                      "node":{
+                                          "name":"elide-demo"
+                                      }
+                                  }
+                              ]
+                          }
+                      }
+                  }
+              ]
+          }
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+### Modifying Data
+
+Notice that, when we created it, we did not set any of the attributes of our new product record. Updating our
+data to help our users is just as easy as it is to add new data. Let's update our model with the following cURL call.
+
+<Tabs>
+  <TabItem value="JSON-API" label="JSON-API" default>
+
+  ```console
+  curl -X PATCH http://localhost:8080/api/v1/group/com.example.repository/products/elide-demo \
+  -H"Content-Type: application/vnd.api+json" -H"Accept: application/vnd.api+json" \
+  -d '{
+    "data": {
+      "type": "product",
+      "id": "elide-demo",
+      "attributes": {
+        "commonName": "demo application",
+        "description": "An example implementation of an Elide web service that showcases many Elide features"
+      }
+    }
+  }'
+  ```
+
+  </TabItem>
+  <TabItem value="GraphQL" label="GraphQL">
+
+  ```console
+  curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
+     "http://localhost:8080/graphql/api/v1" \
+     -d'{   
+            "query" : "mutation { group(ids: [\"com.example.repository\"]) { edges { node { products(op: UPDATE, data: { name: \"elide-demo\", commonName: \"demo application\", description: \"An example implementation of an Elide web service that showcases many Elide features\" }) { edges { node { name } } } } } } }"
+        }'
+  ```
+
+  </TabItem>
+</Tabs>
+
+Running Analytic Queries
+------------------------
+
+Analytic queries leverage the same API as reading any other Elide model.  Note that Elide will aggregate the measures
+selected by the dimensions requested. Learn more about analytic queries [here](analytics).
+
+<Tabs>
+  <TabItem value="JSON-API" label="JSON-API" default>
+
+  ```console
+  curl -g "http://localhost:8080/api/v1/downloads?fields[downloads]=downloads,group,product"
+  ```
+
+  </TabItem>
+  <TabItem value="GraphQL" label="GraphQL">
+
+  ```console
+  curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
+      "http://localhost:8080/graphql/api/v1" \
+      -d'{ 
+             "query" : "{ downloads { edges { node { downloads group product } } } }"
+         }'
+  
+  ```
+
+  </TabItem>
+</Tabs>
+
+Here are the respective responses:
+
+<Tabs>
+  <TabItem value="JSON-API" label="JSON-API" default>
+
+  ```json
+  {
+      "data": [
+          {
+              "attributes": {
+                  "downloads": 35,
+                  "group": "com.example.repository",
+                  "product": "elide-core"
+              },
+              "id": "0",
+              "type": "downloads"
+          }
+      ]
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="GraphQL" label="GraphQL">
+
+  ```json
+  {
+      "data": {
+          "downloads": {
+              "edges": [
+                  {
+                      "node": {
+                          "downloads": 35,
+                          "group": "com.example.repository",
+                          "product": "elide-core"
+                      }
+                  }
+              ]
+          }
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+[demo-schema]: https://github.com/paion-data/elide-spring-boot-example/blob/master/src/main/resources/db/changelog/changelog.xml
+
+[elide-demo]: https://github.com/paion-data/elide-spring-boot-example
+
+[Spring Boot starter dependency]: https://github.com/paion-data/elide/tree/master/elide-spring/elide-spring-boot-starter

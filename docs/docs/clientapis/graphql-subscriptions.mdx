@@ -1,0 +1,524 @@
+---
+sidebar_position: 4
+title: GraphQL Subscriptions
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+5-Minute Overview
+-----------------
+
+We'll be leveraging the [elide-spring-boot-example][example-project] project to illustrate how to use subscriptions.
+
+### Decorating an Elide Model
+
+A subscription can be made from any Elide model simply by annotating it with `Subscription`:
+
+```java
+@Data                    // Lombok
+@Subscription
+@Include(name = "group")
+public class ArtifactGroup {
+    @Id
+    private String name;
+
+    @SubscriptionField
+    private String commonName;
+
+    @SubscriptionField
+    private String description;
+
+    @SubscriptionField
+    @OneToMany(mappedBy = "group")
+    private List<ArtifactProduct> products;
+}
+```
+
+The subscription annotation takes zero or more *operations* which correspond to different topics.
+
+```java
+@Include
+@Subscription(operation = { CREATE, UPDATE, DELETE });
+class Book {
+  ...
+}
+```
+
+Whenever a model is manipulated (created, deleted, or updated), elide will post a JSON serialized model to a JMS topic 
+for that operation. Only the fields decorated with `@SubscriptionField` will be serialized (and hence available to be 
+consumed in the subscription). It is also possible to define [custom operations](#custom-subscriptions) that are 
+triggered by your service business logic.
+
+### Running Queries
+
+Elide subscriptions are implemented using websockets. Websockets require a protocol to send and receive messages.  
+Elide supports the [graphql-ws](https://github.com/enisdenjo/graphql-ws) protocol. This protocol works both with the 
+[Apollo GraphQL](https://www.apollographql.com/docs/react/data/subscriptions/) client as well as [Graphiql]
+(https://github.com/graphql/graphiql). If we run the [example project][example-project], it comes bundled with Graphiql.
+
+Elide's subscription API is similar to its API for queries and mutations, but there are some notable differences:
+
+1. Each Elide model annotated with `Subscription` is a root field in the GraphQL schema.
+2. Each root model supports a topic (ADDED, DELETED, UPDATED) variable and an optional [filter variable](#filtering).
+3. Responses are not wrapped in 'edges' and 'node' because there is no pagination.
+4. The API is read only.
+
+#### Simple Query
+
+Query for newly added 'groups' returning their name and description:
+
+```
+subscription { group(topic : ADDED) { name description } }
+```
+
+The response will look like:
+
+```json
+{
+  "data": {
+    "group": {
+      "name": "new group",
+      "description": "foo"
+    }
+  }
+}
+
+```
+
+If there are errors, they will get reported in an errors field:
+
+```json
+{
+  "data": {
+    "group": {
+      "name": "new group",
+      "commonName": "",
+      "nope": null
+    }
+  },
+  "errors": [
+    {
+      "message": "Exception while fetching data (/group/nope) : ReadPermission Denied",
+      "locations": [
+        {
+          "line": 2,
+          "column": 53
+        }
+      ],
+      "path": [
+        "group",
+        "nope"
+      ],
+      "extensions": {
+        "classification": "DataFetchingException"
+      }
+    }
+  ]
+}
+```
+
+#### Filtering
+
+All elide subscriptions support RSQL filtering that is identical to
+[filtering for queries and mutations](graphql#filtering). The following query filters artifact group creation events by
+the name 'com.paiondata.elide':
+
+```
+subscription { group(topic : ADDED, filter: "name='com.paiondata.elide'") { name description } }
+```
+
+Security
+--------
+
+Elide honors [ReadPermission annotations](security#read) for all subscription fields in the model. Subscriptions are 
+automatically filtered by any [FilterExpressionChecks](security#filter-expression-checks). Client requests to 
+unauthorized fields will result in errors returned in the subscription response payload.
+
+See the section on [Authentication](#authentication) for details on how to build an Elide user principal.
+
+Configuration
+-------------
+
+## JMS Message Broker
+
+Elide leverages JMS to post and consume subscription messages. The example project runs an embedded (in-memory) broker. 
+We will want to replace this with a dedicated broker in production.
+
+<Tabs>
+  <TabItem value="Spring" label="Spring" default>
+
+  Configure in `application.yaml`.
+
+  ```yaml
+  spring:
+  activemq:
+  broker-url: 'vm://embedded?broker.persistent=false,useShutdownHook=false'
+  in-memory: true
+  ```
+
+  </TabItem>
+  <TabItem value="upsert-to-modify-response" label="Response">
+
+  Override `ElideStandaloneSettings`.
+
+  ```java
+  public abstract class Settings implements ElideStandaloneSettings {
+      @Override
+      public ElideStandaloneSubscriptionSettings getSubscriptionProperties() {
+          return new ElideStandaloneSubscriptionSettings() {
+              public ConnectionFactory getConnectionFactory() {
+  
+                  // Create, configure, and return a JMS connection factory....
+  
+              }
+          };
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+### Global Settings
+
+Elide subscriptions support the following, global configuration settings:
+
+1. **enabled** - Turn on/off the subscription websocket.
+2. **path** - The HTTP root path of the subscription websocket.
+3. **idleTimeout** - How long in milliseconds the websocket can remain idle before the server closes it.
+4. **maxMessageSize** - Maximum size in bytes of any message sent to the websocket (or it will be closed in error).
+5. **maxSubscriptions** - The maximum number of concurrent subscriptions per websocket.
+6. **connectionTimeout** - The time in milliseconds for the client to initiate a connection handshake before the server
+   closes the socket.
+
+<Tabs>
+  <TabItem value="Spring" label="Spring" default>
+
+  Configure in `application.yaml`.
+
+  ```yaml
+  elide:
+    graphql:
+      subscription:
+        enabled: true
+        path: /subscription
+        idle-timeout: 30000ms
+        max-message-size: 10000
+        max-subscriptions: 30
+        connection-timeout: 5000ms
+  ```
+
+  </TabItem>
+  <TabItem value="upsert-to-modify-response" label="Response">
+
+  Override `ElideStandaloneSettings`.
+
+  ```java
+  public abstract class Settings implements ElideStandaloneSettings {
+      @Override
+      public ElideStandaloneSubscriptionSettings getSubscriptionProperties() {
+          return new ElideStandaloneSubscriptionSettings() {
+  
+              @Override
+              public boolean enabled() {
+                  return true;
+              }
+  
+              @Override
+              public String getPath() {
+                  return "/subscription";
+              }
+  
+              @Override
+              public Duration getConnectionTimeout() {
+                  return Duration.ofMillis(5000L);
+              }
+  
+              @Override
+              public Integer getMaxSubscriptions() {
+                  return 30;
+              }
+  
+              @Override
+              public Integer getMaxMessageSize() {
+                  return 10000;
+              }
+  
+              @Override
+              public Duration getIdleTimeout() {
+                  return Duration.ofMillis(300000L);
+              }
+          };
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+### Authentication
+
+There is no well-defined standard for how user credentials are passed via websockets. Instead, Elide allows developers
+to provide a function that maps a
+[JSR-356 Session](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/session) to and Elide
+[User object](security#user). The session contains the HTTP request headers, path parameter, query parameters, and
+websocket parameters that can be leveraged to construct a user principal.
+
+<Tabs>
+  <TabItem value="Spring" label="Spring" default>
+
+  Create a `@Configuration` class that defines our custom implementation as a `@Bean`.
+
+  ```java
+  @Configuration
+  public class ElideConfiguration {
+      @Bean
+      public SubscriptionWebSocket.UserFactory userFactory() {
+          return new CustomUserFactory();
+      }
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="upsert-to-modify-response" label="Response">
+
+  Override `ElideStandaloneSettings`.
+
+  ```java
+  public abstract class Settings implements ElideStandaloneSettings {
+      @Override
+      public ElideStandaloneSubscriptionSettings getSubscriptionProperties() {
+          return new ElideStandaloneSubscriptionSettings() {
+  
+              @Override
+              public SubscriptionWebSocket.UserFactory getUserFactory() {
+                  return new CustomUserFactory();
+              }
+          };
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+### JMS Message Settings
+
+We can override some of the default settings for messages published to JMS topics by overriding the following
+bean:
+
+<Tabs>
+  <TabItem value="Spring" label="Spring" default>
+
+  Create a `@Configuration` class that defines our custom implementation as a `@Bean`.
+
+  ```java
+  @Configuration
+  public class ElideConfiguration {
+      @Bean
+      public SubscriptionScanner subscriptionScanner(Elide elide, ConnectionFactory connectionFactory) {
+          SubscriptionScanner scanner = SubscriptionScanner.builder()
+  
+                  // Things you may want to override...
+                  .deliveryDelay(Message.DEFAULT_DELIVERY_DELAY)
+                  .messagePriority(Message.DEFAULT_PRIORITY)
+                  .timeToLive(Message.DEFAULT_TIME_TO_LIVE)
+                  .deliveryMode(Message.DEFAULT_DELIVERY_MODE)
+  
+                  // Things you probably don't care about...
+                  .scanner(elide.getScanner())
+                  .dictionary(elide.getElideSettings().getDictionary())
+                  .connectionFactory(connectionFactory)
+                  .mapper(elide.getMapper().getObjectMapper())
+                  .build();
+  
+          scanner.bindLifecycleHooks();
+  
+          return scanner;
+      }
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="upsert-to-modify-response" label="Response">
+
+Override `ElideStandaloneSettings`.
+
+  ```java
+  public abstract class Settings implements ElideStandaloneSettings {
+      @Override
+      public ElideStandaloneSubscriptionSettings getSubscriptionProperties() {
+          return new ElideStandaloneSubscriptionSettings() {
+  
+              @Override
+              public SubscriptionScanner subscriptionScanner(Elide elide, ConnectionFactory connectionFactory) {
+                  SubscriptionScanner scanner = SubscriptionScanner.builder()
+  
+                          // Things you may want to override...
+                          .deliveryDelay(Message.DEFAULT_DELIVERY_DELAY)
+                          .messagePriority(Message.DEFAULT_PRIORITY)
+                          .timeToLive(Message.DEFAULT_TIME_TO_LIVE)
+                          .deliveryMode(Message.DEFAULT_DELIVERY_MODE)
+  
+                          // Things you probably don't care about...
+                          .scanner(elide.getScanner())
+                          .dictionary(elide.getElideSettings().getDictionary())
+                          .connectionFactory(connectionFactory)
+                          .mapper(elide.getMapper().getObjectMapper())
+                          .build();
+  
+                  scanner.bindLifecycleHooks();
+  
+                  return scanner;
+              }
+          };
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+Custom Subscriptions
+--------------------
+
+While Elide makes it easy to subscribe to model manipulations (create, update, and delete), it is also possible to add a
+subscription topic for another event tied to our business logic. A custom subscription is simply an Elide model
+annotated with the `@Subscription` annotation that explicitly sets the list of operations to empty:
+
+```java
+@Include
+
+//This is a custom subscription
+@Subscription(operations = {})
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Chat {
+
+
+    @Id
+    long id;
+
+    @SubscriptionField
+    String message;
+}
+```
+
+To publish to our subscription, we can create a lifecycle hook on another model that posts `Chat` messages.
+
+<Tabs>
+  <TabItem value="ChatBot.java" label="ChatBot.java" default>
+
+  Create a `@Configuration` class that defines our custom implementation as a `@Bean`.
+
+  ```java
+  @Data // Lombok
+  @Include
+  @LifeCycleHookBinding(
+          hook = ChatBotCreateHook.class,
+          operation = LifeCycleHookBinding.Operation.CREATE,
+          phase = LifeCycleHookBinding.TransactionPhase.POSTCOMMIT
+  )
+  public class ChatBot {
+  
+      @Id
+      long id;
+  
+      String name;
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="ChatBotCreateHook.java" label="ChatBotCreateHook.java">
+
+  ```java
+  @Data // Lombok
+  public class ChatBotCreateHook implements LifeCycleHook<ChatBot> {
+  
+      @Inject
+      ConnectionFactory connectionFactory;
+  
+      @Override
+      public void execute(
+              LifeCycleHookBinding.Operation operation,
+              LifeCycleHookBinding.TransactionPhase phase,
+              ChatBot bot,
+              RequestScope requestScope,
+              Optional<ChangeSpec> changes) {
+  
+          NotifyTopicLifeCycleHook<Chat> publisher = new NotifyTopicLifeCycleHook<>(
+                  connectionFactory,
+                  new ObjectMapper(),
+                  JMSContext::createProducer
+          );
+  
+          publisher.publish(new Chat(1, "Hello!"), CHAT);
+          publisher.publish(new Chat(2, "How is your day?"), CHAT);
+          publisher.publish(new Chat(3, "My name is " + bot.getName()), CHAT);
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+Recommendations
+---------------
+
+Even though the [example project][example-project] runs GraphQL queries, mutations, and subscriptions in the same
+service, it is highly recommended that subscriptions run as a _separate service_. Because websockets are long-lived and
+stateful, they impose different resource constraints and performance characteristics from queries and mutations.
+
+Running websockets as a standalone service is as simple as disabling JSON-API and GraphQL HTTP endpoints:
+
+<Tabs>
+  <TabItem value="Spring" label="Spring" default>
+
+  Configure in `application.yaml`.
+
+  ```yaml
+  elide:
+    json-api:
+      enabled: false
+    graphql:
+      enabled: false
+      subscription:
+        enabled: true
+  ```
+
+  </TabItem>
+  <TabItem value="upsert-to-modify-response" label="Response">
+
+  Override `ElideStandaloneSettings`.
+
+  ```java
+  public abstract class Settings implements ElideStandaloneSettings {
+      @Override
+      public boolean enableJsonApi() {
+          return false;
+      }
+  
+      @Override
+      public boolean enableGraphQL() {
+          return false;
+      }
+  
+      @Override
+      public ElideStandaloneSubscriptionSettings getSubscriptionProperties() {
+          return new ElideStandaloneSubscriptionSettings() {
+  
+              @Override
+              public boolean enabled() {
+                  return true;
+              }
+          };
+      }
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+[example-project]: https://github.com/paion-data/elide-spring-boot-example

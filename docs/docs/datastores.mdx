@@ -1,0 +1,454 @@
+---
+sidebar_position: 7
+title: Data Stores
+description: A boundary between Webservice and Database
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+A data store is responsible for:
+
+1. Reading and writing entity models to/from a persistence layer.
+2. Providing transactions that make all persistence operations atomic in a single request.
+3. Implementing filtering, sorting, and pagination.
+4. Declaring the entities it manages persistence for.
+
+If a data store is unable to fully implement filtering, sorting, or pagination, it can instead rely on the Elide
+framework to perform these functions in memory.  By default, however, Elide pushes these responsibilities to the store.
+
+Included Stores
+---------------
+
+Elide comes bundled with a number of data stores:
+
+1. Hashmap Data Store - Data is persisted in a hash table on the JVM heap.
+2. JPA Data Store - A data store that can map operations on a data model to an underlying relational database (ORM) or
+   nosql persistence layer (OGM). The JPA Data Store can work with any JPA provider.
+3. Multiplex Data Store - A multiplex store that delegates persistence to different underlying stores depending on the
+   data model.
+4. Noop Data Store - A store which does nothing, allowing business logic in computed attributes and life cycle hooks to
+   entirely implement CRUD operations on the model.
+5. [Search Data Store](https://github.com/yahoo/elide/tree/master/elide-datastore/elide-datastore-search) - A store
+   which provides full text search on text fields while delegating other requests to another provided store.
+6. [Aggregation Data Store](analytics) - A store which provides computation of groupable measures (similar to SQL group
+   by). The aggregation store has custom annotations that map an Elide model to native SQL queries against a JDBC
+   database.
+
+The Hashmap Data Store is included as part of `elide-core` while other data stores can be included through the
+following artifact dependencies:
+
+### JPA Data Store
+
+```xml
+<dependency>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-datastore-jpa</artifactId>
+    <version>${elide.version}</version>
+</dependency>
+```
+
+### Multiplex Data Store
+
+```xml
+<dependency>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-datastore-multiplex</artifactId>
+    <version>${elide.version}</version>
+</dependency>
+```
+
+### Noop Data Store
+
+```xml
+<dependency>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-datastore-noop</artifactId>
+    <version>${elide.version}</version>
+</dependency>
+```
+
+### Search Data Store
+
+```xml
+<dependency>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-datastore-search</artifactId>
+    <version>${elide.version}</version>
+</dependency>
+```
+
+### Aggregation Data Store
+
+```xml
+<dependency>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-datastore-aggregation</artifactId>
+    <version>${elide.version}</version>
+</dependency>
+```
+
+Overriding the Store
+--------------------
+
+### Overriding in Spring Boot
+
+[Elide Spring Boot][elide-spring] by default will configure a JPA Data Store with the default transaction manager and
+entity manager and manage all the entities associated with the entity manager.
+
+If not all entities should be managed then this can be customized by using the `@EnableJpaDataStore` annotation.
+
+```java
+@Configuration
+@EnableJpaDataStore(managedClasses = { Author.class, Book.class } )
+public class ElideConfiguration { ... }
+```
+
+To completely override the auto configured store, define a `DataStore` bean:
+
+```java
+@Configuration
+public class ElideConfiguration {
+    @Bean
+    public DataStore dataStore(EntityManagerFactory entityManagerFactory, PlatformTransactionManager transactionManager,
+            ElideConfigProperties settings) {
+        EntityManagerSupplier entityManagerSupplier = new EntityManagerProxySupplier();
+        JpaTransactionSupplier jpaTransactionSupplier = new PlatformJpaTransactionSupplier(
+                    new DefaultTransactionDefinition(), transactionManager,
+                    entityManagerFactory, settings.getJpaStore().isDelegateToInMemoryStore());
+        return new JpaDataStore(entityManagerSupplier, jpaTransactionSupplier, entityManagerFactory::getMetamodel);
+    }
+}
+```
+
+### Overriding in Elide Standalone
+
+[Elide Standalone][elide-standalone] is configured by default with the JPA Data Store.
+
+To change the store, one of two possible functions should be overridden depending on whether the `AggregationDataStore`
+is enabled:
+
+<Tabs>
+  <TabItem value="AggregationDataStore-disabled" label="AggregationDataStore disabled" default>
+    ```java
+    /**
+     * Initializes the Elide {@link DataStore} service with the specified {@link EntityManagerFactory}.
+     *
+     * @param entityManagerFactory  An object used to initialize JPA
+     *
+     * @return a new instance
+     */
+    @NotNull
+    private DataStore buildDataStore(@NotNull final EntityManagerFactory entityManagerFactory) {
+        return new JpaDataStore(
+                entityManagerFactory::createEntityManager,
+                em -> new NonJtaTransaction(em, TXCANCEL),
+                entityManagerFactory::getMetamodel
+        );
+    }
+    ```
+  </TabItem>
+  <TabItem value="AggregationDataStore-enabled" label="AggregationDataStore enabled">
+    ```java
+    /**
+     * Gets the DataStore for Elide.
+     *
+     * @param metaDataStore MetaDataStore object.
+     * @param aggregationDataStore AggregationDataStore object.
+     * @param entityManagerFactory EntityManagerFactory object.
+     * @return DataStore object initialized.
+     */
+    @Override
+    public DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
+            EntityManagerFactory entityManagerFactory) {
+        DataStore jpaDataStore = new JpaDataStore(
+                () -> { return entityManagerFactory.createEntityManager(); },
+                (em) -> { return new NonJtaTransaction(em, ElideStandaloneSettings.TXCANCEL); });
+
+        DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
+
+        return dataStore;
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+Custom Stores
+-------------
+
+Custom stores can be written by implementing the `DataStore` and `DataStoreTransaction` interfaces.
+
+### Enabling In-Memory Filtering, Sorting, or Pagination
+
+If a Data Store is unable to fully implement sorting, filtering, or pagination, the Elide framework can perform
+these functions in-memory instead.
+
+The Data Store Transaction can inform Elide of its capabilities (or lack thereof) by returning a `DataStoreIterable` for
+any collection loaded:
+
+```java
+/**
+ * Returns data loaded from a DataStore.   Wraps an iterable but also communicates to Elide
+ * if the framework needs to filter, sort, or paginate the iterable in memory before returning to the client.
+ * @param <T> The type being iterated over.
+ */
+public interface DataStoreIterable<T> extends Iterable<T> {
+
+    /**
+     * Returns the underlying iterable.
+     * @return The underlying iterable.
+     */
+    Iterable<T> getWrappedIterable();
+
+
+    /**
+     * Whether the iterable should be filtered in memory.
+     * @return true if the iterable needs sorting in memory.  false otherwise.
+     */
+    default boolean needsInMemoryFilter() {
+        return false;
+    }
+
+    /**
+     * Whether the iterable should be sorted in memory.
+     * @return true if the iterable needs sorting in memory.  false otherwise.
+     */
+    default boolean needsInMemorySort() {
+        return false;
+    }
+
+    /**
+     * Whether the iterable should be paginated in memory.
+     * @return true if the iterable needs pagination in memory.  false otherwise.
+     */
+    default boolean needsInMemoryPagination() {
+        return false;
+    }
+}
+
+```
+
+Multiple Stores
+---------------
+
+A common pattern in Elide is the need to support multiple data stores. Typically, one data store manages most models,
+but some models may require a different persistence backend or have other needs to specialize the behavior of the store.
+
+The Multiplex Data Store (`MultiplexManager`) in Elide manages multiple stores - delegating calls to the appropriate
+store which is responsible for a particular model. By default it will apply compensating transactions to undo failures
+if multiple stores are involved in the multiplex transaction and an error occurs after transactions to some of the
+stores were already committed.
+
+### Spring Boot
+
+If there are multiple JPA Data Stores required the `@EnableJpaDataStore` annotation can be used to configure them.
+
+|Annotation Element        |Description                                                                                               |Default               |
+|--------------------------|----------------------------------------------------------------------------------------------------------|----------------------|
+|`entityManagerFactoryRef` |(Optional) The bean name of the `EntityManagerFactory` bean to be used.                                   |`entityManagerFactory`|
+|`transactionManagerRef`   |(Optional) The bean name of the `PlatformTransactionManager` bean to be used.                             |`transactionManager`  |
+|`managedClasses`          |(Optional) The entities to manage, otherwise all the entities associated with the `EntityManagerFactory`. |                      |
+
+Spring Boot will auto configure the default `JpaTransactionManager` or `JtaTransactionManager` with the
+`transactionManager` bean name and the `EntityManagerFactory` with the `entityManagerFactory` bean name.
+
+The following shows sample configuration with 2 `EntityManagerFactory` and 2 `JpaTransactionManager` where each
+`EntityManagerFactory` participates in separate transactions:
+
+```java
+@Configuration
+@EnableJpaDataStore(entityManagerFactoryRef = "entityManagerFactory1", transactionManagerRef = "transactionManager1")
+@EnableJpaDataStore(entityManagerFactoryRef = "entityManagerFactory2", transactionManagerRef = "transactionManager2")
+public class ElideConfiguration {
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory1(EntityManagerFactoryBuilder builder,
+        DefaultListableBeanFactory beanFactory, DataSource dataSource1) {
+        Map<String, Object> vendorProperties = new HashMap<>();
+        vendorProperties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+        vendorProperties.put(AvailableSettings.JTA_PLATFORM, new NoJtaPlatform());
+        final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSource1)
+                .packages("example.models.jpa.v1").properties(vendorProperties).build();
+        return emf;
+    }
+
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory2(EntityManagerFactoryBuilder builder,
+        DefaultListableBeanFactory beanFactory, DataSource dataSource2) {
+        Map<String, Object> vendorProperties = new HashMap<>();
+        vendorProperties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+        vendorProperties.put(AvailableSettings.JTA_PLATFORM, new NoJtaPlatform());
+        final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSource2)
+                .packages("example.models.jpa.v2").properties(vendorProperties).build();
+        return emf;
+    }
+
+    @Bean
+    public PlatformTransactionManager transactionManager1(EntityManagerFactory entityManagerFactory1) {
+        return new JpaTransactionManager(entityManagerFactory1);
+    }
+
+    @Bean
+    public PlatformTransactionManager transactionManager2(EntityManagerFactory entityManagerFactory2) {
+        return new JpaTransactionManager(entityManagerFactory2);
+    }
+
+    @Bean
+    public DataSource dataSource1() {
+        return DataSourceBuilder.create().url("jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1").username("sa").password("").build();
+    }
+
+    @Bean
+    public DataSource dataSource2() {
+        return DataSourceBuilder.create().url("jdbc:h2:mem:db2;DB_CLOSE_DELAY=-1").username("sa").password("").build();
+    }
+
+    @Bean
+    public EntityManagerFactoryBuilder entityManagerFactoryBuilder(
+            ObjectProvider<PersistenceUnitManager> persistenceUnitManager,
+            ObjectProvider<EntityManagerFactoryBuilderCustomizer> customizers) {
+        EntityManagerFactoryBuilder builder = new EntityManagerFactoryBuilder(new HibernateJpaVendorAdapter(),
+                new HashMap<>(), persistenceUnitManager.getIfAvailable());
+        customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
+        return builder;
+   }    
+}
+```
+
+The following shows sample configuration with 2 `EntityManagerFactory` and a `JtaTransactionManager` where both
+`EntityManagerFactory` participates in a single transaction:
+
+```java
+@Configuration
+@EnableJpaDataStore(entityManagerFactoryRef = "entityManagerFactory1")
+@EnableJpaDataStore(entityManagerFactoryRef = "entityManagerFactory2")
+public class ElideConfiguration {
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory1(EntityManagerFactoryBuilder builder,
+        DefaultListableBeanFactory beanFactory, DataSource dataSource1, JtaTransactionManager transactionManager) {
+        Map<String, Object> vendorProperties = new HashMap<>();
+        vendorProperties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+        vendorProperties.put(AvailableSettings.JTA_PLATFORM, new SpringJtaPlatform(transactionManager));
+        final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSource1)
+                .packages("example.models.jpa.v1").properties(vendorProperties).jta(true).build();
+        return emf;
+    }
+
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory2(EntityManagerFactoryBuilder builder,
+        DefaultListableBeanFactory beanFactory, DataSource dataSource2, JtaTransactionManager transactionManager) {
+        Map<String, Object> vendorProperties = new HashMap<>();
+        vendorProperties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+        vendorProperties.put(AvailableSettings.JTA_PLATFORM, new SpringJtaPlatform(transactionManager));
+        final LocalContainerEntityManagerFactoryBean emf = builder.dataSource(dataSource2)
+                .packages("example.models.jpa.v2").properties(vendorProperties).jta(true).build();
+        return emf;
+    }
+
+    @Bean
+    public DataSource dataSource1() {
+        XADataSource xaDataSource = DataSourceBuilder.create().url("jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1")
+                .driverClassName("org.h2.Driver").type(org.h2.jdbcx.JdbcDataSource.class).username("sa")
+                .password("").build();
+        AtomikosDataSourceBean atomikosDataSource = new AtomikosDataSourceBean();
+        atomikosDataSource.setXaDataSource(xaDataSource);
+        return atomikosDataSource;
+    }
+
+    @Bean
+    public DataSource dataSource2() {
+        XADataSource xaDataSource = DataSourceBuilder.create().url("jdbc:h2:mem:db2;DB_CLOSE_DELAY=-1")
+                .driverClassName("org.h2.Driver").type(org.h2.jdbcx.JdbcDataSource.class).username("sa")
+                .password("").build();
+        AtomikosDataSourceBean atomikosDataSource = new AtomikosDataSourceBean();
+        atomikosDataSource.setXaDataSource(xaDataSource);
+        return atomikosDataSource;
+    }
+
+    @Bean
+    public EntityManagerFactoryBuilder entityManagerFactoryBuilder(
+            ObjectProvider<PersistenceUnitManager> persistenceUnitManager,
+            ObjectProvider<EntityManagerFactoryBuilderCustomizer> customizers) {
+        EntityManagerFactoryBuilder builder = new EntityManagerFactoryBuilder(new HibernateJpaVendorAdapter(),
+                new HashMap<>(), persistenceUnitManager.getIfAvailable());
+        customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
+        return builder;
+    }
+}
+```
+
+If customizations are required to the `MultiplexManager` used or to add other data stores the
+`DataStoreBuilderCustomizer` can be used:
+
+```java
+@Configuration
+public class ElideConfiguration {
+    @Bean
+    public DataStoreBuilderCustomizer dataStoreBuilderCustomizer() {
+        return builder -> {
+            builder
+                .dataStore(new MyCustomDataStore())
+                .multiplexer(dataStores -> {
+                        return new MultiplexManager(ObjectCloners::clone,
+                                dataStore -> !(dataStore instanceof JpaDataStore), dataStores);
+                    });
+        };
+    }
+}
+```
+
+To completely override the auto configured store and setup the Multiplex Data Store, define a `DataStore` bean:
+
+```java
+@Configuration
+public class ElideConfiguration {
+    @Bean
+    public DataStore dataStore(EntityManagerFactory entityManagerFactory, PlatformTransactionManager transactionManager,
+            ElideConfigProperties settings) {
+        EntityManagerSupplier entityManagerSupplier = new EntityManagerProxySupplier();
+        JpaTransactionSupplier jpaTransactionSupplier = new PlatformJpaTransactionSupplier(
+                    new DefaultTransactionDefinition(), transactionManager,
+                    entityManagerFactory, settings.getJpaStore().isDelegateToInMemoryStore());
+        //Store 1 manages Book, Author, and Publisher
+        DataStore store1 = new JpaDataStore(entityManagerSupplier, jpaTransactionSupplier,
+                ClassType.of(Book.class), 
+                ClassType.of(Author.class),
+                ClassType.of(Publisher.class));
+
+        //Store 2 is a custom store that manages Manufacturer
+        DataStore store2 = new MyCustomDataStore(...);
+
+        //Return the new multiplex store...
+        return new MultiplexManager(store1, store2);
+    }
+}
+```
+
+### Elide Standalone
+
+To set up the Multiplex Data Store, override the `getDataStore` function:
+
+```java
+/**
+ * Gets the DataStore for elide when aggregation store is disabled.
+ * @param entityManagerFactory EntityManagerFactory object.
+ * @return DataStore object initialized.
+ */
+@Override
+public DataStore getDataStore(EntityManagerFactory entityManagerFactory) {
+    //Store 1 manages Book, Author, and Publisher
+    DataStore store1 = new JpaDataStore(
+            () -> { return entityManagerFactory.createEntityManager(); },
+            (em) -> { return new NonJtaTransaction(em, ElideStandaloneSettings.TXCANCEL); },
+            Book.class, Author.class, Publisher.class
+    );
+
+    //Store 2 is a custom store that manages Manufacturer
+    DataStore store2 = new MyCustomDataStore(...);
+
+    //Create the new multiplex store...
+    return new MultiplexManager(store1, store2);
+}
+```
+
+[elide-spring]: https://github.com/paion-data/elide/tree/master/elide-spring/elide-spring-boot-autoconfigure
+[elide-standalone]: https://github.com/paion-data/elide/tree/master/elide-standalone
