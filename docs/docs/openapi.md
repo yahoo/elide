@@ -17,7 +17,7 @@ Only JSON-API endpoints are documented. The GraphQL API schema can be explored d
 Features Supported
 ------------------
 
-- **JaxRS & Spring Endpoint** - Elide ships with a customizable JaxRS endpoints that can publish one or more OpenAPI 
+- **JaxRS & Spring Endpoint** - Elide ships with a customizable JaxRS endpoints that can publish one or more OpenAPI
   documents in both JSON or YAML.
 - **Path Discovery** - Given a set of entities to explore, Elide will generate the minimum, cycle-free, de-duplicated
   set of URL paths in the OpenAPI document.
@@ -37,17 +37,17 @@ Getting Started
 
 ### Maven
 
-If we are not using [Elide Spring Starter][elide-spring] or [Elide Standalone][elide-standalone] (which package 
+If we are not using [Elide Spring Starter][elide-spring] or [Elide Standalone][elide-standalone] (which package
 swagger as a dependency), we will need to pull in the following elide dependencies :
 
 ```xml
 <dependency>
-  <groupId>com.yahoo.elide</groupId>
+  <groupId>com.paiondata.elide</groupId>
   <artifactId>elide-swagger</artifactId>
 </dependency>
 
 <dependency>
-  <groupId>com.yahoo.elide</groupId>
+  <groupId>com.paiondata.elide</groupId>
   <artifactId>elide-core</artifactId>
 </dependency>
 ```
@@ -70,7 +70,7 @@ we can customize the `OpenAPI` document by using a `OpenApiDocumentCustomizer` b
 ```java
 @Configuration
 public class ElideConfiguration {
-    
+
     @Bean
     public OpenApiDocumentCustomizer openApiDocumentCustomizer() {
         return openApi -> {
@@ -78,7 +78,7 @@ public class ElideConfiguration {
             openApi.setInfo(info);
         };
     }
-}    
+}
 ```
 
 The application YAML file has settings:
@@ -99,7 +99,7 @@ elide:
 
 #### Supporting OAuth
 
-If we want Swagger UI to acquire & use a bearer token from an OAuth identity provider, we can configure the OpenAPI 
+If we want Swagger UI to acquire & use a bearer token from an OAuth identity provider, we can configure the OpenAPI
 document by using annotations:
 
 ```java
@@ -112,7 +112,7 @@ document by using annotations:
         scheme = "bearer"
     )
 public class App {
-    
+
     public static void main(String[] args) throws Exception {
         SpringApplication.run(App.class, args);
     }
@@ -121,13 +121,13 @@ public class App {
 
 #### SpringDoc Integration
 
-Elide contributes to [Springdoc](https://springdoc.org/v2/)'s OpenAPI document by exposing a Springdoc 
-`OpenApiCustomizer` bean.
+Elide contributes to [Springdoc](https://springdoc.org)'s OpenAPI document by exposing a Springdoc `OpenApiCustomizer`
+bean.
 
-If API Versioning is used, only the Path strategy is supported when integrating with Springdoc as the other strategies 
+If API Versioning is used, only the Path strategy is supported when integrating with Springdoc as the other strategies
 are difficult to document with OpenAPI.
 
-The default implementation is implemented in `DefaultElideOpenApiCustomizer`. To override the behavior a 
+The default implementation is implemented in `DefaultElideOpenApiCustomizer`. To override the behavior a
 `ElideOpenApiCustomizer` bean can be created which will cause the `DefaultElideOpenApiCustomizer` not to be configured.
 
 ```java
@@ -140,10 +140,10 @@ public class ElideConfiguration {
 }
 ```
 
-When `GroupedOpenApi` is used, the `ElideOpenApiCustomizer` is not applied to the groups. Instead Elide has a 
-`DefaultElideGroupedOpenApiCustomizer` that will customize the `GroupedOpenApi` to set the appropriate 
-`OpenApiCustomizers` on the `GroupedOpenApi` that matches the paths to match and exclude. To override the behavior a 
-`ElideGroupedOpenApiCustomizer` can be defined that will need to process the `OpenApiCustomizers` and remove the ones 
+When `GroupedOpenApi` is used, the `ElideOpenApiCustomizer` is not applied to the groups. Instead Elide has a
+`DefaultElideGroupedOpenApiCustomizer` that will customize the `GroupedOpenApi` to set the appropriate
+`OpenApiCustomizers` on the `GroupedOpenApi` that matches the paths to match and exclude. To override the behavior a
+`ElideGroupedOpenApiCustomizer` can be defined that will need to process the `OpenApiCustomizers` and remove the ones
 automatically added by Elide.
 
 ```java
@@ -158,7 +158,7 @@ public class ElideConfiguration {
 
 #### Elide Standalone Configuration
 
-If we are using [Elide Standalone](https://github.com/paion-data/elide/tree/master/elide-standalone), we can extend 
+If we are using [Elide Standalone](https://github.com/paion-data/elide/tree/master/elide-standalone), we can extend
 `ElideStandaloneSettings` to:
 
 - Enable the OpenAPI document endpoint.
@@ -281,7 +281,7 @@ String jsonOutput = openApiDocument.of(OpenApiDocument.MediaType.APPLICATION_YAM
 
 #### Configure JAX-RS Endpoint
 
-Or we can use the OpenAPI document directly to configure the [provided JAX-RS Endpoint](https://github.com/yahoo/elide/blob/master/elide-swagger/src/main/java/com/yahoo/elide/swagger/resources/ApiDocsEndpoint.java):
+Or we can use the OpenAPI document directly to configure the [provided JAX-RS Endpoint](https://github.com/paion-data/elide/blob/master/elide-swagger/src/main/java/com/paiondata/elide/swagger/resources/ApiDocsEndpoint.java):
 
 ```java
 List<ApiDocsEndpoint.ApiDocsRegistration> apiDocs = new ArrayList<>();

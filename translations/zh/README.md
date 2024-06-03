@@ -4,12 +4,9 @@
 
 ![Elide Logo](../../elide-logo.svg)
 
-[![Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/elide)
-[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) 
+[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.paiondata.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.paiondata.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
-[![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/context:java)
-[![Total Alerts](https://img.shields.io/lgtm/alerts/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/alerts)
 
 ## 目录
 
@@ -77,9 +74,9 @@ Elide 与您的特定持久性策略无关。使用 ORM 或提供您自己的数
 
 ## 安装
 
-要尝试 Elide 示例服务，请查看这个 [Spring boot](https://github.com/yahoo/elide-spring-boot-example) 示例项目。
+要尝试 Elide 示例服务，请查看这个 [Spring boot](https://github.com/paion-data/elide-spring-boot-example) 示例项目。
 
-或者，使用 [Elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone)，它允许您快速配置嵌入在 Jetty 应用
+或者，使用 [Elide-standalone](https://github.com/paion-data/elide/tree/master/elide-standalone)，它允许您快速配置嵌入在 Jetty 应用
 程序中运行的 Elide 的本地实例。
 
 ## 如何使用
@@ -212,7 +209,7 @@ public static class IsAdminUser extends UserCheck {
 
 ## 数据安全
 
-具体的权限访问详情请参见[该文档](http://elide.io/pages/guide/03-security.html).
+具体的权限访问详情请参见[该文档](https://elide.io/pages/guide/v7/03-security.html).
 
 ## 开发
 
@@ -220,7 +217,7 @@ public static class IsAdminUser extends UserCheck {
 
 如果您使用 IDE（例如 IntelliJ）进行开发，请在IDE中添加 [Lombok](https://projectlombok.org/) 插件。
 
-社区聊天目前处于[不和谐](https://discord.com/widget?id=869678398241398854&theme=dark)状态。点击[此处](https://discord.com/invite/3vh8ac57cc)加入讨论。留言将存档在[频谱](https://github.com/features/discussions/elide)上。
+社区聊天目前处于[不和谐](https://discord.com/widget?id=869678398241398854&theme=dark)状态。点击[此处](https://discord.com/invite/3vh8ac57cc)加入讨论。
 
 ## 开源许可
 
@@ -235,8 +232,6 @@ Elide 视频简介
 [使用 Spring Boot 和 Elide 创建 JSON API REST 服务](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
 
 [使用 Spring Boot/Elide Json API 服务器自定义安全权限](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
-
-[登录 Spring Boot/Elide JSON API 服务器](https://dzone.com/articles/logging-into-a-spring-bootelide-json-api-server)
 
 [使用 Spring Boot 和 Elide 保护 JSON API REST 服务](https://dzone.com/articles/securing-a-json-api-rest-service-with-spring-boot)
 

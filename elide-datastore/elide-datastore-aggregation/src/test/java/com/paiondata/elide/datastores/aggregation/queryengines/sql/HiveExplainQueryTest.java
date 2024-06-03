@@ -25,7 +25,7 @@ import java.util.List;
  *      * `from_unixtime(unix_timestamp())` shall be used instead of `PARSEDATETIME(FORMATDATETIME())`
  *           when defining a datastore a real Hive environment.
  *        - PlayerStats.DAY_FORMAT provides an example of where this logic would have to be updated
- *        - com/yahoo/elide/datastores/aggregation/example/PlayerStats.java
+ *        - com/paiondata/elide/datastores/aggregation/example/PlayerStats.java
  *
  *      * UDAFs (User-defined Aggregation Functions) such as MIN and MAX will be supported in the Hive environment
  * *** * * * * * * * * ***

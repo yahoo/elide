@@ -89,10 +89,10 @@ Operability Features
 --------------------
 
 - **Logging** - Elide supports rich [native logging](audit) for query generation and security rules.
-- **Spring Integration** - Elide integrates with [Spring Boot](https://spring.io/projects/spring-boot) including an 
+- **Spring Integration** - Elide integrates with [Spring Boot](https://spring.io/projects/spring-boot) including an
   [example project](https://github.com/paion-data/elide-spring-boot-example) and
   [starter package](https://github.com/paion-data/elide/tree/master/elide-spring).
 - **Elide Standalone Integration** - Elide includes
-  [JAX-RS](https://download.oracle.com/otndocs/jcp/jaxrs-2_0-fr-eval-spec/index.html) endpoints and can run as a 
+  [JAX-RS](https://download.oracle.com/otndocs/jcp/jaxrs-2_0-fr-eval-spec/index.html) endpoints and can run as a
   [standalone](https://github.com/paion-data/elide-standalone-example) embedded Jetty service.
 - **Java 17** - Elide compiles with Java 17.

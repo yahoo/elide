@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
     <name>Elide Data Store: JPA</name>
     <description>Elide Data Store for JPA support</description>
-    <url>https://github.com/yahoo/elide</url>
+    <url>https://github.com/paion-data/elide</url>
     <parent>
         <groupId>com.paiondata.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
@@ -33,8 +33,8 @@
     </developers>
 
     <scm>
-        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
-        <url>https://github.com/yahoo/elide.git</url>
+        <developerConnection>scm:git:ssh://git@github.com/paion-data/elide.git</developerConnection>
+        <url>https://github.com/paion-data/elide.git</url>
         <tag>HEAD</tag>
     </scm>
 

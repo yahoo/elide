@@ -87,7 +87,7 @@ should typically be restricted only to the federated graph routers.
 
 Elide generates its GraphQL schema programatically and cannot be used to define federated entities.
 
-This will need to be done in another subgraph implementation using a different subgraph library, for instance Spring 
+This will need to be done in another subgraph implementation using a different subgraph library, for instance Spring
 GraphQL.
 
 #### Extending an Elide entity
@@ -134,7 +134,7 @@ entity.
 
 ```graphql
 query {
-  _entities(representations: [{__typename: "Group", name: "com.yahoo.elide"}]) {
+  _entities(representations: [{__typename: "Group", name: "com.paiondata.elide"}]) {
     ... on Group {
       stars
       text
@@ -210,7 +210,7 @@ After calling to retrieve the `GroupReview` entites on the subgraph, the router 
 
 ```graphql
 query {
-  _entities(representations: [{__typename: "Group", name: "com.yahoo.elide"}]) {
+  _entities(representations: [{__typename: "Group", name: "com.paiondata.elide"}]) {
     ... on Group {
       name
       commonName
@@ -240,7 +240,7 @@ This needs to be registered with the subgraph implementation.
 
 The following is the schema definition.
 
-```
+```graphql
 scalar DeferredID
 ```
 

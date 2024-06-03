@@ -23,9 +23,17 @@ on:
     branches:
       - master
 
+env:
+  USER: paion-data-sd-buildbot
+  EMAIL: sd-buildbot@paion-data.dev
+
 jobs:
+  yml-md-style-and-link-checks:
+    uses: paion-data/ci-cd-core/.github/workflows/yml-md-style-and-link-checks.yml@master
+
   tests:
     name: Unit & Integration Tests
+    needs: yml-md-style-and-link-checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -37,6 +45,44 @@ jobs:
           distribution: 'adopt'
       - name: Run unit & integration tests
         run: mvn -B install -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
+
+  documentation:
+    name: Test & Release Documentation (including Javadoc)
+    needs: tests
+    outputs:
+      outcome: ${{ job.status }}
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Set up JDK
+        uses: paion-data/ci-cd-core/.github/actions/jdk-setup@master
+      - name: Install dependencies
+        working-directory: docs
+        run: yarn
+      - name: Build documentations
+        working-directory: docs
+        run: yarn build
+      - name: Generate Javadoc
+        run: mvn -B clean install javadoc:aggregate -DskipTests
+      - name: Load CNAME
+        run: cp CNAME build/
+        working-directory: docs
+#      - name: Move Javadoc into documentation directory
+#        if: github.ref == 'refs/heads/master'
+#        run: mv target/site/apidocs/ docs/build/apidocs/
+      - name: Deploy documentation (including Javadoc) to GitHub Pages
+        if: github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build
+          enable_jekyll: false
+          user_name: ${{ env.USER }}
+          user_email: ${{ env.EMAIL }}
 
   release:
     name: Release to Maven Central

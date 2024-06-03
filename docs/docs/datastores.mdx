@@ -29,7 +29,7 @@ Elide comes bundled with a number of data stores:
    data model.
 4. Noop Data Store - A store which does nothing, allowing business logic in computed attributes and life cycle hooks to
    entirely implement CRUD operations on the model.
-5. [Search Data Store](https://github.com/yahoo/elide/tree/master/elide-datastore/elide-datastore-search) - A store
+5. [Search Data Store](https://github.com/paion-data/elide/tree/master/elide-datastore/elide-datastore-search) - A store
    which provides full text search on text fields while delegating other requests to another provided store.
 6. [Aggregation Data Store](analytics) - A store which provides computation of groupable measures (similar to SQL group
    by). The aggregation store has custom annotations that map an Elide model to native SQL queries against a JDBC
@@ -42,7 +42,7 @@ following artifact dependencies:
 
 ```xml
 <dependency>
-    <groupId>com.yahoo.elide</groupId>
+    <groupId>com.paiondata.elide</groupId>
     <artifactId>elide-datastore-jpa</artifactId>
     <version>${elide.version}</version>
 </dependency>
@@ -52,7 +52,7 @@ following artifact dependencies:
 
 ```xml
 <dependency>
-    <groupId>com.yahoo.elide</groupId>
+    <groupId>com.paiondata.elide</groupId>
     <artifactId>elide-datastore-multiplex</artifactId>
     <version>${elide.version}</version>
 </dependency>
@@ -62,7 +62,7 @@ following artifact dependencies:
 
 ```xml
 <dependency>
-    <groupId>com.yahoo.elide</groupId>
+    <groupId>com.paiondata.elide</groupId>
     <artifactId>elide-datastore-noop</artifactId>
     <version>${elide.version}</version>
 </dependency>
@@ -72,7 +72,7 @@ following artifact dependencies:
 
 ```xml
 <dependency>
-    <groupId>com.yahoo.elide</groupId>
+    <groupId>com.paiondata.elide</groupId>
     <artifactId>elide-datastore-search</artifactId>
     <version>${elide.version}</version>
 </dependency>
@@ -82,7 +82,7 @@ following artifact dependencies:
 
 ```xml
 <dependency>
-    <groupId>com.yahoo.elide</groupId>
+    <groupId>com.paiondata.elide</groupId>
     <artifactId>elide-datastore-aggregation</artifactId>
     <version>${elide.version}</version>
 </dependency>

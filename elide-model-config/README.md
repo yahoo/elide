@@ -3,6 +3,7 @@
 Validate the config files in local before deployment.
 
 To build and run:
+
 ```text
 1. mvn clean install
 2. Execute Jar File :
@@ -11,7 +12,9 @@ To build and run:
    b) java -cp elide-spring/elide-spring-boot-autoconfigure/target/elide-spring-boot-autoconfigure-*.jar       DynamicConfigValidator --help
       java -cp elide-standalone/target/elide-standalone-*.jar DynamicConfigValidator --help
 ```
+
 Expected Configs Directory Structure:
+
 ```text
 ├── CONFIG_DIR/
 │   ├── models

@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
     <name>Elide Data Store: Multiplex Library</name>
     <description>Elide entity manager for multiple data store support</description>
-    <url>https://github.com/yahoo/elide</url>
+    <url>https://github.com/paion-data/elide</url>
     <parent>
         <groupId>com.paiondata.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
@@ -24,13 +24,13 @@
     <developers>
         <developer>
             <name>Yahoo Inc.</name>
-            <url>https://github.com/yahoo</url>
+            <url>https://github.com/paion-data</url>
         </developer>
     </developers>
 
     <scm>
-        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
-        <url>https://github.com/yahoo/elide.git</url>
+        <developerConnection>scm:git:ssh://git@github.com/paion-data/elide.git</developerConnection>
+        <url>https://github.com/paion-data/elide.git</url>
         <tag>HEAD</tag>
     </scm>
 

@@ -358,7 +358,7 @@ EntityDictionary dictionary = new EntityDictionary(
 );
 ```
 
-If we're using the `elide-spring-boot*` artifacts, dependency injection is already setup using Spring. If we're using 
+If we're using the `elide-spring-boot*` artifacts, dependency injection is already setup using Spring. If we're using
 the [elide-standalone](elide-standalone) artifact, dependency injection is already setup using Jetty's `ServiceLocator`
 
 Validation
@@ -400,7 +400,7 @@ that ask for the specific version. API versions are bound by creating a package-
 @ApiVersion(version = "1.0")
 package example.models;
 
-import com.yahoo.elide.annotation.ApiVersion;
+import com.paiondata.elide.annotation.ApiVersion;
 ```
 
 API versioning is optional configuration. By default, all models have no implicit version. The API client is also

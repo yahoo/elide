@@ -104,7 +104,7 @@ public class CoerceUtil {
     private static BeanUtilsBean setup() {
         return new BeanUtilsBean(new BidirectionalConvertUtilBean() {
             {
-                // https://github.com/yahoo/elide/issues/260
+                // https://github.com/paion-data/elide/issues/260
                 // enable throwing exceptions when conversion fails
                 register(true, false, 0);
                 register(TO_UUID_CONVERTER, UUID.class);

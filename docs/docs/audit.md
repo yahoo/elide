@@ -9,7 +9,7 @@ Logging
 
 Elide emits a number of useful log messages that can aid in debugging. This section will cover common configurations to
 capture Elide's most useful messages. It will also cover common logging tasks outside Elide including HTTP
-request/response logging, request tracing, and database query logging. All examples use Spring Boot configured with 
+request/response logging, request tracing, and database query logging. All examples use Spring Boot configured with
 logback. However, most of the concepts apply regardless of the logging framework used.
 
 ### Elide JPQL/HQL Logging
@@ -23,17 +23,17 @@ To enable logging to see these queries, set the following property (based on the
 
 ```xml
 <!-- Log JPA Datastore JPQL Statements -->
-<logger name="com.yahoo.elide.datastores.jpql.query.DefaultQueryLogger" level="DEBUG" />
+<logger name="com.paiondata.elide.datastores.jpql.query.DefaultQueryLogger" level="DEBUG" />
 ```
 
 ```xml
 <!-- Log Hibernate 5 Datastore HQL Statements -->
-<logger name="com.yahoo.elide.datastores.hibernate5.porting.SessionWrapper level="DEBUG" />
+<logger name="com.paiondata.elide.datastores.hibernate5.porting.SessionWrapper level="DEBUG" />
 ```
 
 ```xml
 <!-- Log Hibernate 3 Datastore HQL Statements -->
-<logger name="com.yahoo.elide.datastores.hibernate3.porting.SessionWrapper level="DEBUG" />
+<logger name="com.paiondata.elide.datastores.hibernate3.porting.SessionWrapper level="DEBUG" />
 ```
 
 This will enable logs similar to:
@@ -48,7 +48,7 @@ To get information about how long Elide JPQL or analytic queries are taking, we 
 
 ```xml
 <!-- Log SQL/JPQL Query Latencies -->
-<logger name="com.yahoo.elide.core.utils.TimedFunction" level="DEBUG" />
+<logger name="com.paiondata.elide.core.utils.TimedFunction" level="DEBUG" />
 ```
 
 This will enable logs similar to:
@@ -65,8 +65,8 @@ To get extra information why a particular error was returned to a client, enable
 
 ```xml
 <!-- Log HTTP Error Explanations -->
-<logger name="com.yahoo.elide.graphql.QueryRunner" level="DEBUG" />
-<logger name="com.yahoo.elide.Elide" level="DEBUG" />
+<logger name="com.paiondata.elide.graphql.QueryRunner" level="DEBUG" />
+<logger name="com.paiondata.elide.Elide" level="DEBUG" />
 ```
 
 This is particularly helpful to understand what permissions in a complex permission rule have passed, failed, or were
@@ -106,7 +106,7 @@ By default these descriptions are disabled. They can be turned on in Elide Setti
 
 #### Elide Standalone
 
-If using [Elide standalone][elide-standalone], override the following function in `ElideStandaloneSettings` and enable 
+If using [Elide standalone][elide-standalone], override the following function in `ElideStandaloneSettings` and enable
 verbose errors:
 
 ```java
@@ -141,7 +141,7 @@ This will produce logs like:
 select products0_.group_name as group_na4_1_0_, products0_.name as name1_1_0_, products0_.name as name1_1_1_,
 products0_.commonName as commonNa2_1_1_, products0_.description as descript3_1_1_, products0_.group_name as
 group_na4_1_1_ from ArtifactProduct products0_ where products0_.group_name=?
-binding parameter [1] as [VARCHAR] - [com.yahoo.elide]
+binding parameter [1] as [VARCHAR] - [com.paiondata.elide]
 ```
 
 Be sure to configure Hibernate to show SQL in the JDBC configuration as well:
@@ -181,7 +181,7 @@ contain sensitive data). This example requires spring boot and logback-access-sp
 ```
 
 The actual logging of the requests and responses is performed by Logback's
-[TeeFilter](http://logback.qos.ch/recipes/captureHttp.html). To add the servlet filter, we must provide the 
+[TeeFilter](http://logback.qos.ch/recipes/captureHttp.html). To add the servlet filter, we must provide the
 `FilterRegistrationBean` as follows:
 
 ```java
@@ -201,7 +201,7 @@ public class FilterConfiguration {
 }
 ```
 
-Finally, configure logback access by creating a `logback-access-spring.xml` file in our classpath. This one writes logs 
+Finally, configure logback access by creating a `logback-access-spring.xml` file in our classpath. This one writes logs
 to a rotating file (the location is defined in the application yaml `logging.path`):
 
 ```xml
@@ -229,8 +229,8 @@ to a rotating file (the location is defined in the application yaml `logging.pat
 The pattern extracts the following fields from the HTTP request & response:
 
 | Field Name                  | Explanation                               |
-|-----------------------------| ----------------------------------------- |
-| `%t{yyyy-MM-dd:HH:mm:ss Z}` | The date and time of the log              |         
+|-----------------------------|-------------------------------------------|
+| `%t{yyyy-MM-dd:HH:mm:ss Z}` | The date and time of the log              |
 | remoteIP                    | The remote IP address                     |
 | requestURL                  | The request URL                           |
 | statusCode                  | The HTTP status code of the response      |
@@ -243,10 +243,10 @@ The pattern extracts the following fields from the HTTP request & response:
 The 'X-B3-TraceId' header can be used to match request tracing in the server logs. An example access log would look
 like:
 
-```
+```console
 2019-12-14:15:48:53 -0600 0:0:0:0:0:0:0:1 - GET /api/v1/group HTTP/1.1 200 496 385 0000000000000005  {"data":[
-{"type":"group","id":"com.example.repository","attributes":{"commonName":"Example Repository","description":"The code 
-for this project"},"relationships":{"products":{"data":[]}}},{"type":"group","id":"com.yahoo.elide","attributes":
+{"type":"group","id":"com.example.repository","attributes":{"commonName":"Example Repository","description":"The code
+for this project"},"relationships":{"products":{"data":[]}}},{"type":"group","id":"com.paiondata.elide","attributes":
 {"commonName":"Elide","description":"The magical library powering this project"},"relationships":{"products":{"data":[
 {"type":"product","id":"elide-core"},{"type":"product","id":"elide-standalone"},{"type":"product",
 "id":"elide-datastore-hibernate5"}]}}}]}
@@ -265,15 +265,15 @@ This example uses [Spring Cloud Sleuth](https://cloud.spring.io/spring-cloud-sle
 </dependency>
 ```
 
-Cloud Sleuth will use [logback MDC logging](http://logback.qos.ch/manual/mdc.html) to pass (if provided in headers) or 
-set a number of unique identifiers that can be added to log statements to trace requests. These headers 
+Cloud Sleuth will use [logback MDC logging](http://logback.qos.ch/manual/mdc.html) to pass (if provided in headers) or
+set a number of unique identifiers that can be added to log statements to trace requests. These headers
 ('X-B3-TraceId' and 'X-B3-SpanId') can also be logged in the access log to get the complete picture of a request.
 
 The following logback-spring.xml file can be added to your classpath.  It does the following:
 
 1. Logs to the console and a rotating file.
 2. Turns on Elide, JPQL, and Hibernate logging.
-3. Logs the time, thread identifier, request trace identifier (X-B3-TraceId), log level, log class, and finally the log 
+3. Logs the time, thread identifier, request trace identifier (X-B3-TraceId), log level, log class, and finally the log
    message.
 
 ```xml
@@ -306,11 +306,11 @@ The following logback-spring.xml file can be added to your classpath.  It does t
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
 
     <!-- Log JPA Datastore HQL Statements -->
-    <logger name="com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper" level="DEBUG" />
+    <logger name="com.paiondata.elide.datastores.jpa.porting.EntityManagerWrapper" level="DEBUG" />
 
     <!-- Log HTTP Error Explanations -->
-    <logger name="com.yahoo.elide.graphql.QueryRunner" level="DEBUG" />
-    <logger name="com.yahoo.elide.Elide" level="DEBUG" />
+    <logger name="com.paiondata.elide.graphql.QueryRunner" level="DEBUG" />
+    <logger name="com.paiondata.elide.Elide" level="DEBUG" />
 
     <root level="info">
         <appender-ref ref="STDOUT" />
@@ -321,8 +321,9 @@ The following logback-spring.xml file can be added to your classpath.  It does t
 
 Result log files will look like:
 
-```
-14-12-2019 15:48:53.329 [qtp1863374262-22] [Elide, d426047505ceef4e] DEBUG c.y.e.d.j.p.EntityManagerWrapper.logQuery - HQL Query: SELECT example_models_ArtifactGroup FROM example.models.ArtifactGroup AS example_models_ArtifactGroup
+```console
+14-12-2019 15:48:53.329 [qtp1863374262-22] [Elide, d426047505ceef4e] DEBUG c.y.e.d.j.p.EntityManagerWrapper.logQuery -
+HQL Query: SELECT example_models_ArtifactGroup FROM example.models.ArtifactGroup AS example_models_ArtifactGroup
 ```
 
 ### Analytic Query Logging
@@ -332,7 +333,7 @@ enable the following property to DEBUG:
 
 ```xml
 <!-- Log Analytic SQL Queries -->
-<logger name="com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger" level="DEBUG" />
+<logger name="com.paiondata.elide.datastores.aggregation.core.Slf4jQueryLogger" level="DEBUG" />
 ```
 
 Result log files will look like:

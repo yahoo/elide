@@ -3,9 +3,164 @@ sidebar_position: 2
 title: Elide Standalone
 ---
 
-Running Elide standalone is pretty straight forward by essentially implementing a **Binder** and a **ResourceConfig**:
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-In addition, a working example is [here](https://github.com/paion-data/elide-standalone-example)
+Overview
+--------
+
+The Elide standalone application is a configurable web server using Elide. While Elide is typically a pluggable 
+**middleware** framework, we have constructed a flexible and complete service to allow our users to get started quickly.
+
+The Elide standalone application takes an opinionated stance on its technology stack (i.e. jersey/jetty), but provides 
+many opportunities for users to configure the behavior of their application. To use the Elide standalone application, 
+there are only a few steps:
+
+1. Configure ElideStandalone by implementing a BinderFactory & ResourceConfig.
+2. Build an uber jar containing `elide-standalone`, our models, security checks, and additional application 
+   configurations.
+3. Start your web service as WAR
+
+Getting Started
+---------------
+
+Elide models are some of the most important code in any Elide project. Our models are the view of our data that we
+wish to expose. In this example we will be modeling a software artifact repository since most developers have a
+high-level familiarity with artifact repositories such as Maven, Artifactory, npm, and the like.
+
+There will 2 kinds of models:
+
+1. **Models that we intend to both read & write**. These models are created by defining Java classes.  For this
+   example, that includes `ArtifactGroup`, `ArtifactProduct`, and `ArtifactVersion`.  For brevity we will omit package
+   names and import statements.
+2. **Read-only models** that we intend to run analytic queries against. These models can be created with Java classes
+   or with a HJSON configuration language.  For this example, we will use the latter to create a `Downloads` model.
+
+<Tabs>
+  <TabItem value="ArtifactGroup.java" label="ArtifactGroup.java" default>
+
+  ```java
+  @Include(rootLevel = true, name = "group")
+  @Entity
+  public class ArtifactGroup {
+      @Id
+      private String name = "";
+  
+      private String commonName = "";
+  
+      private String description = "";
+  
+      @OneToMany(mappedBy = "group")
+      private List<ArtifactProduct> products = new ArrayList<>();
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="ArtifactProduct.java" label="ArtifactProduct.java">
+
+  ```java
+  @Include(name = "product")
+  @Entity
+  public class ArtifactProduct {
+      @Id
+      private String name = "";
+  
+      private String commonName = "";
+  
+      private String description = "";
+  
+      @ManyToOne
+      private ArtifactGroup group = null;
+  
+      @OneToMany(mappedBy = "artifact")
+      private List<ArtifactVersion> versions = new ArrayList<>();
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="ArtifactVersion.java" label="ArtifactVersion.java">
+
+  ```java
+  @Include(name = "version")
+  @Entity
+  public class ArtifactVersion {
+      @Id
+      private String name = "";
+  
+      private Date createdAt = new Date();
+  
+      @ManyToOne
+      private ArtifactProduct artifact;
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="artifactDownloads.hjson" label="artifactDownloads.hjson">
+
+  ```hjson
+  {
+    tables: [
+      {
+        name: Downloads
+        table: downloads
+        description:
+        '''
+        Analytics for artifact downloads.
+        '''
+        joins: [
+          {
+            name: artifactGroup
+            to: group
+            kind: toOne
+            type: left
+            definition: '{{group_id}} = {{artifactGroup.name}}'
+          },
+          {
+            name: artifactProduct
+            to: product
+            kind: toOne
+            definition: '{{product_id}} = {{artifactProduct.name}}'
+          }
+        ]
+        dimensions: [
+          {
+            name: group
+            type: TEXT
+            definition: '{{artifactGroup.name}}'
+          }
+          {
+            name: product
+            type: TEXT
+            definition: '{{artifactProduct.name}}'
+          }
+          {
+            name: date
+            type: TIME
+            definition: '{{date}}'
+            grains: [{
+              type: DAY
+            }]
+          }
+        ]
+        measures: [
+          {
+            name: downloads
+            type: INTEGER
+            definition: 'SUM({{downloads}})'
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+Spinning up the API
+-------------------
+
+Running Elide standalone is pretty straight forward by essentially implementing a **Binder** and a **ResourceConfig**:
 
 :::danger
 
@@ -15,7 +170,7 @@ database and re-create tables. Please do change this value if used in production
 :::
 
 [In order for dependency injection to work properly in Elide standalone](https://github.com/QubitPi/jersey-webservice-template/pull/29/files),
-we must use [Jersey binder](https://eclipse-ee4j.github.io/jersey.github.io/documentation/latest/ioc.html#d0e17933), 
+we must use [Jersey binder](https://eclipse-ee4j.github.io/jersey.github.io/documentation/latest/ioc.html#d0e17933),
 not [HK binder](https://javaee.github.io/hk2/)
 
 ```java

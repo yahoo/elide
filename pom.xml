@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
-    <url>https://github.com/yahoo/elide</url>
+    <url>https://github.com/paion-data/elide</url>
 
     <modules>
         <module>elide-core</module>
@@ -31,7 +31,7 @@
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/yahoo/elide/issues</url>
+        <url>https://github.com/paion-data/elide/issues</url>
     </issueManagement>
 
     <inceptionYear>2015</inceptionYear>
@@ -51,7 +51,7 @@
         </developer>
         <developer>
             <name>Yahoo Inc.</name>
-            <url>https://github.com/yahoo</url>
+            <url>https://github.com/paion-data</url>
         </developer>
     </developers>
 

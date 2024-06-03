@@ -103,7 +103,7 @@ Elide provides two capabilities to work around these issues for large tables tha
    a database column if the database column is already case insensitive. It is also possible to use custom SQL dialects
    to leverage full text index support (where available).
 2. Elide supports a
-   [Text Search Data Store](https://github.com/yahoo/elide/tree/master/elide-datastore/elide-datastore-search) that can
+   [Text Search Data Store](https://github.com/paion-data/elide/tree/master/elide-datastore/elide-datastore-search) that can
    wrap another ORM data store. Whenever possible, the text search data store can delegate queries to a local Lucene
    index or a Elasticsearch cluster rather than the default data store.
 
@@ -171,7 +171,7 @@ For the cache to apply to a query, there are two requirements:
 
 ### With Spring Configuration
 
-The configuration property `elide.aggregation-store.query-cache.max-size` controls the size of the default cache 
+The configuration property `elide.aggregation-store.query-cache.max-size` controls the size of the default cache
 implementation. Setting the value to be zero or negative disables the cache.
 
 The configuration property `elide-aggregation-store.query-cache.expiration` sets the default item expiration.

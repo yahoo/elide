@@ -1,6 +1,6 @@
 # Overview
 
-Provides full text search for Elide.  
+Provides full text search for Elide.
 
 ## Requirements
 
@@ -11,7 +11,7 @@ This store leverages [Hibernate Search](https://hibernate.org/search/) which req
 `SearchDataStore` wraps another fully featured store and supports full text search on fields that are indexed using Hibernate Search.
 If the query cannot be answered by the `SearchDataStore`, it delegates the query to the underlying (wrapped) data store.
 
-### Annotate Your Entity 
+### Annotate Your Entity
 
 Use Hibernate Search annotations to describe how your entities are indexed and stored in Lucene or Elasticsearch.
 Some of the annotations (like `AnalyzerDef`) can be defined once at the package level if desired.
@@ -74,6 +74,7 @@ and then configured by setting the property `hibernate.search.backend.analysis.c
 ```
 
 ### Wrap Your DataStore
+
 ```java
 /* Create your JPA data store */
 DataStore store = ...
@@ -91,9 +92,10 @@ ElideSettings = new ElideSettingsBuidler(searchStore).build();
 ### Indexing your Data
 You can index data either by:
 
-1.  When the `SearchDataStore` is initialized, indicate (by setting `indexOnStartup` to true) that the search store should build a complete index.
-2.  Issuing created, updated, and delete requests against your Elide service.
-3.  Using an out of band process using Hibernate Search APIs.
+1. When the `SearchDataStore` is initialized, indicate (by setting `indexOnStartup` to true) that the search store
+   should build a complete index.
+2. Issuing created, updated, and delete requests against your Elide service.
+3. Using an out of band process using Hibernate Search APIs.
 
 ## Caveats
 
@@ -103,7 +105,7 @@ Only text fields (String) are supported/tested. Other data types (dates, numbers
 
 ### Filter Operators
 
-Only INFIX, and PREFIX filter operators (and their case insensitive equivalents) are supported.  Note that hibernate search only indexes and analyzes fields as either case sensitive or not case-sensitive - so a given field will only support the INFIX/PREFIX filter operator that matches how the field was indexed.  
+Only INFIX, and PREFIX filter operators (and their case insensitive equivalents) are supported.  Note that hibernate search only indexes and analyzes fields as either case sensitive or not case-sensitive - so a given field will only support the INFIX/PREFIX filter operator that matches how the field was indexed.
 
 All other filter operators are passed to the underlying wrapped JPA store.
 
@@ -111,8 +113,8 @@ All other filter operators are passed to the underlying wrapped JPA store.
 
 #### Index Analysis
 
-To implement correct behavior for Elide's INFIX and PREFIX operators, the search store assumes an ngram (non-edge) tokenizer is used.  
-This allows white spaces and punctuation to be included in the index.  
+To implement correct behavior for Elide's INFIX and PREFIX operators, the search store assumes an ngram (non-edge) tokenizer is used.
+This allows white spaces and punctuation to be included in the index.
 
 If the client provides a filter predicate with a term which is smaller or larger than the min/max ngram sizes respectively, it will not be found in the index.
 The search store can be configured to return a 400 error to the client in those scenarios by passing the minimum and maximum ngram size to
@@ -130,6 +132,6 @@ Elide creates a Hibernate Search `SimpleQueryString` for each predicate.  It fir
 
 When using the INFIX operator, sorting and pagination are pushed to down Lucene/ElasticSearch. When using the PREFIX operator, they are performed in-memory in the Elide service.
 
-Elide constructs a Prefix query, which together with an ngram index fully implements the INFIX operator.  However, the ngram analyzer adds ngrams to the index that do not start on word 
-boundaries.  For the prefix operator, the search store first performs the lucene filter and then filters again in-memory to return the correct set of matching terms.  
+Elide constructs a Prefix query, which together with an ngram index fully implements the INFIX operator.  However, the ngram analyzer adds ngrams to the index that do not start on word
+boundaries.  For the prefix operator, the search store first performs the lucene filter and then filters again in-memory to return the correct set of matching terms.
 In this instance, because filtering is performed partially in memory, Elide also sorts and paginates in memory as well.

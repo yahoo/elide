@@ -20,7 +20,7 @@ elide:
     header:
       enabled: true
       header-name:
-      - ApiVersion
+        - ApiVersion
   async:
     enabled: true
     thread-pool-size: 7
@@ -62,9 +62,9 @@ spring:
     username: 'sa'
     password: ''
     driver-class-name: 'org.h2.Driver'
-#  activemq:
-#    broker-url: 'vm://embedded?broker.persistent=false,useShutdownHook=false'
-#    in-memory: true
+  #  activemq:
+  #    broker-url: 'vm://embedded?broker.persistent=false,useShutdownHook=false'
+  #    in-memory: true
   artemis:
     broker-url: 'vm://embedded?broker.persistent=false,useShutdownHook=false'
     #mode: embedded

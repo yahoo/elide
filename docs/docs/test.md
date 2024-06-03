@@ -3,8 +3,8 @@ sidebar_position: 11
 title: Test
 ---
 
-The [elide-test-helpers](https://github.com/paion-data/elide/tree/master/elide-test) package provides a JSON-API and 
-GraphQL type safe DSL that simplifies adding integration tests to your service.  The DSLs are designed to work with 
+The [elide-test-helpers](https://github.com/paion-data/elide/tree/master/elide-test) package provides a JSON-API and
+GraphQL type safe DSL that simplifies adding integration tests to your service.  The DSLs are designed to work with
 [Rest Assured](http://rest-assured.io/).
 
 Dependencies
@@ -18,7 +18,7 @@ The example leverages:
 2. [JUnit 5](https://junit.org/junit5/) for adding tests.
 3. [elide-test-helpers](https://github.com/paion-data/elide/tree/master/elide-test) for the JSON-API and GraphQL DSLs.
 4. [Rest Assured](http://rest-assured.io/) for issuing HTTP requests against the test service.
-5. [Spring Boot Test Starter](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test) for 
+5. [Spring Boot Test Starter](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test) for
    adding test data for each test.
 6. [H2 In Memory Database](https://www.h2database.com/html/main.html) for an in memory test database.
 
@@ -26,13 +26,13 @@ The example leverages:
 
 ```xml
 <dependency>
-    <groupId>com.yahoo.elide</groupId>
+    <groupId>com.paiondata.elide</groupId>
     <artifactId>elide-spring-boot-starter</artifactId>
     <version>${elide.version}</version>
 </dependency>
 
 <dependency>
-    <groupId>com.yahoo.elide</groupId>
+    <groupId>com.paiondata.elide</groupId>
     <artifactId>elide-test-helpers</artifactId>
     <version>${elide.version}</version>
     <scope>test</scope>
@@ -76,7 +76,7 @@ The example leverages:
 Setup
 -----
 
-Using elide with Spring Boot, we can set up a test service for integration tests by having our test classes extend a 
+Using elide with Spring Boot, we can set up a test service for integration tests by having our test classes extend a
 common test base class like this one:
 
 ```java
@@ -101,7 +101,7 @@ public class IntegrationTest {
 JSON-API DSL
 ------------
 
-Using Rest Assured and the JSON-API DSL, we can issue JSON-API requests and verify responses against our test service. 
+Using Rest Assured and the JSON-API DSL, we can issue JSON-API requests and verify responses against our test service.
 This example uses Spring Boot to initialize the H2 database with a clean set of test records.
 
 ```java
@@ -142,7 +142,7 @@ The complete set of static DSL operators for JSON-API can be found
 GraphQL DSL
 -----------
 
-Using Rest Assured and the GraphQL DSL, we can issue GraphQL requests and verify responses against our test service 
+Using Rest Assured and the GraphQL DSL, we can issue GraphQL requests and verify responses against our test service
 like this:
 
 ```java
@@ -152,7 +152,7 @@ like this:
             "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n" +
                     "\t\t('com.example.repository','Example Repository','The code for this project');",
             "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n" +
-                    "\t\t('com.yahoo.elide','Elide','The magical library powering this project');"
+                    "\t\t('com.paiondata.elide','Elide','The magical library powering this project');"
     })
     void graphqlTest() {
         given()
@@ -185,7 +185,7 @@ like this:
                             field("description", "The code for this project")
                         ),
                         selections(
-                            field("name", "com.yahoo.elide"),
+                            field("name", "com.paiondata.elide"),
                             field( "commonName", "Elide"),
                             field("description", "The magical library powering this project")
                         )

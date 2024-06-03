@@ -1,21 +1,21 @@
 version: 2
 updates:
-- package-ecosystem: maven
-  directory: "/"
-  schedule:
-    interval: weekly
-    time: "13:00"
-  open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: org.hibernate.validator:hibernate-validator
-    versions:
-    - 7.0.0.Final
-  - dependency-name: com.graphql-java:graphql-java
-    versions:
-    - "16.1"
-  - dependency-name: org.glassfish.jersey.inject:jersey-hk2
-    versions:
-    - 3.0.0
-  - dependency-name: org.glassfish.jersey.containers:jersey-container-servlet
-    versions:
-    - 3.0.0
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+      time: "13:00"
+    open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: org.hibernate.validator:hibernate-validator
+        versions:
+          - 7.0.0.Final
+      - dependency-name: com.graphql-java:graphql-java
+        versions:
+          - "16.1"
+      - dependency-name: org.glassfish.jersey.inject:jersey-hk2
+        versions:
+          - 3.0.0
+      - dependency-name: org.glassfish.jersey.containers:jersey-container-servlet
+        versions:
+          - 3.0.0

@@ -200,8 +200,8 @@ public boolean enableISO8601Dates() {
 
 The following date serdes can be registered:
 
-1. [ISO8601 Serde](https://github.com/yahoo/elide/blob/master/elide-core/src/main/java/com/yahoo/elide/core/utils/coerce/converters/ISO8601DateSerde.java)
-2. [Epoch Serde](https://github.com/yahoo/elide/blob/master/elide-core/src/main/java/com/yahoo/elide/core/utils/coerce/converters/EpochToDateConverter.java)
+1. [ISO8601 Serde](https://github.com/paion-data/elide/blob/master/elide-core/src/main/java/com/paiondata/elide/core/utils/coerce/converters/ISO8601DateSerde.java)
+2. [Epoch Serde](https://github.com/paion-data/elide/blob/master/elide-core/src/main/java/com/paiondata/elide/core/utils/coerce/converters/EpochToDateConverter.java)
 
 #### UUID Coercion
 
@@ -270,15 +270,15 @@ public class InvalidEntityBodyExceptionMapper implements ExceptionMapper<Invalid
 ```
 
 The `ElideErrors` will be mapped to the corresponding `JsonApiErrors` and `GraphQLErrors`. The
-[`JsonApiError`](https://github.com/yahoo/elide/blob/master/elide-core/src/main/java/com/yahoo/elide/jsonapi/serialization/JsonApiErrorSerializer.java)
+[`JsonApiError`](https://github.com/paion-data/elide/blob/master/elide-core/src/main/java/com/paiondata/elide/jsonapi/serialization/JsonApiErrorSerializer.java)
 and
-[`GraphQLError`](https://github.com/yahoo/elide/blob/master/elide-graphql/src/main/java/com/yahoo/elide/graphql/serialization/GraphQLErrorSerializer.java)
+[`GraphQLError`](https://github.com/paion-data/elide/blob/master/elide-graphql/src/main/java/com/paiondata/elide/graphql/serialization/GraphQLErrorSerializer.java)
 are what is serialized as a response.
 
 This mapping of `ElideErrors` happens in the
-[`DefaultJsonApiExceptionHandler`](https://github.com/yahoo/elide/blob/master/elide-core/src/main/java/com/yahoo/elide/jsonapi/DefaultJsonApiExceptionHandler.java)
+[`DefaultJsonApiExceptionHandler`](https://github.com/paion-data/elide/blob/master/elide-core/src/main/java/com/paiondata/elide/jsonapi/DefaultJsonApiExceptionHandler.java)
 and
-[`DefaultGraphQLExceptionHandler`](https://github.com/yahoo/elide/blob/master/elide-graphql/src/main/java/com/yahoo/elide/graphql/DefaultGraphQLExceptionHandler.java)
+[`DefaultGraphQLExceptionHandler`](https://github.com/paion-data/elide/blob/master/elide-graphql/src/main/java/com/paiondata/elide/graphql/DefaultGraphQLExceptionHandler.java)
 using the `JsonApiErrorMapper` and `GraphQLErrorMapper`.
 
 We can configure a custom `ExceptionMapper` as follows:

@@ -10,21 +10,21 @@ The following guide is intended to help developers who maintain or want to make 
 
 ### Building
 
-Elide is built using maven.  Because elide is a mono-repo with interdependencies between modules, it is recommended to 
+Elide is built using maven.  Because elide is a mono-repo with interdependencies between modules, it is recommended to
 fully build and install the project at least once:
 
 ```console
 mvn clean install
 ```
 
-Thereafter, individual modules can be built whenever making changes to them.  For example, the following command would 
+Thereafter, individual modules can be built whenever making changes to them.  For example, the following command would
 rebuild only elide-core:
 
 ```console
 mvn clean install -f elide-core
 ```
 
-Pull requests and release builds leverage [GitHub Actions](https://docs.github.com/en/actions). PR builds simply run the 
+Pull requests and release builds leverage [GitHub Actions](https://docs.github.com/en/actions). PR builds simply run the
 complete build along with code coverage:
 
 ```console
@@ -33,7 +33,7 @@ mvn -B install -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
 
 ### Release Versions
 
-Elide follows [semantic versioning](https://semver.org/) for its releases. Minor and patch versions only have the 
+Elide follows [semantic versioning](https://semver.org/) for its releases. Minor and patch versions only have the
 following version components:
 
 `MAJOR.MINOR.PATCH`.
@@ -41,8 +41,8 @@ following version components:
 Integration Tests
 -----------------
 
-The `elide-integration-tests` module runs API tests against an embedded Jetty application with an H2 database for 
-persistence. Integration tests are run for the JPA, hibernate, and inmemory stores. The module produce a 'test-jar' 
+The `elide-integration-tests` module runs API tests against an embedded Jetty application with an H2 database for
+persistence. Integration tests are run for the JPA, hibernate, and inmemory stores. The module produce a 'test-jar'
 artifact that is then referenced for each data store module (jpa, hibernate, etc) that runs the corresponding tests.
 
 Not every tests works for every store, and JUnit tags are leveraged to isolate the tests appropriate for each target.
