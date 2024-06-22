@@ -13,7 +13,8 @@ import com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHydrator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hjson.JsonValue;
 import org.hjson.ParseException;
@@ -58,9 +59,9 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.MODELVARIABLE, jsonConfig, fileName)) {
                 variables = getModelPojo(jsonConfig, Map.class);
             }
-        } catch (ProcessingException e) {
+        } catch (IOException e) {
             log.error("Error Validating Variable config : " + e.getMessage());
-            throw new IOException(e);
+            throw e;
         }
         return variables;
     }
@@ -81,9 +82,9 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.TABLE, jsonConfig, fileName)) {
                 table = getModelPojo(jsonConfig, ElideTableConfig.class);
             }
-        } catch (ProcessingException e) {
+        } catch (IOException e) {
             log.error("Error Validating Table config : " + e.getMessage());
-            throw new IOException(e);
+            throw e;
         }
         return table;
     }
@@ -104,9 +105,9 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.SQLDBConfig, jsonConfig, fileName)) {
                 dbconfig = getModelPojo(jsonConfig, ElideDBConfig.class);
             }
-        } catch (ProcessingException e) {
+        } catch (IOException e) {
             log.error("Error Validating DB config : " + e.getMessage());
-            throw new IOException(e);
+            throw e;
         }
         return dbconfig;
     }
@@ -127,9 +128,9 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.NAMESPACEConfig, jsonConfig, fileName)) {
                 namespaceconfig = getModelPojo(jsonConfig, ElideNamespaceConfig.class);
             }
-        } catch (ProcessingException e) {
+        } catch (IOException e) {
             log.error("Error Validating DB config : " + e.getMessage());
-            throw new IOException(e);
+            throw e;
         }
         return namespaceconfig;
     }
@@ -149,9 +150,9 @@ public class DynamicConfigHelpers {
             if (schemaValidator.verifySchema(Config.SECURITY, jsonConfig, fileName)) {
                 return getModelPojo(jsonConfig, ElideSecurityConfig.class);
             }
-        } catch (ProcessingException e) {
+        } catch (IOException e) {
             log.error("Error Validating Security config : " + e.getMessage());
-            throw new IOException(e);
+            throw e;
         }
         return null;
     }
@@ -176,9 +177,19 @@ public class DynamicConfigHelpers {
         }
     }
 
+    private static class DynamicConfigObjectMapper {
+        private static final ObjectMapper INSTANCE;
+
+        static {
+            INSTANCE = JsonMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build();
+        }
+
+        private static ObjectMapper getInstance() {
+            return INSTANCE;
+        }
+    }
+
     private static <T> T getModelPojo(String jsonConfig, final Class<T> configPojo) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
-        return objectMapper.readValue(jsonConfig, configPojo);
+        return DynamicConfigObjectMapper.getInstance().readValue(jsonConfig, configPojo);
     }
 }
