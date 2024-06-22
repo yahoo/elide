@@ -1,5 +1,15 @@
 # Change Log
 
+## 7.1.0
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/29a605d0adc1ac91a25bd70e54c9915f22783771) Remove attributes and relationships from swagger components (#3229) (#3230) 
+ * [view commit](https://github.com/yahoo/elide/commit/1d9223bfe6dc140c18543230f8c027566e3105fe) Upgrade dependencies (#3217) 
+ * [view commit](https://github.com/yahoo/elide/commit/00a05e8189a81708c9ae92cab034c270cfc82ac5) Migrate rxjava2 to reactor (#3227) 
+ * [view commit](https://github.com/yahoo/elide/commit/ae4c615060718e787d3e825564515c0ecc769f2c) Migrate to networknt json schema validator implementation (#3212) 
+ * [view commit](https://github.com/yahoo/elide/commit/4999559047a7b19243f77006ecd24118a29688c7) Bump jetty.version from 12.0.9 to 12.0.10 (#3235) 
+ * [view commit](https://github.com/yahoo/elide/commit/63f0f6a18c757698c303407988b0a5d56dce7a9d) Bump spring-boot.version from 3.3.0 to 3.3.1 (#3234) 
+ * [view commit](https://github.com/yahoo/elide/commit/a7eb46291d9a7b9de208ca205b1617dee0101a2a) Bump spring-framework.version from 6.1.8 to 6.1.10 (#3233) 
+
 ## 7.0.5
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/7925edc78c8c013c6db9acc69051b36b929cc55f) Allow customization of GraphQLFieldDefinition (#3216) 
