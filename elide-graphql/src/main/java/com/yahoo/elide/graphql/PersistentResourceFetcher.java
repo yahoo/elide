@@ -27,12 +27,11 @@ import com.google.common.collect.Sets;
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.reactivex.Observable;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -167,16 +166,16 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
         String typeName = dictionary.getJsonAliasFor(projection.getType());
 
         /* fetching a collection */
-        Observable<PersistentResource> records = ids.map((idList) -> {
+        Flux<PersistentResource> records = ids.map((idList) -> {
             /* handle empty list of ids */
             if (idList.isEmpty()) {
                 throw new BadRequestException("Empty list passed to ids");
             }
 
             return PersistentResource.loadRecords(projection, idList, requestScope);
-        }).orElseGet(() -> PersistentResource.loadRecords(projection, new ArrayList<>(), requestScope));
+        }).orElseGet(() -> PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope));
 
-        return new ConnectionContainer(records.toList(LinkedHashSet::new).blockingGet(),
+        return new ConnectionContainer(records.collect(Collectors.toCollection(LinkedHashSet::new)).block(),
                 Optional.ofNullable(projection.getPagination()), typeName);
     }
 
@@ -199,11 +198,11 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
 
         Set<PersistentResource> relationResources;
         if (ids.isPresent()) {
-            relationResources =
-                    parentResource.getRelation(ids.get(), relationship).toList(LinkedHashSet::new).blockingGet();
+            relationResources = parentResource.getRelation(ids.get(), relationship)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
         } else {
-            relationResources =
-                    parentResource.getRelationCheckedFiltered(relationship).toList(LinkedHashSet::new).blockingGet();
+            relationResources = parentResource.getRelationCheckedFiltered(relationship)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
         }
 
         return new ConnectionContainer(

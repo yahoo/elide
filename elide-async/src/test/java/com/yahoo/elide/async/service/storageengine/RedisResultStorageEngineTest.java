@@ -14,7 +14,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.reactivex.plugins.RxJavaPlugins;
 import redis.clients.jedis.JedisPooled;
 import redis.embedded.RedisServer;
 
@@ -136,21 +135,11 @@ public class RedisResultStorageEngineTest {
     // Redis server does not exist.
     @Test
     public void testStoreResultsFail() throws IOException {
-        io.reactivex.functions.Consumer<? super Throwable> old = RxJavaPlugins.getErrorHandler();
-
-        try {
-            RxJavaPlugins.setErrorHandler(e -> {
-                // Ignore all errors
-            });
-
-            destroy();
-            assertThrows(UncheckedIOException.class, () ->
-                    storeResults("store_results_fail",
-                            outputStream -> write(outputStream, new String[]{"hi", "hello"}))
-            );
-        } finally {
-            RxJavaPlugins.setErrorHandler(old);
-        }
+        destroy();
+        assertThrows(UncheckedIOException.class, () ->
+                storeResults("store_results_fail",
+                        outputStream -> write(outputStream, new String[]{"hi", "hello"}))
+        );
     }
 
     @Test

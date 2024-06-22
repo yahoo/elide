@@ -18,14 +18,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.reactivex.Observable;
+import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Entities Data Fetcher for Apollo Federation.
@@ -54,20 +55,18 @@ public class EntitiesDataFetcher implements DataFetcher<List<NodeContainer>> {
                 .getProjection(null, entityName);
 
         /* fetching a collection */
-        Observable<PersistentResource> records = Optional.of(ids).map((idList) -> {
+        Flux<PersistentResource> records = Optional.of(ids).map((idList) -> {
             /* handle empty list of ids */
             if (idList.isEmpty()) {
                 throw new BadRequestException("Empty list passed to ids");
             }
 
             return PersistentResource.loadRecords(projection, idList, requestScope);
-        }).orElseGet(() -> PersistentResource.loadRecords(projection, new ArrayList<>(), requestScope));
-
+        }).orElseGet(() -> PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope));
 
         // Ignore errors as potentially an id on a subgraph no longer exists here
-        Set<PersistentResource> results = records.onExceptionResumeNext(Observable.empty())
-                .toList(LinkedHashSet::new)
-                .blockingGet();
+        Set<PersistentResource> results = records.onErrorResume(error -> Flux.empty())
+                .collect(Collectors.toCollection(LinkedHashSet::new)).block();
 
         // Return node containers in order of the ids from the representations
         return ids.stream().map(id -> {

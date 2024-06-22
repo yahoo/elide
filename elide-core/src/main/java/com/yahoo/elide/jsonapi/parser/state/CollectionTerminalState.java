@@ -34,11 +34,10 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import io.reactivex.Observable;
 import lombok.ToString;
-
-import java.util.ArrayList;
+import reactor.core.publisher.Flux;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,13 +52,13 @@ import java.util.stream.Collectors;
  */
 @ToString
 public class CollectionTerminalState extends BaseState {
-    private final Optional<PersistentResource> parent;
+    private final Optional<PersistentResource<?>> parent;
     private final Optional<String> relationName;
     private final Type<?> entityClass;
-    private PersistentResource newObject;
+    private PersistentResource<?> newObject;
     private final EntityProjection parentProjection;
 
-    public CollectionTerminalState(Type<?> entityClass, Optional<PersistentResource> parent,
+    public CollectionTerminalState(Type<?> entityClass, Optional<PersistentResource<?>> parent,
                                    Optional<String> relationName, EntityProjection projection) {
         this.parentProjection = projection;
         this.parent = parent;
@@ -74,7 +73,7 @@ public class CollectionTerminalState extends BaseState {
         Map<String, List<String>> queryParams = requestScope.getRoute().getParameters();
 
         LinkedHashSet<PersistentResource> collection =
-                getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
+                getResourceCollection(requestScope).collect(Collectors.toCollection(LinkedHashSet::new)).block();
 
         // Set data
         jsonApiDocument.setData(getData(collection, requestScope.getDictionary()));
@@ -134,8 +133,8 @@ public class CollectionTerminalState extends BaseState {
         };
     }
 
-    private Observable<PersistentResource> getResourceCollection(RequestScope requestScope) {
-        final Observable<PersistentResource> collection;
+    private Flux<PersistentResource> getResourceCollection(RequestScope requestScope) {
+        final Flux<PersistentResource> collection;
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
 
@@ -146,7 +145,7 @@ public class CollectionTerminalState extends BaseState {
         } else {
             collection = PersistentResource.loadRecords(
                 parentProjection,
-                new ArrayList<>(), //Empty list of IDs
+                Collections.emptyList(), //Empty list of IDs
                 requestScope);
         }
 
