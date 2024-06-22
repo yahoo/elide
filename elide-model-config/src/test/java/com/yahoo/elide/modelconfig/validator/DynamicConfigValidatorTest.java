@@ -235,11 +235,11 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        String expectedError = "Schema validation failed for: models/security.hjson\n"
-                        + "[ERROR]\n"
-                        + "Instance[/roles/0] failed to validate against schema[/properties/roles/items]. Role [admin,] is not allowed. Role must start with an alphabetic character and can include alaphabets, numbers, spaces and '.' only.\n"
-                        + "[ERROR]\n"
-                        + "Instance[/roles/1] failed to validate against schema[/properties/roles/items]. Role [guest,] is not allowed. Role must start with an alphabetic character and can include alaphabets, numbers, spaces and '.' only.\n";
+        String expectedError = """
+                Schema validation failed for: models/security.hjson
+                /roles/0: does not match the elideRole pattern must start with an alphabetic character and can include alphabets, numbers, spaces and '.' only.
+                /roles/1: does not match the elideRole pattern must start with an alphabetic character and can include alphabets, numbers, spaces and '.' only.
+                """;
         assertEquals(expectedError.replaceAll("\n", System.lineSeparator()), error);
     }
 
@@ -262,9 +262,10 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        String expected = "Schema validation failed for: models/namespaces/test_namespace.hjson\n"
-                + "[ERROR]\n"
-                + "Instance[/namespaces/0/name] failed to validate against schema[/properties/namespaces/items/properties/name]. Name [Default] clashes with the 'default' namespace. Either change the case or pick a different namespace name.\n";
+        String expected = """
+                Schema validation failed for: models/namespaces/test_namespace.hjson
+                /namespaces/0/name: does not match the elideNamespaceName pattern must start with an alphabetic character and can include alphabets, numbers and '_' only and must not clash with the 'default' namespace.
+                """;
         assertEquals(expected.replaceAll("\n", System.lineSeparator()), error);
     }
 
@@ -297,32 +298,28 @@ public class DynamicConfigValidatorTest {
                     DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type"}));
             assertEquals(2, exitStatus);
         });
-        String expected = "Schema validation failed for: models/tables/table1.hjson\n"
-                        + "[ERROR]\n"
-                        + "Instance[/tables/0/joins/0/kind] failed to validate against schema[/definitions/join/properties/kind]. Join kind [toAll] is not allowed. Supported value is one of [ToOne, ToMany].\n"
-                        + "[ERROR]\n"
-                        + "Instance[/tables/0/joins/1/type] failed to validate against schema[/definitions/join/properties/type]. Join type [full outer] is not allowed. Supported value is one of [left, inner, full, cross].\n";
+        String expected = """
+                Schema validation failed for: models/tables/table1.hjson
+                /tables/0/joins/0/kind: does not match the elideJoinKind pattern must be one of [ToOne, ToMany].
+                /tables/0/joins/1/type: does not match the elideJoinType pattern must be one of [left, inner, full, cross].
+                """;
 
         assertEquals(expected.replaceAll("\n", System.lineSeparator()), error);
     }
 
     @Test
     public void testBadDimName() throws Exception {
-        String expectedMessage = "Schema validation failed for: models/tables/table1.hjson\n"
-                        + "[ERROR]\n"
-                        + "Instance[/tables/0/dimensions/0] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
-                        + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
-                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be one of [id, sql]\n"
-                        + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
-                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be one of [id, sql]\n"
-                        + "        Instance[/tables/0/dimensions/0/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [Text] is not allowed. Field type must be [Time] for any time dimension.\n"
-                        + "[ERROR]\n"
-                        + "Instance[/tables/0/dimensions/1] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
-                        + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
-                        + "        Instance[/tables/0/dimensions/1/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [_region] is not allowed. Field name must start with lower case alphabet and can include alaphabets, numbers and '_' only.\n"
-                        + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
-                        + "        Instance[/tables/0/dimensions/1/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [_region] is not allowed. Field name must start with lower case alphabet and can include alaphabets, numbers and '_' only.\n"
-                        + "        Instance[/tables/0/dimensions/1/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [Text] is not allowed. Field type must be [Time] for any time dimension.\n";
+        String expectedMessage = """
+                Schema validation failed for: models/tables/table1.hjson
+                /tables/0/dimensions/0: must be valid to one and only one schema, but 0 are valid
+                /tables/0/dimensions/0/name: does not match the elideFieldName pattern must start with lower case alphabet and can include alphabets, numbers and '_' only and cannot be one of [id, sql]
+                /tables/0/dimensions/0/name: does not match the elideFieldName pattern must start with lower case alphabet and can include alphabets, numbers and '_' only and cannot be one of [id, sql]
+                /tables/0/dimensions/0/type: does not match the elideTimeFieldType pattern must be [Time] for any time dimension.
+                /tables/0/dimensions/1: must be valid to one and only one schema, but 0 are valid
+                /tables/0/dimensions/1/name: does not match the elideFieldName pattern must start with lower case alphabet and can include alphabets, numbers and '_' only and cannot be one of [id, sql]
+                /tables/0/dimensions/1/name: does not match the elideFieldName pattern must start with lower case alphabet and can include alphabets, numbers and '_' only and cannot be one of [id, sql]
+                /tables/0/dimensions/1/type: does not match the elideTimeFieldType pattern must be [Time] for any time dimension.
+                """;
 
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
