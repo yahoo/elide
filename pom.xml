@@ -132,7 +132,7 @@
         <rsql-parser.version>2.1.0</rsql-parser.version>
         <slf4j.version>2.0.13</slf4j.version>
         <spring-boot.version>3.3.1</spring-boot.version>
-        <spring-framework.version>6.1.8</spring-framework.version>
+        <spring-framework.version>6.1.10</spring-framework.version>
         <spring-cloud-commons.version>4.1.2</spring-cloud-commons.version>
         <springdoc.version>2.5.0</springdoc.version>
         <swagger-api.version>2.2.22</swagger-api.version>
