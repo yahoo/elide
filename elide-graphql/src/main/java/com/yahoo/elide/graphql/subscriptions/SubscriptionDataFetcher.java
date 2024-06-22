@@ -18,11 +18,10 @@ import com.yahoo.elide.graphql.subscriptions.containers.SubscriptionNodeContaine
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Data Fetcher which fetches Elide subscription models.
@@ -31,7 +30,7 @@ import java.util.ArrayList;
 public class SubscriptionDataFetcher implements DataFetcher<Object>, QueryLogger {
 
     private final NonEntityDictionary nonEntityDictionary;
-    private final Integer bufferSize;
+    private final int bufferSize;
 
     /**
      * Constructor.
@@ -74,10 +73,9 @@ public class SubscriptionDataFetcher implements DataFetcher<Object>, QueryLogger
                     .getProjectionInfo()
                     .getProjection(aliasName, entityName);
 
-            Flowable<PersistentResource> recordPublisher =
-                    PersistentResource.loadRecords(projection, new ArrayList<>(), context.requestScope)
-                            .toFlowable(BackpressureStrategy.BUFFER)
-                            .onBackpressureBuffer(bufferSize, true, false);
+            Flux<PersistentResource> recordPublisher = PersistentResource
+                    .loadRecords(projection, Collections.emptyList(), context.requestScope)
+                    .onBackpressureBuffer(bufferSize);
 
             return recordPublisher.map(SubscriptionNodeContainer::new);
         }

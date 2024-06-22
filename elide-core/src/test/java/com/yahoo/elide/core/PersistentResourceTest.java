@@ -89,8 +89,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 
-import io.reactivex.Observable;
 import nocreate.NoCreateEntity;
+import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -407,13 +407,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             PersistentResource<Child> child3Resource = new PersistentResource<>(child3, "3", scope);
             PersistentResource<Child> child4Resource = new PersistentResource<>(child4, "-4", scope);
 
-            Observable<PersistentResource> resources =
-                    Observable.fromArray(child1Resource, child2Resource, child3Resource, child4Resource);
+            Flux<PersistentResource> resources = Flux.just(child1Resource, child2Resource, child3Resource,
+                    child4Resource);
 
-            Set<PersistentResource> results =
-                    PersistentResource.filter(
-                            ReadPermission.class,
-                            Optional.empty(), ALL_FIELDS, resources).toList(LinkedHashSet::new).blockingGet();
+            Set<PersistentResource> results = PersistentResource
+                    .filter(ReadPermission.class, Optional.empty(), ALL_FIELDS, resources)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
 
             assertEquals(2, results.size(), "Only a subset of the children are readable");
             assertTrue(results.contains(child1Resource), "Readable children includes children with positive IDs");
@@ -427,11 +426,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             PersistentResource<Child> child3Resource = new PersistentResource<>(child3, "3", scope);
             PersistentResource<Child> child4Resource = new PersistentResource<>(child4, "-4", scope);
 
-            Observable<PersistentResource> resources =
-                    Observable.fromArray(child1Resource, child2Resource, child3Resource, child4Resource);
+            Flux<PersistentResource> resources = Flux.just(child1Resource, child2Resource, child3Resource,
+                    child4Resource);
 
-            Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class,
-                    Optional.empty(), ALL_FIELDS, resources).toList(LinkedHashSet::new).blockingGet();
+            Set<PersistentResource> results = PersistentResource
+                    .filter(ReadPermission.class, Optional.empty(), ALL_FIELDS, resources)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
 
             assertEquals(0, results.size(), "No children are readable by an invalid user");
         }
@@ -2136,7 +2136,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Set<PersistentResource> loaded = PersistentResource.loadRecords(EntityProjection.builder()
                 .type(Child.class)
-                .build(), new ArrayList<>(), goodScope).toList(LinkedHashSet::new).blockingGet();
+                .build(), Collections.emptyList(), goodScope).collect(Collectors.toCollection(LinkedHashSet::new)).block();
 
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);
 

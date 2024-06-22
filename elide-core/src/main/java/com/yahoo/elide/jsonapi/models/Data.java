@@ -11,8 +11,8 @@ import com.yahoo.elide.jsonapi.serialization.DataSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import io.reactivex.Observable;
 import lombok.ToString;
+import reactor.core.publisher.Flux;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -26,7 +26,7 @@ import java.util.Comparator;
 @JsonDeserialize(using = DataDeserializer.class)
 @ToString
 public class Data<T> {
-    private final Observable<T> values;
+    private Flux<T> values;
     private final RelationshipType relationshipType;
 
     /**
@@ -36,9 +36,9 @@ public class Data<T> {
      */
     public Data(T value) {
         if (value == null) {
-            this.values = Observable.empty();
+            this.values = Flux.empty();
         } else {
-            this.values = Observable.fromArray(value);
+            this.values = Flux.just(value);
         }
         this.relationshipType = RelationshipType.MANY_TO_ONE; // Any "toOne"
     }
@@ -48,7 +48,7 @@ public class Data<T> {
      *
      * @param values List of resources
      */
-    public Data(Observable<T> values) {
+    public Data(Flux<T> values) {
         this(values, RelationshipType.MANY_TO_MANY);
     }
 
@@ -58,7 +58,7 @@ public class Data<T> {
      * @param values List of resources
      * @param relationshipType toOne or toMany
      */
-    public Data(Observable<T> values, RelationshipType relationshipType) {
+    public Data(Flux<T> values, RelationshipType relationshipType) {
         this.values = values;
         this.relationshipType = relationshipType;
     }
@@ -79,7 +79,7 @@ public class Data<T> {
      * @param relationshipType toOne or toMany
      */
     public Data(Collection<T> values, RelationshipType relationshipType) {
-        this.values = Observable.fromIterable(values);
+        this.values = Flux.fromIterable(values);
         this.relationshipType = relationshipType;
     }
 
@@ -89,11 +89,16 @@ public class Data<T> {
      * @param sortFunction comparator to sort data with
      */
     public void sort(Comparator<T> sortFunction) {
-        this.values.sorted(sortFunction);
+        this.values = this.values.sort(sortFunction);
     }
 
+    /**
+     * Fetches the resources.
+     *
+     * @return the resources
+     */
     public Collection<T> get() {
-        return values.toList().blockingGet();
+        return values.collectList().block();
     }
 
     /**
@@ -113,18 +118,20 @@ public class Data<T> {
      */
     public T getSingleValue() {
         if (isToOne()) {
-            if (values.isEmpty().blockingGet()) {
-                return null;
-            }
-            return values.blockingSingle();
+            return values.singleOrEmpty().block();
         }
 
         throw new IllegalAccessError("Data is not toOne");
     }
 
+    /**
+     * Gets the resource identifiers.
+     *
+     * @return the resource identifiers
+     */
     public Collection<ResourceIdentifier> toResourceIdentifiers() {
         return values
                 .map(object -> object != null ? ((Resource) object).toResourceIdentifier() : null)
-                .toList().blockingGet();
+                .collectList().block();
     }
 }

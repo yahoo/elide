@@ -20,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A Document Processor that add requested relations to the include block of the JsonApiDocument.
@@ -93,8 +94,8 @@ public class IncludedProcessor implements DocumentProcessor {
         Set<PersistentResource> collection;
         Relationship relationship = projection.getRelationship(relation).orElseThrow(IllegalStateException::new);
         try {
-            collection = rec.getRelationCheckedFiltered(relationship).toList(LinkedHashSet::new).blockingGet();
-
+            collection = rec.getRelationCheckedFiltered(relationship)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
         } catch (ForbiddenAccessException e) {
             return;
         }

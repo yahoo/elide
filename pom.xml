@@ -128,7 +128,7 @@
         <lombok.version>1.18.32</lombok.version>
         <poi.version>5.2.5</poi.version>
         <rest-assured.version>5.4.0</rest-assured.version>
-        <rxjava.version>2.2.21</rxjava.version>
+        <reactor-bom.version>2023.0.6</reactor-bom.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
         <slf4j.version>2.0.13</slf4j.version>
         <spring-boot.version>3.3.0</spring-boot.version>
@@ -412,11 +412,6 @@
                 <version>${rsql-parser.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.reactivex.rxjava2</groupId>
-                <artifactId>rxjava</artifactId>
-                <version>${rxjava.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.owasp.encoder</groupId>
                 <artifactId>encoder</artifactId>
                 <version>${encoder.version}</version>
@@ -444,6 +439,14 @@
                 <groupId>org.eclipse.jetty.ee10</groupId>
                 <artifactId>jetty-ee10-bom</artifactId>
                 <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-bom</artifactId>
+                <version>${reactor-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
