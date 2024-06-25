@@ -33,6 +33,8 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.graphql.QueryRunners;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 
 import org.apache.hc.core5.http.NoHttpResponseException;
@@ -60,6 +62,7 @@ public class AsyncExecutorServiceTest {
     private RequestScope scope;
     private ResultStorageEngine resultStorageEngine;
     private DataFetcherExceptionHandler dataFetcherExceptionHandler = spy(new SimpleDataFetcherExceptionHandler());
+    private AsyncProviderService asyncProviderService;
 
     @BeforeEach
     void resetMocks() {
@@ -82,15 +85,19 @@ public class AsyncExecutorServiceTest {
         testUser = mock(User.class);
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
+        JsonApi jsonApi = new JsonApi(elide);
+        QueryRunners queryRunners = new QueryRunners(elide, Optional.of(dataFetcherExceptionHandler));
+        asyncProviderService = AsyncProviderService.builder().provider(JsonApi.class, jsonApi)
+                .provider(QueryRunners.class, queryRunners).build();
         service = new AsyncExecutorService(elide, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5),
-                        asyncApiDao, Optional.of(dataFetcherExceptionHandler));
+                        asyncApiDao, asyncProviderService);
 
     }
 
     @Test
     public void testAsyncExecutorServiceSet() {
         assertEquals(elide, service.getElide());
-        assertNotNull(service.getRunners());
+        assertNotNull(service.getProviders());
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
         assertEquals(asyncApiDao, service.getAsyncApiDao());

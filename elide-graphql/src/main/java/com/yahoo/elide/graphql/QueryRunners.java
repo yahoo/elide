@@ -10,9 +10,11 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.RefreshableElide;
 
 import graphql.execution.DataFetcherExceptionHandler;
+import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Maps API version to a GraphQL query runner.  This class is hot reloadable and must be restricted to a single
@@ -23,15 +25,34 @@ public class QueryRunners {
 
     /**
      * Constructor.
-     * @param refreshableElide A hot reloadable Elide instance.
+     * @param runners the runners.
+     */
+    public QueryRunners(Map<String, QueryRunner> runners) {
+        this.runners = runners;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param elide the elide
+     * @param optionalDataFetcherExceptionHandler the optional data fetched exception handler
+     */
+    public QueryRunners(Elide elide, Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler) {
+        this.runners = new HashMap<>();
+        for (String apiVersion : elide.getElideSettings().getEntityDictionary().getApiVersions()) {
+            this.runners.put(apiVersion, new QueryRunner(elide, apiVersion,
+                    optionalDataFetcherExceptionHandler.orElseGet(SimpleDataFetcherExceptionHandler::new)));
+        }
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param refreshableElide the elide
+     * @param exceptionHandler the data fetcher exception handler
      */
     public QueryRunners(RefreshableElide refreshableElide, DataFetcherExceptionHandler exceptionHandler) {
-        this.runners = new HashMap<>();
-        Elide elide = refreshableElide.getElide();
-
-        for (String apiVersion : elide.getElideSettings().getEntityDictionary().getApiVersions()) {
-            runners.put(apiVersion, new QueryRunner(elide, apiVersion, exceptionHandler));
-        }
+        this(refreshableElide.getElide(), Optional.of(exceptionHandler));
     }
 
     /**

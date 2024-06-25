@@ -17,6 +17,7 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.AsyncProviderService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.jsonapi.JsonApi;
@@ -32,6 +33,7 @@ public class JsonApiAsyncQueryOperationTest {
     private JsonApi jsonApi;
     private RequestScope requestScope;
     private AsyncExecutorService asyncExecutorService;
+    private AsyncProviderService asyncProviderService;
 
     @BeforeEach
     public void setupMocks() {
@@ -39,9 +41,11 @@ public class JsonApiAsyncQueryOperationTest {
         jsonApi = mock(JsonApi.class);
         requestScope = mock(RequestScope.class);
         asyncExecutorService = mock(AsyncExecutorService.class);
+        asyncProviderService = mock(AsyncProviderService.class);
+        when(asyncProviderService.getProvider(JsonApi.class)).thenReturn(jsonApi);
         when(requestScope.getRoute()).thenReturn(Route.builder().build());
         when(asyncExecutorService.getElide()).thenReturn(elide);
-        when(asyncExecutorService.getJsonApi()).thenReturn(jsonApi);
+        when(asyncExecutorService.getProviders()).thenReturn(asyncProviderService);
     }
 
     @Test

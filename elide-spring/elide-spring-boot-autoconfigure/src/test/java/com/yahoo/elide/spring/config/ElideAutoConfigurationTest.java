@@ -14,6 +14,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.SerdesBuilderCustomizer;
+import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.ErrorContext;
 import com.yahoo.elide.core.exceptions.ExceptionMapper;
 import com.yahoo.elide.core.exceptions.ExceptionMapperRegistration;
@@ -360,6 +361,21 @@ class ElideAutoConfigurationTest {
                     assertThat(error.getMessage()).isEqualTo(exception.getMessage());
                     Map<String, Object> meta = error.getExtensions();
                     assertThat(meta).containsEntry("constraint", exception.getConstraintName());
+                });
+    }
+
+    @Test
+    void asyncEnabledJsonApiEnabledGraphqlNotEnabled() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false", "elide.async.enabled=true", "elide.graphql.enabled=false", "elide.json-api.enabled=true")
+                .withConfiguration(AutoConfigurations.of(ElideAsyncConfiguration.class))
+                .withConfiguration(UserConfigurations.of(UserExceptionHandlerConfiguration.class)).run(context -> {
+                    ElideSettings elideSettings = context.getBean(RefreshableElide.class).getElide().getElideSettings();
+                    GraphQLSettings graphqlSettings = elideSettings.getSettings(GraphQLSettings.class);
+                    assertThat(graphqlSettings).isNull();
+                    JsonApiSettings jsonApiSettings = elideSettings.getSettings(JsonApiSettings.class);
+                    assertThat(jsonApiSettings).isNotNull();
+                    AsyncExecutorService asyncExecutorService = context.getBean(AsyncExecutorService.class);
+                    assertThat(asyncExecutorService).isNotNull();
                 });
     }
 }

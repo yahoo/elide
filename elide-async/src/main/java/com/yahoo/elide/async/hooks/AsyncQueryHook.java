@@ -18,6 +18,7 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.graphql.QueryRunners;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -44,7 +45,8 @@ public class AsyncQueryHook extends AsyncApiHook<AsyncQuery> {
         super.validateOptions(query, requestScope);
 
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            QueryRunner runner = getAsyncExecutorService().getRunners().get(requestScope.getRoute().getApiVersion());
+            QueryRunner runner = getAsyncExecutorService().getProviders().getProvider(QueryRunners.class)
+                    .getRunner(requestScope.getRoute().getApiVersion());
             if (runner == null) {
                 throw new InvalidOperationException("Invalid API Version");
             }

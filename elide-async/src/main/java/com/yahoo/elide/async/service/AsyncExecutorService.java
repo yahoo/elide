@@ -12,20 +12,13 @@ import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.operation.AsyncApiUpdateOperation;
 import com.yahoo.elide.async.service.dao.AsyncApiDao;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.graphql.QueryRunner;
-import com.yahoo.elide.jsonapi.JsonApi;
 
-import graphql.execution.DataFetcherExceptionHandler;
-import graphql.execution.SimpleDataFetcherExceptionHandler;
 import jakarta.inject.Inject;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -45,13 +38,12 @@ public class AsyncExecutorService {
 
     public static final int DEFAULT_THREAD_POOL_SIZE = 6;
 
-    private Elide elide;
-    private JsonApi jsonApi;
-    private Map<String, QueryRunner> runners;
-    private ExecutorService executor;
-    private ExecutorService updater;
-    private AsyncApiDao asyncApiDao;
-    private ThreadLocal<AsyncApiResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
+    private final Elide elide;
+    private final ExecutorService executor;
+    private final ExecutorService updater;
+    private final AsyncApiDao asyncApiDao;
+    private final ThreadLocal<AsyncApiResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
+    private final AsyncProviderService providers;
 
     /**
      * A Future with Synchronous Execution Complete Flag.
@@ -64,19 +56,12 @@ public class AsyncExecutorService {
 
     @Inject
     public AsyncExecutorService(Elide elide, ExecutorService executor, ExecutorService updater, AsyncApiDao asyncApiDao,
-            Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler) {
+            AsyncProviderService asyncProviderService) {
         this.elide = elide;
-        runners = new HashMap<>();
-
-        for (String apiVersion : elide.getElideSettings().getEntityDictionary().getApiVersions()) {
-            runners.put(apiVersion, new QueryRunner(elide, apiVersion,
-                    optionalDataFetcherExceptionHandler.orElseGet(SimpleDataFetcherExceptionHandler::new)));
-        }
-
-        this.jsonApi = new JsonApi(this.elide);
         this.executor = executor;
         this.updater = updater;
         this.asyncApiDao = asyncApiDao;
+        this.providers = asyncProviderService;
     }
 
     /**

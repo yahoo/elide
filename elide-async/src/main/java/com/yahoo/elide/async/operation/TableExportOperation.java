@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideModules;
 import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.ResourceWriter;
@@ -60,6 +61,38 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
     private ResultStorageEngine engine;
     private List<Validator> validators = new ArrayList<>(Arrays.asList(new SingleRootProjectionValidator()));
     private ResultTypeFileExtensionMapper resultTypeFileExtensionMapper;
+
+    /**
+     * Holder to prevent class not found.
+     */
+    public static class GraphQL {
+        public static String getBaseUrl(RequestScope scope, String baseUrl) {
+            GraphQLSettings graphqlSettings = scope.getElideSettings().getSettings(GraphQLSettings.class);
+            if (graphqlSettings != null) {
+                String graphqlApiPath = graphqlSettings.getPath();
+                if (graphqlApiPath != null && baseUrl.endsWith(graphqlApiPath)) {
+                    baseUrl = baseUrl.substring(0, baseUrl.length() - graphqlApiPath.length());
+                }
+            }
+            return baseUrl;
+        }
+    }
+
+    /**
+     * Holder to prevent class no found.
+     */
+    public static class JsonApi {
+        public static String getBaseUrl(RequestScope scope, String baseUrl) {
+            JsonApiSettings jsonApiSettings = scope.getElideSettings().getSettings(JsonApiSettings.class);
+            if (jsonApiSettings != null) {
+                String jsonApiPath = jsonApiSettings.getPath();
+                if (jsonApiPath != null && baseUrl.endsWith(jsonApiPath)) {
+                    baseUrl = baseUrl.substring(0, baseUrl.length() - jsonApiPath.length());
+                }
+            }
+            return baseUrl;
+        }
+    }
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncApi exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators,
@@ -178,22 +211,14 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      */
     public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
         AsyncSettings asyncSettings = scope.getElideSettings().getSettings(AsyncSettings.class);
-        JsonApiSettings jsonApiSettings = scope.getElideSettings().getSettings(JsonApiSettings.class);
-        GraphQLSettings graphqlSettings = scope.getElideSettings().getSettings(GraphQLSettings.class);
 
         String downloadPath = asyncSettings.getExport().getPath();
         String baseURL = scope.getRoute().getBaseUrl();
-        if (jsonApiSettings != null) {
-            String jsonApiPath = jsonApiSettings.getPath();
-            if (jsonApiPath != null && baseURL.endsWith(jsonApiPath)) {
-                baseURL = baseURL.substring(0, baseURL.length() - jsonApiPath.length());
-            }
+        if (ElideModules.isJsonApiPresent()) {
+            baseURL = JsonApi.getBaseUrl(scope, baseURL);
         }
-        if (graphqlSettings != null) {
-            String graphqlApiPath = graphqlSettings.getPath();
-            if (graphqlApiPath != null && baseURL.endsWith(graphqlApiPath)) {
-                baseURL = baseURL.substring(0, baseURL.length() - graphqlApiPath.length());
-            }
+        if (ElideModules.isGraphQLPresent()) {
+            baseURL = GraphQL.getBaseUrl(scope, baseURL);
         }
         String tableExportID = getTableExportID(exportObj);
         return baseURL + downloadPath + "/" + tableExportID;
