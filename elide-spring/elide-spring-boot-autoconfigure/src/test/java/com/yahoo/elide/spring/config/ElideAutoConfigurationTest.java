@@ -15,12 +15,17 @@ import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.SerdesBuilderCustomizer;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary.EntityDictionaryBuilder;
 import com.yahoo.elide.core.exceptions.ErrorContext;
 import com.yahoo.elide.core.exceptions.ExceptionMapper;
 import com.yahoo.elide.core.exceptions.ExceptionMapperRegistration;
 import com.yahoo.elide.core.request.route.NullRouteResolver;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.request.route.RouteResolver;
+import com.yahoo.elide.core.security.checks.UserCheck;
+import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.graphql.GraphQLErrorContext;
 import com.yahoo.elide.graphql.GraphQLExceptionHandler;
 import com.yahoo.elide.graphql.GraphQLSettings;
@@ -30,6 +35,7 @@ import com.yahoo.elide.jsonapi.JsonApiExceptionHandler;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.models.JsonApiError;
 import com.yahoo.elide.jsonapi.models.JsonApiErrors;
+import com.yahoo.elide.spring.datastore.config.DataStoreBuilder;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
@@ -53,9 +59,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import graphql.GraphQLError;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -376,6 +384,36 @@ class ElideAutoConfigurationTest {
                     assertThat(jsonApiSettings).isNotNull();
                     AsyncExecutorService asyncExecutorService = context.getBean(AsyncExecutorService.class);
                     assertThat(asyncExecutorService).isNotNull();
+                });
+    }
+
+    @Test
+    void aggregationEnabled() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false", "elide.json-api.enabled=true", "elide.aggregation-store.enabled=true")
+                .withConfiguration(UserConfigurations.of(UserExceptionHandlerConfiguration.class)).run(context -> {
+                    DataStoreBuilder dataStoreBuilder = context.getBean(DataStoreBuilder.class);
+                    List<DataStore> result = new ArrayList<>();
+                    dataStoreBuilder.dataStores(datastores -> result.addAll(datastores));
+                    assertThat(result).isNotEmpty();
+                    assertThat(result).hasAtLeastOneElementOfType(MetaDataStore.class);
+                    assertThat(result).hasAtLeastOneElementOfType(AggregationDataStore.class);
+                });
+    }
+
+    @Test
+    void aggregationEnabledDynamicConfigurationEnabled() {
+        contextRunner
+                .withPropertyValues("spring.cloud.refresh.enabled=false", "elide.json-api.enabled=true",
+                        "elide.aggregation-store.enabled=true", "elide.aggregation-store.dynamic-config.enabled=true",
+                        "elide.aggregation-store.dynamic-config.path=configs")
+                .withConfiguration(UserConfigurations.of(UserExceptionHandlerConfiguration.class)).run(context -> {
+                    EntityDictionaryBuilder entityDictionaryBuilder = context.getBean(EntityDictionaryBuilder.class);
+                    Map<String, UserCheck> result = new LinkedHashMap<>();
+                    entityDictionaryBuilder.roleChecks(roleChecks -> result.putAll(roleChecks));
+                    assertThat(result).isNotEmpty();
+                    // Roles in configs/models/security.hjson
+                    assertThat(result).containsKey("admin.user");
+                    assertThat(result).containsKey("guest.user");
                 });
     }
 }
