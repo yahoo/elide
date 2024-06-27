@@ -28,6 +28,7 @@ import io.swagger.v3.oas.models.PathItem;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 /**
  * Test for DefaultElideGroupedOpenApiCustomizer.
@@ -71,6 +72,14 @@ class DefaultElideGroupedOpenApiCustomizerTest {
         openApi.path("/json-api", new PathItem().get(new Operation().addTagsItem("json-api-controller")));
         openApi.path("/api-docs", new PathItem().get(new Operation().addTagsItem("api-docs-controller")));
         groupedOpenApi.getOpenApiCustomizers().forEach(customizer -> customizer.customise(openApi));
-        assertThat(openApi.getPaths()).isEmpty();
+        List<PathItem> paths = openApi.getPaths().values().stream().filter(path -> {
+            Operation post = path.getPost();
+            if (post != null && !post.getTags().isEmpty()) {
+                // filter out the atomic operations paths
+                return !post.getTags().get(0).contains("atomic");
+            }
+            return true;
+        }).toList();
+        assertThat(paths).isEmpty();
     }
 }

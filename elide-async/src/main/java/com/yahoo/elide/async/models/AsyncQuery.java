@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
  * after asyncexecutorservice is initialized.
  */
 @Entity
-@Include(name = "asyncQuery")
+@Include(name = "asyncQuery", description = "Async query.", friendlyName = "AsyncQuery")
 @ReadPermission(expression = "Principal is Owner OR Principal is Admin")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")

@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
  * after asyncexecutorservice is initialized.
  */
 @Entity
-@Include(name = "tableExport")
+@Include(name = "tableExport", description = "Table export.", friendlyName = "TableExport")
 @ReadPermission(expression = "Principal is Owner OR Principal is Admin")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
