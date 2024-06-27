@@ -66,11 +66,24 @@ class OpenApiIT extends AbstractApiResourceInitializer {
     }
 
     @Test
+    void testDocumentAtomicOperations() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readTree(given().accept(MediaType.APPLICATION_JSON).get("/test").asString());
+        assertTrue(node.get("paths").size() > 1);
+        JsonNode operations = node.get("paths").get("/operations");
+        assertNotNull(operations);
+        JsonNode atomicOperations = operations.at("/post/requestBody/content/application~1vnd.api+json; ext=\"https:~1~1jsonapi.org~1ext~1atomic\"/schema");
+        JsonNode atomicResults = operations.at("/post/responses/200/content/application~1vnd.api+json; ext=\"https:~1~1jsonapi.org~1ext~1atomic\"/schema");
+        assertNotNull(atomicOperations);
+        assertNotNull(atomicResults);
+    }
+
+    @Test
     void testVersion2DocumentFetchJson() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(
                 given().accept(MediaType.APPLICATION_JSON).header("ApiVersion", "1.0").get("/test").asString());
-        assertEquals(2, node.get("paths").size());
+        assertEquals(3, node.get("paths").size());
         assertNotNull(node.get("paths").get("/book"));
         assertNotNull(node.get("paths").get("/book/{bookId}"));
     }
@@ -80,7 +93,7 @@ class OpenApiIT extends AbstractApiResourceInitializer {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(
                 given().accept(MediaType.APPLICATION_JSON).get("/v1.0/test").asString());
-        assertEquals(2, node.get("paths").size());
+        assertEquals(3, node.get("paths").size());
         assertNotNull(node.get("paths").get("/book"));
         assertNotNull(node.get("paths").get("/book/{bookId}"));
     }
@@ -101,7 +114,7 @@ class OpenApiIT extends AbstractApiResourceInitializer {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         JsonNode node = mapper.readTree(
                 given().accept(MediaType.APPLICATION_YAML).header("ApiVersion", "1.0").get("/test").asString());
-        assertEquals(2, node.get("paths").size());
+        assertEquals(3, node.get("paths").size());
         assertNotNull(node.get("paths").get("/book"));
         assertNotNull(node.get("paths").get("/book/{bookId}"));
     }
