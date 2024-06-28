@@ -8,8 +8,6 @@
 [![Build Status](https://cd.screwdriver.cd/pipelines/6103/badge)](https://cd.screwdriver.cd/pipelines/6103)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
-[![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/context:java)
-[![Total Alerts](https://img.shields.io/lgtm/alerts/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/alerts)
 [![Mentioned in Awesome Java](https://awesome.re/mentioned-badge.svg)](https://github.com/akullpp/awesome-java)
 [![Mentioned in Awesome GraphQL](https://awesome.re/mentioned-badge.svg)](https://github.com/chentsulin/awesome-graphql)
 
@@ -69,9 +67,9 @@ More information about Elide can be found at [elide.io](https://elide.io/).
 
 ## Install
 
-To try out an Elide example service, check out this [Spring boot example project](https://github.com/yahoo/elide-spring-boot-example).
+To try out an Elide example service, check out the [elide-spring-boot-example](https://github.com/yahoo/elide-spring-boot-example) project.
 
-Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance of Elide running inside an embedded Jetty application.
+Alternatively, use the [elide-standalone-example](https://github.com/yahoo/elide-standalone-example) project which allows you to quickly setup a local instance of Elide running inside an embedded Jetty application.
 
 ## Usage 
 
@@ -155,20 +153,20 @@ public class BookCreationHook implements LifeCycleHook<Book> {
 Map expressions to security functions or predicates that get pushed to the persistence layer:
 
 ```java
-    @SecurityCheck("Admin")
-    public static class IsAdminUser extends UserCheck {
-        @Override
-        public boolean ok(User user) {
-            return isUserInRole(user, UserRole.admin);
-        }
+@SecurityCheck("Admin")
+public static class IsAdminUser extends UserCheck {
+    @Override
+    public boolean ok(User user) {
+        return isUserInRole(user, UserRole.admin);
     }
+}
 ```
 
-To expose and query these models, follow the steps documented in [the getting started guide](https://elide.io/pages/guide/v5/01-start.html).
+To expose and query these models, follow the steps documented in [the getting started guide](https://elide.io/pages/guide/v7/01-start.html).
 
 For example API calls, look at:
-1. [*JSON-API*](https://elide.io/pages/guide/v5/10-jsonapi.html) 
-2. [*GraphQL*](https://elide.io/pages/guide/v5/11-graphql.html)
+1. [*JSON-API*](https://elide.io/pages/guide/v7/10-jsonapi.html) 
+2. [*GraphQL*](https://elide.io/pages/guide/v7/11-graphql.html)
 
 ### For Analytic APIs
 
@@ -199,19 +197,18 @@ Analytic models including tables, measures, dimensions, and joins can be created
 }
 ```
 
-More information on configuring or querying analytic models can be found [here](https://elide.io/pages/guide/v5/04-analytics.html).
+More information on configuring or querying analytic models can be found [here](https://elide.io/pages/guide/v7/04-analytics.html).
 
 ## Security
 
-Security is documented in depth [here](https://elide.io/pages/guide/v5/03-security.html).
+Security is documented in depth [here](https://elide.io/pages/guide/v7/03-security.html).
 
 ## Contribute
-Please refer to [the contributing.md file](CONTRIBUTING.md) for information about how to get involved. We welcome issues, questions, and pull requests.
+Please refer to the [contributing.md](CONTRIBUTING.md) file for information about how to get involved. We welcome issues, questions, and pull requests.
 
 If you are contributing to Elide using an IDE, such as IntelliJ, make sure to install the [Lombok](https://projectlombok.org/) plugin.
 
 Community chat is now on [discord](https://discord.com/widget?id=869678398241398854&theme=dark).  Join by clicking [here](https://discord.gg/3vh8ac57cc).
-Legacy discussion is archived on [spectrum](https://spectrum.chat/elide).
 
 ## License
 This project is licensed under the terms of the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) open source license.
