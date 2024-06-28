@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.swagger.OpenApiBuilder;
-import com.yahoo.elide.swagger.OpenApiDocument;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.Session;
@@ -131,8 +130,7 @@ public class ElideBeans {
             OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
             String moduleBasePath = "/apiDocs/";
             OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
-            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("api", () -> openApi,
-                    OpenApiDocument.Version.OPENAPI_3_0.getValue(), apiVersion));
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("api", () -> openApi, apiVersion));
         });
 
         return docs;

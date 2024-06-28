@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Basic customization of the OpenAPI document.
@@ -48,9 +49,15 @@ public class BasicOpenApiDocumentCustomizer implements OpenApiDocumentCustomizer
         }
 
         if (openApi.getInfo() == null) {
-            openApi.info(new Info().title(OpenApiDocument.DEFAULT_TITLE));
-        } else if (openApi.getInfo().getTitle() == null || openApi.getInfo().getTitle().isBlank()) {
-            openApi.getInfo().setTitle(OpenApiDocument.DEFAULT_TITLE);
+            // Version is a required field
+            openApi.info(new Info().title(OpenApiDocument.DEFAULT_TITLE).version(""));
+        } else {
+            if (openApi.getInfo().getTitle() == null || openApi.getInfo().getTitle().isBlank()) {
+                openApi.getInfo().setTitle(OpenApiDocument.DEFAULT_TITLE);
+            }
+            if (openApi.getInfo().getVersion() == null) {
+                openApi.getInfo().setVersion("");
+            }
         }
 
         sort(openApi);
@@ -79,12 +86,10 @@ public class BasicOpenApiDocumentCustomizer implements OpenApiDocumentCustomizer
                         new io.swagger.v3.oas.models.security.SecurityScheme();
                 model.setIn(getIn(annotation.in()));
                 model.setType(getType(annotation.type()));
-                model.setBearerFormat(annotation.bearerFormat());
-                model.setScheme(annotation.scheme());
-                model.setOpenIdConnectUrl(annotation.openIdConnectUrl());
-                if (annotation.ref() != null && !annotation.ref().isBlank()) {
-                    model.set$ref(annotation.ref());
-                }
+                copyNonBlank(annotation.bearerFormat(), model::setBearerFormat);
+                copyNonBlank(annotation.scheme(), model::setScheme);
+                copyNonBlank(annotation.openIdConnectUrl(), model::setOpenIdConnectUrl);
+                copyNonBlank(annotation.ref(), model::set$ref);
                 model.setName(annotation.name());
                 securitySchemes.put(annotation.name(), model);
             }
@@ -103,7 +108,20 @@ public class BasicOpenApiDocumentCustomizer implements OpenApiDocumentCustomizer
     }
 
     public static void applyDefinition(OpenAPI openApi, OpenAPIDefinition openApiDefinition) {
-        AnnotationsUtils.getInfo(openApiDefinition.info()).ifPresent(openApi::setInfo);
+        AnnotationsUtils.getInfo(openApiDefinition.info()).ifPresent(info -> {
+            if (openApi.getInfo() == null) {
+                openApi.setInfo(info);
+            } else {
+                // Copy non null
+                copyNonNull(info.getTitle(), openApi.getInfo()::setTitle);
+                copyNonNull(info.getDescription(), openApi.getInfo()::setDescription);
+                copyNonNull(info.getTermsOfService(), openApi.getInfo()::setTermsOfService);
+                copyNonNull(info.getContact(), openApi.getInfo()::setContact);
+                copyNonNull(info.getLicense(), openApi.getInfo()::setLicense);
+                copyNonNull(info.getVersion(), openApi.getInfo()::setVersion);
+                copyNonNull(info.getExtensions(), openApi.getInfo()::setExtensions);
+            }
+        });
         AnnotationsUtils.getExternalDocumentation(openApiDefinition.externalDocs()).ifPresent(openApi::setExternalDocs);
         AnnotationsUtils.getTags(openApiDefinition.tags(), false).ifPresent(tags -> tags.forEach(openApi::addTagsItem));
 
@@ -115,6 +133,18 @@ public class BasicOpenApiDocumentCustomizer implements OpenApiDocumentCustomizer
         }
 
         openApi.addSecurityItem(model);
+    }
+
+    protected static <T> void copyNonNull(T value, Consumer<T> target) {
+        if (value != null) {
+            target.accept(value);
+        }
+    }
+
+    protected static void copyNonBlank(String value, Consumer<String> target) {
+        if (value != null && !value.isBlank()) {
+            target.accept(value);
+        }
     }
 
     protected io.swagger.v3.oas.models.security.SecurityScheme.In getIn(SecuritySchemeIn value) {

@@ -21,8 +21,11 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.swagger.converter.JsonApiModelResolver;
+import com.yahoo.elide.swagger.models.media.AtomicOperations;
+import com.yahoo.elide.swagger.models.media.AtomicResults;
 import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
+import com.yahoo.elide.swagger.models.media.Errors;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.google.common.collect.Sets;
 
@@ -36,6 +39,7 @@ import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.IntegerSchema;
@@ -60,6 +64,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -678,10 +684,13 @@ public class OpenApiBuilder {
 
     /**
      * Constructor.
+     * <p>
+     * The customizer can be used to set the OpenAPI SpecVersion.
      *
-     * @param dictionary The entity dictionary.
+     * @param dictionary        The entity dictionary.
+     * @param openApiCustomizer The OpenAPI customizer.
      */
-    public OpenApiBuilder(EntityDictionary dictionary) {
+    public OpenApiBuilder(EntityDictionary dictionary, Consumer<OpenAPI> openApiCustomizer) {
         this.dictionary = dictionary;
         this.supportLegacyFilterDialect = true;
         this.supportRSQLFilterDialect = true;
@@ -692,6 +701,18 @@ public class OpenApiBuilder {
                 Operator.POSTFIX, Operator.GE, Operator.GT, Operator.LE, Operator.LT, Operator.ISNULL,
                 Operator.NOTNULL);
         this.openApi = new OpenAPI();
+        if (openApiCustomizer != null) {
+            openApiCustomizer.accept(this.openApi);
+        }
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param dictionary The entity dictionary.
+     */
+    public OpenApiBuilder(EntityDictionary dictionary) {
+        this(dictionary, null);
     }
 
     /**
@@ -748,7 +769,7 @@ public class OpenApiBuilder {
      * @return the builder
      */
     public OpenApiBuilder managedClasses(Set<Type<?>> classes) {
-        this.managedClasses = new HashSet<>(classes);
+        this.managedClasses = new LinkedHashSet<>(classes);
         return this;
     }
 
@@ -760,7 +781,7 @@ public class OpenApiBuilder {
      * @return the builder
      */
     public OpenApiBuilder filterOperators(Set<Operator> ops) {
-        this.filterOperators = new HashSet<>(ops);
+        this.filterOperators = new LinkedHashSet<>(ops);
         return this;
     }
 
@@ -804,6 +825,9 @@ public class OpenApiBuilder {
                 throw new IllegalArgumentException("None of the provided classes are exported by Elide");
             }
         }
+        managedClasses = managedClasses.stream()
+                .sorted((left, right) -> left.getSimpleName().compareTo(right.getSimpleName()))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         /*
          * Create a Model for each Elide entity.
@@ -827,13 +851,13 @@ public class OpenApiBuilder {
 
         rootClasses = managedClasses.stream()
                 .filter(dictionary::isRoot)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         /* Find all the paths starting from the root entities. */
         Set<PathMetaData> pathData =  rootClasses.stream()
                 .map(this::find)
                 .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         /* Prune the discovered paths to remove redundant elements */
         Set<PathMetaData> toRemove = new HashSet<>();
@@ -883,11 +907,136 @@ public class OpenApiBuilder {
                 .map(type -> new Tag().name(tagNameOf(type))
                         .description(EntityDictionary.getEntityDescription(type)))
                 .forEach(openApi::addTagsItem);
+
+        /* Atomic operations */
+        atomicOperations(openApi);
         return this;
+    }
+
+    /**
+     * Adds the operations path for JSON API atomic operations.
+     *
+     * @param openApi the open api
+     */
+    protected void atomicOperations(OpenAPI openApi) {
+        String tagName = tagNameOf("atomic");
+        openApi.addTagsItem(new Tag().name(tagName).description("Atomic operations."));
+        Map<String, Example> examples = atomicOperationsExamples();
+        Map<String, Object> example = null;
+        AtomicOperations atomicOperations = new AtomicOperations();
+        // Try to determine more specific examples for atomic operations
+        Optional<Type<?>> optionalCanCreateType = this.rootClasses.stream().filter(this::canCreate).findFirst();
+        if (optionalCanCreateType.isPresent()) {
+            Type<?> type = optionalCanCreateType.get();
+            String typeName = dictionary.getJsonAliasFor(type);
+
+            Map<String, Object> attributes = dataAttributes(type);
+            Map<String, Object> creatingResourcesData = new LinkedHashMap<>();
+            creatingResourcesData.put("type", typeName);
+            creatingResourcesData.put("lid", "string");
+            creatingResourcesData.put("attributes", attributes);
+            Map<String, Object> creatingResourcesOp = new LinkedHashMap<>();
+            creatingResourcesOp.put("op", "add");
+            creatingResourcesOp.put("href", "/" + typeName);
+            creatingResourcesOp.put("data", creatingResourcesData);
+            creatingResourcesOp.put("meta", new LinkedHashMap<>());
+            Map<String, Object> creatingResources = Map.of("atomic:operations", List.of(creatingResourcesOp));
+            example = creatingResources;
+            // Replace generic example
+            examples.put("Creating Resources",
+                    new Example().value(creatingResources).description(CREATING_RESOURCES_DESCRIPTION));
+        }
+        Optional<Type<?>> optionalCanUpdateType = this.rootClasses.stream().filter(this::canUpdate).findFirst();
+        if (optionalCanUpdateType.isPresent()) {
+            Type<?> type = optionalCanUpdateType.get();
+            String typeName = dictionary.getJsonAliasFor(type);
+
+            Map<String, Object> attributes = dataAttributes(type);
+            Map<String, Object> updatingResourcesData = new LinkedHashMap<>();
+            updatingResourcesData.put("type", typeName);
+            updatingResourcesData.put("id", "string");
+            updatingResourcesData.put("attributes", attributes);
+            Map<String, Object> updatingResourcesOp = new LinkedHashMap<>();
+            updatingResourcesOp.put("op", "update");
+            updatingResourcesOp.put("data", updatingResourcesData);
+            updatingResourcesOp.put("meta", new LinkedHashMap<>());
+            Map<String, Object> updatingResources = Map.of("atomic:operations", List.of(updatingResourcesOp));
+            if (example == null) {
+                example = updatingResources;
+            }
+            // Replace generic example
+            examples.put("Updating Resources",
+                    new Example().value(updatingResources).description(UPDATING_RESOURCES_DESCRIPTION));
+        }
+        Optional<Type<?>> optionalCanDeleteType = this.rootClasses.stream().filter(this::canDelete).findFirst();
+        if (optionalCanDeleteType.isPresent()) {
+            Type<?> type = optionalCanDeleteType.get();
+            String typeName = dictionary.getJsonAliasFor(type);
+
+            Map<String, Object> deletingResourcesRef = new LinkedHashMap<>();
+            deletingResourcesRef.put("type", typeName);
+            deletingResourcesRef.put("id", "string");
+            Map<String, Object> deletingResourcesOp = new LinkedHashMap<>();
+            deletingResourcesOp.put("op", "remove");
+            deletingResourcesOp.put("ref", deletingResourcesRef);
+            Map<String, Object> deletingResources = Map.of("atomic:operations", List.of(deletingResourcesOp));
+            if (example == null) {
+                example = deletingResources;
+            }
+            // Replace generic example
+            examples.put("Deleting Resources",
+                    new Example().value(deletingResources).description(DELETING_RESOURCES_DESCRIPTION));
+        }
+        // Must call setExample() and cannot call example() as it calls toString on the
+        // example
+        if (example != null) {
+            atomicOperations.setExample(example);
+        }
+
+        // Create that path for /operations
+        PathItem operations = new PathItem();
+        operations.post(new Operation().tags(List.of(tagName))
+                .description("Perform atomic operations")
+                .requestBody(new RequestBody().content(new Content().addMediaType(JsonApi.AtomicOperations.MEDIA_TYPE,
+                        new MediaType().schema(atomicOperations).examples(examples))))
+                .responses(new ApiResponses()
+                        .addApiResponse("200",
+                                new ApiResponse().description("Successful response")
+                                        .content(new Content().addMediaType(JsonApi.AtomicOperations.MEDIA_TYPE,
+                                                new MediaType().schema(new AtomicResults()))))
+                        .addApiResponse("400",
+                                new ApiResponse().description("Bad request")
+                                        .content(new Content().addMediaType(JsonApi.AtomicOperations.MEDIA_TYPE,
+                                                new MediaType().schema(new Errors()))))
+                        .addApiResponse("423",
+                                new ApiResponse().description("Locked")
+                                        .content(new Content().addMediaType(JsonApi.AtomicOperations.MEDIA_TYPE,
+                                                new MediaType().schema(new Errors()))))));
+        openApi.path(pathOf("/operations"), operations);
+    }
+
+    protected Map<String, Object> dataAttributes(Type<?> type) {
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        List<String> attributeNames = dictionary.getAttributes(type);
+        for (String attributeName : attributeNames) {
+            Type<?> attributeClass = dictionary.getType(type, attributeName);
+            if (ClassType.STRING_TYPE.isAssignableFrom(attributeClass)) {
+                attributes.put(attributeName, "string");
+            } else if (ClassType.NUMBER_TYPE.isAssignableFrom(attributeClass)) {
+                attributes.put(attributeName, 0);
+            } else if (ClassType.BOOLEAN_TYPE.isAssignableFrom(attributeClass)) {
+                attributes.put(attributeName, true);
+            }
+        }
+        return attributes;
     }
 
     protected String tagNameOf(Type<?> type) {
         String tagName = dictionary.getJsonAliasFor(type);
+        return tagNameOf(tagName);
+    }
+
+    protected String tagNameOf(String tagName) {
         if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
             tagName = "v" + apiVersion + "/" + tagName;
         }
@@ -924,7 +1073,7 @@ public class OpenApiBuilder {
      */
     protected Set<PathMetaData> find(Type<?> rootClass) {
         Queue<PathMetaData> toVisit = new ArrayDeque<>();
-        Set<PathMetaData> paths = new HashSet<>();
+        Set<PathMetaData> paths = new LinkedHashSet<>();
 
         toVisit.add(new PathMetaData(rootClass));
 
@@ -961,8 +1110,10 @@ public class OpenApiBuilder {
     }
 
     protected String getSchemaName(Type<?> type) {
+        // Should be the same as JsonApiModelResolver#getSchemaName
         String schemaName = dictionary.getJsonAliasFor(type);
-        if (!EntityDictionary.NO_VERSION.equals(this.apiVersion)) {
+        String apiVersion = EntityDictionary.getModelVersion(type);
+        if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
             schemaName = "v" + this.apiVersion + "_" + schemaName;
         }
         return schemaName;
@@ -1117,4 +1268,219 @@ public class OpenApiBuilder {
         }
         return null;
     }
+
+    protected Map<String, Example> atomicOperationsExamples() {
+        Map<String, Example> examples = new LinkedHashMap<>();
+
+        // Creating Resources
+        Map<String, Object> creatingResources = exampleCreatingResources();
+        examples.put("Creating Resources",
+                new Example().value(creatingResources).description(CREATING_RESOURCES_DESCRIPTION));
+
+        // Updating Resources
+        Map<String, Object> updatingResources = exampleUpdatingResources();
+        examples.put("Updating Resources",
+                new Example().value(updatingResources).description(UPDATING_RESOURCES_DESCRIPTION));
+
+        // Deleting Resources
+        Map<String, Object> deletingResources = exampleDeletingResources();
+        examples.put("Deleting Resources",
+                new Example().value(deletingResources).description(DELETING_RESOURCES_DESCRIPTION));
+
+        // Updating To-One Relationships
+        Map<String, Object> updatingToOneRelationships = exampleUpdatingToOneRelationships();
+        examples.put("Updating To-One Relationships",
+                new Example().value(updatingToOneRelationships).description(UPDATING_TO_ONE_RELATIONSHIPS_DESCRIPTION));
+
+        // Deleting To-One Relationships
+        Map<String, Object> deletingToOneRelationships = exampleDeletingToOneRelationships();
+        examples.put("Deleting To-One Relationships",
+                new Example().value(deletingToOneRelationships).description(DELETING_TO_ONE_RELATIONSHIPS_DESCRIPTION));
+
+        // Creating To-Many Relationships
+        Map<String, Object> creatingToManyRelationships = exampleCreatingToManyRelationships();
+        examples.put("Creating To-Many Relationships", new Example().value(creatingToManyRelationships)
+                .description(CREATING_TO_MANY_RELATIONSHIPS_DESCRIPTION));
+
+        // Updating To-Many Relationships
+        Map<String, Object> updatingToManyRelationships = exampleUpdatingToManyRelationships();
+        examples.put("Updating To-Many Relationships", new Example().value(updatingToManyRelationships)
+                .description(UPDATING_TO_MANY_RELATIONSHIPS_DESCRIPTION));
+
+        // Deleting To-Many Relationships
+        Map<String, Object> deletingToManyRelationships = exampleDeletingToManyRelationships();
+        examples.put("Deleting To-Many Relationships", new Example().value(deletingToManyRelationships)
+                .description(DELETING_TO_MANY_RELATIONSHIPS_DESCRIPTION));
+
+        return examples;
+    }
+
+    protected Map<String, Object> exampleDeletingToManyRelationships() {
+        Map<String, Object> deletingToManyRelationshipsOp = new LinkedHashMap<>();
+        Map<String, Object> deletingToManyRelationshipsRef = new LinkedHashMap<>();
+        deletingToManyRelationshipsRef.put("type", "articles");
+        deletingToManyRelationshipsRef.put("id", "1");
+        deletingToManyRelationshipsRef.put("relationship", "comments");
+        Map<String, Object> deletingToManyRelationshipsData1 = new LinkedHashMap<>();
+        deletingToManyRelationshipsData1.put("type", "comments");
+        deletingToManyRelationshipsData1.put("id", "12");
+        Map<String, Object> deletingToManyRelationshipsData2 = new LinkedHashMap<>();
+        deletingToManyRelationshipsData2.put("type", "comments");
+        deletingToManyRelationshipsData2.put("id", "13");
+        deletingToManyRelationshipsOp.put("op", "remove");
+        deletingToManyRelationshipsOp.put("ref", deletingToManyRelationshipsRef);
+        deletingToManyRelationshipsOp.put("data",
+                List.of(deletingToManyRelationshipsData1, deletingToManyRelationshipsData2));
+        Map<String, Object> deletingToManyRelationships = Map.of("atomic:operations",
+                List.of(deletingToManyRelationshipsOp));
+        return deletingToManyRelationships;
+    }
+
+    protected Map<String, Object> exampleUpdatingToManyRelationships() {
+        Map<String, Object> updatingToManyRelationshipsOp = new LinkedHashMap<>();
+        Map<String, Object> updatingToManyRelationshipsRef = new LinkedHashMap<>();
+        updatingToManyRelationshipsRef.put("type", "articles");
+        updatingToManyRelationshipsRef.put("id", "1");
+        updatingToManyRelationshipsRef.put("relationship", "tags");
+        Map<String, Object> updatingToManyRelationshipsData1 = new LinkedHashMap<>();
+        updatingToManyRelationshipsData1.put("type", "tags");
+        updatingToManyRelationshipsData1.put("id", "2");
+        Map<String, Object> updatingToManyRelationshipsData2 = new LinkedHashMap<>();
+        updatingToManyRelationshipsData2.put("type", "tags");
+        updatingToManyRelationshipsData2.put("id", "3");
+        updatingToManyRelationshipsOp.put("op", "update");
+        updatingToManyRelationshipsOp.put("ref", updatingToManyRelationshipsRef);
+        updatingToManyRelationshipsOp.put("data",
+                List.of(updatingToManyRelationshipsData1, updatingToManyRelationshipsData2));
+        Map<String, Object> updatingToManyRelationships = Map.of("atomic:operations",
+                List.of(updatingToManyRelationshipsOp));
+        return updatingToManyRelationships;
+    }
+
+    protected Map<String, Object> exampleCreatingToManyRelationships() {
+        Map<String, Object> creatingToManyRelationshipsOp = new LinkedHashMap<>();
+        Map<String, Object> creatingToManyRelationshipsRef = new LinkedHashMap<>();
+        creatingToManyRelationshipsRef.put("type", "articles");
+        creatingToManyRelationshipsRef.put("id", "1");
+        creatingToManyRelationshipsRef.put("relationship", "comments");
+        Map<String, Object> creatingToManyRelationshipsData = new LinkedHashMap<>();
+        creatingToManyRelationshipsData.put("type", "comments");
+        creatingToManyRelationshipsData.put("id", "1");
+        creatingToManyRelationshipsOp.put("op", "add");
+        creatingToManyRelationshipsOp.put("ref", creatingToManyRelationshipsRef);
+        creatingToManyRelationshipsOp.put("data", List.of(creatingToManyRelationshipsData));
+        Map<String, Object> creatingToManyRelationships = Map.of("atomic:operations",
+                List.of(creatingToManyRelationshipsOp));
+        return creatingToManyRelationships;
+    }
+
+    protected Map<String, Object> exampleDeletingToOneRelationships() {
+        Map<String, Object> deletingToOneRelationshipsOp = new LinkedHashMap<>();
+        Map<String, Object> deletingToOneRelationshipsRef = new LinkedHashMap<>();
+        deletingToOneRelationshipsRef.put("type", "articles");
+        deletingToOneRelationshipsRef.put("id", "13");
+        deletingToOneRelationshipsRef.put("relationship", "author");
+        deletingToOneRelationshipsOp.put("op", "update");
+        deletingToOneRelationshipsOp.put("ref", deletingToOneRelationshipsRef);
+        deletingToOneRelationshipsOp.put("data", null);
+        Map<String, Object> deletingToOneRelationships = Map.of("atomic:operations",
+                List.of(deletingToOneRelationshipsOp));
+        return deletingToOneRelationships;
+    }
+
+    protected Map<String, Object> exampleUpdatingToOneRelationships() {
+        Map<String, Object> updatingToOneRelationshipsOp = new LinkedHashMap<>();
+        Map<String, Object> updatingToOneRelationshipsRef = new LinkedHashMap<>();
+        updatingToOneRelationshipsRef.put("type", "articles");
+        updatingToOneRelationshipsRef.put("id", "13");
+        updatingToOneRelationshipsRef.put("relationship", "author");
+        Map<String, Object> updatingToOneRelationshipsData = new LinkedHashMap<>();
+        updatingToOneRelationshipsData.put("type", "people");
+        updatingToOneRelationshipsData.put("id", "9");
+        updatingToOneRelationshipsOp.put("op", "update");
+        updatingToOneRelationshipsOp.put("ref", updatingToOneRelationshipsRef);
+        updatingToOneRelationshipsOp.put("data", updatingToOneRelationshipsData);
+        Map<String, Object> updatingToOneRelationships = Map.of("atomic:operations",
+                List.of(updatingToOneRelationshipsOp));
+        return updatingToOneRelationships;
+    }
+
+    protected Map<String, Object> exampleDeletingResources() {
+        Map<String, Object> deletingResourcesOp = new LinkedHashMap<>();
+        Map<String, Object> deletingResourcesRef = new LinkedHashMap<>();
+        deletingResourcesRef.put("type", "articles");
+        deletingResourcesRef.put("id", "13");
+        deletingResourcesOp.put("op", "remove");
+        deletingResourcesOp.put("ref", deletingResourcesRef);
+        Map<String, Object> deletingResources = Map.of("atomic:operations",
+                List.of(deletingResourcesOp));
+        return deletingResources;
+    }
+
+    protected Map<String, Object> exampleUpdatingResources() {
+        Map<String, Object> updatingResourcesOp = new LinkedHashMap<>();
+        Map<String, Object> updatingResourcesData = new LinkedHashMap<>();
+        updatingResourcesData.put("type", "articles");
+        updatingResourcesData.put("id", "13");
+        updatingResourcesData.put("attributes", Map.of("title", "Title"));
+        updatingResourcesOp.put("op", "update");
+        updatingResourcesOp.put("data", updatingResourcesData);
+        Map<String, Object> updatingResources = Map.of("atomic:operations",
+                List.of(updatingResourcesOp));
+        return updatingResources;
+    }
+
+    protected Map<String, Object> exampleCreatingResources() {
+        Map<String, Object> creatingResourcesOp = new LinkedHashMap<>();
+        Map<String, Object> creatingResourcesData = new LinkedHashMap<>();
+        creatingResourcesData.put("type", "articles");
+        creatingResourcesData.put("attributes", Map.of("title", "Title"));
+        creatingResourcesOp.put("op", "add");
+        creatingResourcesOp.put("href", "/blogPosts");
+        creatingResourcesOp.put("data", creatingResourcesData);
+        Map<String, Object> creatingResources = Map.of("atomic:operations",
+                List.of(creatingResourcesOp));
+        return creatingResources;
+    }
+
+    private static final String CREATING_RESOURCES_DESCRIPTION = ""
+            + "To create a resource, the operation MUST include an op code of \"add\" "
+            + "as well as a resource object as data. "
+            + "The resource object MUST contain at least a type member. An operation that creates a "
+            + "resource MAY target a resource collection through the operation's href member.";
+    private static final String UPDATING_RESOURCES_DESCRIPTION = ""
+            + "To update a resource, the operation MUST include an op code of \"update\" "
+            + "as well as a resource object as data. "
+            + "An operation that updates a resource MAY target that resource through the "
+            + "operation's ref or href members, but not both.";
+    private static final String DELETING_RESOURCES_DESCRIPTION = ""
+            + "To delete a resource, the operation MUST include an op code of \"remove\". "
+            + "An operation that deletes a resource MUST target that resource through the "
+            + "operation's ref or href members, but not both.";
+    private static final String UPDATING_TO_ONE_RELATIONSHIPS_DESCRIPTION = ""
+            + "To assign a to-one relationship, the operation MUST include an op code of \"update\" "
+            + "as well as a resource identifier object as data. "
+            + "An operation that updates a resource's to-one relationship "
+            + "MUST target that relationship through the operation's ref or href members, but not both.";
+    private static final String DELETING_TO_ONE_RELATIONSHIPS_DESCRIPTION = ""
+            + "To clear a to-one relationship, the operation MUST include an op code of \"update\" "
+            + "as well as setting the data to \"null\". "
+            + "An operation that updates a resource's to-one relationship "
+            + "MUST target that relationship through the operation's ref or href members, but not both.";
+    private static final String CREATING_TO_MANY_RELATIONSHIPS_DESCRIPTION = ""
+            + "To add members to a to-many relationship, the operation MUST include an op code of \"add\" "
+            + "as well as an array of resource identifier objects as data." + " "
+            + "An operation that updates a resource's to-many relationship MUST target that "
+            + "relationship through the operation's ref or href members, but not both.";
+    private static final String UPDATING_TO_MANY_RELATIONSHIPS_DESCRIPTION = ""
+            + "To replace all the members of a to-many relationship, "
+            + "the operation MUST include an op code of \"update\" "
+            + "as well as an array of resource identifier objects as data. "
+            + "An operation that updates a resource's to-many relationship MUST target that "
+            + "relationship through the operation's ref or href members, but not both.";
+    private static final String DELETING_TO_MANY_RELATIONSHIPS_DESCRIPTION = ""
+            + "To remove members from a to-many relationship, the operation MUST include an op code of \"remove\" "
+            + "as well as an array of resource identifier objects as data. "
+            + "An operation that updates a resource's to-many relationship MUST target that "
+            + "relationship through the operation's ref or href members, but not both.";
 }
