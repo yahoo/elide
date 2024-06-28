@@ -48,6 +48,7 @@ import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Content;
@@ -1020,7 +1021,8 @@ class OpenApiBuilderTest {
         Info info = new Info().title("Test Service").version(NO_VERSION);
         EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
-        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary,
+                openApi -> openApi.specVersion(SpecVersion.V31).openapi("3.1.0")).apiVersion(info.getVersion());
         OpenAPI openApi = builder.build();
         JsonNode jsonNode = Json31.mapper().readTree(Json31.pretty(openApi));
         JsonNode operations = jsonNode.at("/paths/~1operations");

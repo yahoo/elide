@@ -149,6 +149,7 @@ import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
@@ -1170,8 +1171,11 @@ public class ElideAutoConfiguration {
         List<ApiDocsRegistration> registrations = new ArrayList<>();
         dictionary.getApiVersions().stream().forEach(apiVersion -> {
             Supplier<OpenAPI> document = () -> {
-                OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
-                        .supportLegacyFilterDialect(false);
+                OpenApiBuilder builder = new OpenApiBuilder(dictionary, openApi -> {
+                    if (ApiDocsControllerProperties.Version.OPENAPI_3_1.equals(settings.getApiDocs().getVersion())) {
+                        openApi.specVersion(SpecVersion.V31).openapi("3.1.0");
+                    }
+                }).apiVersion(apiVersion).supportLegacyFilterDialect(false);
                 if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
                     if (settings.getApiVersioningStrategy().getPath().isEnabled()) {
                         // Path needs to be set
@@ -1207,8 +1211,7 @@ public class ElideAutoConfiguration {
                 customizer.customize(openApi);
                 return openApi;
             };
-            registrations.add(new ApiDocsRegistration("", SingletonSupplier.of(document),
-                    settings.getApiDocs().getVersion().getValue(), apiVersion));
+            registrations.add(new ApiDocsRegistration("", SingletonSupplier.of(document), apiVersion));
         });
         return new ApiDocsController.ApiDocsRegistrations(registrations);
     }
