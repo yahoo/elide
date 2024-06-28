@@ -59,11 +59,6 @@ public class ApiDocsEndpoint {
         private Supplier<OpenAPI> document;
 
         /**
-         * The OpenAPI Specification Version.
-         */
-        private String version;
-
-        /**
          * The API version.
          */
         private String apiVersion;
@@ -84,8 +79,7 @@ public class ApiDocsEndpoint {
             String apiVersion = doc.getApiVersion();
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
-            documents.put(Pair.of(apiVersion, apiPath),
-                    new OpenApiDocument(doc.document, OpenApiDocument.Version.from(doc.version)));
+            documents.put(Pair.of(apiVersion, apiPath), new OpenApiDocument(doc.document));
         });
 
         this.routeResolver = optionalRouteResolver.orElseGet(() -> {

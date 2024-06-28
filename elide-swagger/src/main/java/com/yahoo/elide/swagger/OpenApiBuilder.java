@@ -684,10 +684,13 @@ public class OpenApiBuilder {
 
     /**
      * Constructor.
+     * <p>
+     * The customizer can be used to set the OpenAPI SpecVersion.
      *
-     * @param dictionary The entity dictionary.
+     * @param dictionary        The entity dictionary.
+     * @param openApiCustomizer The OpenAPI customizer.
      */
-    public OpenApiBuilder(EntityDictionary dictionary) {
+    public OpenApiBuilder(EntityDictionary dictionary, Consumer<OpenAPI> openApiCustomizer) {
         this.dictionary = dictionary;
         this.supportLegacyFilterDialect = true;
         this.supportRSQLFilterDialect = true;
@@ -698,6 +701,18 @@ public class OpenApiBuilder {
                 Operator.POSTFIX, Operator.GE, Operator.GT, Operator.LE, Operator.LT, Operator.ISNULL,
                 Operator.NOTNULL);
         this.openApi = new OpenAPI();
+        if (openApiCustomizer != null) {
+            openApiCustomizer.accept(this.openApi);
+        }
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param dictionary The entity dictionary.
+     */
+    public OpenApiBuilder(EntityDictionary dictionary) {
+        this(dictionary, null);
     }
 
     /**
@@ -1095,8 +1110,10 @@ public class OpenApiBuilder {
     }
 
     protected String getSchemaName(Type<?> type) {
+        // Should be the same as JsonApiModelResolver#getSchemaName
         String schemaName = dictionary.getJsonAliasFor(type);
-        if (!EntityDictionary.NO_VERSION.equals(this.apiVersion)) {
+        String apiVersion = EntityDictionary.getModelVersion(type);
+        if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
             schemaName = "v" + this.apiVersion + "_" + schemaName;
         }
         return schemaName;
