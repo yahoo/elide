@@ -21,6 +21,7 @@ import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.JsonApiRequestScope;
+import com.yahoo.elide.jsonapi.JsonApiSettings;
 
 import org.apache.hc.core5.net.URIBuilder;
 
@@ -98,5 +99,18 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             throw new BadRequestException(e.getMessage());
         }
         return Collections.singletonList(projection);
+    }
+
+    @Override
+    public String getBaseUrl(RequestScope requestScope) {
+        String baseUrl = requestScope.getRoute().getBaseUrl();
+        JsonApiSettings jsonApiSettings = requestScope.getElideSettings().getSettings(JsonApiSettings.class);
+        if (jsonApiSettings != null) {
+            String jsonApiPath = jsonApiSettings.getPath();
+            if (jsonApiPath != null && baseUrl.endsWith(jsonApiPath)) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - jsonApiPath.length());
+            }
+        }
+        return baseUrl;
     }
 }
