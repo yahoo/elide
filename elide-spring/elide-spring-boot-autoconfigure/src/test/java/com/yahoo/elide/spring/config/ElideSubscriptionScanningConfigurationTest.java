@@ -8,6 +8,8 @@ package com.yahoo.elide.spring.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import example.AppConfiguration;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -15,6 +17,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +30,7 @@ import jakarta.jms.ConnectionFactory;
  */
 class ElideSubscriptionScanningConfigurationTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withConfiguration(UserConfigurations.of(AppConfiguration.class))
             .withConfiguration(AutoConfigurations.of(ElideAutoConfiguration.class, DataSourceAutoConfiguration.class,
                     HibernateJpaAutoConfiguration.class, TransactionAutoConfiguration.class,
                     RefreshAutoConfiguration.class, ElideSubscriptionScanningConfiguration.class));
@@ -34,7 +38,7 @@ class ElideSubscriptionScanningConfigurationTest {
     @Configuration
     public static class JmsConfiguration {
         @Bean
-        public ConnectionFactory connectionFactory() {
+        ConnectionFactory connectionFactory() {
             return Mockito.mock(ConnectionFactory.class);
         }
     }

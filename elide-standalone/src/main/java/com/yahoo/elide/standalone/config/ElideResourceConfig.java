@@ -29,6 +29,7 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -101,9 +102,20 @@ public class ElideResourceConfig extends ResourceConfig {
                     settings.getEntitiesToExclude());
 
             DataStore dataStore;
+            Injector inject = new Injector() {
+                @Override
+                public void inject(Object entity) {
+                    injector.inject(entity);
+                }
+
+                @Override
+                public <T> T instantiate(Class<T> cls) {
+                    return injector.create(cls);
+                }
+            };
 
             if (settings.getAnalyticProperties().enableAggregationDataStore()) {
-                MetaDataStore metaDataStore = settings.getMetaDataStore(classScanner, dynamicConfiguration);
+                MetaDataStore metaDataStore = settings.getMetaDataStore(classScanner, inject, dynamicConfiguration);
                 if (metaDataStore == null) {
                     throw new IllegalStateException("Aggregation Datastore is enabled but metaDataStore is null");
                 }
@@ -120,7 +132,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     throw new IllegalStateException(
                             "Aggregation Datastore is enabled but aggregationDataStore is null");
                 }
-                dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory);
+                dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory, inject);
 
             } else {
                 dataStore = settings.getDataStore(entityManagerFactory);
@@ -241,11 +253,20 @@ public class ElideResourceConfig extends ResourceConfig {
 
         Optional<DynamicConfiguration> dynamicConfiguration;
         try {
-            dynamicConfiguration = settings.getDynamicConfiguration(classScanner);
+            dynamicConfiguration = settings.getDynamicConfiguration(classScanner, new Injector() {
+                @Override
+                public void inject(Object entity) {
+                    injector.inject(entity);
+                }
+
+                @Override
+                public <T> T instantiate(Class<T> cls) {
+                    return injector.create(cls);
+                }
+            });
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-
 
         // Bind to injector
         register(new ElideBinder(classScanner, dynamicConfiguration, servletContext));

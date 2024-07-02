@@ -35,7 +35,10 @@ import com.yahoo.elide.jsonapi.JsonApiExceptionHandler;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.models.JsonApiError;
 import com.yahoo.elide.jsonapi.models.JsonApiErrors;
+import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.spring.datastore.config.DataStoreBuilder;
+
+import example.AppConfiguration;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
@@ -75,6 +78,7 @@ class ElideAutoConfigurationTest {
     private static final String TARGET_NAME_PREFIX = "scopedTarget.";
     private static final String SCOPE_REFRESH = "refresh";
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withConfiguration(UserConfigurations.of(AppConfiguration.class))
             .withConfiguration(AutoConfigurations.of(ElideAutoConfiguration.class, DataSourceAutoConfiguration.class,
                     HibernateJpaAutoConfiguration.class, TransactionAutoConfiguration.class,
                     RefreshAutoConfiguration.class, ServerConfiguration.class));
@@ -390,7 +394,7 @@ class ElideAutoConfigurationTest {
     @Test
     void aggregationEnabled() {
         contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false", "elide.json-api.enabled=true", "elide.aggregation-store.enabled=true")
-                .withConfiguration(UserConfigurations.of(UserExceptionHandlerConfiguration.class)).run(context -> {
+                .run(context -> {
                     DataStoreBuilder dataStoreBuilder = context.getBean(DataStoreBuilder.class);
                     List<DataStore> result = new ArrayList<>();
                     dataStoreBuilder.dataStores(datastores -> result.addAll(datastores));
@@ -406,7 +410,7 @@ class ElideAutoConfigurationTest {
                 .withPropertyValues("spring.cloud.refresh.enabled=false", "elide.json-api.enabled=true",
                         "elide.aggregation-store.enabled=true", "elide.aggregation-store.dynamic-config.enabled=true",
                         "elide.aggregation-store.dynamic-config.path=configs")
-                .withConfiguration(UserConfigurations.of(UserExceptionHandlerConfiguration.class)).run(context -> {
+                .run(context -> {
                     EntityDictionaryBuilder entityDictionaryBuilder = context.getBean(EntityDictionaryBuilder.class);
                     Map<String, UserCheck> result = new LinkedHashMap<>();
                     entityDictionaryBuilder.roleChecks(roleChecks -> result.putAll(roleChecks));
@@ -414,6 +418,8 @@ class ElideAutoConfigurationTest {
                     // Roles in configs/models/security.hjson
                     assertThat(result).containsKey("admin.user");
                     assertThat(result).containsKey("guest.user");
+                    DynamicConfiguration dynamicConfiguration = context.getBean(DynamicConfiguration.class);
+                    assertThat(dynamicConfiguration).isNotNull();
                 });
     }
 }

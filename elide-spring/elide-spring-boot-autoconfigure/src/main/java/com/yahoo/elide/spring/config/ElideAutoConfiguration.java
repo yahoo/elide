@@ -974,9 +974,10 @@ public class ElideAutoConfiguration {
         @Scope(SCOPE_PROTOTYPE)
         @ConditionalOnMissingBean
         @ConditionalOnProperty(name = "elide.aggregation-store.dynamic-config.enabled", havingValue = "true")
-        public DynamicConfiguration dynamicConfiguration(ClassScanner scanner,
-                                                              ElideConfigProperties settings) throws IOException {
-            DynamicConfigValidator validator = new DynamicConfigValidator(scanner,
+        public DynamicConfiguration dynamicConfiguration(ClassScanner scanner, Injector injector,
+                ElideConfigProperties settings) throws IOException {
+            DynamicConfigValidator validator = new DynamicConfigValidator(
+                    entityDictionaryBuilder -> entityDictionaryBuilder.scanner(scanner).injector(injector),
                     settings.getAggregationStore().getDynamicConfig().getPath());
             validator.readAndValidateConfigs();
             return validator;
@@ -1019,6 +1020,7 @@ public class ElideAutoConfiguration {
                                             Optional<DynamicConfiguration> optionalDynamicConfig,
                                             ElideConfigProperties settings,
                                             ClassScanner scanner,
+                                            Injector injector,
                                             DataSourceConfiguration dataSourceConfiguration,
                                             DBPasswordExtractor dbPasswordExtractor) {
 
@@ -1027,7 +1029,7 @@ public class ElideAutoConfiguration {
                             SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
             if (isDynamicConfigEnabled(settings) && optionalDynamicConfig.isPresent()) {
                 DynamicConfiguration dynamicConfig = optionalDynamicConfig.get();
-                MetaDataStore metaDataStore = new MetaDataStore(scanner, dynamicConfig.getTables(),
+                MetaDataStore metaDataStore = new MetaDataStore(scanner, injector, dynamicConfig.getTables(),
                         dynamicConfig.getNamespaceConfigurations(), enableMetaDataStore);
 
                 Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
@@ -1053,7 +1055,7 @@ public class ElideAutoConfiguration {
                         new DefaultQueryPlanMerger(metaDataStore),
                         new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
             }
-            MetaDataStore metaDataStore = new MetaDataStore(scanner, enableMetaDataStore);
+            MetaDataStore metaDataStore = new MetaDataStore(scanner, injector, enableMetaDataStore);
             return new SQLQueryEngine(metaDataStore, unused -> defaultConnectionDetails);
         }
 
@@ -1100,8 +1102,8 @@ public class ElideAutoConfiguration {
         @Bean
         @Order(AGGREGATION_DATASTORE_CUSTOMIZER_ORDER)
         public DataStoreBuilderCustomizer aggregationDataStoreBuilderCustomizer(ElideConfigProperties settings,
-                ClassScanner scanner, Optional<QueryEngine> optionalQueryEngine, Optional<Cache> optionalCache,
-                Optional<QueryLogger> optionalQueryLogger) {
+                ClassScanner scanner, Injector injector, Optional<QueryEngine> optionalQueryEngine,
+                Optional<Cache> optionalCache, Optional<QueryLogger> optionalQueryLogger) {
             return dataStoreBuilder -> {
                 if (isAggregationStoreEnabled(settings)) {
                     AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore
@@ -1115,7 +1117,7 @@ public class ElideAutoConfiguration {
                             dataStoreBuilder
                                     .dataStore(new ConfigDataStore(
                                             settings.getAggregationStore().getDynamicConfig().getPath(),
-                                            new TemplateConfigValidator(scanner,
+                                            new TemplateConfigValidator(scanner, injector,
                                                     settings.getAggregationStore().getDynamicConfig().getPath())));
                         }
                     }

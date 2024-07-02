@@ -548,15 +548,20 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the dynamic configuration for models, security roles, and database connection.
      * @param scanner Class scanner
+     * @param injector Injector injector
      * @return Optional DynamicConfiguration
      * @throws IOException thrown when validator fails to read configuration.
      */
-    default Optional<DynamicConfiguration> getDynamicConfiguration(ClassScanner scanner) throws IOException {
+    default Optional<DynamicConfiguration> getDynamicConfiguration(ClassScanner scanner, Injector injector)
+            throws IOException {
         DynamicConfigValidator validator = null;
 
         if (getAnalyticProperties().enableAggregationDataStore()
-                        && getAnalyticProperties().enableDynamicModelConfig()) {
-            validator = new DynamicConfigValidator(scanner, getAnalyticProperties().getDynamicConfigPath());
+                && getAnalyticProperties().enableDynamicModelConfig()) {
+            validator = new DynamicConfigValidator(
+                    entityDictionaryBuilderCustomizer -> entityDictionaryBuilderCustomizer.scanner(scanner)
+                            .injector(injector),
+                    getAnalyticProperties().getDynamicConfigPath());
             validator.readAndValidateConfigs();
         }
 
@@ -577,10 +582,11 @@ public interface ElideStandaloneSettings {
      * @param metaDataStore MetaDataStore object.
      * @param aggregationDataStore AggregationDataStore object.
      * @param entityManagerFactory EntityManagerFactory object.
+     * @param injector the injector
      * @return DataStore object initialized.
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
-            EntityManagerFactory entityManagerFactory) {
+            EntityManagerFactory entityManagerFactory, Injector injector) {
 
         List<DataStore> stores = new ArrayList<>();
 
@@ -592,8 +598,8 @@ public interface ElideStandaloneSettings {
         stores.add(jpaDataStore);
 
         if (getAnalyticProperties().enableDynamicModelConfigAPI()) {
-            stores.add(new ConfigDataStore(getAnalyticProperties().getDynamicConfigPath(),
-                    new TemplateConfigValidator(getClassScanner(), getAnalyticProperties().getDynamicConfigPath())));
+            stores.add(new ConfigDataStore(getAnalyticProperties().getDynamicConfigPath(), new TemplateConfigValidator(
+                    getClassScanner(), injector, getAnalyticProperties().getDynamicConfigPath())));
         }
 
         stores.add(metaDataStore);
@@ -679,17 +685,18 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the metadatastore for elide.
      * @param scanner Class scanner.
+     * @param injector the injector
      * @param dynamicConfiguration optional dynamic config object.
      * @return MetaDataStore object initialized.
      */
-    default MetaDataStore getMetaDataStore(ClassScanner scanner,
+    default MetaDataStore getMetaDataStore(ClassScanner scanner, Injector injector,
             Optional<DynamicConfiguration> dynamicConfiguration) {
         boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
         return dynamicConfiguration
-                .map(dc -> new MetaDataStore(scanner, dc.getTables(),
+                .map(dc -> new MetaDataStore(scanner, injector, dc.getTables(),
                         dc.getNamespaceConfigurations(), enableMetaDataStore))
-                .orElseGet(() -> new MetaDataStore(scanner, enableMetaDataStore));
+                .orElseGet(() -> new MetaDataStore(scanner, injector, enableMetaDataStore));
     }
 
     /**
