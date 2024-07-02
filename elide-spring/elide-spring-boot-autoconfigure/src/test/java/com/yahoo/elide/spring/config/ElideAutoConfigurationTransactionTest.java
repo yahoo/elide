@@ -23,6 +23,7 @@ import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrations;
 import com.atomikos.spring.AtomikosAutoConfiguration;
 import com.atomikos.spring.AtomikosDataSourceBean;
 
+import example.AppConfiguration;
 import example.models.jpa.ArtifactGroup;
 import example.models.jpa.v2.ArtifactGroupV2;
 import example.models.jpa.v3.ArtifactGroupV3;
@@ -38,6 +39,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryBuilderCustomizer;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.orm.jpa.hibernate.SpringJtaPlatform;
@@ -71,6 +73,7 @@ import javax.sql.XADataSource;
  */
 class ElideAutoConfigurationTransactionTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withConfiguration(UserConfigurations.of(AppConfiguration.class))
             .withConfiguration(AutoConfigurations.of(ElideAutoConfiguration.class, DataSourceAutoConfiguration.class,
                     HibernateJpaAutoConfiguration.class, TransactionAutoConfiguration.class, RefreshAutoConfiguration.class));
 

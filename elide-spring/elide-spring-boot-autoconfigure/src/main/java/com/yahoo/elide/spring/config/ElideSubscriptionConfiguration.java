@@ -19,9 +19,11 @@ import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfigurator.SubscriptionWebSocketConfiguratorBuilder;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketConfiguratorBuilderCustomizer;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -40,6 +42,7 @@ import jakarta.websocket.server.ServerEndpointConfig;
  */
 @Configuration
 @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
+@ConditionalOnClass(GraphQLSettings.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 public class ElideSubscriptionConfiguration {
     /**

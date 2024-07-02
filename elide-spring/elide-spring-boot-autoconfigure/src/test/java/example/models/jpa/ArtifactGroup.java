@@ -7,11 +7,13 @@ package example.models.jpa;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
-import example.checks.AdminCheck;
 
+import example.checks.AdminCheck;
+import example.hooks.ArtifactGroupHook;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -24,6 +26,7 @@ import java.util.List;
 @Entity
 @Data
 @Subscription
+@LifeCycleHookBinding(operation = LifeCycleHookBinding.Operation.UPDATE, phase = LifeCycleHookBinding.TransactionPhase.PREFLUSH, hook = ArtifactGroupHook.class)
 public class ArtifactGroup {
     @Id
     private String name = "";

@@ -23,8 +23,8 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.graphql.GraphQLSettings;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
+
+import org.apache.commons.lang3.StringUtils;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -149,16 +149,6 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
         return exportResult;
     }
 
-    private Flux<String> concatStringWithFlux(String toConcat, Flux<String> observable,
-            boolean stringFirst) {
-        if (toConcat == null) {
-            return observable;
-        }
-
-        return stringFirst ? Flux.just(toConcat).concatWith(observable)
-                : observable.concatWith(Flux.just(toConcat));
-    }
-
     /**
      * Initializes a new RequestScope for the export operation with the submitted query.
      * @param exportObj TableExport type object.
@@ -178,25 +168,9 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      */
     public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
         AsyncSettings asyncSettings = scope.getElideSettings().getSettings(AsyncSettings.class);
-        JsonApiSettings jsonApiSettings = scope.getElideSettings().getSettings(JsonApiSettings.class);
-        GraphQLSettings graphqlSettings = scope.getElideSettings().getSettings(GraphQLSettings.class);
-
         String downloadPath = asyncSettings.getExport().getPath();
-        String baseURL = scope.getRoute().getBaseUrl();
-        if (jsonApiSettings != null) {
-            String jsonApiPath = jsonApiSettings.getPath();
-            if (jsonApiPath != null && baseURL.endsWith(jsonApiPath)) {
-                baseURL = baseURL.substring(0, baseURL.length() - jsonApiPath.length());
-            }
-        }
-        if (graphqlSettings != null) {
-            String graphqlApiPath = graphqlSettings.getPath();
-            if (graphqlApiPath != null && baseURL.endsWith(graphqlApiPath)) {
-                baseURL = baseURL.substring(0, baseURL.length() - graphqlApiPath.length());
-            }
-        }
         String tableExportID = getTableExportID(exportObj);
-        return baseURL + downloadPath + "/" + tableExportID;
+        return getBaseUrl(scope, downloadPath) + "/" + tableExportID;
     }
 
     /**
@@ -223,6 +197,28 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
     }
 
     /**
+     * Gets the base url for tableExport.
+     *
+     * @param scope RequestScope.
+     * @param prefix the prefix.
+     * @return the base url.
+     */
+    protected String getBaseUrl(RequestScope scope, String prefix) {
+        String baseUrl = scope.getElideSettings().getBaseUrl();
+        if (StringUtils.isEmpty(baseUrl)) {
+            baseUrl = getBaseUrl(scope);
+        }
+        if (prefix.length() > 1) {
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1) + prefix;
+            } else {
+                baseUrl = baseUrl + prefix;
+            }
+        }
+        return baseUrl;
+    }
+
+    /**
      * Generate Entity Projection from the query.
      * @param exportObj TableExport type object.
      * @param requestScope requestScope object.
@@ -230,4 +226,11 @@ public abstract class TableExportOperation implements Callable<AsyncApiResult> {
      */
     public abstract Collection<EntityProjection> getProjections(TableExport exportObj, RequestScope requestScope);
 
+    /**
+     * Gets the base url.
+     *
+     * @param requestScope requestScope object
+     * @return the base url
+     */
+    public abstract String getBaseUrl(RequestScope requestScope);
 }

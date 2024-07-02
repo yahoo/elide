@@ -67,5 +67,5 @@ public class AsyncProperties {
      * Settings for the export controller.
      */
     @NestedConfigurationProperty
-    private ExportControllerProperties export;
+    private ExportControllerProperties export = new ExportControllerProperties();
 }

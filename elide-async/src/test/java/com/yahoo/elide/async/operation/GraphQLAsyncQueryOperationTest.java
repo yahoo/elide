@@ -17,10 +17,13 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.AsyncProviderService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.graphql.QueryRunners;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +38,7 @@ public class GraphQLAsyncQueryOperationTest {
     private Map<String, QueryRunner> runners = new HashMap<>();
     private QueryRunner runner;
     private AsyncExecutorService asyncExecutorService;
+    private AsyncProviderService asyncProviderService;
 
     @BeforeEach
     public void setupMocks() {
@@ -44,8 +48,11 @@ public class GraphQLAsyncQueryOperationTest {
         runner = mock(QueryRunner.class);
         runners.put("v1", runner);
         asyncExecutorService = mock(AsyncExecutorService.class);
+        asyncProviderService = mock(AsyncProviderService.class);
+        QueryRunners queryRunners = new QueryRunners(runners);
+        when(asyncProviderService.getProvider(QueryRunners.class)).thenReturn(queryRunners);
         when(asyncExecutorService.getElide()).thenReturn(elide);
-        when(asyncExecutorService.getRunners()).thenReturn(runners);
+        when(asyncExecutorService.getProviders()).thenReturn(asyncProviderService);
     }
 
     @Test

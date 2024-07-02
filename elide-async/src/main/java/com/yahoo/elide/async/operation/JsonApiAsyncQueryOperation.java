@@ -38,7 +38,7 @@ public class JsonApiAsyncQueryOperation extends AsyncQueryOperation {
     @Override
     public ElideResponse<String> execute(AsyncApi queryObj, RequestScope scope)
             throws URISyntaxException {
-        JsonApi jsonApi = getService().getJsonApi();
+        JsonApi jsonApi = getService().getProviders().getProvider(JsonApi.class);
         User user = scope.getUser();
         String apiVersion = scope.getRoute().getApiVersion();
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());

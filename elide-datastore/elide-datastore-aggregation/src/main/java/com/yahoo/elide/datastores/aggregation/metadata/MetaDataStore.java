@@ -19,6 +19,8 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionaryBuilderCustomizer;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
@@ -92,22 +94,28 @@ public class MetaDataStore implements DataStore {
 
     public MetaDataStore(
             ClassScanner scanner,
+            Injector injector,
             Collection<com.yahoo.elide.modelconfig.model.Table> tables,
             boolean enableMetaDataStore) {
-        this(scanner, tables, new HashSet<>(), enableMetaDataStore);
+        this(scanner, injector, tables, new HashSet<>(), enableMetaDataStore);
     }
 
     public MetaDataStore(ClassScanner scanner, Collection<com.yahoo.elide.modelconfig.model.Table> tables,
             Collection<com.yahoo.elide.modelconfig.model.NamespaceConfig> namespaceConfigs,
             boolean enableMetaDataStore) {
-        this(scanner, getClassType(getAllAnnotatedClasses(scanner)), enableMetaDataStore);
+        this(scanner, EntityDictionary.DEFAULT_INJECTOR, tables, namespaceConfigs, enableMetaDataStore);
+    }
+
+    public MetaDataStore(ClassScanner scanner, Injector injector,
+            Collection<com.yahoo.elide.modelconfig.model.Table> tables,
+            Collection<com.yahoo.elide.modelconfig.model.NamespaceConfig> namespaceConfigs,
+            boolean enableMetaDataStore) {
+        this(entityDictionaryBuilder -> entityDictionaryBuilder.scanner(scanner).injector(injector),
+                getClassType(getAllAnnotatedClasses(scanner)), enableMetaDataStore);
 
         Map<String, Type<?>> typeMap = new HashMap<>();
         Set<String> joinNames = new HashSet<>();
         Set<Type<?>> dynamicTypes = new HashSet<>();
-
-        Map<String, NamespacePackage> namespaceMap = new HashMap<>();
-        //Convert namespaces into packages.
 
         namespaceConfigs.stream().forEach(namespace -> {
             NamespacePackage namespacePackage = new NamespacePackage(namespace);
@@ -153,7 +161,8 @@ public class MetaDataStore implements DataStore {
             ((TableType) table).resolveJoins(typeMap);
             String version = EntityDictionary.getModelVersion(table);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
-                    getHashMapDataStoreInitializer(scanner));
+                    getHashMapDataStoreInitializer(
+                            entityDictionaryBuilder -> entityDictionaryBuilder.scanner(scanner).injector(injector)));
             hashMapDataStore.getDictionary().bindEntity(table, IS_FIELD_HIDDEN);
             this.metadataDictionary.bindEntity(table, IS_FIELD_HIDDEN);
             this.modelsToBind.add(table);
@@ -162,7 +171,12 @@ public class MetaDataStore implements DataStore {
     }
 
     public MetaDataStore(ClassScanner scanner, boolean enableMetaDataStore) {
-        this(scanner, getClassType(getAllAnnotatedClasses(scanner)), enableMetaDataStore);
+        this(scanner, EntityDictionary.DEFAULT_INJECTOR, enableMetaDataStore);
+    }
+
+    public MetaDataStore(ClassScanner scanner, Injector injector, boolean enableMetaDataStore) {
+        this(entityDictionaryBuilder -> entityDictionaryBuilder.scanner(scanner).injector(injector),
+                getClassType(getAllAnnotatedClasses(scanner)), enableMetaDataStore);
     }
 
     /**
@@ -183,14 +197,26 @@ public class MetaDataStore implements DataStore {
     /**
      * Construct MetaDataStore with data models, namespaces.
      *
+     * @param scanner class scanner
      * @param modelsToBind models to bind
      * @param enableMetaDataStore If Enable MetaDataStore
      */
     public MetaDataStore(ClassScanner scanner, Set<Type<?>> modelsToBind, boolean enableMetaDataStore) {
+        this(entityDictionaryBuilder -> entityDictionaryBuilder.scanner(scanner), modelsToBind, enableMetaDataStore);
+    }
 
-        metadataDictionary = EntityDictionary.builder()
-                .scanner(scanner)
-                .build();
+    /**
+     * Construct MetaDataStore with data models, namespaces.
+     *
+     * @param entityDictionaryBuilderCustomizer customize entity dictionary
+     * @param modelsToBind models to bind
+     * @param enableMetaDataStore If Enable MetaDataStore
+     */
+    public MetaDataStore(EntityDictionaryBuilderCustomizer entityDictionaryBuilderCustomizer, Set<Type<?>> modelsToBind,
+            boolean enableMetaDataStore) {
+        EntityDictionary.EntityDictionaryBuilder builder = EntityDictionary.builder();
+        entityDictionaryBuilderCustomizer.customize(builder);
+        metadataDictionary = builder.build();
 
         //Hardcoded to avoid ClassGraph scan.
         this.metadataModelClasses = new HashSet<>(Arrays.asList(
@@ -211,7 +237,7 @@ public class MetaDataStore implements DataStore {
         modelsToBind.forEach(cls -> {
             String version = EntityDictionary.getModelVersion(cls);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
-                    getHashMapDataStoreInitializer(scanner));
+                    getHashMapDataStoreInitializer(entityDictionaryBuilderCustomizer));
             hashMapDataStore.getDictionary().bindEntity(cls, IS_FIELD_HIDDEN);
             this.metadataDictionary.bindEntity(cls, IS_FIELD_HIDDEN);
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
@@ -248,10 +274,13 @@ public class MetaDataStore implements DataStore {
         }
     }
 
-    private final Function<String, HashMapDataStore> getHashMapDataStoreInitializer(ClassScanner scanner) {
+    private final Function<String, HashMapDataStore> getHashMapDataStoreInitializer(
+            EntityDictionaryBuilderCustomizer entityDictionaryBuilderCustomizer) {
         return key -> {
             HashMapDataStore hashMapDataStore = new HashMapDataStore(metadataModelClasses);
-            EntityDictionary dictionary = EntityDictionary.builder().scanner(scanner).build();
+            EntityDictionary.EntityDictionaryBuilder builder = EntityDictionary.builder();
+            entityDictionaryBuilderCustomizer.customize(builder);
+            EntityDictionary dictionary = builder.build();
             metadataModelClasses.forEach(dictionary::bindEntity);
             hashMapDataStore.populateEntityDictionary(dictionary);
             return hashMapDataStore;

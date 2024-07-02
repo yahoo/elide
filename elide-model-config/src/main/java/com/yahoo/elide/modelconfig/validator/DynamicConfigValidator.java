@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionaryBuilderCustomizer;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.security.checks.Check;
@@ -93,10 +94,27 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     private static final Pattern FILTER_VARIABLE_PATTERN = Pattern.compile(".*?\\{\\{(\\w+)\\}\\}");
 
     public DynamicConfigValidator(ClassScanner scanner, String configDir) {
-        dictionary = EntityDictionary.builder().scanner(scanner).build();
-        fileLoader = new FileLoader(configDir);
+        this(builder -> builder.scanner(scanner), configDir);
+    }
 
+    public DynamicConfigValidator(EntityDictionaryBuilderCustomizer entityDictionaryBuilderCustomizer,
+            String configDir) {
+        this(buildEntityDictionary(entityDictionaryBuilderCustomizer), configDir);
+    }
+
+    public DynamicConfigValidator(EntityDictionary dictionary, String configDir) {
+        this.dictionary = dictionary;
+        this.fileLoader = new FileLoader(configDir);
         initialize();
+    }
+
+    protected static EntityDictionary buildEntityDictionary(
+            EntityDictionaryBuilderCustomizer entityDictionaryBuilderCustomizer) {
+        EntityDictionary.EntityDictionaryBuilder  builder = EntityDictionary.builder();
+        if (entityDictionaryBuilderCustomizer != null) {
+            entityDictionaryBuilderCustomizer.customize(builder);
+        }
+        return builder.build();
     }
 
     private void initialize() {
