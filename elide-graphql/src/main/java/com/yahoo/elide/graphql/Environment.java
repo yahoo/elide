@@ -29,8 +29,10 @@ public class Environment {
     public final Optional<String> sort;
     public final Optional<List<Map<String, Object>>> data;
     public final Optional<String> filters;
-    public final Optional<String> offset;
-    public final Optional<String> first;
+    public final Optional<Object> first;
+    public final Optional<Object> after;
+    public final Optional<Object> last;
+    public final Optional<Object> before;
     public final Object rawSource;
     public final GraphQLContainer container;
 
@@ -48,8 +50,10 @@ public class Environment {
         requestScope = environment.getLocalContext();
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
-        offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));
-        first = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FIRST));
+        first = Optional.ofNullable(args.get(ModelBuilder.ARGUMENT_FIRST));
+        after = Optional.ofNullable(args.get(ModelBuilder.ARGUMENT_AFTER));
+        last = Optional.ofNullable(args.get(ModelBuilder.ARGUMENT_FIRST));
+        before = Optional.ofNullable(args.get(ModelBuilder.ARGUMENT_AFTER));
         sort = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_SORT));
 
         parentType = environment.getParentType();

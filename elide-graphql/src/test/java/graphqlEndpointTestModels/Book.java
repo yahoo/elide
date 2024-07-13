@@ -16,6 +16,8 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
+import com.yahoo.elide.annotation.Paginate;
+import com.yahoo.elide.annotation.PaginationMode;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
@@ -52,6 +54,7 @@ import java.util.Set;
        operation = 10,
        logStatement = "{0}",
        logExpressions = {"${book.title}"})
+@Paginate(modes = { PaginationMode.OFFSET, PaginationMode.CURSOR })
 public class Book {
     long id;
     String title;

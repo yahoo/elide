@@ -10,6 +10,8 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.Paginate;
+import com.yahoo.elide.annotation.PaginationMode;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
@@ -308,7 +310,7 @@ public class OpenApiBuilder {
                     path.getGet().addParametersItem(param);
                 }
 
-                for (Parameter param : getPageParameters()) {
+                for (Parameter param : getPageParameters(type)) {
                     path.getGet().addParametersItem(param);
                 }
             }
@@ -375,8 +377,7 @@ public class OpenApiBuilder {
                 for (Parameter param : getFilterParameters()) {
                     path.getGet().addParametersItem(param);
                 }
-
-                for (Parameter param : getPageParameters()) {
+                for (Parameter param : getPageParameters(type)) {
                     path.getGet().addParametersItem(param);
                 }
             }
@@ -519,35 +520,95 @@ public class OpenApiBuilder {
         /**
          * Returns the pagination parameter.
          *
+         * @param type the type
          * @return the Elide 'page' query parameter for some GET operations.
          */
-        private List<Parameter> getPageParameters() {
+        private List<Parameter> getPageParameters(Type<?> type) {
+            Paginate paginate = dictionary.getAnnotation(type, Paginate.class);
+            boolean pageTotalsSupported = true;
+            boolean offsetSupported = true;
+            boolean cursorSupported = false;
+            if (paginate != null) {
+                pageTotalsSupported = paginate.countable();
+                if (paginate.modes() != null) {
+                    offsetSupported = Arrays.stream(paginate.modes()).anyMatch(PaginationMode.OFFSET::equals);
+                    cursorSupported = Arrays.stream(paginate.modes()).anyMatch(PaginationMode.CURSOR::equals);
+                }
+            }
+            return getPageParameters(pageTotalsSupported, offsetSupported, cursorSupported);
+        }
+
+        /**
+         * Returns the pagination parameter.
+         *
+         * @param pageTotalsSupported support page totals
+         * @offsetSupported support offset pagination
+         * @cursorSupported support cursor pagination
+         * @return the Elide 'page' query parameter for some GET operations.
+         */
+        private List<Parameter> getPageParameters(boolean pageTotalsSupported, boolean offsetSupported,
+                boolean cursorSupported) {
             List<Parameter> params = new ArrayList<>();
 
-            params.add(new QueryParameter().name("page[number]")
-                    .description("Number of pages to return.  Can be used with page[size]")
-                    .schema(new IntegerSchema()));
+            if (offsetSupported) {
+                params.add(new QueryParameter().name("page[number]")
+                        .description("Number of pages to return.  Can be used with page[size]")
+                        .schema(new IntegerSchema()));
+            }
 
-            params.add(new QueryParameter().name("page[size]")
-                    .description("Number of elements per page.  Can be used with page[number]")
-                    .schema(new IntegerSchema()));
+            if (offsetSupported || cursorSupported) {
+                List<String> usedWith = new ArrayList<>();
+                if (offsetSupported) {
+                    usedWith.add("page[number]");
+                }
+                if (cursorSupported) {
+                    usedWith.add("page[after]");
+                    usedWith.add("page[before]");
+                }
+                String usedWithString = usedWith.stream().collect(Collectors.joining(", "));
+                params.add(new QueryParameter().name("page[size]")
+                        .description(
+                                "Number of elements per page.  Can be used with " + usedWithString)
+                        .schema(new IntegerSchema()));
+            }
 
-            params.add(new QueryParameter().name("page[offset]")
-                    .description("Offset from 0 to start paginating.  Can be used with page[limit]")
-                    .schema(new IntegerSchema()));
+            if (offsetSupported) {
+                params.add(new QueryParameter().name("page[offset]")
+                        .description("Offset from 0 to start paginating.  Can be used with page[limit]")
+                        .schema(new IntegerSchema()));
+                params.add(new QueryParameter().name("page[limit]")
+                        .description("Maximum number of items to return.  Can be used with page[offset]")
+                        .schema(new IntegerSchema()));
+            }
 
-            params.add(new QueryParameter().name("page[limit]")
-                    .description("Maximum number of items to return.  Can be used with page[offset]")
-                    .schema(new IntegerSchema()));
+            if (cursorSupported) {
+                // Cursor pagination
+                params.add(new QueryParameter().name("page[first]")
+                        .description("Get first number of items and return the cursors ")
+                        .schema(new IntegerSchema()));
 
-            params.add(new QueryParameter().name("page[totals]")
-                    .description("For requesting total pages/records be included in the response page meta data")
-                    /*
-                     * Swagger UI doesn't support parameters that don't take args today. We'll just
-                     * make this a string for now
-                     */
-                    .schema(new StringSchema()));
+                params.add(new QueryParameter().name("page[after]")
+                        .description("Get next items after the cursor.  Can be used with page[size] ")
+                        .schema(new StringSchema()));
 
+                params.add(new QueryParameter().name("page[last]")
+                        .description("Get last number of items and return the cursors ")
+                        .schema(new IntegerSchema()));
+
+                params.add(new QueryParameter().name("page[before]")
+                        .description("Get previous items before the cursor.  Can be used with page[size] ")
+                        .schema(new StringSchema()));
+            }
+
+            if (pageTotalsSupported) {
+                params.add(new QueryParameter().name("page[totals]")
+                        .description("For requesting total pages/records be included in the response page meta data")
+                        /*
+                         * Swagger UI doesn't support parameters that don't take args today. We'll just
+                         * make this a string for now
+                         */
+                        .schema(new StringSchema()));
+            }
             return params;
         }
 

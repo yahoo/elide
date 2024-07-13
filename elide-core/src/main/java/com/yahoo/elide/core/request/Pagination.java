@@ -61,4 +61,91 @@ public interface Pagination {
      * @return true if pagination wasn't requested.  False otherwise.
      */
     boolean isDefaultInstance();
+
+    /**
+     * The direction for cursor pagination.
+     */
+    enum Direction {
+        FORWARD,
+        BACKWARD,
+        BETWEEN
+    }
+
+    /**
+     * Gets the cursor for cursor pagination.
+     *
+     * @return the cursor
+     */
+    default String getCursor() {
+        String before = getBefore();
+        String after = getAfter();
+        if (before != null && after != null) {
+            throw new IllegalArgumentException("Both before and after cursors exist.");
+        }
+        if (before != null) {
+            return before;
+        }
+        return after;
+    }
+
+    /**
+     * Gets the before cursor for cursor pagination.
+     *
+     * @return the before cursor
+     */
+    String getBefore();
+
+    /**
+     * Gets the after cursor for cursor pagination.
+     *
+     * @return the after cursor
+     */
+    String getAfter();
+
+    /**
+     * Gets the direction for cursor pagination.
+     *
+     * @return the direction for cursor pagination.
+     */
+    Direction getDirection();
+
+    /**
+     * Sets the cursor for the first item for cursor pagination.
+     */
+    void setStartCursor(String cursor);
+
+    /**
+     * Sets the cursor for the last item for cursor pagination.
+     */
+    void setEndCursor(String cursor);
+
+    /**
+     * Gets the cursor for the first item for cursor pagination.
+     */
+    String getStartCursor();
+
+    /**
+     * Gets the cursor for the last item for cursor pagination.
+     */
+    String getEndCursor();
+
+    /**
+     * Sets whether there is a previous page for cursor pagination.
+     */
+    void setHasPreviousPage(Boolean hasPreviousPage);
+
+    /**
+     * Gets whether there is a previous page for cursor pagination.
+     */
+    Boolean getHasPreviousPage();
+
+    /**
+     * Sets whether there is a next page for cursor pagination.
+     */
+    void setHasNextPage(Boolean hasNextPage);
+
+    /**
+     * Gets whether there is a next page for cursor pagination.
+     */
+    Boolean getHasNextPage();
 }
