@@ -25,8 +25,10 @@ import static org.eclipse.jetty.http.HttpStatus.CREATED_201;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -642,5 +644,77 @@ class PaginateIT extends IntegrationTest {
                 .body("data", hasSize(0),
                         "meta.page.totalRecords", equalTo(0)
                 );
+    }
+
+    @Test
+    @Tag("excludeOnJPA")
+    void testPaginationCursorFirst() {
+        String url = "/book?page[first]=2";
+        when()
+            .get(url)
+            .then()
+            .body("data", hasSize(2),
+                  "meta.page.startCursor", not(emptyString()),
+                  "meta.page.endCursor", not(emptyString())
+            );
+    }
+
+    @Test
+    @Tag("excludeOnJPA")
+    void testPaginationCursorLast() {
+        String url = "/book?page[last]=2";
+        when()
+            .get(url)
+            .then()
+            .body("data", hasSize(2),
+                  "meta.page.startCursor", not(emptyString()),
+                  "meta.page.endCursor", not(emptyString())
+            );
+    }
+
+    @Test
+    @Tag("excludeOnJPA")
+    void testPaginationCursorAfter() {
+        String url = "/book?page[first]=2";
+        String endCursor = get(url).path("meta.page.endCursor");
+        String url2 = "/book?page[size]=2&page[after]=" + endCursor;
+        when()
+            .get(url2)
+            .then()
+            .body("data", hasSize(2),
+                  "meta.page.startCursor", not(emptyString()),
+                  "meta.page.endCursor", not(emptyString())
+            );
+    }
+
+    @Test
+    @Tag("excludeOnJPA")
+    void testPaginationCursorBefore() {
+        String url = "/book?page[last]=2";
+        String startCursor = get(url).path("meta.page.startCursor");
+        String url2 = "/book?page[size]=2&page[before]=" + startCursor;
+        when()
+            .get(url2)
+            .then()
+            .body("data", hasSize(2),
+                  "meta.page.startCursor", not(emptyString()),
+                  "meta.page.endCursor", not(emptyString())
+            );
+    }
+
+    @Test
+    @Tag("excludeOnJPA")
+    void testPaginationCursorAfterBefore() {
+        String url = "/book?page[last]=3";
+        String startCursor = get(url).path("meta.page.startCursor");
+        String endCursor = get(url).path("meta.page.endCursor");
+        String url2 = "/book?page[size]=2&page[after]=" + startCursor + "&page[before]=" + endCursor;
+        when()
+            .get(url2)
+            .then()
+            .body("data", hasSize(1),
+                  "meta.page.startCursor", not(emptyString()),
+                  "meta.page.endCursor", not(emptyString())
+            );
     }
 }

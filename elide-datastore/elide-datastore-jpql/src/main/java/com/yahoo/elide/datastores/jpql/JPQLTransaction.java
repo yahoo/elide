@@ -151,8 +151,12 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
 
         if (pagination != null) {
             // Issue #1429
-            if (pagination.returnPageTotals() && (hasResults || pagination.getLimit() == 0)) {
-                pagination.setPageTotals(getTotalRecords(projection, scope.getDictionary()));
+            if (pagination.returnPageTotals()) {
+                if ((hasResults || pagination.getLimit() == 0)) {
+                    pagination.setPageTotals(getTotalRecords(projection, scope.getDictionary()));
+                } else {
+                    pagination.setPageTotals(0L);
+                }
             }
         }
 

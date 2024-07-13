@@ -88,4 +88,34 @@ public class GraphQLScalars {
                 }
             })
             .build();
+
+    public static GraphQLScalarType GRAPHQL_STRING_OR_INT_TYPE = GraphQLScalarType.newScalar()
+            .name("StringOrInt")
+            .description("The `StringOrInt` scalar type represents a type that can accept either a `String` "
+                    + "textual value or `Int` non-fractional signed whole numeric values.")
+            .coercing(new Coercing<Object, Object>() {
+                @Override
+                public Object serialize(Object o) {
+                    return o;
+                }
+
+                @Override
+                public Object parseValue(Object o) {
+                    return o;
+                }
+
+                @Override
+                public Object parseLiteral(Object o) {
+                    Object input;
+                    if (o instanceof IntValue) {
+                        input = ((IntValue) o).getValue().longValue();
+                    } else if (o instanceof StringValue) {
+                        input = ((StringValue) o).getValue();
+                    } else {
+                        throw new CoercingParseValueException(ERROR_BAD_EPOCH_TYPE);
+                    }
+                    return parseValue(input);
+                }
+            })
+            .build();
 }
