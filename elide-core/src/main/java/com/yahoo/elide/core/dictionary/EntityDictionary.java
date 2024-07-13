@@ -477,6 +477,16 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns the name of the entity id field.
+     *
+     * @param entityClass Entity class
+     * @return entity id field name
+     */
+    public String getEntityIdFieldName(Type<?> entityClass) {
+        return getEntityBinding(entityClass).getEntityIdFieldName();
+    }
+
+    /**
      * Returns whether the entire entity uses Field or Property level access.
      * @param entityClass Entity Class
      * @return The JPA Access Type
@@ -1263,7 +1273,12 @@ public class EntityDictionary {
 
             for (; idField == null && valueClass != null; valueClass = valueClass.getSuperclass()) {
                 try {
-                    idField = getEntityBinding(valueClass).getIdField();
+                    EntityBinding entityBinding = getEntityBinding(valueClass);
+                    // Attempt to get the entity id field first
+                    idField = entityBinding.getEntityIdField();
+                    if (idField == null) {
+                        idField = entityBinding.getIdField();
+                    }
                 } catch (NullPointerException e) {
                     log.warn("Class: {} ID Field: {}", valueClass.getSimpleName(), idField);
                 }
@@ -1300,6 +1315,16 @@ public class EntityDictionary {
      */
     public Type<?> getIdType(Type<?> entityClass) {
         return getEntityBinding(entityClass).getIdType();
+    }
+
+    /**
+     * Returns type of entity id field.
+     *
+     * @param entityClass the entity class
+     * @return ID type
+     */
+    public Type<?> getEntityIdType(Type<?> entityClass) {
+        return getEntityBinding(entityClass).getEntityIdType();
     }
 
     /**
@@ -1737,6 +1762,18 @@ public class EntityDictionary {
      */
     public void setId(Object target, String id) {
         setValue(target, getIdFieldName(lookupBoundClass(getType(target))), id);
+    }
+
+    /**
+     * Sets the EntityId field of a target object.
+     * @param target the object which owns the entity ID to set.
+     * @param entity id the value to set
+     */
+    public void setEntityId(Object target, String entityId) {
+        String entityIdFieldName = getEntityIdFieldName(lookupBoundClass(getType(target)));
+        if (entityIdFieldName != null) {
+            setValue(target, entityIdFieldName, entityId);
+        }
     }
 
     /**
