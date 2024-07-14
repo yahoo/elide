@@ -30,6 +30,7 @@ import com.yahoo.elide.async.models.security.AsyncApiInlineChecks;
 import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.AsyncProviderService;
 import com.yahoo.elide.async.service.dao.AsyncApiDao;
 import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
@@ -41,6 +42,8 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.graphql.QueryRunners;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 
 import example.TestCheckMappings;
@@ -130,8 +133,13 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(asyncAPIDao).to(AsyncApiDao.class);
 
                 ExecutorService executorService = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
+                AsyncProviderService asyncProviderService = AsyncProviderService.builder()
+                        .provider(JsonApi.class, new JsonApi(elide)).provider(QueryRunners.class,
+                                new QueryRunners(elide, Optional.of(new SimpleDataFetcherExceptionHandler())))
+                        .build();
+
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
-                        executorService, executorService, asyncAPIDao, Optional.of(new SimpleDataFetcherExceptionHandler()));
+                        executorService, executorService, asyncAPIDao, asyncProviderService);
 
                 // Create ResultStorageEngine
                 Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);

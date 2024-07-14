@@ -13,6 +13,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.graphql.QueryRunners;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +34,7 @@ public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
     public ElideResponse<String> execute(AsyncApi queryObj, RequestScope scope) throws URISyntaxException {
         User user = scope.getUser();
         String apiVersion = scope.getRoute().getApiVersion();
-        QueryRunner runner = getService().getRunners().get(apiVersion);
+        QueryRunner runner = getService().getProviders().getProvider(QueryRunners.class).getRunner(apiVersion);
         if (runner == null) {
             throw new InvalidOperationException("Invalid API Version");
         }

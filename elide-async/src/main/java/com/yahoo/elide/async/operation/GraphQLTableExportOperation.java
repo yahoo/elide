@@ -19,6 +19,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
@@ -78,5 +79,18 @@ public class GraphQLTableExportOperation extends TableExportOperation {
         }
 
         return projectionInfo.getProjections().values();
+    }
+
+    @Override
+    public String getBaseUrl(RequestScope requestScope) {
+        String baseUrl = requestScope.getRoute().getBaseUrl();
+        GraphQLSettings graphqlSettings = requestScope.getElideSettings().getSettings(GraphQLSettings.class);
+        if (graphqlSettings != null) {
+            String graphqlApiPath = graphqlSettings.getPath();
+            if (graphqlApiPath != null && baseUrl.endsWith(graphqlApiPath)) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - graphqlApiPath.length());
+            }
+        }
+        return baseUrl;
     }
 }

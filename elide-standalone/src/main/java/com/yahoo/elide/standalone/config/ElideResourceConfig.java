@@ -21,6 +21,7 @@ import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.AsyncProviderService;
 import com.yahoo.elide.async.service.dao.AsyncApiDao;
 import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
@@ -28,6 +29,7 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -35,6 +37,8 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.graphql.QueryRunners;
+import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
@@ -98,9 +102,20 @@ public class ElideResourceConfig extends ResourceConfig {
                     settings.getEntitiesToExclude());
 
             DataStore dataStore;
+            Injector inject = new Injector() {
+                @Override
+                public void inject(Object entity) {
+                    injector.inject(entity);
+                }
+
+                @Override
+                public <T> T instantiate(Class<T> cls) {
+                    return injector.create(cls);
+                }
+            };
 
             if (settings.getAnalyticProperties().enableAggregationDataStore()) {
-                MetaDataStore metaDataStore = settings.getMetaDataStore(classScanner, dynamicConfiguration);
+                MetaDataStore metaDataStore = settings.getMetaDataStore(classScanner, inject, dynamicConfiguration);
                 if (metaDataStore == null) {
                     throw new IllegalStateException("Aggregation Datastore is enabled but metaDataStore is null");
                 }
@@ -117,7 +132,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     throw new IllegalStateException(
                             "Aggregation Datastore is enabled but aggregationDataStore is null");
                 }
-                dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory);
+                dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory, inject);
 
             } else {
                 dataStore = settings.getDataStore(entityManagerFactory);
@@ -155,8 +170,14 @@ public class ElideResourceConfig extends ResourceConfig {
 
             ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
             ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
+
+            AsyncProviderService asyncProviderService = AsyncProviderService.builder()
+                    .provider(JsonApi.class, new JsonApi(elide)).provider(QueryRunners.class,
+                            new QueryRunners(elide, Optional.of(settings.getDataFetcherExceptionHandler())))
+                    .build();
+
             AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncApiDao,
-                    Optional.of(settings.getDataFetcherExceptionHandler()));
+                    asyncProviderService);
             bind(asyncExecutorService).to(AsyncExecutorService.class);
 
             if (asyncProperties.enableExport()) {
@@ -232,11 +253,20 @@ public class ElideResourceConfig extends ResourceConfig {
 
         Optional<DynamicConfiguration> dynamicConfiguration;
         try {
-            dynamicConfiguration = settings.getDynamicConfiguration(classScanner);
+            dynamicConfiguration = settings.getDynamicConfiguration(classScanner, new Injector() {
+                @Override
+                public void inject(Object entity) {
+                    injector.inject(entity);
+                }
+
+                @Override
+                public <T> T instantiate(Class<T> cls) {
+                    return injector.create(cls);
+                }
+            });
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-
 
         // Bind to injector
         register(new ElideBinder(classScanner, dynamicConfiguration, servletContext));

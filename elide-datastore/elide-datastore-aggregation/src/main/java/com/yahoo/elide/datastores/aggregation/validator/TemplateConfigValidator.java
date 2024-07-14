@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.validator;
 
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
@@ -28,23 +29,26 @@ public class TemplateConfigValidator implements Validator {
 
     private final ClassScanner scanner;
     private final String configRoot;
+    private final Injector injector;
 
     public TemplateConfigValidator(
             ClassScanner scanner,
+            Injector injector,
             String configRoot
     ) {
         this.scanner = scanner;
+        this.injector = injector;
         this.configRoot = configRoot;
     }
 
     //Rebuilds the MetaDataStore for each validation so that we can validate templates.
     MetaDataStore rebuildMetaDataStore(Map<String, ConfigFile> resourceMap) {
-        DynamicConfigValidator validator = new DynamicConfigValidator(scanner,
-                configRoot);
+        DynamicConfigValidator validator = new DynamicConfigValidator(
+                entityDictionaryBuilder -> entityDictionaryBuilder.scanner(scanner).injector(injector), configRoot);
 
         validator.validate(resourceMap);
 
-        MetaDataStore metaDataStore = new MetaDataStore(scanner, validator.getTables(),
+        MetaDataStore metaDataStore = new MetaDataStore(scanner, injector, validator.getTables(),
                 validator.getNamespaceConfigurations(), false);
 
         //Populates the metadata store with SQL tables.

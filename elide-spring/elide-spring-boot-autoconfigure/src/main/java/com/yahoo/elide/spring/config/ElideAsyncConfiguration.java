@@ -12,6 +12,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 import com.yahoo.elide.RefreshableElide;
+import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
 import com.yahoo.elide.async.DefaultResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.ResultTypeFileExtensionMapper;
 import com.yahoo.elide.async.export.formatter.CsvExportFormatter;
@@ -28,14 +29,19 @@ import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.AsyncProviderService;
+import com.yahoo.elide.async.service.AsyncProviderService.AsyncProviderServiceBuilder;
+import com.yahoo.elide.async.service.AsyncProviderServiceBuilderCustomizer;
 import com.yahoo.elide.async.service.dao.AsyncApiDao;
 import com.yahoo.elide.async.service.dao.DefaultAsyncApiDao;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.graphql.QueryRunners;
+import com.yahoo.elide.jsonapi.JsonApi;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -43,8 +49,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-
-import graphql.execution.DataFetcherExceptionHandler;
 
 import java.util.Map;
 import java.util.Optional;
@@ -56,9 +60,10 @@ import java.util.concurrent.Executors;
  * and setting flags to disable in properties to change the default behavior.
  */
 @Configuration
+@ConditionalOnClass(AsyncSettingsBuilder.class)
+@ConditionalOnProperty(prefix = "elide.async", name = "enabled", matchIfMissing = false)
 @EntityScan(basePackageClasses = AsyncQuery.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
-@ConditionalOnExpression("${elide.async.enabled:false}")
 public class ElideAsyncConfiguration {
 
     /**
@@ -74,7 +79,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public TableExportFormattersBuilder tableExportFormattersBuilder(
+    TableExportFormattersBuilder tableExportFormattersBuilder(
             RefreshableElide elide,
             ElideConfigProperties settings,
             ObjectProvider<TableExportFormattersBuilderCustomizer> customizerProvider) {
@@ -97,26 +102,27 @@ public class ElideAsyncConfiguration {
      * @param settings Elide settings.
      * @param asyncQueryDao AsyncDao object.
      * @param optionalResultStorageEngine Result Storage Engine.
-     * @param optionalDataFetcherExceptionHandler GraphQL data fetcher exception handler.
+     * @param tableExportFormattersBuilder TableExportFormattersBuilder.
+     * @param asyncProviderService the AsyncProviderService.
      * @return a AsyncExecutorService.
      */
     @Bean
     @ConditionalOnMissingBean
-    public AsyncExecutorService asyncExecutorService(
+    AsyncExecutorService asyncExecutorService(
             RefreshableElide elide,
             ElideConfigProperties settings,
             AsyncApiDao asyncQueryDao,
             Optional<ResultStorageEngine> optionalResultStorageEngine,
-            Optional<DataFetcherExceptionHandler> optionalDataFetcherExceptionHandler,
             TableExportFormattersBuilder tableExportFormattersBuilder,
-            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper
+            ResultTypeFileExtensionMapper resultTypeFileExtensionMapper,
+            AsyncProviderService asyncProviderService
     ) {
         AsyncProperties asyncProperties = settings.getAsync();
 
         ExecutorService executor = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
         ExecutorService updater = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
         AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide.getElide(), executor,
-                updater, asyncQueryDao, optionalDataFetcherExceptionHandler);
+                updater, asyncQueryDao, asyncProviderService);
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
@@ -160,7 +166,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.cleanup", name = "enabled", matchIfMissing = false)
-    public AsyncCleanerService asyncCleanerService(RefreshableElide elide,
+    AsyncCleanerService asyncCleanerService(RefreshableElide elide,
                                                         ElideConfigProperties settings,
                                                         AsyncApiDao asyncQueryDao) {
         AsyncCleanerService.init(elide.getElide(), settings.getAsync().getCleanup().getQueryMaxRunTime(),
@@ -176,7 +182,7 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public AsyncApiDao asyncApiDao(RefreshableElide elide) {
+    AsyncApiDao asyncApiDao(RefreshableElide elide) {
         return new DefaultAsyncApiDao(elide.getElide().getElideSettings(), elide.getElide().getDataStore());
     }
 
@@ -188,7 +194,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
-    public ResultStorageEngine resultStorageEngine(ElideConfigProperties settings) {
+    ResultStorageEngine resultStorageEngine(ElideConfigProperties settings) {
         FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(
                 settings.getAsync().getExport().getStorageDestination());
         return resultStorageEngine;
@@ -200,7 +206,76 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public ResultTypeFileExtensionMapper resultTypeFileExtensionMapper() {
+    ResultTypeFileExtensionMapper resultTypeFileExtensionMapper() {
         return new DefaultResultTypeFileExtensionMapper();
+    }
+
+    /**
+     * Creates the {@link AsyncProviderServiceBuilder} to provide the underlying
+     * services like JsonApi and QueryRunners.
+     * <p>
+     * Defining a {@link AsyncProviderServiceBuilderCustomizer} will allow
+     * customization of the default builder.
+     *
+     * @param customizerProvider the customizers
+     * @return the AsyncProviderServiceBuilder
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @Scope(SCOPE_PROTOTYPE)
+    AsyncProviderServiceBuilder asyncProviderServiceBuilder(
+            ObjectProvider<AsyncProviderServiceBuilderCustomizer> customizerProvider) {
+        AsyncProviderServiceBuilder builder = AsyncProviderService.builder();
+        customizerProvider.orderedStream().forEach(customizer -> customizer.customize(builder));
+        return builder;
+    }
+
+    /**
+     * Configure the {@link AsyncProviderService} to provide the underlying services like
+     * JsonApi and QueryRunners.
+     *
+     * @param builder the builder
+     * @return the AsyncProviderService
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    AsyncProviderService asyncProviderService(AsyncProviderServiceBuilder builder) {
+        return builder.build();
+    }
+
+    @Configuration
+    @ConditionalOnClass(QueryRunners.class)
+    @ConditionalOnProperty(prefix = "elide.graphql", name = "enabled", matchIfMissing = false)
+    public static class GraphQLConfiguration {
+        /**
+         * Adds the GraphQL QueryRunners to the AsyncProviderService.
+         *
+         * @param queryRunners the query runnners
+         * @return the customizer
+         */
+        @Bean
+        AsyncProviderServiceBuilderCustomizer graphQlAsyncProviderServiceBuilderCustomizer(QueryRunners queryRunners) {
+            return builder -> {
+                builder.provider(QueryRunners.class, queryRunners);
+            };
+        }
+    }
+
+    @Configuration
+    @ConditionalOnClass(JsonApi.class)
+    @ConditionalOnProperty(prefix = "elide.json-api", name = "enabled", matchIfMissing = false)
+    public static class JsonApiConfiguration {
+        /**
+         * Adds the JsonApi to the AsyncProviderService.
+         *
+         * @param jsonApi the json api
+         * @return the customizer
+         */
+        @Bean
+        AsyncProviderServiceBuilderCustomizer jsonApiAsyncProviderServiceBuilderCustomizer(JsonApi jsonApi) {
+            return builder -> {
+                builder.provider(JsonApi.class, jsonApi);
+            };
+        }
     }
 }
