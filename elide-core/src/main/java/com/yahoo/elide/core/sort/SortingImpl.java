@@ -280,4 +280,13 @@ public class SortingImpl implements Sorting {
     public static Sorting getDefaultEmptyInstance() {
         return DEFAULT_EMPTY_INSTANCE;
     }
+
+    /**
+     * Gets the sort rules.
+     *
+     * @return the sort rules
+     */
+    public Map<String, SortOrder> getSortRules() {
+        return this.sortRules;
+    }
 }

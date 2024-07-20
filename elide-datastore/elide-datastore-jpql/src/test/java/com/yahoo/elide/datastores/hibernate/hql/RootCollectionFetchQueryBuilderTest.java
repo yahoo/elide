@@ -22,12 +22,15 @@ import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Pagination.Direction;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jpql.porting.Query;
 import com.yahoo.elide.datastores.jpql.porting.SingleResultQuery;
+import com.yahoo.elide.datastores.jpql.query.CursorEncoder;
+import com.yahoo.elide.datastores.jpql.query.JacksonCursorEncoder;
 import com.yahoo.elide.datastores.jpql.query.RootCollectionFetchQueryBuilder;
 import example.Author;
 import example.Book;
@@ -38,7 +41,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +52,7 @@ public class RootCollectionFetchQueryBuilderTest {
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";
+    private static final String GENRE = "genre";
     private static final String PUBLISHER = "publisher";
     private static final String EDITOR = "editor";
     private static final String PERIOD = ".";
@@ -55,6 +61,7 @@ public class RootCollectionFetchQueryBuilderTest {
     private static final String PRICE = "price";
     private static final String TOTAL = "total";
     private RSQLFilterDialect filterParser;
+    private CursorEncoder cursorEncoder = new JacksonCursorEncoder();
 
     @BeforeAll
     public void initialize() {
@@ -76,7 +83,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -104,7 +112,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         Query query = builder.build();
@@ -125,7 +134,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -155,7 +165,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -196,7 +207,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -236,7 +248,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
 
@@ -266,7 +279,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -301,7 +315,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -312,6 +327,168 @@ public class RootCollectionFetchQueryBuilderTest {
                         + " LEFT JOIN example_Book_publisher.editor example_Book_publisher_editor"
                         + " WHERE example_Book.id IN (:id_XXX)"
                         + " order by example_Book_publisher_editor.firstName desc";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootFetchWithRelationshipSortingAndFiltersAndKeysetPagination() {
+        Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
+        sorting.put(PUBLISHER + PERIOD + EDITOR + PERIOD + FIRSTNAME, Sorting.SortOrder.desc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
+        sorting.put(GENRE, Sorting.SortOrder.asc);
+
+        Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
+
+        FilterPredicate idPredicate = new InPredicate(idPath, 1);
+
+        EntityProjection entityProjection = EntityProjection
+                .builder().type(Book.class)
+                .sorting(new SortingImpl(sorting, Book.class, dictionary))
+                .filterExpression(idPredicate)
+                .pagination(new PaginationImpl(Book.class, null, 2, 10, 10, false, false, null,
+                        cursorEncoder.encode(Map.of("id", "2")), Direction.FORWARD))
+                .build();
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                entityProjection,
+                dictionary,
+                new TestSessionWrapper(),
+                cursorEncoder
+        );
+
+        TestQueryWrapper query = (TestQueryWrapper) builder.build();
+
+        String expected = "SELECT example_Book FROM example.Book AS example_Book"
+                + " LEFT JOIN example_Book.publisher example_Book_publisher"
+                + " LEFT JOIN example_Book_publisher.editor example_Book_publisher_editor"
+                + " WHERE example_Book.id IN (:id_XXX)"
+                + " AND "
+                + "(example_Book.title > :_keysetParameter_0 OR "
+                + "(example_Book.title = :_keysetParameter_0 AND example_Book.genre > :_keysetParameter_1) OR "
+                + "(example_Book.title = :_keysetParameter_0 AND example_Book.genre = :_keysetParameter_1 AND example_Book.id > :_keysetParameter_2))"
+                + " order by example_Book_publisher_editor.firstName desc,example_Book.title asc,example_Book.genre asc,example_Book.id asc";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootFetchWithRelationshipSortingAndFiltersAndKeysetPaginationBackward() {
+        Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
+        sorting.put(PUBLISHER + PERIOD + EDITOR + PERIOD + FIRSTNAME, Sorting.SortOrder.desc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
+        sorting.put(GENRE, Sorting.SortOrder.asc);
+
+        Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
+
+        FilterPredicate idPredicate = new InPredicate(idPath, 1);
+
+        EntityProjection entityProjection = EntityProjection
+                .builder().type(Book.class)
+                .sorting(new SortingImpl(sorting, Book.class, dictionary))
+                .filterExpression(idPredicate)
+                .pagination(new PaginationImpl(Book.class, null, 2, 10, 10, false, false, null,
+                        cursorEncoder.encode(Map.of("id", "2")), Direction.BACKWARD))
+                .build();
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                entityProjection,
+                dictionary,
+                new TestSessionWrapper(),
+                cursorEncoder
+        );
+
+        TestQueryWrapper query = (TestQueryWrapper) builder.build();
+
+        String expected = "SELECT example_Book FROM example.Book AS example_Book"
+                + " LEFT JOIN example_Book.publisher example_Book_publisher"
+                + " LEFT JOIN example_Book_publisher.editor example_Book_publisher_editor"
+                + " WHERE example_Book.id IN (:id_XXX)"
+                + " AND "
+                + "(example_Book.title < :_keysetParameter_0 OR "
+                + "(example_Book.title = :_keysetParameter_0 AND example_Book.genre < :_keysetParameter_1) OR "
+                + "(example_Book.title = :_keysetParameter_0 AND example_Book.genre = :_keysetParameter_1 AND example_Book.id < :_keysetParameter_2))"
+                + " order by example_Book_publisher_editor.firstName desc,example_Book.title desc,example_Book.genre desc,example_Book.id desc";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootFetchWithRelationshipAndFiltersAndKeysetPagination() {
+        Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
+
+        FilterPredicate idPredicate = new InPredicate(idPath, 1);
+
+        EntityProjection entityProjection = EntityProjection
+                .builder().type(Book.class)
+                .sorting(new SortingImpl(Collections.emptyMap(), Book.class, dictionary))
+                .filterExpression(idPredicate)
+                .pagination(new PaginationImpl(Book.class, null, 2, 10, 10, false, false, null,
+                        cursorEncoder.encode(Map.of("id", "2")), Direction.FORWARD))
+                .build();
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                entityProjection,
+                dictionary,
+                new TestSessionWrapper(),
+                cursorEncoder
+        );
+
+        TestQueryWrapper query = (TestQueryWrapper) builder.build();
+
+        String expected = "SELECT example_Book FROM example.Book AS example_Book"
+                + " WHERE example_Book.id IN (:id_XXX)"
+                + " AND "
+                + "(example_Book.id > :_keysetParameter_0)"
+                + " order by example_Book.id asc";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootFetchWithRelationshipAndFiltersAndKeysetPaginationBackward() {
+        Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
+
+        FilterPredicate idPredicate = new InPredicate(idPath, 1);
+
+        EntityProjection entityProjection = EntityProjection
+                .builder().type(Book.class)
+                .sorting(new SortingImpl(Collections.emptyMap(), Book.class, dictionary))
+                .filterExpression(idPredicate)
+                .pagination(new PaginationImpl(Book.class, null, 2, 10, 10, false, false, null,
+                        cursorEncoder.encode(Map.of("id", "2")), Direction.BACKWARD))
+                .build();
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                entityProjection,
+                dictionary,
+                new TestSessionWrapper(),
+                cursorEncoder
+        );
+
+        TestQueryWrapper query = (TestQueryWrapper) builder.build();
+
+        String expected = "SELECT example_Book FROM example.Book AS example_Book"
+                + " WHERE example_Book.id IN (:id_XXX)"
+                + " AND "
+                + "(example_Book.id < :_keysetParameter_0)"
+                + " order by example_Book.id desc";
 
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
@@ -333,7 +510,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -369,7 +547,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         assertThrows(InvalidValueException.class, () -> {
@@ -400,7 +579,8 @@ public class RootCollectionFetchQueryBuilderTest {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 entityProjection,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();

@@ -16,8 +16,12 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Pagination.Direction;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.request.Sorting.SortOrder;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.jpql.porting.Query;
 import com.yahoo.elide.datastores.jpql.porting.Session;
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +29,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -37,6 +43,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractHQLQueryBuilder {
     protected final Session session;
     protected final EntityDictionary dictionary;
+    protected final CursorEncoder cursorEncoder;
     protected EntityProjection entityProjection;
     protected static final String SPACE = " ";
     protected static final String PERIOD = ".";
@@ -74,10 +81,12 @@ public abstract class AbstractHQLQueryBuilder {
         Object getParent();
     }
 
-    public AbstractHQLQueryBuilder(EntityProjection entityProjection, EntityDictionary dictionary, Session session) {
+    public AbstractHQLQueryBuilder(EntityProjection entityProjection, EntityDictionary dictionary, Session session,
+            CursorEncoder cursorEncoder) {
         this.session = session;
         this.dictionary = dictionary;
         this.entityProjection = entityProjection;
+        this.cursorEncoder = cursorEncoder;
     }
 
     public abstract Query build();
@@ -98,6 +107,210 @@ public abstract class AbstractHQLQueryBuilder {
                 );
             }
         }
+    }
+
+    private static String KEYSET_PARAMETER_PREFIX = "_keysetParameter_";
+
+    /**
+     * Adjusts the sorting for keyset pagination. When scrolling backwards the sort
+     * order of the root entity needs to be reversed. Also if the sort on the id
+     * field is missing this is also appended to the sort order.
+     *
+     * @param entityProjection the entity projection
+     */
+    protected void adjustSortingForKeysetPagination(EntityProjection entityProjection) {
+        Pagination pagination = entityProjection.getPagination();
+        Type<?> entityType = entityProjection.getType();
+        // Add missing sorts
+        Sorting sorting = entityProjection.getSorting();
+        if (sorting == null || sorting.isDefaultInstance()) {
+            if (Direction.BACKWARD.equals(pagination.getDirection())) {
+                Map<String, Sorting.SortOrder> sortOrder = new LinkedHashMap<>();
+                sortOrder.put("id", Sorting.SortOrder.desc);
+                sorting = new SortingImpl(sortOrder, entityType, dictionary);
+            } else {
+                Map<String, Sorting.SortOrder> sortOrder = new LinkedHashMap<>();
+                sortOrder.put("id", Sorting.SortOrder.asc);
+                sorting = new SortingImpl(sortOrder, entityType, dictionary);
+            }
+            entityProjection.setSorting(sorting);
+        } else {
+            // When moving backwards need to amend sort order
+            boolean hasIdSort = false;
+            Map<String, Sorting.SortOrder> sortOrder = new LinkedHashMap<>();
+            for (Entry<String, SortOrder> entry : ((SortingImpl) sorting).getSortRules().entrySet()) {
+                if (Direction.BACKWARD.equals(pagination.getDirection())) {
+                    if (!entry.getKey().contains(".")) {
+                        // root sort adjust direction
+                        sortOrder.put(entry.getKey(),
+                                SortOrder.asc.equals(entry.getValue()) ? SortOrder.desc : SortOrder.asc);
+                    } else {
+                        sortOrder.put(entry.getKey(), entry.getValue());
+                    }
+                } else {
+                    // FORWARD
+                    sortOrder.put(entry.getKey(), entry.getValue());
+                }
+                if ("id".equals(entry.getKey())) {
+                    hasIdSort = true;
+                }
+            }
+            if (!hasIdSort) {
+                sortOrder.put("id", Direction.BACKWARD.equals(pagination.getDirection()) ? SortOrder.desc
+                      : SortOrder.asc);
+            }
+            sorting = new SortingImpl(sortOrder, entityType, dictionary);
+            entityProjection.setSorting(sorting);
+        }
+    }
+
+    /**
+     * Derives the keyset pagination clause.
+     *
+     * @param entityProjection the entity projection
+     * @param dictionary the dictionary
+     * @param entityAlias the entity alias
+     * @return the keyset pagination clause
+     */
+    protected String getKeysetPaginationClause(EntityProjection entityProjection, EntityDictionary dictionary,
+            String entityAlias) {
+        Pagination pagination = entityProjection.getPagination();
+        if (pagination != null && pagination.getDirection() != null) {
+            adjustSortingForKeysetPagination(entityProjection);
+
+            if (pagination.getBefore() != null || pagination.getAfter() != null) {
+                Type<?> entityType = entityProjection.getType();
+                String idField = dictionary.getIdFieldName(entityType);
+
+                int index = 0;
+                StringBuilder builder = new StringBuilder();
+                if (Direction.BETWEEN.equals(pagination.getDirection())) {
+                    builder.append("(");
+                    index = getKeysetPaginationClauseFromPaginationSort(builder, entityProjection, dictionary, idField,
+                            Direction.FORWARD, index, entityAlias);
+                    builder.append(") AND (");
+                    index = getKeysetPaginationClauseFromPaginationSort(builder, entityProjection, dictionary, idField,
+                            Direction.BACKWARD, index, entityAlias);
+                    builder.append(")");
+                    return builder.toString();
+                } else {
+                    // Direction is forward even for the backward direction as the sorts have already been reversed
+                    builder.append("(");
+                    index = getKeysetPaginationClauseFromPaginationSort(builder, entityProjection, dictionary, idField,
+                            Direction.FORWARD, index, entityAlias);
+                    builder.append(")");
+                    return builder.toString();
+                }
+            }
+        }
+        return "";
+    }
+
+    protected void supplyKeysetPaginationQueryParameters(Query query, EntityProjection entityProjection,
+            EntityDictionary dictionary) {
+        Pagination pagination = entityProjection.getPagination();
+        if (pagination.getDirection() != null) {
+            Map<String, String> after = null;
+            Map<String, String> before = null;
+            int index = 0;
+            Type<?> entityType = entityProjection.getType();
+            Sorting sorting = entityProjection.getSorting();
+
+            String afterCursor = pagination.getAfter();
+            String beforeCursor = pagination.getBefore();
+            if (afterCursor != null) {
+                after = cursorEncoder.decode(afterCursor);
+            }
+            if (beforeCursor != null) {
+                before = cursorEncoder.decode(beforeCursor);
+            }
+
+            List<KeysetColumn> fields = getKeysetColumns(sorting);
+            if (after != null && !after.isEmpty()) {
+                for (KeysetColumn field : fields) {
+                    String keyValue = after.get(field.getColumn());
+                    Class<?> fieldType = dictionary.getType(entityType, field.getColumn()).getUnderlyingClass().get();
+                    Object value = CoerceUtil.coerce(keyValue, fieldType);
+                    query.setParameter(KEYSET_PARAMETER_PREFIX + index++, value);
+                }
+            }
+            if (before != null && !before.isEmpty()) {
+                for (KeysetColumn field : fields) {
+                    String keyValue = before.get(field.getColumn());
+                    Class<?> fieldType = dictionary.getType(entityType, field.getColumn()).getUnderlyingClass().get();
+                    Object value = CoerceUtil.coerce(keyValue, fieldType);
+                    query.setParameter(KEYSET_PARAMETER_PREFIX + index++, value);
+                }
+            }
+        }
+    }
+
+    public static class KeysetColumn {
+        private final String column;
+        private final SortOrder sortOrder;
+
+        public KeysetColumn(String column, SortOrder sortOrder) {
+            this.column = column;
+            this.sortOrder = sortOrder;
+        }
+
+        public String getColumn() {
+            return column;
+        }
+
+        public SortOrder getSortOrder() {
+            return sortOrder;
+        }
+
+        @Override
+        public String toString() {
+            return "KeysetColumn [column=" + column + ", sortOrder=" + sortOrder + "]";
+        }
+    }
+
+    protected List<KeysetColumn> getKeysetColumns(Sorting sorting) {
+        List<KeysetColumn> result = new ArrayList<>();
+        for (Entry<Path, SortOrder> entry : sorting.getSortingPaths().entrySet()) {
+            Path path = entry.getKey();
+            if (path.getPathElements().size() == 1) {
+                String column = entry.getKey().getFieldPath();
+                result.add(new KeysetColumn(column, entry.getValue()));
+            }
+        }
+        return result;
+    }
+
+    protected int getKeysetPaginationClauseFromPaginationSort(StringBuilder builder, EntityProjection entityProjection,
+            EntityDictionary dictionary, String idField, Direction direction, int index, String entityAlias) {
+        Sorting sorting = entityProjection.getSorting();
+        List<KeysetColumn> keysetColumns = getKeysetColumns(sorting);
+        for (int x = 0; x < keysetColumns.size(); x++) {
+            KeysetColumn keysetColumn = keysetColumns.get(x);
+            if (x != 0) {
+                builder.append(" OR (");
+                for (int y = 0; y < x; y++) {
+                    KeysetColumn keysetColumnPrevious = keysetColumns.get(y);
+                    builder.append(entityAlias + "." + keysetColumnPrevious.getColumn() + " =" + " :"
+                            + KEYSET_PARAMETER_PREFIX + (index + y));
+                    builder.append(" AND ");
+                }
+            }
+            SortOrder order = keysetColumn.getSortOrder();
+            if (Direction.BACKWARD.equals(direction)) {
+                if (order == SortOrder.asc) {
+                    order = SortOrder.desc;
+                } else {
+                    order = SortOrder.asc;
+                }
+            }
+            String operator = SortOrder.asc.equals(order) ? ">" : "<";
+            builder.append(entityAlias + "." + keysetColumn.getColumn() + " " + operator + " :"
+                    + KEYSET_PARAMETER_PREFIX + (index + x));
+            if (x != 0) {
+                builder.append(")");
+            }
+        }
+        return index + keysetColumns.size();
     }
 
     /**
@@ -158,8 +371,19 @@ public abstract class AbstractHQLQueryBuilder {
     protected void addPaginationToQuery(Query query) {
         Pagination pagination = entityProjection.getPagination();
         if (pagination != null) {
-            query.setFirstResult(pagination.getOffset());
-            query.setMaxResults(pagination.getLimit());
+            if (Direction.FORWARD.equals(pagination.getDirection())
+                    || Direction.BACKWARD.equals(pagination.getDirection())) {
+                // Keyset pagination
+                // For keyset pagination adjust the limit by 1 to efficiently determine if there
+                // is a next page in the forward direction or a previous page in the backward
+                // direction
+                query.setFirstResult(0);
+                query.setMaxResults(pagination.getLimit() + 1);
+            } else {
+                // Offset pagination
+                query.setFirstResult(pagination.getOffset());
+                query.setMaxResults(pagination.getLimit());
+            }
         }
     }
 
