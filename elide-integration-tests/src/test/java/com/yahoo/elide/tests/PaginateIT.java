@@ -647,7 +647,6 @@ class PaginateIT extends IntegrationTest {
     }
 
     @Test
-    @Tag("excludeOnJPA")
     void testPaginationCursorFirst() {
         String url = "/book?page[first]=2";
         when()
@@ -660,7 +659,6 @@ class PaginateIT extends IntegrationTest {
     }
 
     @Test
-    @Tag("excludeOnJPA")
     void testPaginationCursorLast() {
         String url = "/book?page[last]=2";
         when()
@@ -673,7 +671,6 @@ class PaginateIT extends IntegrationTest {
     }
 
     @Test
-    @Tag("excludeOnJPA")
     void testPaginationCursorAfter() {
         String url = "/book?page[first]=2";
         String endCursor = get(url).path("meta.page.endCursor");
@@ -688,7 +685,6 @@ class PaginateIT extends IntegrationTest {
     }
 
     @Test
-    @Tag("excludeOnJPA")
     void testPaginationCursorBefore() {
         String url = "/book?page[last]=2";
         String startCursor = get(url).path("meta.page.startCursor");
@@ -703,7 +699,6 @@ class PaginateIT extends IntegrationTest {
     }
 
     @Test
-    @Tag("excludeOnJPA")
     void testPaginationCursorAfterBefore() {
         String url = "/book?page[last]=3";
         String startCursor = get(url).path("meta.page.startCursor");

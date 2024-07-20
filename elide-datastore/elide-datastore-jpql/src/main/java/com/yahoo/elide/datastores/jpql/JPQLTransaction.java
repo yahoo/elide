@@ -18,25 +18,37 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Pagination.Direction;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.request.Sorting.SortOrder;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.jpql.porting.Query;
 import com.yahoo.elide.datastores.jpql.porting.ScrollableIteratorBase;
 import com.yahoo.elide.datastores.jpql.porting.Session;
 import com.yahoo.elide.datastores.jpql.query.AbstractHQLQueryBuilder;
+import com.yahoo.elide.datastores.jpql.query.CursorEncoder;
 import com.yahoo.elide.datastores.jpql.query.RelationshipImpl;
 import com.yahoo.elide.datastores.jpql.query.RootCollectionFetchQueryBuilder;
 import com.yahoo.elide.datastores.jpql.query.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.datastores.jpql.query.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.datastores.jpql.query.SubCollectionPageTotalsQueryBuilder;
 
+import org.apache.commons.beanutils.BeanUtils;
+
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -49,15 +61,19 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
     private final boolean isScrollEnabled;
     private final Set<Object> singleElementLoads;
     private final boolean delegateToInMemoryStore;
+    private final CursorEncoder cursorEncoder;
 
 
     /**
      * Constructor.
      *
      * @param session Hibernate session
+     * @param delegateToInMemoryStore Whether to delegate to in memory store
      * @param isScrollEnabled Whether or not scrolling is enabled
+     * @param cursorEncoder the cursor encoder
      */
-    protected JPQLTransaction(Session session, boolean delegateToInMemoryStore, boolean isScrollEnabled) {
+    protected JPQLTransaction(Session session, boolean delegateToInMemoryStore, boolean isScrollEnabled,
+            CursorEncoder cursorEncoder) {
         this.sessionWrapper = session;
         this.isScrollEnabled = isScrollEnabled;
 
@@ -65,6 +81,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         // same object is loaded twice from two different collections.
         this.singleElementLoads = Collections.newSetFromMap(new IdentityHashMap<>());
         this.delegateToInMemoryStore = delegateToInMemoryStore;
+        this.cursorEncoder = cursorEncoder;
     }
 
     /**
@@ -115,7 +132,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                 .build();
 
         Query query =
-                new RootCollectionFetchQueryBuilder(projection, dictionary, sessionWrapper).build();
+                new RootCollectionFetchQueryBuilder(projection, dictionary, sessionWrapper, cursorEncoder).build();
 
         T loaded = new TimedFunction<T>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
 
@@ -133,7 +150,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         Pagination pagination = projection.getPagination();
 
         final Query query =
-                new RootCollectionFetchQueryBuilder(projection, scope.getDictionary(), sessionWrapper)
+                new RootCollectionFetchQueryBuilder(projection, scope.getDictionary(), sessionWrapper, cursorEncoder)
                         .build();
 
         Iterable<T> results = new TimedFunction<Iterable<T>>(() -> {
@@ -158,9 +175,65 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                     pagination.setPageTotals(0L);
                 }
             }
+            // Cursor Pagination handling
+            if (pagination.getDirection() != null && hasResults) {
+                List list = new ArrayList();
+                results.forEach(list::add);
+                boolean hasNext = list.size() > pagination.getLimit();
+                if (Direction.BACKWARD.equals(pagination.getDirection())) {
+                    if (hasNext) {
+                        // Remove the last element as it was requested to tell whether there was a next
+                        // or previous page
+                        list.remove(pagination.getLimit());
+                    }
+                    Collections.reverse(list);
+                    pagination.setHasPreviousPage(hasNext);
+                } else if (Direction.FORWARD.equals(pagination.getDirection())) {
+                    if (hasNext) {
+                        // Remove the last element as it was requested to tell whether there was a next
+                        // or previous page
+                        list.remove(pagination.getLimit());
+                    }
+                    pagination.setHasNextPage(hasNext);
+                }
+                if (!list.isEmpty()) {
+                    Object first = list.get(0);
+                    Object last = list.get(list.size() - 1);
+                    String startCursor = getCursor(first, projection, scope);
+                    String endCursor = getCursor(last, projection, scope);
+                    pagination.setStartCursor(startCursor);
+                    pagination.setEndCursor(endCursor);
+                }
+                results = list;
+            }
         }
 
         return new DataStoreIterableBuilder<T>(addSingleElement(results)).build();
+    }
+
+    protected String getCursor(Object object, EntityProjection projection,
+            RequestScope scope) {
+        Map<String, String> keyset = getKeyset(object, projection, scope);
+        return cursorEncoder.encode(keyset);
+    }
+
+    protected Map<String, String> getKeyset(Object object, EntityProjection projection,
+            RequestScope scope) {
+        Map<String, String> keyset = new LinkedHashMap<>();
+        Sorting sorting = projection.getSorting();
+        for (Entry<Path, SortOrder> entry : sorting.getSortingPaths().entrySet()) {
+            if (entry.getKey().getPathElements().size() == 1) {
+                String fieldPath = entry.getKey().getFieldPath();
+                try {
+                    Object property = BeanUtils.getProperty(object, fieldPath);
+                    String value = CoerceUtil.coerce(property, String.class);
+                    keyset.put(fieldPath, value);
+                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+        }
+        return keyset;
     }
 
     @Override
@@ -201,7 +274,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
             }
 
             final Query query =
-                    new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper)
+                    new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper, cursorEncoder)
                             .build();
 
             if (query != null) {
@@ -238,7 +311,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
 
 
         Query query =
-                new RootCollectionPageTotalsQueryBuilder(entityProjection, dictionary, sessionWrapper)
+                new RootCollectionPageTotalsQueryBuilder(entityProjection, dictionary, sessionWrapper, cursorEncoder)
                         .build();
 
         return new TimedFunction<Long>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
@@ -255,7 +328,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                                  EntityDictionary dictionary) {
 
         Query query =
-                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper)
+                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper, cursorEncoder)
                         .build();
 
         return new TimedFunction<Long>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
