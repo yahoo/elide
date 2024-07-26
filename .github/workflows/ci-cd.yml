@@ -29,7 +29,7 @@ env:
 
 jobs:
   yml-md-style-and-link-checks:
-    uses: paion-data/ci-cd-core/.github/workflows/yml-md-style-and-link-checks.yml@master
+    uses: paion-data/immutable-infrastructure-as-a-service/.github/workflows/yml-md-style-and-link-checks.yml@master
 
   tests:
     name: Unit & Integration Tests

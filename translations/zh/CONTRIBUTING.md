@@ -4,7 +4,6 @@
 
 - 代码必须和现有的代码风格一致。修改代码的话，新的代码要和之前写好的风格一致。如果您使用 IntelliJ，
   可以使用我们的代码风格配置文件：[elide-intellij-codestyle.xml](https://github.com/paion-data/elide/raw/master/elide-intellij-codestyle.xml).
-- 修改代码，请同时添加或修[文档](https://github.com/paion-data/elide-doc)。
 - 修 Bug 需要有单元测试和集成测试，测试的内容必须是和 bug 相关的。
 - 请勿在代码中包含 `author` 相关的 Javadoc 或信息。
 - 每个代码文件必须包含开源许可抬头。详见[举例](https://github.com/paion-data/elide/blob/master/elide-core/src/main/java/com/paiondata/elide/Elide.java)

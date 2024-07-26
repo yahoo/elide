@@ -31,7 +31,6 @@ git commits.  In addition:
   that you are modifying. If you are using IntelliJ, you can import our code style settings xml:
   [elide-intellij-codestyle.xml](https://github.com/paion-data/elide/raw/master/elide-intellij-codestyle.xml)
   or [elide-eclipse.importorder](https://github.com/paion-data/elide/raw/master/elide-eclipse.importorder).
-- Do add/update [documentation](https://github.com/paion-data/elide-doc) appropriately for the change you are making.
 - Bugfixes should include a unit test or integration test reproducing the issue.
 - Do not use author tags/information in the code.
 - Always include license header on each file your create. See
