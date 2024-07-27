@@ -69,7 +69,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
                 .get("/api-docs")
                 .then()
                 .statusCode(200)
-                .body("tags.name", containsInAnyOrder("post", "asyncQuery"));
+                .body("tags.name", containsInAnyOrder("atomic", "post", "asyncQuery"));
     }
 
     @Override
