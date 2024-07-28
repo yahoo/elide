@@ -293,6 +293,66 @@ public class InMemoryStoreTransactionTest {
     }
 
     @Test
+    public void testTransactionResetsPaginationWithZeroRecords() {
+        PaginationImpl pagination = new PaginationImpl(ClassType.of(Author.class), 0, 4, 10, 10, true, false);
+
+        FilterExpression expression =
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
+
+        Relationship relationship = Relationship.builder()
+                .projection(EntityProjection.builder()
+                        .type(Book.class)
+                        .filterExpression(expression)
+                        .pagination(pagination)
+                        .build())
+                .name("books")
+                .alias("books")
+                .build();
+
+        ArgumentCaptor<Relationship> relationshipArgument = ArgumentCaptor.forClass(Relationship.class);
+
+        when(scope.getNewPersistentResources()).thenReturn(Sets.newHashSet(mock(PersistentResource.class)));
+
+
+        when(wrappedTransaction.getToManyRelation(eq(inMemoryStoreTransaction), eq(author1), any(), eq(scope)))
+                .thenReturn(new DataStoreIterableBuilder<>(books).build());
+
+        Collection<Object> loaded = ImmutableList.copyOf((Iterable) inMemoryStoreTransaction.getToManyRelation(
+                inMemoryStoreTransaction, author1, relationship, scope));
+
+        verify(wrappedTransaction, times(1)).getToManyRelation(
+                eq(inMemoryStoreTransaction),
+                eq(author1),
+                relationshipArgument.capture(),
+                eq(scope));
+
+        assertNull(relationshipArgument.getValue().getProjection().getFilterExpression());
+        assertNull(relationshipArgument.getValue().getProjection().getSorting());
+        assertNull(relationshipArgument.getValue().getProjection().getPagination());
+
+        assertEquals(2, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book3));
+        assertEquals(2, pagination.getPageTotals());
+
+        Author author3 = new Author();
+        when(wrappedTransaction.getToManyRelation(eq(inMemoryStoreTransaction), eq(author3), any(), eq(scope)))
+                .thenReturn(new DataStoreIterableBuilder<>().build());
+
+        Collection<Object> emptyLoaded = ImmutableList.copyOf(inMemoryStoreTransaction.getToManyRelation(
+                inMemoryStoreTransaction, author3, relationship, scope));
+
+        verify(wrappedTransaction, times(1)).getToManyRelation(
+                eq(inMemoryStoreTransaction),
+                eq(author3),
+                relationshipArgument.capture(),
+                eq(scope));
+
+        assertEquals(0, emptyLoaded.size());
+        assertEquals(0, pagination.getPageTotals());
+    }
+
+    @Test
     public void testGetToOneRelationship() {
 
         Relationship relationship = Relationship.builder()

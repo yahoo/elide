@@ -45,110 +45,111 @@ import jakarta.websocket.server.ServerEndpointConfig;
 @ConditionalOnClass(GraphQLSettings.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 public class ElideSubscriptionConfiguration {
-    /**
-     * Exposes a subscription {@link ServerEndpointConfig} that doesn't accept a
-     * path parameter for api versioning.
-     *
-     * @param config  the config
-     * @param builder the builder
-     * @return the config
-     */
-    @Bean
-    @ConditionalOnProperty(name = "elide.graphql.subscription.enabled", havingValue = "true")
-    ServerEndpointConfig serverEndpointConfig(ElideConfigProperties config,
-            SubscriptionWebSocketConfiguratorBuilder builder) {
-        String path = config.getGraphql().getSubscription().getPath();
-        return ServerEndpointConfig.Builder
-                .create(SubscriptionWebSocket.class, path)
-                .subprotocols(SubscriptionWebSocket.SUPPORTED_WEBSOCKET_SUBPROTOCOLS)
-                .configurator(builder.build())
-                .build();
-    }
 
-    /**
-     * Exposes a subscription {@link ServerEndpointConfig} that accepts a path
-     * parameter for api versioning.
-     *
-     * @param config  the config
-     * @param builder the builder
-     * @return the config
-     */
-    @Bean
+    @Configuration
     @ConditionalOnProperty(name = "elide.graphql.subscription.enabled", havingValue = "true")
-    ServerEndpointConfig serverEndpointConfigPath(ElideConfigProperties config,
-            SubscriptionWebSocketConfiguratorBuilder builder) {
-        String path = config.getGraphql().getSubscription().getPath();
-        if (!path.endsWith("/")) {
-            path = path + "/";
+    @ConditionalOnClass(SubscriptionWebSocketConfigurator.class)
+    public static class JmsDataStoreConfiguration {
+        /**
+         * Exposes a subscription {@link ServerEndpointConfig} that doesn't accept a
+         * path parameter for api versioning.
+         *
+         * @param config  the config
+         * @param builder the builder
+         * @return the config
+         */
+        @Bean
+        ServerEndpointConfig serverEndpointConfig(ElideConfigProperties config,
+                SubscriptionWebSocketConfiguratorBuilder builder) {
+            String path = config.getGraphql().getSubscription().getPath();
+            return ServerEndpointConfig.Builder
+                    .create(SubscriptionWebSocket.class, path)
+                    .subprotocols(SubscriptionWebSocket.SUPPORTED_WEBSOCKET_SUBPROTOCOLS)
+                    .configurator(builder.build())
+                    .build();
         }
-        path = path + "{path}";
-        return ServerEndpointConfig.Builder
-                .create(SubscriptionWebSocket.class, path)
-                .subprotocols(SubscriptionWebSocket.SUPPORTED_WEBSOCKET_SUBPROTOCOLS)
-                .configurator(builder.build())
-                .build();
-    }
 
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(name = "elide.graphql.subscription.enabled", havingValue = "true")
-    @Scope(SCOPE_PROTOTYPE)
-    SubscriptionWebSocketConfiguratorBuilder subscriptionWebSocketConfiguratorBuilder(
-            ElideConfigProperties config,
-            SubscriptionWebSocket.UserFactory userFactory,
-            ConnectionFactory connectionFactory,
-            DataFetcherExceptionHandler dataFetcherExceptionHandler,
-            RouteResolver routeResolver,
-            ObjectProvider<SubscriptionWebSocketConfiguratorBuilderCustomizer> customizers,
-            Injector injector,
-            SerdesBuilder serdesBuilder,
-            ElideMapper elideMapper,
-            AuditLogger auditLogger,
-            ObjectProvider<SettingsBuilder> settingsProvider,
-            ObjectProvider<ElideSettingsBuilderCustomizer> customizerProvider
-            ) {
-        SubscriptionWebSocketConfiguratorBuilder builder = SubscriptionWebSocketConfigurator.builder()
-                .baseUrl(config.getGraphql().getSubscription().getPath())
-                .sendPingOnSubscribe(config.getGraphql().getSubscription().isSendPingOnSubscribe())
-                .connectionTimeout(config.getGraphql().getSubscription().getConnectionTimeout())
-                .maxSubscriptions(config.getGraphql().getSubscription().maxSubscriptions)
-                .maxMessageSize(config.getGraphql().getSubscription().maxMessageSize)
-                .maxIdleTimeout(config.getGraphql().getSubscription().getIdleTimeout())
-                .connectionFactory(connectionFactory)
-                .userFactory(userFactory)
-                .elideSettingsBuilderCustomizer(elideSettingsBuilder -> {
-                    elideSettingsBuilder.serdes(serdes -> serdes.entries(entries -> {
-                        entries.clear();
-                        serdesBuilder.build().entrySet().stream().forEach(entry -> {
-                            entries.put(entry.getKey(), entry.getValue());
-                        });
-                    })).objectMapper(elideMapper.getObjectMapper()).auditLogger(auditLogger)
-                            .verboseErrors(config.isVerboseErrors())
-                            .maxPageSize(config.getMaxPageSize())
-                            .defaultPageSize(config.getDefaultPageSize());
-                    settingsProvider.orderedStream().forEach(elideSettingsBuilder::settings);
-                    customizerProvider.orderedStream()
-                            .forEach(customizer -> customizer.customize(elideSettingsBuilder));
-                })
-                .dataFetcherExceptionHandler(dataFetcherExceptionHandler)
-                .routeResolver(routeResolver)
-                .injector(injector);
-        customizers.orderedStream().forEach(customizer -> customizer.customize(builder));
-        return builder;
-    }
+        /**
+         * Exposes a subscription {@link ServerEndpointConfig} that accepts a path
+         * parameter for api versioning.
+         *
+         * @param config  the config
+         * @param builder the builder
+         * @return the config
+         */
+        @Bean
+        ServerEndpointConfig serverEndpointConfigPath(ElideConfigProperties config,
+                SubscriptionWebSocketConfiguratorBuilder builder) {
+            String path = config.getGraphql().getSubscription().getPath();
+            if (!path.endsWith("/")) {
+                path = path + "/";
+            }
+            path = path + "{path}";
+            return ServerEndpointConfig.Builder
+                    .create(SubscriptionWebSocket.class, path)
+                    .subprotocols(SubscriptionWebSocket.SUPPORTED_WEBSOCKET_SUBPROTOCOLS)
+                    .configurator(builder.build())
+                    .build();
+        }
 
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(name = "elide.graphql.subscription.enabled", havingValue = "true")
-    ServerEndpointExporter serverEndpointExporter() {
-        ServerEndpointExporter exporter = new ServerEndpointExporter();
-        return exporter;
-    }
+        @Bean
+        @ConditionalOnMissingBean
+        @Scope(SCOPE_PROTOTYPE)
+        SubscriptionWebSocketConfiguratorBuilder subscriptionWebSocketConfiguratorBuilder(
+                ElideConfigProperties config,
+                SubscriptionWebSocket.UserFactory userFactory,
+                ConnectionFactory connectionFactory,
+                DataFetcherExceptionHandler dataFetcherExceptionHandler,
+                RouteResolver routeResolver,
+                ObjectProvider<SubscriptionWebSocketConfiguratorBuilderCustomizer> customizers,
+                Injector injector,
+                SerdesBuilder serdesBuilder,
+                ElideMapper elideMapper,
+                AuditLogger auditLogger,
+                ObjectProvider<SettingsBuilder> settingsProvider,
+                ObjectProvider<ElideSettingsBuilderCustomizer> customizerProvider
+                ) {
+            SubscriptionWebSocketConfiguratorBuilder builder = SubscriptionWebSocketConfigurator.builder()
+                    .baseUrl(config.getGraphql().getSubscription().getPath())
+                    .sendPingOnSubscribe(config.getGraphql().getSubscription().isSendPingOnSubscribe())
+                    .connectionTimeout(config.getGraphql().getSubscription().getConnectionTimeout())
+                    .maxSubscriptions(config.getGraphql().getSubscription().maxSubscriptions)
+                    .maxMessageSize(config.getGraphql().getSubscription().maxMessageSize)
+                    .maxIdleTimeout(config.getGraphql().getSubscription().getIdleTimeout())
+                    .connectionFactory(connectionFactory)
+                    .userFactory(userFactory)
+                    .elideSettingsBuilderCustomizer(elideSettingsBuilder -> {
+                        elideSettingsBuilder.serdes(serdes -> serdes.entries(entries -> {
+                            entries.clear();
+                            serdesBuilder.build().entrySet().stream().forEach(entry -> {
+                                entries.put(entry.getKey(), entry.getValue());
+                            });
+                        })).objectMapper(elideMapper.getObjectMapper()).auditLogger(auditLogger)
+                                .verboseErrors(config.isVerboseErrors())
+                                .maxPageSize(config.getMaxPageSize())
+                                .defaultPageSize(config.getDefaultPageSize());
+                        settingsProvider.orderedStream().forEach(elideSettingsBuilder::settings);
+                        customizerProvider.orderedStream()
+                                .forEach(customizer -> customizer.customize(elideSettingsBuilder));
+                    })
+                    .dataFetcherExceptionHandler(dataFetcherExceptionHandler)
+                    .routeResolver(routeResolver)
+                    .injector(injector);
+            customizers.orderedStream().forEach(customizer -> customizer.customize(builder));
+            return builder;
+        }
 
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(name = "elide.graphql.subscription.enabled", havingValue = "true")
-    SubscriptionWebSocket.UserFactory userFactory() {
-        return DEFAULT_USER_FACTORY;
+        @Bean
+        @ConditionalOnMissingBean
+        ServerEndpointExporter serverEndpointExporter() {
+            ServerEndpointExporter exporter = new ServerEndpointExporter();
+            return exporter;
+        }
+
+        @Bean
+        @ConditionalOnMissingBean
+        SubscriptionWebSocket.UserFactory userFactory() {
+            return DEFAULT_USER_FACTORY;
+        }
     }
 }

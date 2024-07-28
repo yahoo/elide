@@ -145,13 +145,13 @@
         <dependency-check-maven.version>9.2.0</dependency-check-maven.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
-        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.1.2</maven-deploy-plugin.version>
         <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
         <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-        <maven-gpg-plugin.version>3.2.1</maven-gpg-plugin.version>
+        <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
@@ -163,7 +163,7 @@
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
         <versioneye-maven-plugin.version>3.11.4</versioneye-maven-plugin.version>
         <wagon-ssh-external.version>3.5.3</wagon-ssh-external.version>
-        <native-maven-plugin.version>0.9.28</native-maven-plugin.version>
+        <native-maven-plugin.version>0.10.2</native-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
 
         <mpir.skip>true</mpir.skip>

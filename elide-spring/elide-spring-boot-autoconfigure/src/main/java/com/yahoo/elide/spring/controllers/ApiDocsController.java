@@ -67,9 +67,8 @@ public class ApiDocsController {
     @Data
     @AllArgsConstructor
     public static class ApiDocsRegistrations {
-
-        public ApiDocsRegistrations(Supplier<OpenAPI> doc, String version, String apiVersion) {
-            registrations = List.of(new ApiDocsRegistration("", doc, version, apiVersion));
+        public ApiDocsRegistrations(Supplier<OpenAPI> doc, String apiVersion) {
+            registrations = List.of(new ApiDocsRegistration("", doc, apiVersion));
         }
 
         List<ApiDocsRegistration> registrations;
@@ -80,11 +79,6 @@ public class ApiDocsController {
     public static class ApiDocsRegistration {
         private String path;
         private Supplier<OpenAPI> document;
-
-        /**
-         * The OpenAPI Specification Version.
-         */
-        private String version;
 
         /**
          * The API version.
@@ -109,8 +103,7 @@ public class ApiDocsController {
             apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
-            this.documents.put(Pair.of(apiVersion, apiPath),
-                    new OpenApiDocument(doc.document, OpenApiDocument.Version.from(doc.version)));
+            this.documents.put(Pair.of(apiVersion, apiPath), new OpenApiDocument(doc.document));
         });
     }
 
