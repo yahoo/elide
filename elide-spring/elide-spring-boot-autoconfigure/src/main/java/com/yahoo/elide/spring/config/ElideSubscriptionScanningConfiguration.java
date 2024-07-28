@@ -26,7 +26,7 @@ import jakarta.jms.Message;
  * Scans for GraphQL subscriptions and registers lifecycle hooks.
  */
 @Configuration
-@ConditionalOnClass(GraphQLSettings.class)
+@ConditionalOnClass({ GraphQLSettings.class, ConnectionFactory.class })
 @ConditionalOnProperty(name = "elide.graphql.enabled", havingValue = "true")
 @ConditionalOnExpression(
     "${elide.graphql.subscription.enabled:false} && ${elide.graphql.subscription.publishing.enabled:true}")

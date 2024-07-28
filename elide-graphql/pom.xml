@@ -69,18 +69,23 @@
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java-extended-scalars</artifactId>
         </dependency>
+        <!-- javadoc -->
         <dependency>
             <groupId>jakarta.websocket</groupId>
             <artifactId>jakarta.websocket-api</artifactId>
+            <scope>provided</scope>
         </dependency>
+        <!-- com.yahoo.elide.graphql.subscriptions.websocket -->
         <dependency>
             <groupId>jakarta.websocket</groupId>
             <artifactId>jakarta.websocket-client-api</artifactId>
+            <scope>provided</scope>
         </dependency>
-
+        <!-- com.yahoo.elide.graphql.subscriptions.hooks -->
         <dependency>
             <groupId>jakarta.jms</groupId>
             <artifactId>jakarta.jms-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
