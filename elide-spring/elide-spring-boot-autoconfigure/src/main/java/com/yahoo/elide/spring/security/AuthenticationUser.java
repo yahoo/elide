@@ -14,7 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
  * Elide User object for Spring Boot.
  */
 public class AuthenticationUser extends User {
-    private Authentication authentication;
+    private final Authentication authentication;
 
     public AuthenticationUser(Authentication authentication) {
         super(authentication);

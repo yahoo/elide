@@ -232,8 +232,9 @@ public class ElideStandaloneExportTest {
                .get("/api-docs")
                 .then()
                 .statusCode(200)
-                .body("tags.name", containsInAnyOrder("post", "argument", "metric",
-                        "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "postView", "tableExport", "namespace", "tableSource"));
+                .body("tags.name",
+                        containsInAnyOrder("atomic", "post", "argument", "metric", "dimension", "column", "table",
+                                "asyncQuery", "timeDimensionGrain", "timeDimension", "postView", "tableExport",
+                                "namespace", "tableSource"));
     }
 }

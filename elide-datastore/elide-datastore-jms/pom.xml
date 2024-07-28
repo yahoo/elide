@@ -84,6 +84,10 @@
         </dependency>
 
         <dependency>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-client-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>jakarta.jms</groupId>
             <artifactId>jakarta.jms-api</artifactId>
         </dependency>

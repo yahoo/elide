@@ -1119,11 +1119,11 @@ public class AsyncTest extends IntegrationTest {
                 .get("/doc")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("tags.name", containsInAnyOrder("group", "argument", "metric",
-                        "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats", "tableExport", "namespace", "tableSource", "maintainer", "book", "publisher", "person",
-                        "export"));
+                .body("tags.name",
+                        containsInAnyOrder("atomic", "group", "argument", "metric", "dimension", "column", "table",
+                                "asyncQuery", "timeDimensionGrain", "timeDimension", "product", "playerCountry",
+                                "version", "playerStats", "stats", "tableExport", "namespace", "tableSource",
+                                "maintainer", "book", "publisher", "person", "export"));
     }
 
     protected Object[] readRow(XSSFSheet sheet, int rowNumber) {

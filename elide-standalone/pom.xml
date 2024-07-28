@@ -76,6 +76,11 @@
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-multiplex</artifactId>
+            <version>7.1.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jms</artifactId>
             <version>7.1.1-SNAPSHOT</version>
         </dependency>
