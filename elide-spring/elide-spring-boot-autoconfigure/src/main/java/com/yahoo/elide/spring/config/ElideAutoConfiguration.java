@@ -149,6 +149,7 @@ import graphql.execution.SimpleDataFetcherExceptionHandler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
@@ -696,8 +697,8 @@ public class ElideAutoConfiguration {
             public ApiDocsController.ApiDocsRegistrations apiDocsRegistrations(RefreshableElide elide,
                     ElideConfigProperties settings, ServerProperties serverProperties,
                     OpenApiDocumentCustomizer customizer) {
-                return buildApiDocsRegistrations(elide, settings, serverProperties.getServlet().getContextPath(),
-                        customizer);
+                return ApiDocs.buildApiDocsRegistrations(elide, settings,
+                        serverProperties.getServlet().getContextPath(), customizer);
             }
 
             @Bean
@@ -803,8 +804,8 @@ public class ElideAutoConfiguration {
             public ApiDocsController.ApiDocsRegistrations apiDocsRegistrations(RefreshableElide elide,
                     ElideConfigProperties settings, ServerProperties serverProperties,
                     OpenApiDocumentCustomizer customizer) {
-                return buildApiDocsRegistrations(elide, settings, serverProperties.getServlet().getContextPath(),
-                        customizer);
+                return ApiDocs.buildApiDocsRegistrations(elide, settings,
+                        serverProperties.getServlet().getContextPath(), customizer);
             }
 
             @Bean
@@ -1161,56 +1162,65 @@ public class ElideAutoConfiguration {
         return new RefreshableElide(elide);
     }
 
-    public static ApiDocsController.ApiDocsRegistrations buildApiDocsRegistrations(RefreshableElide elide,
-            ElideConfigProperties settings, String contextPath, OpenApiDocumentCustomizer customizer) {
-        String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : "";
+    /**
+     * ApiDocs holder class to make swagger optional.
+     */
+    public static class ApiDocs {
+        public static ApiDocsController.ApiDocsRegistrations buildApiDocsRegistrations(RefreshableElide elide,
+                ElideConfigProperties settings, String contextPath, OpenApiDocumentCustomizer customizer) {
+            String jsonApiPath = settings.getJsonApi() != null ? settings.getJsonApi().getPath() : "";
 
-        EntityDictionary dictionary = elide.getElide().getElideSettings().getEntityDictionary();
+            EntityDictionary dictionary = elide.getElide().getElideSettings().getEntityDictionary();
 
-        List<ApiDocsRegistration> registrations = new ArrayList<>();
-        dictionary.getApiVersions().stream().forEach(apiVersion -> {
-            Supplier<OpenAPI> document = () -> {
-                OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion)
-                        .supportLegacyFilterDialect(false);
-                if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
-                    if (settings.getApiVersioningStrategy().getPath().isEnabled()) {
-                        // Path needs to be set
-                        builder.basePath(
-                                "/" + settings.getApiVersioningStrategy().getPath().getVersionPrefix() + apiVersion);
-                    } else if (settings.getApiVersioningStrategy().getHeader().isEnabled()) {
-                        // Header needs to be set
-                        builder.globalParameter(new Parameter().in("header")
-                                .name(settings.getApiVersioningStrategy().getHeader().getHeaderName()[0]).required(true)
-                                .schema(new StringSchema().addEnumItem(apiVersion)));
-                    } else if (settings.getApiVersioningStrategy().getParameter().isEnabled()) {
-                        // Header needs to be set
-                        builder.globalParameter(new Parameter().in("query")
-                                .name(settings.getApiVersioningStrategy().getParameter().getParameterName())
-                                .required(true).schema(new StringSchema().addEnumItem(apiVersion)));
+            List<ApiDocsRegistration> registrations = new ArrayList<>();
+            dictionary.getApiVersions().stream().forEach(apiVersion -> {
+                Supplier<OpenAPI> document = () -> {
+                    OpenApiBuilder builder = new OpenApiBuilder(dictionary, openApi -> {
+                        if (ApiDocsControllerProperties.Version.OPENAPI_3_1
+                                .equals(settings.getApiDocs().getVersion())) {
+                            openApi.specVersion(SpecVersion.V31).openapi("3.1.0");
+                        }
+                    }).apiVersion(apiVersion).supportLegacyFilterDialect(false);
+                    if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                        if (settings.getApiVersioningStrategy().getPath().isEnabled()) {
+                            // Path needs to be set
+                            builder.basePath("/" + settings.getApiVersioningStrategy().getPath().getVersionPrefix()
+                                    + apiVersion);
+                        } else if (settings.getApiVersioningStrategy().getHeader().isEnabled()) {
+                            // Header needs to be set
+                            builder.globalParameter(new Parameter().in("header")
+                                    .name(settings.getApiVersioningStrategy().getHeader().getHeaderName()[0])
+                                    .required(true)
+                                    .schema(new StringSchema().addEnumItem(apiVersion)));
+                        } else if (settings.getApiVersioningStrategy().getParameter().isEnabled()) {
+                            // Header needs to be set
+                            builder.globalParameter(new Parameter().in("query")
+                                    .name(settings.getApiVersioningStrategy().getParameter().getParameterName())
+                                    .required(true).schema(new StringSchema().addEnumItem(apiVersion)));
+                        }
                     }
-                }
-                String url = contextPath != null ? contextPath : "";
-                url = url + jsonApiPath;
-                if (url.isBlank()) {
-                    url = "/";
-                }
-                OpenAPI openApi = builder.build();
-                openApi.addServersItem(new Server().url(url));
-                if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
-                    Info info = openApi.getInfo();
-                    if (info == null) {
-                        info = new Info();
-                        openApi.setInfo(info);
+                    String url = contextPath != null ? contextPath : "";
+                    url = url + jsonApiPath;
+                    if (url.isBlank()) {
+                        url = "/";
                     }
-                    info.setVersion(apiVersion);
-                }
-                customizer.customize(openApi);
-                return openApi;
-            };
-            registrations.add(new ApiDocsRegistration("", SingletonSupplier.of(document),
-                    settings.getApiDocs().getVersion().getValue(), apiVersion));
-        });
-        return new ApiDocsController.ApiDocsRegistrations(registrations);
+                    OpenAPI openApi = builder.build();
+                    openApi.addServersItem(new Server().url(url));
+                    if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
+                        Info info = openApi.getInfo();
+                        if (info == null) {
+                            info = new Info();
+                            openApi.setInfo(info);
+                        }
+                        info.setVersion(apiVersion);
+                    }
+                    customizer.customize(openApi);
+                    return openApi;
+                };
+                registrations.add(new ApiDocsRegistration("", SingletonSupplier.of(document), apiVersion));
+            });
+            return new ApiDocsController.ApiDocsRegistrations(registrations);
+        }
     }
 
     /**

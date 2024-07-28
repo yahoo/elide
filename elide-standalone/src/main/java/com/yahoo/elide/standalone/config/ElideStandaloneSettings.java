@@ -82,6 +82,7 @@ import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManager;
@@ -471,15 +472,19 @@ public interface ElideStandaloneSettings {
             Info info = new Info()
                     .title(getApiTitle())
                     .version(apiVersion);
-            OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
+            OpenApiBuilder builder = new OpenApiBuilder(dictionary, openApi -> {
+                OpenApiVersion openApiVersion = getOpenApiVersion();
+                if (OpenApiVersion.OPENAPI_3_1.equals(openApiVersion)) {
+                    openApi.specVersion(SpecVersion.V31).openapi("3.1.0");
+                }
+            }).apiVersion(apiVersion);
             if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
                 // Path needs to be set
                 builder.basePath("/" + "v" + apiVersion);
             }
             String moduleBasePath = getJsonApiPathSpec().replace("/*", "");
             OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
-            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("", () -> openApi, getOpenApiVersion().getValue(),
-                    apiVersion));
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("", () -> openApi, apiVersion));
         });
 
         return docs;

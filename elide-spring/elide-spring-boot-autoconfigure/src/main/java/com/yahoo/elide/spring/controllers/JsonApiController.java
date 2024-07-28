@@ -12,13 +12,12 @@ import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
-import com.yahoo.elide.spring.security.AuthenticationUser;
+import com.yahoo.elide.spring.security.HttpServletRequestUser;
 import com.yahoo.elide.utils.HeaderProcessor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,14 +66,14 @@ public class JsonApiController {
     @GetMapping(value = "/**", produces = JsonApi.MEDIA_TYPE)
     public Callable<ResponseEntity<String>> elideGet(@RequestHeader HttpHeaders requestHeaders,
                                                      @RequestParam MultiValueMap<String, String> allRequestParams,
-                                                     HttpServletRequest request, Authentication authentication) {
+                                                     HttpServletRequest request) {
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
         Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
                 allRequestParams);
-        final User user = new AuthenticationUser(authentication);
+        final User user = new HttpServletRequestUser(request);
 
         return new Callable<ResponseEntity<String>>() {
             @Override
@@ -90,14 +89,14 @@ public class JsonApiController {
     public Callable<ResponseEntity<String>> elidePost(@RequestHeader HttpHeaders requestHeaders,
                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
                                                       @RequestBody String body,
-                                                      HttpServletRequest request, Authentication authentication) {
+                                                      HttpServletRequest request) {
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
         Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
                 allRequestParams);
-        final User user = new AuthenticationUser(authentication);
+        final User user = new HttpServletRequestUser(request);
 
         return new Callable<ResponseEntity<String>>() {
             @Override
@@ -125,14 +124,14 @@ public class JsonApiController {
     public Callable<ResponseEntity<String>> elidePatch(@RequestHeader HttpHeaders requestHeaders,
                                                        @RequestParam MultiValueMap<String, String> allRequestParams,
                                                        @RequestBody String body,
-                                                       HttpServletRequest request, Authentication authentication) {
+                                                       HttpServletRequest request) {
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
         Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
                 allRequestParams);
-        final User user = new AuthenticationUser(authentication);
+        final User user = new HttpServletRequestUser(request);
 
         return new Callable<ResponseEntity<String>>() {
             @Override
@@ -146,15 +145,14 @@ public class JsonApiController {
     @DeleteMapping(value = "/**", produces = JsonApi.MEDIA_TYPE)
     public Callable<ResponseEntity<String>> elideDelete(@RequestHeader HttpHeaders requestHeaders,
                                                         @RequestParam MultiValueMap<String, String> allRequestParams,
-                                                        HttpServletRequest request,
-                                                        Authentication authentication) {
+                                                        HttpServletRequest request) {
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
         Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
                 allRequestParams);
-        final User user = new AuthenticationUser(authentication);
+        final User user = new HttpServletRequestUser(request);
 
         return new Callable<ResponseEntity<String>>() {
             @Override
@@ -170,15 +168,14 @@ public class JsonApiController {
             @RequestHeader HttpHeaders requestHeaders,
             @RequestParam MultiValueMap<String, String> allRequestParams,
             @RequestBody String body,
-            HttpServletRequest request,
-            Authentication authentication) {
+            HttpServletRequest request) {
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
         Route route = routeResolver.resolve(JsonApi.MEDIA_TYPE, baseUrl, pathname, requestHeadersCleaned,
                 allRequestParams);
-        final User user = new AuthenticationUser(authentication);
+        final User user = new HttpServletRequestUser(request);
 
         return new Callable<ResponseEntity<String>>() {
             @Override

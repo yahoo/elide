@@ -316,6 +316,10 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     private List<Object> paginateInMemory(List<Object> records, Pagination pagination) {
         int offset = pagination.getOffset();
         int limit = pagination.getLimit();
+        if (pagination.returnPageTotals()) {
+            pagination.setPageTotals((long) records.size());
+        }
+
         if (offset < 0 || offset >= records.size()) {
             return Collections.emptyList();
         }
@@ -323,10 +327,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         int endIdx = offset + limit;
         if (endIdx > records.size()) {
             endIdx = records.size();
-        }
-
-        if (pagination.returnPageTotals()) {
-            pagination.setPageTotals((long) records.size());
         }
         return records.subList(offset, endIdx);
     }
