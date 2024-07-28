@@ -22,6 +22,7 @@ import com.yahoo.elide.core.request.Pagination.Direction;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.request.Sorting.SortOrder;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -36,10 +37,8 @@ import com.yahoo.elide.datastores.jpql.query.RootCollectionPageTotalsQueryBuilde
 import com.yahoo.elide.datastores.jpql.query.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.datastores.jpql.query.SubCollectionPageTotalsQueryBuilder;
 
-import org.apache.commons.beanutils.BeanUtils;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -219,18 +218,24 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
 
     protected Map<String, String> getKeyset(Object object, EntityProjection projection,
             RequestScope scope) {
+        IdObfuscator idObfuscator = scope.getDictionary().getIdObfuscator();
+        String idFieldName = null;
+        if (idObfuscator != null) {
+            idFieldName = scope.getDictionary().getIdFieldName(projection.getType());
+        }
         Map<String, String> keyset = new LinkedHashMap<>();
         Sorting sorting = projection.getSorting();
         for (Entry<Path, SortOrder> entry : sorting.getSortingPaths().entrySet()) {
             if (entry.getKey().getPathElements().size() == 1) {
                 String fieldPath = entry.getKey().getFieldPath();
-                try {
-                    Object property = BeanUtils.getProperty(object, fieldPath);
-                    String value = CoerceUtil.coerce(property, String.class);
-                    keyset.put(fieldPath, value);
-                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    throw new IllegalArgumentException(e);
+                String value;
+                Object property = scope.getDictionary().getValue(object, fieldPath, scope);
+                if (idObfuscator != null && fieldPath.equals(idFieldName)) {
+                    value = idObfuscator.obfuscate(property);
+                } else {
+                    value = CoerceUtil.coerce(property, String.class);
                 }
+                keyset.put(fieldPath, value);
             }
         }
         return keyset;
