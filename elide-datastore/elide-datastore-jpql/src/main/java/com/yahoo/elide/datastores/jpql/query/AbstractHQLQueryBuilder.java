@@ -19,6 +19,7 @@ import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Pagination.Direction;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.request.Sorting.SortOrder;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -226,22 +227,43 @@ public abstract class AbstractHQLQueryBuilder {
             }
 
             List<KeysetColumn> fields = getKeysetColumns(sorting);
+            IdObfuscator idObfuscator = dictionary.getIdObfuscator();
+            String entityIdFieldName = dictionary.getEntityIdFieldName(entityType);
+            String idFieldName = null;
+            if (idObfuscator != null || entityIdFieldName != null) {
+                idFieldName = dictionary.getIdFieldName(entityType);
+            }
             if (after != null && !after.isEmpty()) {
                 for (KeysetColumn field : fields) {
-                    String keyValue = after.get(field.getColumn());
-                    Class<?> fieldType = dictionary.getType(entityType, field.getColumn()).getUnderlyingClass().get();
-                    Object value = CoerceUtil.coerce(keyValue, fieldType);
+                    if (entityIdFieldName != null && field.getColumn().equals(idFieldName)) {
+                        // If the entity has entity id ignore id columns
+                        continue;
+                    }
+                    Object value = getKeysetColumnValue(after, field, entityType, idFieldName, idObfuscator);
                     query.setParameter(KEYSET_PARAMETER_PREFIX + index++, value);
                 }
             }
             if (before != null && !before.isEmpty()) {
                 for (KeysetColumn field : fields) {
-                    String keyValue = before.get(field.getColumn());
-                    Class<?> fieldType = dictionary.getType(entityType, field.getColumn()).getUnderlyingClass().get();
-                    Object value = CoerceUtil.coerce(keyValue, fieldType);
+                    if (entityIdFieldName != null && field.getColumn().equals(idFieldName)) {
+                        // If the entity has entity id ignore id columns
+                        continue;
+                    }
+                    Object value = getKeysetColumnValue(before, field, entityType, idFieldName, idObfuscator);
                     query.setParameter(KEYSET_PARAMETER_PREFIX + index++, value);
                 }
             }
+        }
+    }
+
+    protected Object getKeysetColumnValue(Map<String, String> keyset, KeysetColumn field, Type<?> entityType,
+            String idFieldName, IdObfuscator idObfuscator) {
+        String keyValue = keyset.get(field.getColumn());
+        Type<?> fieldType = dictionary.getType(entityType, field.getColumn());
+        if (idObfuscator != null && field.getColumn().equals(idFieldName)) {
+            return idObfuscator.deobfuscate(keyValue, fieldType);
+        } else {
+            return CoerceUtil.coerce(keyValue, fieldType);
         }
     }
 
