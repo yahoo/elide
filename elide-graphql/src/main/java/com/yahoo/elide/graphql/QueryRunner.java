@@ -30,6 +30,10 @@ import graphql.GraphQLException;
 import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
+import graphql.language.Document;
+import graphql.language.OperationDefinition;
+import graphql.language.OperationDefinition.Operation;
+import graphql.parser.Parser;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 import lombok.Getter;
@@ -60,7 +64,6 @@ public class QueryRunner {
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
     private static final String VARIABLES = "variables";
-    private static final String MUTATION = "mutation";
 
     /**
      * Builds a new query runner.
@@ -118,23 +121,32 @@ public class QueryRunner {
         if (query == null) {
             return false;
         }
-
-        String[] lines = query.split("\n");
-
-        StringBuilder withoutComments = new StringBuilder();
-
-        for (String line : lines) {
-            //Remove GraphiQL comment lines....
-            if (line.matches("^(\\s*)#.*")) {
-                continue;
-            }
-            withoutComments.append(line);
-            withoutComments.append("\n");
+        Parser parser = new Parser();
+        Document parsedDocument;
+        try {
+            parsedDocument = parser.parseDocument(query);
+        } catch (Exception e) {
+            return false;
         }
+        return isMutation(parsedDocument);
+    }
 
-        query = withoutComments.toString().trim();
-
-        return query.startsWith(MUTATION);
+    /**
+     * Check if the document is mutation.
+     *
+     * @param parsedDocument the document
+     * @return is a mutation
+     */
+    public static boolean isMutation(Document parsedDocument) {
+        if (parsedDocument == null) {
+            return false;
+        }
+        for (OperationDefinition operationDefinition : parsedDocument.getDefinitionsOfType(OperationDefinition.class)) {
+            if (Operation.MUTATION.equals(operationDefinition.getOperation())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -263,23 +275,29 @@ public class QueryRunner {
     private ElideResponse<?> executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
                                                 String graphQLDocument, GraphQLQuery query, UUID requestId,
                                                 Map<String, List<String>> requestHeaders) {
-        String queryText = query.getQuery();
-        boolean isMutation = isMutation(queryText);
+        if (query.getQuery() == null || query.getQuery().isEmpty()) {
+            return ElideResponse.badRequest("A `query` key is required.");
+        }
 
+        String queryText = query.getQuery();
+        Parser parser = new Parser();
+        Document parsedDocument;
+        try {
+            parsedDocument = parser.parseDocument(queryText);
+        } catch (Exception e) {
+            return handleRuntimeException(elide, new InvalidEntityBodyException("Can't parse query: " + queryText));
+        }
+        boolean isMutation = isMutation(parsedDocument);
         try (DataStoreTransaction tx = isMutation
                 ? elide.getDataStore().beginTransaction()
                 : elide.getDataStore().beginReadTransaction()) {
 
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
-            if (query.getQuery() == null || query.getQuery().isEmpty()) {
-                return ElideResponse.badRequest("A `query` key is required.");
-            }
-
             // get variables from request for constructing entityProjections
             Map<String, Object> variables = query.getVariables();
 
             GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
-                    apiVersion).make(queryText);
+                    apiVersion).make(parsedDocument);
             Route route = Route.builder()
                     .baseUrl(baseUrlEndPoint)
                     .apiVersion(apiVersion)

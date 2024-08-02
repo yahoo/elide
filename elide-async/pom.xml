@@ -54,7 +54,7 @@
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
             <version>7.1.1-SNAPSHOT</version>
-            <scope>optional</scope>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
