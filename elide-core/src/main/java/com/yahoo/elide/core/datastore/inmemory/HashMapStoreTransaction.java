@@ -130,6 +130,11 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
             id = dictionary.getId(entity);
         }
 
+        String entityIdFieldName = dictionary.getEntityIdFieldName(entityClass);
+        if (entityIdFieldName != null) {
+            id = dictionary.getId(entity);
+        }
+
         replicateOperationToParent(entity, Operation.OpType.CREATE);
         operations.add(new Operation(id, entity, EntityDictionary.getType(entity), Operation.OpType.CREATE));
     }

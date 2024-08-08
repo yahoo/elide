@@ -59,7 +59,8 @@ public class ConfigStoreIntegrationTestSetup {
                 },
                 CoerceUtil::lookup, //Serde Lookup
                 entitiesToExclude,
-                scanner);
+                scanner,
+                null);
 
         return dictionary;
     }

@@ -140,8 +140,8 @@ public class Path {
                                                String alias,
                                                Set<Argument> arguments,
                                                EntityDictionary dictionary) {
-        if (dictionary.isAttribute(entityClass, fieldName)
-                || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
+        if (dictionary.isAttribute(entityClass, fieldName) || fieldName.equals(dictionary.getIdFieldName(entityClass))
+                || fieldName.equals(dictionary.getEntityIdFieldName(entityClass))) {
             Type<?> attributeClass = dictionary.getType(entityClass, fieldName);
             return new PathElement(entityClass, attributeClass, fieldName, alias, arguments);
         }

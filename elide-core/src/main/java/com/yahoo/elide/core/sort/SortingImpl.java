@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.sort;
 
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Attribute;
@@ -95,7 +96,15 @@ public class SortingImpl implements Sorting {
                                                           final EntityDictionary dictionary)
             throws InvalidValueException {
         Map<Path, SortOrder> returnMap = new LinkedHashMap<>();
-        for (Map.Entry<String, SortOrder> entry : replaceIdRule(dictionary.getIdFieldName(entityClass)).entrySet()) {
+
+        // Replace the id with either the EntityId field name or the Id field name
+        EntityBinding binding = dictionary.getEntityBinding(entityClass);
+        String idFieldName = binding.getEntityIdFieldName();
+        if (idFieldName == null) {
+            idFieldName = binding.getIdFieldName();
+        }
+
+        for (Map.Entry<String, SortOrder> entry : replaceIdRule(idFieldName).entrySet()) {
             String dotSeparatedPath = entry.getKey();
             SortOrder order = entry.getValue();
 
