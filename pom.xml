@@ -95,7 +95,7 @@
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
         <encoder.version>1.2.3</encoder.version>
-        <federation-graphql-java-support-api.version>5.0.0</federation-graphql-java-support-api.version>
+        <federation-graphql-java-support-api.version>5.1.0</federation-graphql-java-support-api.version>
         <graphql-java.version>22.0</graphql-java.version>
         <graal-sdk.version>24.0.1</graal-sdk.version>
         <guava.version>33.2.0-jre</guava.version>
