@@ -130,7 +130,16 @@ public class GraphQLEntityProjectionMaker {
         } catch (Exception e) {
             throw new InvalidEntityBodyException("Can't parse query: " + query);
         }
+        return make(parsedDocument);
+    }
 
+    /**
+     * Convert a GraphQL document into a collection of Elide {@link EntityProjection}s.
+     *
+     * @param parsedDocument GraphQL parsedDocument
+     * @return all projections in the query
+     */
+    public GraphQLProjectionInfo make(Document parsedDocument) {
         // resolve fragment definitions
         fragmentResolver.addFragments(parsedDocument);
 
