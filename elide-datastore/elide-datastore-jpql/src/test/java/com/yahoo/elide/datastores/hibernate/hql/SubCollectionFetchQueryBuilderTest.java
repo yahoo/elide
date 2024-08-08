@@ -21,6 +21,8 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.datastores.jpql.query.CursorEncoder;
+import com.yahoo.elide.datastores.jpql.query.JacksonCursorEncoder;
 import com.yahoo.elide.datastores.jpql.query.RelationshipImpl;
 import com.yahoo.elide.datastores.jpql.query.SubCollectionFetchQueryBuilder;
 import example.Author;
@@ -41,6 +43,7 @@ import java.util.Map;
 public class SubCollectionFetchQueryBuilderTest {
 
     private EntityDictionary dictionary;
+    private CursorEncoder cursorEncoder = new JacksonCursorEncoder();
 
     private static final String AUTHORS = "authors";
     private static final String TITLE = "title";
@@ -83,7 +86,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -122,7 +126,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -167,7 +172,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -206,7 +212,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -254,7 +261,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -303,7 +311,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -356,7 +365,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         assertThrows(InvalidValueException.class, () -> {
@@ -401,7 +411,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -441,7 +452,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -482,7 +494,8 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();

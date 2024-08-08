@@ -32,6 +32,7 @@ import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.EntityProjection.EntityProjectionBuilder;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Pagination.Direction;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
@@ -454,10 +455,11 @@ public class GraphQLEntityProjectionMaker {
      * @param argumentName Name key of the GraphQL argument
      *
      * @return {@code true} if the name equals to {@link ModelBuilder#ARGUMENT_FIRST} or
-     * {@link ModelBuilder#ARGUMENT_AFTER}
+     * {@link ModelBuilder#ARGUMENT_AFTER} or {@link ModelBuilder#ARGUMENT_LAST} or {@link ModelBuilder#ARGUMENT_BEFORE}
      */
     private static boolean isPaginationArgument(String argumentName) {
-        return ModelBuilder.ARGUMENT_FIRST.equals(argumentName) || ModelBuilder.ARGUMENT_AFTER.equals(argumentName);
+        return ModelBuilder.ARGUMENT_FIRST.equals(argumentName) || ModelBuilder.ARGUMENT_AFTER.equals(argumentName)
+                || ModelBuilder.ARGUMENT_LAST.equals(argumentName) || ModelBuilder.ARGUMENT_BEFORE.equals(argumentName);
     }
 
     /**
@@ -471,29 +473,91 @@ public class GraphQLEntityProjectionMaker {
         Pagination pagination = projectionBuilder.getPagination() == null
                 ? PaginationImpl.getDefaultPagination(projectionBuilder.getType(), elideSettings)
                 : projectionBuilder.getPagination();
-
         Object argumentValue = variableResolver.resolveValue(argument.getValue());
-        int value = argumentValue instanceof BigInteger
-                ? ((BigInteger) argumentValue).intValue()
-                : Integer.parseInt((String) argumentValue);
-        if (ModelBuilder.ARGUMENT_FIRST.equals(argument.getName())) {
-            pagination = new PaginationImpl(
-                    projectionBuilder.getType(),
-                    pagination.getOffset(),
-                    value,
-                    elideSettings.getDefaultPageSize(),
-                    elideSettings.getMaxPageSize(),
-                    pagination.returnPageTotals(),
-                    false);
-        } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
-            pagination = new PaginationImpl(
-                    projectionBuilder.getType(),
-                    value,
-                    pagination.getLimit(),
-                    elideSettings.getDefaultPageSize(),
-                    elideSettings.getMaxPageSize(),
-                    pagination.returnPageTotals(),
-                    false);
+        try {
+            int value = argumentValue instanceof BigInteger
+                    ? ((BigInteger) argumentValue).intValue()
+                    : Integer.parseInt((String) argumentValue);
+            if (ModelBuilder.ARGUMENT_FIRST.equals(argument.getName())) {
+                // Offset or Cursor
+                pagination = new PaginationImpl(
+                        projectionBuilder.getType(),
+                        pagination.getOffset(),
+                        value,
+                        elideSettings.getDefaultPageSize(),
+                        elideSettings.getMaxPageSize(),
+                        pagination.returnPageTotals(),
+                        false,
+                        null,
+                        null,
+                        Direction.FORWARD);
+            } else if (ModelBuilder.ARGUMENT_LAST.equals(argument.getName())) {
+                // Cursor
+                pagination = new PaginationImpl(
+                        projectionBuilder.getType(),
+                        pagination.getOffset(),
+                        value,
+                        elideSettings.getDefaultPageSize(),
+                        elideSettings.getMaxPageSize(),
+                        pagination.returnPageTotals(),
+                        false,
+                        null,
+                        null,
+                        Direction.BACKWARD);
+            } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
+                // Offset
+                pagination = new PaginationImpl(
+                        projectionBuilder.getType(),
+                        value,
+                        pagination.getLimit(),
+                        elideSettings.getDefaultPageSize(),
+                        elideSettings.getMaxPageSize(),
+                        pagination.returnPageTotals(),
+                        false,
+                        null,
+                        null,
+                        null); // Offset set null direction
+            } else if (ModelBuilder.ARGUMENT_BEFORE.equals(argument.getName())) {
+                // Offset
+                pagination = new PaginationImpl(
+                        projectionBuilder.getType(),
+                        value,
+                        pagination.getLimit(),
+                        elideSettings.getDefaultPageSize(),
+                        elideSettings.getMaxPageSize(),
+                        pagination.returnPageTotals(),
+                        false,
+                        null,
+                        null,
+                        null); // Offset set null direction
+            }
+        } catch (NumberFormatException e) {
+            // Cursor
+            if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
+                pagination = new PaginationImpl(
+                        projectionBuilder.getType(),
+                        null,
+                        pagination.getLimit(),
+                        elideSettings.getDefaultPageSize(),
+                        elideSettings.getMaxPageSize(),
+                        pagination.returnPageTotals(),
+                        false,
+                        pagination.getBefore(),
+                        argumentValue.toString(),
+                        pagination.getBefore() == null ? Direction.FORWARD : Direction.BETWEEN);
+            } else if (ModelBuilder.ARGUMENT_BEFORE.equals(argument.getName())) {
+                pagination = new PaginationImpl(
+                        projectionBuilder.getType(),
+                        null,
+                        pagination.getLimit(),
+                        elideSettings.getDefaultPageSize(),
+                        elideSettings.getMaxPageSize(),
+                        pagination.returnPageTotals(),
+                        false,
+                        argumentValue.toString(),
+                        pagination.getAfter(),
+                        pagination.getAfter() == null ? Direction.BACKWARD : Direction.BETWEEN);
+            }
         }
 
         projectionBuilder.pagination(pagination);

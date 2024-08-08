@@ -17,6 +17,8 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.datastores.jpql.query.CursorEncoder;
+import com.yahoo.elide.datastores.jpql.query.JacksonCursorEncoder;
 import com.yahoo.elide.datastores.jpql.query.RelationshipImpl;
 import com.yahoo.elide.datastores.jpql.query.SubCollectionPageTotalsQueryBuilder;
 import example.Author;
@@ -34,6 +36,7 @@ import java.util.List;
 public class SubCollectionPageTotalsQueryBuilderTest {
 
     private EntityDictionary dictionary;
+    private CursorEncoder cursorEncoder = new JacksonCursorEncoder();
 
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
@@ -64,7 +67,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         );
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(
-                relationship, dictionary, new TestSessionWrapper()
+                relationship, dictionary, new TestSessionWrapper(), cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder
@@ -108,7 +111,8 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         TestQueryWrapper query = (TestQueryWrapper) new SubCollectionPageTotalsQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         ).build();
 
         String expected =
@@ -146,7 +150,8 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         TestQueryWrapper query = (TestQueryWrapper) new SubCollectionPageTotalsQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         ).build();
 
         String expected =
@@ -194,7 +199,8 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(
                 relationship,
                 dictionary,
-                new TestSessionWrapper()
+                new TestSessionWrapper(),
+                cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();

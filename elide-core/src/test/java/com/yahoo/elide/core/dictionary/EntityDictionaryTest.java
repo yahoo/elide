@@ -31,6 +31,7 @@ import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
@@ -85,7 +86,9 @@ import jakarta.persistence.Transient;
 
 import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -109,7 +112,8 @@ public class EntityDictionaryTest extends EntityDictionary {
                 DEFAULT_INJECTOR,
                 CoerceUtil::lookup,
                 Collections.emptySet(),
-                new DefaultClassScanner()
+                new DefaultClassScanner(),
+                null
         );
         init();
     }
@@ -151,6 +155,69 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetInjector() {
         assertNotNull(getInjector());
+    }
+
+    @Test
+    public void testGetObfuscatedId() {
+        IdObfuscator idObfuscator = new IdObfuscator() {
+            @Override
+            public String obfuscate(Object id) {
+                if (id instanceof Long value) {
+                    ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+                    buffer.putLong(value);
+                    return Base64.getUrlEncoder().withoutPadding().encodeToString(buffer.array());
+                }
+                throw new IllegalArgumentException();
+            }
+
+            @Override
+            public <T> T deobfuscate(String obfuscatedId, Type<?> type) {
+                if (ClassType.of(Long.class).equals(type)) {
+                    byte[] value = Base64.getUrlDecoder().decode(obfuscatedId);
+                    ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+                    buffer.put(value);
+                    buffer.flip();
+                    return (T) Long.valueOf(buffer.getLong());
+                }
+                throw new IllegalArgumentException();
+            }
+        };
+
+        EntityDictionary entityDictionary = EntityDictionary.builder().idObfuscator(idObfuscator).build();
+        entityDictionary.bindEntity(Book.class);
+        Book book = new Book();
+        book.setId(12345);
+        String obfuscatedId = entityDictionary.getId(book);
+        assertEquals("AAAAAAAAMDk", obfuscatedId);
+        Long actual = idObfuscator.deobfuscate(obfuscatedId, ClassType.of(Long.class));
+        assertEquals(12345L, actual);
+    }
+
+    @Include
+    public static class LongIdEntity {
+        @Id
+        private Long id = null;
+    }
+
+    @Test
+    public void testGetObfuscatedIdNullShouldNotThrow() {
+        IdObfuscator idObfuscator = new IdObfuscator() {
+            @Override
+            public String obfuscate(Object id) {
+                throw new IllegalArgumentException();
+            }
+
+            @Override
+            public <T> T deobfuscate(String obfuscatedId, Type<?> type) {
+                throw new IllegalArgumentException();
+            }
+        };
+
+        EntityDictionary entityDictionary = EntityDictionary.builder().idObfuscator(idObfuscator).build();
+        entityDictionary.bindEntity(LongIdEntity.class);
+        LongIdEntity entity = new LongIdEntity();
+        String obfuscatedId = entityDictionary.getId(entity);
+        assertEquals("null", obfuscatedId);
     }
 
     @Test
@@ -241,7 +308,8 @@ public class EntityDictionaryTest extends EntityDictionary {
                 DEFAULT_INJECTOR,
                 unused -> new ISO8601DateSerde(),
                 Collections.emptySet(),
-                new DefaultClassScanner());
+                new DefaultClassScanner(),
+                null);
 
         testDictionary.bindEntity(EntityWithDateId.class);
 

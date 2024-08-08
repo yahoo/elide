@@ -7,6 +7,7 @@ package com.yahoo.elide.core.pagination;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,6 +15,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.request.Pagination.Direction;
 import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +81,105 @@ public class PaginationImplTest {
         // offset is direct correlation to start field in query
         assertEquals(2, pageData.getOffset());
         assertEquals(10, pageData.getLimit());
+        assertNull(pageData.getDirection());
+    }
+
+    @Test
+    public void shouldParseQueryParamsFirst() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[first]", "10");
+
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings);
+        assertEquals(10, pageData.getLimit());
+        assertEquals(Direction.FORWARD, pageData.getDirection());
+    }
+
+    @Test
+    public void shouldParseQueryParamsLast() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[last]", "10");
+
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings);
+        assertEquals(10, pageData.getLimit());
+        assertEquals(Direction.BACKWARD, pageData.getDirection());
+    }
+
+    @Test
+    public void shouldParseQueryParamsAfterAndSize() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[after]", "cursor");
+        add(queryParams, "page[size]", "10");
+
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings);
+        assertEquals(10, pageData.getLimit());
+        assertEquals(Direction.FORWARD, pageData.getDirection());
+        assertEquals("cursor", pageData.getCursor());
+    }
+
+    @Test
+    public void shouldParseQueryParamsBeforeAndSize() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[before]", "cursor");
+        add(queryParams, "page[size]", "10");
+
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings);
+        assertEquals(10, pageData.getLimit());
+        assertEquals(Direction.BACKWARD, pageData.getDirection());
+        assertEquals("cursor", pageData.getCursor());
+    }
+
+    @Test
+    public void shouldThrowExceptionForFirstAndLast() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[first]", "10");
+        add(queryParams, "page[last]", "10");
+
+        assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings));
+    }
+
+    @Test
+    public void shouldThrowExceptionForFirstAndAfter() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[first]", "10");
+        add(queryParams, "page[after]", "cursor");
+
+        assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings));
+    }
+
+    @Test
+    public void shouldThrowExceptionForFirstAndBefore() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[first]", "10");
+        add(queryParams, "page[before]", "cursor");
+
+        assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings));
+    }
+
+    @Test
+    public void shouldThrowExceptionForLastAndBefore() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[last]", "10");
+        add(queryParams, "page[before]", "cursor");
+
+        assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings));
+    }
+
+    @Test
+    public void shouldThrowExceptionForLastAndAfter() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "page[last]", "10");
+        add(queryParams, "page[after]", "cursor");
+
+        assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings));
     }
 
     @Test

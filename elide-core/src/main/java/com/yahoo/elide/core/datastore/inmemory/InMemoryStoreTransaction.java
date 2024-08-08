@@ -25,12 +25,15 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -307,19 +310,148 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         }
 
         if (pagination != null) {
-            results = paginateInMemory(results, pagination);
+            results = paginateInMemory(results, pagination, scope);
         }
 
         return new DataStoreIterableBuilder(results).build();
     }
 
-    private List<Object> paginateInMemory(List<Object> records, Pagination pagination) {
-        int offset = pagination.getOffset();
-        int limit = pagination.getLimit();
+    private String getCursor(Object entity, RequestScope scope) {
+        return encodeCursor(getId(entity, scope));
+    }
+
+    private String getId(Object entity, RequestScope scope) {
+        return scope.getDictionary().getId(entity);
+    }
+
+    private Integer findIndexOfDecodedCursor(List<Object> records, String cursor, RequestScope scope) {
+        for (int x = 0; x < records.size(); x++) {
+            Object entity = records.get(x);
+            String entityId = getId(entity, scope);
+            if (Objects.equals(entityId, cursor)) {
+                return x;
+            }
+        }
+        return null;
+    }
+
+    private String encodeCursor(String id) {
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(id.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String decodeCursor(String cursor) {
+        if (cursor == null || "".equals(cursor)) {
+            return null;
+        }
+        try {
+            return new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private List<Object> paginateInMemory(List<Object> records, Pagination pagination, RequestScope scope) {
         if (pagination.returnPageTotals()) {
             pagination.setPageTotals((long) records.size());
         }
 
+        int limit = pagination.getLimit();
+        if (pagination.getDirection() != null) { // Cursor Pagination
+            int endMax = records.size() - 1;
+            switch (pagination.getDirection()) {
+            case FORWARD:
+                String decodedCursor = decodeCursor(pagination.getCursor());
+                // First
+                int start = 0;
+                if (decodedCursor != null) {
+                    // After
+                    Integer cursorIndex = findIndexOfDecodedCursor(records, decodedCursor, scope);
+                    if (cursorIndex == null) {
+                        return Collections.emptyList();
+                    }
+                    start = cursorIndex + 1;
+                }
+                int end = start + limit - 1;
+                if (end > endMax) {
+                    pagination.setHasNextPage(false);
+                    end = endMax;
+                } else {
+                    pagination.setHasNextPage(true);
+                }
+                pagination.setHasPreviousPage(false);
+                if (end < start) {
+                    pagination.setStartCursor(null);
+                    pagination.setEndCursor(null);
+                    return Collections.emptyList();
+                } else {
+                    pagination.setStartCursor(getCursor(records.get(start), scope));
+                    pagination.setEndCursor(getCursor(records.get(end), scope));
+                    return records.subList(start, end + 1);
+                }
+            case BACKWARD:
+                // Last
+                String ldecodedCursor = decodeCursor(pagination.getCursor());
+                int lend = endMax;
+                if (ldecodedCursor != null) {
+                    // Before
+                    Integer cursorIndex = findIndexOfDecodedCursor(records, ldecodedCursor, scope);
+                    if (cursorIndex == null) {
+                        return Collections.emptyList();
+                    }
+                    lend = cursorIndex - 1;
+                }
+                int lstart = lend - limit + 1;
+                if (lstart < 0) {
+                    pagination.setHasPreviousPage(false);
+                    lstart = 0;
+                } else {
+                    pagination.setHasPreviousPage(true);
+                }
+                pagination.setHasNextPage(false);
+                if (lend < lstart) {
+                    pagination.setStartCursor(null);
+                    pagination.setEndCursor(null);
+                    return Collections.emptyList();
+                } else {
+                    pagination.setStartCursor(getCursor(records.get(lstart), scope));
+                    pagination.setEndCursor(getCursor(records.get(lend), scope));
+                    return records.subList(lstart, lend + 1);
+                }
+            case BETWEEN:
+                String starting = decodeCursor(pagination.getAfter());
+                String ending = decodeCursor(pagination.getBefore());
+                Integer startingIndex = findIndexOfDecodedCursor(records, starting, scope);
+                Integer endingIndex = findIndexOfDecodedCursor(records, ending, scope);
+                if (startingIndex == null || endingIndex == null) {
+                    pagination.setStartCursor(null);
+                    pagination.setEndCursor(null);
+                    return Collections.emptyList();
+                }
+                startingIndex = startingIndex + 1;
+                endingIndex = endingIndex - 1;
+                if (endingIndex < startingIndex) {
+                    pagination.setStartCursor(null);
+                    pagination.setEndCursor(null);
+                    return Collections.emptyList();
+                } else {
+                    if (startingIndex > 0) {
+                        pagination.setHasPreviousPage(true);
+                    } else {
+                        pagination.setHasPreviousPage(false);
+                    }
+                    if (endingIndex < endMax) {
+                        pagination.setHasNextPage(true);
+                    } else {
+                        pagination.setHasNextPage(false);
+                    }
+                    pagination.setStartCursor(getCursor(records.get(startingIndex), scope));
+                    pagination.setEndCursor(getCursor(records.get(endingIndex), scope));
+                    return records.subList(startingIndex, endingIndex + 1);
+                }
+            }
+        }
+        // Offset Pagination
+        int offset = pagination.getOffset();
         if (offset < 0 || offset >= records.size()) {
             return Collections.emptyList();
         }

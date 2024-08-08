@@ -1089,6 +1089,133 @@ public class GraphQLEndpointTest {
         }
     }
 
+    @Test
+    public void testCursorLast() throws JSONException {
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "book",
+                                arguments(argument("last", 1)),
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String graphQLResponse = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "My first book"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name", "Ricky Carmichael")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        assert200EqualBody(response, graphQLResponse);
+    }
+
+    @Test
+    public void testCursorLastBefore() throws JSONException, IOException {
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "book",
+                                arguments(argument("last", 1), argument("before", "MQ", true)),
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        JsonNode responseNode = extract200Response(response);
+        JsonNode resultNode = responseNode.at("/data/book/edges");
+        assertTrue(resultNode.isArray());
+        assertTrue(resultNode.isEmpty());
+    }
+
+    @Test
+    public void testCursorFirstAfter() throws JSONException, IOException {
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "book",
+                                arguments(argument("first", 1), argument("after", "MQ", true)),
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        JsonNode responseNode = extract200Response(response);
+        JsonNode resultNode = responseNode.at("/data/book/edges");
+        assertTrue(resultNode.isArray());
+        assertTrue(resultNode.isEmpty());
+    }
+
+    @Test
+    public void testCursorAfterBefore() throws JSONException, IOException {
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "book",
+                                arguments(argument("after", "MQ", true), argument("before", "MQ", true)),
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        Response response = endpoint.post("", uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
+        JsonNode responseNode = extract200Response(response);
+        JsonNode resultNode = responseNode.at("/data/book/edges");
+        assertTrue(resultNode.isArray());
+        assertTrue(resultNode.isEmpty());
+    }
+
     private static String graphQLRequestToJSON(String request) {
         return graphQLRequestToJSON(request, new HashMap<>());
     }

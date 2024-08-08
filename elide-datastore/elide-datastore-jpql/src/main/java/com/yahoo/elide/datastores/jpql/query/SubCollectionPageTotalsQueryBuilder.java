@@ -34,8 +34,9 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
 
     public SubCollectionPageTotalsQueryBuilder(Relationship relationship,
                                                EntityDictionary dictionary,
-                                               Session session) {
-        super(relationship.getRelationship().getProjection(), dictionary, session);
+                                               Session session,
+                                               CursorEncoder cursorEncoder) {
+        super(relationship.getRelationship().getProjection(), dictionary, session, cursorEncoder);
         this.relationship = relationship;
     }
 

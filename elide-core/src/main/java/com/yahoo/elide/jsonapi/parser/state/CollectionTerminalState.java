@@ -38,7 +38,7 @@ import lombok.ToString;
 import reactor.core.publisher.Flux;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +91,7 @@ public class CollectionTerminalState extends BaseState {
         // Add pagination meta data
         if (!pagination.isDefaultInstance()) {
 
-            Map<String, Number> pageMetaData = new HashMap<>();
+            Map<String, Object> pageMetaData = new LinkedHashMap<>();
             pageMetaData.put("number", (pagination.getOffset() / pagination.getLimit()) + 1);
             pageMetaData.put("limit", pagination.getLimit());
 
@@ -102,8 +102,26 @@ public class CollectionTerminalState extends BaseState {
                         + ((totalRecords % pagination.getLimit()) > 0 ? 1 : 0));
                 pageMetaData.put("totalRecords", totalRecords);
             }
+            String startCursor = pagination.getStartCursor();
+            if (startCursor != null) {
+                pageMetaData.put("startCursor", startCursor);
+                pageMetaData.remove("number"); // remove page number
+            }
+            String endCursor = pagination.getEndCursor();
+            if (endCursor != null) {
+                pageMetaData.put("endCursor", endCursor);
+                pageMetaData.remove("number"); // remove page number
+            }
+            Boolean hasPreviousPage = pagination.getHasPreviousPage();
+            if (hasPreviousPage != null) {
+                pageMetaData.put("hasPreviousPage", hasPreviousPage);
+            }
+            Boolean hasNextPage = pagination.getHasNextPage();
+            if (hasNextPage != null) {
+                pageMetaData.put("hasNextPage", hasNextPage);
+            }
 
-            Map<String, Object> allMetaData = new HashMap<>();
+            Map<String, Object> allMetaData = new LinkedHashMap<>();
             allMetaData.put("page", pageMetaData);
 
             Meta meta = new Meta(allMetaData);

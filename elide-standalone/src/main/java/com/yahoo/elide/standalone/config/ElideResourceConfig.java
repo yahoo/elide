@@ -99,7 +99,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
 
             EntityDictionary dictionary = settings.getEntityDictionary(injector, classScanner, dynamicConfiguration,
-                    settings.getEntitiesToExclude());
+                    settings.getEntitiesToExclude(), settings.getIdObfuscator());
 
             DataStore dataStore;
             Injector inject = new Injector() {

@@ -34,7 +34,8 @@ public class TestDictionary extends EntityDictionary {
                 injector,
                 CoerceUtil::lookup,
                 Collections.emptySet(),
-                new DefaultClassScanner()
+                new DefaultClassScanner(),
+                null
         );
     }
 

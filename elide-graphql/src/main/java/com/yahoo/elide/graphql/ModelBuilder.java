@@ -14,6 +14,8 @@ import static graphql.schema.GraphQLObjectType.newObject;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Paginate;
+import com.yahoo.elide.annotation.PaginationMode;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -50,6 +52,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -69,6 +72,8 @@ public class ModelBuilder {
     public static final String ARGUMENT_SORT = "sort";
     public static final String ARGUMENT_FIRST = "first";
     public static final String ARGUMENT_AFTER = "after";
+    public static final String ARGUMENT_LAST = "last"; // cursor
+    public static final String ARGUMENT_BEFORE = "before"; // cursor
     public static final String ARGUMENT_OPERATION = "op";
     public static final String OBJECT_PAGE_INFO = "PageInfo";
     public static final String OBJECT_MUTATION = "Mutation";
@@ -78,8 +83,10 @@ public class ModelBuilder {
     private DataFetcher<?> dataFetcher;
     private GraphQLArgument idArgument;
     private GraphQLArgument filterArgument;
-    private GraphQLArgument pageOffsetArgument;
+    private GraphQLArgument pageAfterArgument;
     private GraphQLArgument pageFirstArgument;
+    private GraphQLArgument pageLastArgument; // cursor
+    private GraphQLArgument pageBeforeArgument; // cursor
     private GraphQLArgument sortArgument;
     private GraphQLConversionUtils generator;
     private GraphQLNameUtils nameUtils;
@@ -152,18 +159,35 @@ public class ModelBuilder {
                 .type(Scalars.GraphQLString)
                 .build();
 
-        pageFirstArgument = newArgument()
+        // Offset and Cursor
+        pageFirstArgument = newArgument() // Should be Scalars.GraphQLInt but is a breaking change
                 .name(ARGUMENT_FIRST)
-                .type(Scalars.GraphQLString)
+                .type(GraphQLScalars.GRAPHQL_STRING_OR_INT_TYPE)
                 .build();
 
-        pageOffsetArgument = newArgument()
+        // Offset and Cursor
+        pageAfterArgument = newArgument()
                 .name(ARGUMENT_AFTER)
-                .type(Scalars.GraphQLString)
+                .type(GraphQLScalars.GRAPHQL_STRING_OR_INT_TYPE)
+                .build();
+
+        // Cursor
+        pageLastArgument = newArgument()
+                .name(ARGUMENT_LAST)
+                .type(Scalars.GraphQLInt)
+                .build();
+
+        // Cursor
+        pageBeforeArgument = newArgument()
+                .name(ARGUMENT_BEFORE)
+                .type(GraphQLScalars.GRAPHQL_STRING_OR_INT_TYPE)
                 .build();
 
         GraphQLObjectType.Builder pageInfoObjectBuilder = newObject()
                 .name(OBJECT_PAGE_INFO)
+                .field(newFieldDefinition()
+                        .name("hasPreviousPage")
+                        .type(Scalars.GraphQLBoolean))
                 .field(newFieldDefinition()
                         .name("hasNextPage")
                         .type(Scalars.GraphQLBoolean))
@@ -327,18 +351,33 @@ public class ModelBuilder {
 
             GraphQLArgument relationshipOpArg = getRelationshipOp(clazz);
             if (relationshipOpArg != null) {
-                root.field(newFieldDefinition()
-                        .name(entityName)
+                Paginate paginate = entityDictionary.getAnnotation(clazz, Paginate.class);
+                boolean offsetSupported = true;
+                boolean cursorSupported = false;
+                if (paginate != null) {
+                    if (paginate.modes() != null) {
+                        offsetSupported = Arrays.stream(paginate.modes()).anyMatch(PaginationMode.OFFSET::equals);
+                        cursorSupported = Arrays.stream(paginate.modes()).anyMatch(PaginationMode.CURSOR::equals);
+                    }
+                }
+                GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition().name(entityName)
                         .description(EntityDictionary.getEntityDescription(clazz))
                         .argument(relationshipOpArg)
                         .argument(idArgument)
                         .argument(filterArgument)
-                        .argument(sortArgument)
-                        .argument(pageFirstArgument)
-                        .argument(pageOffsetArgument)
-                        .argument(buildInputObjectArgument(clazz, true))
+                        .argument(sortArgument);
+                if (offsetSupported || cursorSupported) {
+                    fieldDefinition.argument(pageFirstArgument); // cursor and offset
+                    fieldDefinition.argument(pageAfterArgument); // cursor and offset
+                }
+                if (cursorSupported) {
+                    fieldDefinition.argument(pageLastArgument); // cursor
+                    fieldDefinition.argument(pageBeforeArgument); // cursor
+                }
+                fieldDefinition.argument(buildInputObjectArgument(clazz, true))
                         .arguments(generator.entityArgumentToQueryObject(clazz, entityDictionary))
-                        .type(buildConnectionObject(clazz)));
+                        .type(buildConnectionObject(clazz));
+                root.field(fieldDefinition);
             }
         }
 
@@ -498,13 +537,28 @@ public class ModelBuilder {
                     }
                     builder.field(fieldDefinition);
                 } else {
+                    Paginate paginate = entityDictionary.getAnnotation(relationshipClass, Paginate.class);
+                    boolean offsetSupported = true;
+                    boolean cursorSupported = false;
+                    if (paginate != null) {
+                        if (paginate.modes() != null) {
+                            offsetSupported = Arrays.stream(paginate.modes()).anyMatch(PaginationMode.OFFSET::equals);
+                            cursorSupported = Arrays.stream(paginate.modes()).anyMatch(PaginationMode.CURSOR::equals);
+                        }
+                    }
                     GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition().name(relationship)
                             .argument(relationshipOpArg)
                             .argument(filterArgument)
-                            .argument(sortArgument)
-                            .argument(pageOffsetArgument)
-                            .argument(pageFirstArgument)
-                            .argument(idArgument)
+                            .argument(sortArgument);
+                    if (offsetSupported || cursorSupported) {
+                        fieldDefinition.argument(pageAfterArgument);
+                        fieldDefinition.argument(pageFirstArgument);
+                    }
+                    if (cursorSupported) {
+                        fieldDefinition.argument(pageBeforeArgument); // cursor
+                        fieldDefinition.argument(pageLastArgument); // cursor
+                    }
+                    fieldDefinition.argument(idArgument)
                             .argument(buildInputObjectArgument(relationshipClass, true))
                             .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
                             .type(new GraphQLTypeReference(relationshipEntityName));
