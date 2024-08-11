@@ -51,6 +51,7 @@ import com.yahoo.elide.core.request.route.PathRouteResolver;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
@@ -262,6 +263,7 @@ public class ElideAutoConfiguration {
      * @param scanner the class scanner
      * @param settings Elide configuration settings.
      * @param entitiesToExclude set of Entities to exclude from binding.
+     * @param optionalIdObfuscator optional id obfuscator
      * @param customizerProvider the customizers
      * @return the EntityDictionaryBuilder
      */
@@ -271,6 +273,7 @@ public class ElideAutoConfiguration {
     public EntityDictionaryBuilder entityDictionaryBuilder(Injector injector, ClassScanner scanner,
             ElideConfigProperties settings,
             @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude,
+            Optional<IdObfuscator> optionalIdObfuscator,
             ObjectProvider<EntityDictionaryBuilderCustomizer> customizerProvider) {
         EntityDictionaryBuilder builder = EntityDictionary.builder();
 
@@ -284,6 +287,8 @@ public class ElideAutoConfiguration {
 
         builder.checks(checks).injector(injector).serdeLookup(CoerceUtil::lookup)
                 .entitiesToExclude(entitiesToExclude).scanner(scanner);
+
+        optionalIdObfuscator.ifPresent(builder::idObfuscator);
 
         customizerProvider.orderedStream().forEach(customizer -> customizer.customize(builder));
         return builder;

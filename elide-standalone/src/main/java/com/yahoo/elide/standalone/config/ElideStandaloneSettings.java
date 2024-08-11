@@ -28,6 +28,7 @@ import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
@@ -648,10 +649,12 @@ public interface ElideStandaloneSettings {
      * @param injector Service locator for web service for dependency injection.
      * @param dynamicConfiguration optional dynamic config object.
      * @param entitiesToExclude set of Entities to exclude from binding.
+     * @param idObfuscator the id obfuscator
      * @return EntityDictionary object initialized.
      */
     default EntityDictionary getEntityDictionary(ServiceLocator injector, ClassScanner scanner,
-            Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
+            Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude,
+            IdObfuscator idObfuscator) {
 
         Map<String, Class<? extends Check>> checks = new HashMap<>();
 
@@ -678,7 +681,8 @@ public interface ElideStandaloneSettings {
                 },
                 CoerceUtil::lookup, //Serde Lookup
                 entitiesToExclude,
-                scanner);
+                scanner,
+                idObfuscator);
 
         dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
             dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
@@ -865,5 +869,14 @@ public interface ElideStandaloneSettings {
      */
     default int getDefaultPageSize() {
         return Pagination.DEFAULT_PAGE_SIZE;
+    }
+
+    /**
+     * The id obfuscator to use to obfuscate ids.
+     *
+     * @return the id obfuscator
+     */
+    default IdObfuscator getIdObfuscator() {
+        return null;
     }
 }
