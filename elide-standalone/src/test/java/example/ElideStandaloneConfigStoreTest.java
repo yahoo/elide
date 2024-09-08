@@ -29,6 +29,7 @@ import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -76,7 +77,8 @@ public class ElideStandaloneConfigStoreTest {
 
             @Override
             public EntityDictionary getEntityDictionary(ServiceLocator injector, ClassScanner scanner,
-                                                        Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
+                    Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude,
+                    IdObfuscator idObfuscator) {
 
                 Map<String, Class<? extends Check>> checks = new HashMap<>();
 
@@ -103,7 +105,8 @@ public class ElideStandaloneConfigStoreTest {
                         },
                         CoerceUtil::lookup, //Serde Lookup
                         entitiesToExclude,
-                        scanner);
+                        scanner,
+                        idObfuscator);
 
                 dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
                         dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
