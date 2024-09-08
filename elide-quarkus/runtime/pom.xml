@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-quarkus-extension-parent</artifactId>
-    <version>7.1.1</version>
+    <version>7.1.2-SNAPSHOT</version>
   </parent>
   <artifactId>elide-quarkus-extension</artifactId>
   <name>Elide Quarkus Extension - Runtime</name>
@@ -32,7 +32,7 @@
   <scm>
     <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
     <url>https://github.com/yahoo/elide.git</url>
-    <tag>7.1.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <dependencies>
