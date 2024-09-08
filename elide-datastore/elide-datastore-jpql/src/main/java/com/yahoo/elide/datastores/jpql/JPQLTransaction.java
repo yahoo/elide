@@ -83,8 +83,18 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         FilterExpression filterExpression = projection.getFilterExpression();
 
         EntityDictionary dictionary = scope.getDictionary();
-        Type<?> idType = dictionary.getIdType(entityClass);
-        String idField = dictionary.getIdFieldName(entityClass);
+        Type<?> entityIdType = dictionary.getEntityIdType(entityClass);
+        Type<?> idType;
+        String idField;
+
+        if (entityIdType == null) {
+            idType = dictionary.getIdType(entityClass);
+            idField = dictionary.getIdFieldName(entityClass);
+        } else {
+            // handling for entity id
+            idType = entityIdType;
+            idField = dictionary.getEntityIdFieldName(entityClass);
+        }
 
         // Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
         FilterPredicate idExpression;

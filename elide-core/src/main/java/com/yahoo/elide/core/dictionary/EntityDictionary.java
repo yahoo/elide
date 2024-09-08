@@ -42,6 +42,7 @@ import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
@@ -147,13 +148,17 @@ public class EntityDictionary {
     private static final ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
     private static final String ALL_FIELDS = "*";
 
+    @Getter
+    private final IdObfuscator idObfuscator;
+
     @Builder
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
                             Map<String, UserCheck> roleChecks,
                             Injector injector,
                             Function<Class, Serde> serdeLookup,
                             Set<Type<?>> entitiesToExclude,
-                            ClassScanner scanner) {
+                            ClassScanner scanner,
+                            IdObfuscator idObfuscator) {
         this.scanner = scanner;
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
@@ -168,6 +173,7 @@ public class EntityDictionary {
         checkNames.keySet().forEach(checkName -> {
             getCheckInstance(checkName);
         });
+        this.idObfuscator = idObfuscator;
     }
 
     private void initializeChecks() {
@@ -474,6 +480,16 @@ public class EntityDictionary {
      */
     public String getIdFieldName(Type<?> entityClass) {
         return getEntityBinding(entityClass).getIdFieldName();
+    }
+
+    /**
+     * Returns the name of the entity id field.
+     *
+     * @param entityClass Entity class
+     * @return entity id field name
+     */
+    public String getEntityIdFieldName(Type<?> entityClass) {
+        return getEntityBinding(entityClass).getEntityIdFieldName();
     }
 
     /**
@@ -1260,10 +1276,18 @@ public class EntityDictionary {
             AccessibleObject idField = null;
 
             Type<?> valueClass = getType(value);
+            boolean entityId = false;
 
             for (; idField == null && valueClass != null; valueClass = valueClass.getSuperclass()) {
                 try {
-                    idField = getEntityBinding(valueClass).getIdField();
+                    EntityBinding entityBinding = getEntityBinding(valueClass);
+                    // Attempt to get the entity id field first
+                    idField = entityBinding.getEntityIdField();
+                    if (idField == null) {
+                        idField = entityBinding.getIdField();
+                    } else {
+                        entityId = true;
+                    }
                 } catch (NullPointerException e) {
                     log.warn("Class: {} ID Field: {}", valueClass.getSimpleName(), idField);
                 }
@@ -1279,6 +1303,10 @@ public class EntityDictionary {
                 idClass = ((Method) idField).getReturnType();
             } else {
                 return null;
+            }
+
+            if (idValue != null && !entityId && this.idObfuscator != null) {
+                return this.idObfuscator.obfuscate(idValue);
             }
 
             Serde serde = serdeLookup.apply(((ClassType) idClass).getCls());
@@ -1300,6 +1328,16 @@ public class EntityDictionary {
      */
     public Type<?> getIdType(Type<?> entityClass) {
         return getEntityBinding(entityClass).getIdType();
+    }
+
+    /**
+     * Returns type of entity id field.
+     *
+     * @param entityClass the entity class
+     * @return ID type
+     */
+    public Type<?> getEntityIdType(Type<?> entityClass) {
+        return getEntityBinding(entityClass).getEntityIdType();
     }
 
     /**
@@ -1737,6 +1775,18 @@ public class EntityDictionary {
      */
     public void setId(Object target, String id) {
         setValue(target, getIdFieldName(lookupBoundClass(getType(target))), id);
+    }
+
+    /**
+     * Sets the EntityId field of a target object.
+     * @param target the object which owns the entity ID to set.
+     * @param entity id the value to set
+     */
+    public void setEntityId(Object target, String entityId) {
+        String entityIdFieldName = getEntityIdFieldName(lookupBoundClass(getType(target)));
+        if (entityIdFieldName != null) {
+            setValue(target, entityIdFieldName, entityId);
+        }
     }
 
     /**
@@ -2309,7 +2359,8 @@ public class EntityDictionary {
                     injector,
                     serdeLookup,
                     entitiesToExclude,
-                    scanner
+                    scanner,
+                    idObfuscator
             );
         }
     }
