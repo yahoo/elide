@@ -2550,6 +2550,251 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void entityIdString() {
+
+        Resource resource = resource(
+                type("entityIdString"),
+                id("brelol876t98erdom98tc8rt"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .body(datum(resource))
+                .post("/entityIdString")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(datum(resource).toJSON()));
+
+        //Fetch newly created user
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .get("/entityIdString/brelol876t98erdom98tc8rt")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(datum(resource).toJSON()));
+
+        Resource modified = resource(
+                type("entityIdString"),
+                id("na0r0v9t197fku68r7fdku46"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .body(datum(modified))
+                .patch("/entityIdString/brelol876t98erdom98tc8rt")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+        //Delete
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .delete("/entityIdString/brelol876t98erdom98tc8rt")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
+    public void entityIdStringSort() {
+
+        Resource resource1 = resource(
+                type("entityIdString"),
+                id("na0r0v9t197fku68r7fdku46"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .body(datum(resource1))
+                .post("/entityIdString")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(datum(resource1).toJSON()));
+
+        Resource resource2 = resource(
+                type("entityIdString"),
+                id("brelol876t98erdom98tc8rt"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .body(datum(resource2))
+                .post("/entityIdString")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(datum(resource2).toJSON()));
+
+        given()
+                 .contentType(JsonApi.MEDIA_TYPE)
+                 .accept(JsonApi.MEDIA_TYPE)
+                 .get("/entityIdString?sort=id")
+                 .then()
+                 .statusCode(HttpStatus.SC_OK)
+                 .body(equalTo(data(resource2, resource1).toJSON()));
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .get("/entityIdString?sort=-id")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(data(resource1, resource2).toJSON()));
+
+        //Delete
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .delete("/entityIdString/na0r0v9t197fku68r7fdku46")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .delete("/entityIdString/brelol876t98erdom98tc8rt")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+
+    @Test
+    public void entityIdUuid() {
+
+        Resource resource = resource(
+                type("entityIdUuid"),
+                id("c25f34cb-d110-4373-87f4-604fe65c38ff"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .body(datum(resource))
+                .post("/entityIdUuid")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(datum(resource).toJSON()));
+
+        //Fetch newly created user
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .get("/entityIdUuid/c25f34cb-d110-4373-87f4-604fe65c38ff")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(datum(resource).toJSON()));
+
+        Resource modified = resource(
+                type("entityIdUuid"),
+                id("14efb42c-e0c8-4aad-ab6a-ad081a96a7c9"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .body(datum(modified))
+                .patch("/entityIdUuid/c25f34cb-d110-4373-87f4-604fe65c38ff")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+        //Delete
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .delete("/entityIdUuid/c25f34cb-d110-4373-87f4-604fe65c38ff")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
+    public void entityIdUuidSort() {
+
+        Resource resource1 = resource(
+                type("entityIdUuid"),
+                id("0190ec9b-799b-79ac-97c1-1075eb1ab9d7"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .body(datum(resource1))
+                .post("/entityIdUuid")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(datum(resource1).toJSON()));
+
+        Resource resource2 = resource(
+                type("entityIdUuid"),
+                id("0190ec9b-4a2c-7b41-9987-10b90b58391d"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .body(datum(resource2))
+                .post("/entityIdUuid")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(datum(resource2).toJSON()));
+
+        given()
+                 .contentType(JsonApi.MEDIA_TYPE)
+                 .accept(JsonApi.MEDIA_TYPE)
+                 .get("/entityIdUuid?sort=id")
+                 .then()
+                 .statusCode(HttpStatus.SC_OK)
+                 .body(equalTo(data(resource2, resource1).toJSON()));
+
+        given()
+                 .contentType(JsonApi.MEDIA_TYPE)
+                 .accept(JsonApi.MEDIA_TYPE)
+                 .get("/entityIdUuid?sort=-id")
+                 .then()
+                 .statusCode(HttpStatus.SC_OK)
+                 .body(equalTo(data(resource1, resource2).toJSON()));
+
+        //Delete
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .delete("/entityIdUuid/0190ec9b-799b-79ac-97c1-1075eb1ab9d7")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+        given()
+                .contentType(JsonApi.MEDIA_TYPE)
+                .accept(JsonApi.MEDIA_TYPE)
+                .delete("/entityIdUuid/0190ec9b-4a2c-7b41-9987-10b90b58391d")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
     public void assignedIdWithoutProvidedId() {
         Resource resource = resource(
                 type("assignedIdString"),

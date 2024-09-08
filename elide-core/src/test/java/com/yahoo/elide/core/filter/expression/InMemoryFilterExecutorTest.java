@@ -82,7 +82,8 @@ public class InMemoryFilterExecutorTest {
                     EntityDictionary.DEFAULT_INJECTOR,
                     CoerceUtil::lookup,
                     Collections.emptySet(), //excluded entities
-                    new DefaultClassScanner()
+                    new DefaultClassScanner(),
+                    null
             );
         }
 
