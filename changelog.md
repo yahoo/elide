@@ -1,5 +1,29 @@
 # Change Log
 
+## 7.1.1
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/8643a2f22021ae35534755ca1753c4537ad6cde0) Add support for obfuscated id or alternate entity id (#3261) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/9b39eb41c47cc26d66d9d1d4139683837f299fa6) Update readme to remove broken links and point to v7 docs (#3249) 
+ * [view commit](https://github.com/yahoo/elide/commit/566234e7303507b291ea9e021e80238f4dac83ec) Fix async when graphql not enabled (#3246) 
+ * [view commit](https://github.com/yahoo/elide/commit/5f76efda9dfe7bc03fa950d037ade906f7dcf0a6) Add atomic operations to OpenAPI document (#3248) 
+ * [view commit](https://github.com/yahoo/elide/commit/1fc5258cc3dfea3db060936e9d453e6b7e269263) Fix pagination set page totals to zero after non-zero query (#3258) 
+ * [view commit](https://github.com/yahoo/elide/commit/c68e373beb751c8d97b7e277c16e0b1536f9ff1f) Optimize required dependencies for modules (#3255) 
+ * [view commit](https://github.com/yahoo/elide/commit/702daeba73ebc300da48b9c7d30435a428991413) Bump org.apache.maven.plugins:maven-checkstyle-plugin (#3238) 
+ * [view commit](https://github.com/yahoo/elide/commit/02fb40da06417ff7231610dc7c26210801abf59e) Bump org.graalvm.buildtools:native-maven-plugin from 0.9.28 to 0.10.2 (#3239) 
+ * [view commit](https://github.com/yahoo/elide/commit/b3989389848cb44c910f6640f0fbcd352bb78c74) Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.1 to 3.2.4 (#3242) 
+ * [view commit](https://github.com/yahoo/elide/commit/fbbf2a860d79e7ca5794b16740a29f57c23d5c1f) Bump org.apache.maven.plugins:maven-jar-plugin from 3.4.1 to 3.4.2 (#3243) 
+ * [view commit](https://github.com/yahoo/elide/commit/22387ac8f4314278ae960cdb3d1857acdeec5da1) Improve mutation determination (#3269) 
+ * [view commit](https://github.com/yahoo/elide/commit/4a1111a5d1ebbc9ce3d659e78e2373651b4c9c99) Bump quarkus.version from 3.11.0 to 3.13.1 (#3270) 
+ * [view commit](https://github.com/yahoo/elide/commit/badae3cc9af7d14deb0dee1db0542429bb9ac65f) Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.6.3 to 3.10.0 (#3273) 
+ * [view commit](https://github.com/yahoo/elide/commit/88ab15c783bd2fc3fb1a2ad23fd68fefeb13a3bb) Bump com.h2database:h2 from 2.2.224 to 2.3.232 (#3272) 
+ * [view commit](https://github.com/yahoo/elide/commit/e7565763c3592949abb3e376cc3de963d674ee51) Bump rest-assured.version from 5.4.0 to 5.5.0 (#3266) 
+ * [view commit](https://github.com/yahoo/elide/commit/4155d03b3f3c7cd411700ab30163c6aa26f76a7c) Bump com.apollographql.federation:federation-graphql-java-support (#3265) 
+ * [view commit](https://github.com/yahoo/elide/commit/de948032b355ad67d95524204e00dcd119e65305) Bump org.apache.maven.plugins:maven-release-plugin from 3.0.1 to 3.1.1 (#3256) 
+ * [view commit](https://github.com/yahoo/elide/commit/701981196fd44a48cbb11493ee71b2cba92ab371) Bump org.springframework.cloud:spring-cloud-context from 4.1.2 to 4.1.4 (#3254) 
+ * [view commit](https://github.com/yahoo/elide/commit/b2b90b2bc082953ef2e6892c808a87fd94d29ec6) Bump org.skyscreamer:jsonassert from 1.5.1 to 1.5.3 (#3250) 
+
 ## 7.1.0
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/29a605d0adc1ac91a25bd70e54c9915f22783771) Remove attributes and relationships from swagger components (#3229) (#3230) 
