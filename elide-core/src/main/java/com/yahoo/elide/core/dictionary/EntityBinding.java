@@ -11,6 +11,7 @@ import static com.yahoo.elide.core.type.ClassType.OBJ_METHODS;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
+import com.yahoo.elide.annotation.EntityId;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
@@ -86,9 +87,15 @@ public class EntityBinding {
     @Getter
     private AccessibleObject idField;
     @Getter
+    private AccessibleObject entityIdField;
+    @Getter
     private String idFieldName;
     @Getter
+    private String entityIdFieldName;
+    @Getter
     private Type<?> idType;
+    @Getter
+    private Type<?> entityIdType;
     @Getter
     private AccessType accessType;
 
@@ -302,6 +309,8 @@ public class EntityBinding {
 
             if (isIdField(fieldOrMethod)) {
                 bindEntityId(cls, type, fieldOrMethod);
+            } else if (isEntityIdField(fieldOrMethod)) {
+                bindEntityEntityId(cls, type, fieldOrMethod);
             } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedRelationship.class)) {
@@ -351,6 +360,32 @@ public class EntityBinding {
         }
         if (fieldOrMethod.isAnnotationPresent(GeneratedValue.class)) {
             idGenerated = true;
+        }
+    }
+
+    /**
+     * Bind an entity id field to an entity.
+     *
+     * @param cls           Class type to bind fields
+     * @param type          JSON API type identifier
+     * @param fieldOrMethod Field or method to bind
+     */
+    private void bindEntityEntityId(Type<?> cls, String type, AccessibleObject fieldOrMethod) {
+        String fieldName = getFieldName(fieldOrMethod);
+        Type<?> fieldType = getFieldType(cls, fieldOrMethod);
+
+        //Add id field to type map for the entity
+        fieldsToTypes.put(fieldName, fieldType);
+
+        //Set id field, type, and name
+        entityIdField = fieldOrMethod;
+        entityIdType = fieldType;
+        entityIdFieldName = fieldName;
+
+        fieldsToValues.put(fieldName, fieldOrMethod);
+
+        if (entityIdField != null && !fieldOrMethod.equals(entityIdField)) {
+            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + fieldName);
         }
     }
 
@@ -757,5 +792,15 @@ public class EntityBinding {
 
     public static boolean isIdField(AccessibleObject field) {
         return (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class));
+    }
+
+    /**
+     * Returns if the field is the entity id.
+     *
+     * @param field the field to test
+     * @return true if it is the entity id
+     */
+    public static boolean isEntityIdField(AccessibleObject field) {
+        return (field.isAnnotationPresent(EntityId.class));
     }
 }

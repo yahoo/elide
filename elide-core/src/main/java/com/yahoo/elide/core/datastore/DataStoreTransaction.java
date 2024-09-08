@@ -111,24 +111,35 @@ public interface DataStoreTransaction extends Closeable {
      * some legacy stores are optimized to load by ID.
      *
      * @param entityProjection the collection to load.
-     * @param id - the ID of the object to load.
+     * @param idOrEntityId - the ID of the object to load.
      * @param scope - the current request scope
      * @param <T> The model type being loaded.
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
     default <T> T loadObject(EntityProjection entityProjection,
-                             Serializable id,
+                             Serializable idOrEntityId,
                              RequestScope scope) {
         Type<?> entityClass = entityProjection.getType();
         FilterExpression filterExpression = entityProjection.getFilterExpression();
 
         EntityDictionary dictionary = scope.getDictionary();
-        Type idType = dictionary.getIdType(entityClass);
-        String idField = dictionary.getIdFieldName(entityClass);
+        Type<?> idType;
+        String idField;
+        Type<?> entityIdType = dictionary.getEntityIdType(entityClass);
+        if (entityIdType != null) {
+            // by entity id
+            idType = entityIdType;
+            idField = dictionary.getEntityIdFieldName(entityClass);
+        } else {
+            // by id
+            idType = dictionary.getIdType(entityClass);
+            idField = dictionary.getIdFieldName(entityClass);
+        }
+
         FilterExpression idFilter = new InPredicate(
                 new Path.PathElement(entityClass, idType, idField),
-                id
+                idOrEntityId
         );
         FilterExpression joinedFilterExpression = (filterExpression != null)
                 ? new AndFilterExpression(idFilter, filterExpression)
@@ -147,7 +158,8 @@ public interface DataStoreTransaction extends Closeable {
             }
 
             //Multiple objects with the same ID.
-            throw new InvalidObjectIdentifierException(id.toString(), dictionary.getJsonAliasFor(entityClass));
+            throw new InvalidObjectIdentifierException(idOrEntityId.toString(),
+                    dictionary.getJsonAliasFor(entityClass));
         }
         return null;
     }
