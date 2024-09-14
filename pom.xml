@@ -89,7 +89,7 @@
         <caffeine.version>3.1.8</caffeine.version>
         <classgraph.version>4.8.172</classgraph.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
-        <commons-cli.version>1.8.0</commons-cli.version>
+        <commons-cli.version>1.9.0</commons-cli.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-compress.version>1.26.2</commons-compress.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
