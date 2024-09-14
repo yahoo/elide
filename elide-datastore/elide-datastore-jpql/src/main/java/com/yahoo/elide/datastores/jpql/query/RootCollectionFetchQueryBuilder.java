@@ -30,8 +30,9 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
     public RootCollectionFetchQueryBuilder(EntityProjection entityProjection,
                                            EntityDictionary dictionary,
-                                           Session session) {
-        super(entityProjection, dictionary, session);
+                                           Session session,
+                                           CursorEncoder cursorEncoder) {
+        super(entityProjection, dictionary, session, cursorEncoder);
     }
 
     /**
@@ -47,6 +48,8 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
         Query query;
         FilterExpression filterExpression = entityProjection.getFilterExpression();
+        String keysetPaginationClause = getKeysetPaginationClause(entityProjection, dictionary, entityAlias);
+
         if (filterExpression != null) {
             //Build the JOIN clause
             String joinClause = getJoinClauseFromFilters(filterExpression)
@@ -91,6 +94,9 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                 throw new InvalidValueException("Combination of pagination, sorting over relationship and"
                         + " filtering over toMany relationships unsupported");
             }
+            if (!"".equals(keysetPaginationClause)) {
+                keysetPaginationClause = " AND " + keysetPaginationClause;
+            }
             query = session.createQuery(
                     SELECT
                             + (requiresDistinct ? DISTINCT : "")
@@ -103,13 +109,20 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                             + joinClause
                             + SPACE
                             + filterClause
+                            + keysetPaginationClause
                             + SPACE
                             + getSortClause(entityProjection.getSorting())
             );
 
             //Fill in the query parameters
             supplyFilterQueryParameters(query, predicates);
+            if (!"".equals(keysetPaginationClause)) {
+                supplyKeysetPaginationQueryParameters(query, entityProjection, dictionary);
+            }
         } else {
+            if (!"".equals(keysetPaginationClause)) {
+                keysetPaginationClause = WHERE + keysetPaginationClause;
+            }
             query = session.createQuery(SELECT
                     + entityAlias
                     + FROM
@@ -119,8 +132,12 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + SPACE
                     + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(entityClass, entityAlias)
+                    + keysetPaginationClause
                     + SPACE
                     + getSortClause(entityProjection.getSorting()));
+            if (!"".equals(keysetPaginationClause)) {
+                supplyKeysetPaginationQueryParameters(query, entityProjection, dictionary);
+            }
         }
 
         addPaginationToQuery(query);

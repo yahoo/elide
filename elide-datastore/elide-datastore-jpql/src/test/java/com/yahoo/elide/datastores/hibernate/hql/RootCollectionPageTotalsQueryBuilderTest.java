@@ -16,6 +16,8 @@ import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.datastores.jpql.query.CursorEncoder;
+import com.yahoo.elide.datastores.jpql.query.JacksonCursorEncoder;
 import com.yahoo.elide.datastores.jpql.query.RootCollectionPageTotalsQueryBuilder;
 import example.Author;
 import example.Book;
@@ -31,6 +33,7 @@ import java.util.List;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RootCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
+    private CursorEncoder cursorEncoder = new JacksonCursorEncoder();
 
     private static final String TITLE = "title";
     private static final String BOOKS = "books";
@@ -49,7 +52,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     public void testRootFetch() {
         EntityProjection entityProjection = EntityProjection.builder().type(Book.class).build();
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
-                entityProjection, dictionary, new TestSessionWrapper()
+                entityProjection, dictionary, new TestSessionWrapper(), cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
@@ -72,7 +75,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 .sorting(sorting)
                 .build();
         TestQueryWrapper query = (TestQueryWrapper) new RootCollectionPageTotalsQueryBuilder(
-                entityProjection, dictionary, new TestSessionWrapper()
+                entityProjection, dictionary, new TestSessionWrapper(), cursorEncoder
         )
                 .build();
         String expected = "SELECT COUNT(example_Book) FROM example.Book AS example_Book";
@@ -89,7 +92,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 .pagination(pagination)
                 .build();
         TestQueryWrapper query = (TestQueryWrapper) new RootCollectionPageTotalsQueryBuilder(
-                entityProjection, dictionary, new TestSessionWrapper()
+                entityProjection, dictionary, new TestSessionWrapper(), cursorEncoder
         )
                 .build();
         String expected = "SELECT COUNT(example_Book) FROM example.Book AS example_Book";
@@ -126,7 +129,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 .build();
 
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
-                entityProjection, dictionary, new TestSessionWrapper()
+                entityProjection, dictionary, new TestSessionWrapper(), cursorEncoder
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
