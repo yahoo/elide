@@ -41,10 +41,10 @@ import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.jsonapi.JsonApi;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,7 +62,7 @@ import java.util.concurrent.Executors;
 @Configuration
 @ConditionalOnClass(AsyncSettingsBuilder.class)
 @ConditionalOnProperty(prefix = "elide.async", name = "enabled", matchIfMissing = false)
-@EntityScan(basePackageClasses = AsyncQuery.class)
+@AutoConfigurationPackage(basePackageClasses = AsyncQuery.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 public class ElideAsyncConfiguration {
 

@@ -192,7 +192,6 @@ The API information such as the title can be set by the application by annotatin
 
 ```java
 @SpringBootApplication
-@EntityScan
 @OpenAPIDefinition(info = @Info(title = "My Title", description = "My Description"))
 public class App {
     public static void main(String[] args) throws Exception {
