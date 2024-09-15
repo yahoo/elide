@@ -1,5 +1,19 @@
 # Change Log
 
+## 7.1.2
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/4b5667b9bd23f2b5835adec7fa3c0cf26fb4bccd) Add support for cursor pagination (#3262)
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/681c304aaeea04cda2481e18a210a09338624242) Replace @EntityScan with @AutoConfigurationPackage for async (#3284) 
+ * [view commit](https://github.com/yahoo/elide/commit/106e5bc5b56f4718cca3eddf7aee670fa7c10260) Bump jakarta-websocket.version from 2.1.1 to 2.2.0 (#3275) 
+ * [view commit](https://github.com/yahoo/elide/commit/c1f54aae0f86e741b8da2126982e910ffb23cfd1) Bump redis.clients:jedis from 5.1.3 to 5.1.5 (#3282) 
+ * [view commit](https://github.com/yahoo/elide/commit/10a8f65f3e860483a07d8a212fc911533e4c6340) Bump spring-boot.version from 3.3.1 to 3.3.3 (#3276) 
+ * [view commit](https://github.com/yahoo/elide/commit/f5e5d64e417d5b8565e245d069001265792be7d3) Bump org.springdoc:springdoc-openapi-starter-common from 2.5.0 to 2.6.0 (#3281) 
+ * [view commit](https://github.com/yahoo/elide/commit/a28bdb7bb2414b2c143115a9ed2c48a28166479e) Bump org.apache.maven.plugins:maven-deploy-plugin from 3.1.2 to 3.1.3 (#3280) 
+ * [view commit](https://github.com/yahoo/elide/commit/558ba011b3244aae32f0fddc2f66d1f4ba285fc3) Bump commons-cli:commons-cli from 1.8.0 to 1.9.0 (#3278) 
+ * [view commit](https://github.com/yahoo/elide/commit/f5bf4454f0c0aa0ac435c083521a61bd3d07434c) Bump org.glassfish.jersey:jersey-bom from 3.1.7 to 3.1.8 (#3277) 
+
 ## 7.1.1
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/8643a2f22021ae35534755ca1753c4537ad6cde0) Add support for obfuscated id or alternate entity id (#3261) 
