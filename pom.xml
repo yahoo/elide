@@ -130,7 +130,7 @@
         <rest-assured.version>5.5.0</rest-assured.version>
         <reactor-bom.version>2023.0.6</reactor-bom.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
-        <slf4j.version>2.0.13</slf4j.version>
+        <slf4j.version>2.0.16</slf4j.version>
         <spring-boot.version>3.3.3</spring-boot.version>
         <spring-framework.version>6.1.10</spring-framework.version>
         <spring-cloud-commons.version>4.1.4</spring-cloud-commons.version>
