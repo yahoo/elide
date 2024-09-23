@@ -135,7 +135,7 @@
         <spring-framework.version>6.1.10</spring-framework.version>
         <spring-cloud-commons.version>4.1.4</spring-cloud-commons.version>
         <springdoc.version>2.6.0</springdoc.version>
-        <swagger-api.version>2.2.22</swagger-api.version>
+        <swagger-api.version>2.2.24</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
         <tomcat.version>10.1.25</tomcat.version>
         <mockito.version>5.12.0</mockito.version>
