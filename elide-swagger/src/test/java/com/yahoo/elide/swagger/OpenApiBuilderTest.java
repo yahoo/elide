@@ -821,6 +821,26 @@ class OpenApiBuilderTest {
     }
 
     @Test
+    void testExtendedAttribute() {
+        OpenAPI openAPI = new OpenApiBuilder(dictionary).build();
+        Schema<?> book = openAPI.getComponents().getSchemas().get("book");
+        Schema<?> attributes = book.getProperties().get("attributes");
+        Schema<?> titleAttribute = attributes.getProperties().get("title");
+        assertEquals("false", titleAttribute.getExtensions().get("isLocalized"));
+    }
+
+    @Test
+    void testExtendedAttributeRelationship() {
+        OpenAPI openAPI = new OpenApiBuilder(dictionary).build();
+        Schema<?> book = openAPI.getComponents().getSchemas().get("book");
+        Schema<?> relationships = book.getProperties().get("relationships");
+        Schema<?> publisherRelationship = relationships.getProperties().get("publisher");
+        Schema<?> publisherData = publisherRelationship.getProperties().get("data");
+        Schema<?> publisherItems = publisherData.getItems();
+        assertEquals("oneToOne", publisherItems.getExtensions().get("relationType"));
+    }
+
+    @Test
     void testEntityFilterCrud() {
         EntityDictionary entityDictionary = EntityDictionary.builder().build();
 

@@ -10,6 +10,8 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
@@ -39,12 +41,21 @@ public class Book {
 
     @OneToOne
     @UpdatePermission(expression = "Principal is publisher")
+    @Schema(requiredMode = RequiredMode.REQUIRED, extensions = {
+            @Extension(properties = {
+                    @ExtensionProperty(name = "relationType", value = "oneToOne")
+            })
+    })
     public Publisher getPublisher() {
         return null;
     }
 
     @NotNull
-    @Schema(requiredMode = RequiredMode.REQUIRED)
+    @Schema(requiredMode = RequiredMode.REQUIRED, extensions = {
+            @Extension(properties = {
+                    @ExtensionProperty(name = "isLocalized", value = "false")
+            })
+    })
     public String title;
 
     @Schema(description = "Year published", example = "1999", accessMode = AccessMode.READ_ONLY)
