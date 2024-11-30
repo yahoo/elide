@@ -25,6 +25,7 @@ import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverterContext;
 import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import io.swagger.v3.oas.models.media.Schema;
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -223,6 +225,7 @@ public class JsonApiModelResolver extends ModelResolver {
         attribute.setReadOnly(getFieldReadOnly(clazzType, attributeName));
         attribute.setWriteOnly(getFieldWriteOnly(clazzType, attributeName));
         attribute.setRequired(getFieldRequiredProperties(clazzType, attributeName));
+        attribute.setExtensions(getExtensions(clazzType, attributeName));
 
         if (getFieldRequired(clazzType, attributeName)) {
             required.add(attributeName);
@@ -249,6 +252,7 @@ public class JsonApiModelResolver extends ModelResolver {
         relationship.setReadOnly(getFieldReadOnly(clazz, relationshipName));
         relationship.setWriteOnly(getFieldWriteOnly(clazz, relationshipName));
         relationship.setRequired(getFieldRequiredProperties(clazz, relationshipName));
+        relationship.setExtensions(getExtensions(clazz, relationshipName));
 
         if (getFieldRequired(clazz, relationshipName)) {
             required.add(relationshipName);
@@ -315,6 +319,14 @@ public class JsonApiModelResolver extends ModelResolver {
     private String getFieldDescription(Type<?> clazz, String fieldName) {
         io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
         return property == null ? "" : property.description();
+    }
+
+    private Map<String, Object> getExtensions(Type<?> clazz, String fieldName) {
+        io.swagger.v3.oas.annotations.media.Schema property = getSchema(clazz, fieldName);
+        return property == null ? Map.of()
+                : Arrays.stream(property.extensions())
+                .flatMap(extension -> Arrays.stream(extension.properties()))
+                .collect(Collectors.toMap(ExtensionProperty::name, ExtensionProperty::value));
     }
 
     /**
