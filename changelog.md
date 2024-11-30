@@ -1,5 +1,17 @@
 # Change Log
 
+## 7.1.3
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/c9b24594c78ccea34e3eefc94214c4dcab092a95) Add support for extension property of OpenAPI 3_0 (#3301) (#3303) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/c1cc72686ec05f8e8b9bc2a312275042877d15e3) Bump io.swagger.core.v3:swagger-core-jakarta from 2.2.22 to 2.2.26 (#3300) 
+ * [view commit](https://github.com/yahoo/elide/commit/6642f7b4924562d69f5c61d953a6a0f3d24155f0) Bump com.puppycrawl.tools:checkstyle from 10.17.0 to 10.20.1 (#3299) 
+ * [view commit](https://github.com/yahoo/elide/commit/92a7f491073a17fa5cbd4b106135cb640d362986) Bump jakarta.validation:jakarta.validation-api from 3.0.2 to 3.1.0 (#3288) 
+ * [view commit](https://github.com/yahoo/elide/commit/c101e9f6db13156e19995264f72b0b0d1266a77a) Bump jetty.version from 12.0.10 to 12.0.13 (#3287) 
+ * [view commit](https://github.com/yahoo/elide/commit/174cf71fd985a26172b87af33e28a86c8fc0c36f) Bump slf4j.version from 2.0.13 to 2.0.16 (#3292) 
+ * [view commit](https://github.com/yahoo/elide/commit/ad894075dfc0fceb918d22dd2cb63c604be49db8) Bump tomcat.version from 10.1.25 to 10.1.29 (#3290) 
+
 ## 7.1.2
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/4b5667b9bd23f2b5835adec7fa3c0cf26fb4bccd) Add support for cursor pagination (#3262)
