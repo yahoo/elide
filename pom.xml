@@ -115,7 +115,7 @@
         <jakarta-transaction.version>2.0.1</jakarta-transaction.version>
         <jakarta-websocket.version>2.2.0</jakarta-websocket.version>
         <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
-        <jakarta-validation.version>3.0.2</jakarta-validation.version>
+        <jakarta-validation.version>3.1.0</jakarta-validation.version>
         <jansi.version>2.4.1</jansi.version>
         <jersey.version>3.1.8</jersey.version>
         <jetty.version>12.0.10</jetty.version>
