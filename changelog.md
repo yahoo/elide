@@ -1,10 +1,11 @@
 # Change Log
 
-## 7.1.3
+## 7.1.4
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/c9b24594c78ccea34e3eefc94214c4dcab092a95) Add support for extension property of OpenAPI 3_0 (#3301) (#3303) 
 
 **Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/b4b0376c10f74fe49a6168912e7ca67a4941a163) Bump org.apache.tomcat.embed:tomcat-embed-core from 10.1.29 to 10.1.31 (#3304) 
  * [view commit](https://github.com/yahoo/elide/commit/c1cc72686ec05f8e8b9bc2a312275042877d15e3) Bump io.swagger.core.v3:swagger-core-jakarta from 2.2.22 to 2.2.26 (#3300) 
  * [view commit](https://github.com/yahoo/elide/commit/6642f7b4924562d69f5c61d953a6a0f3d24155f0) Bump com.puppycrawl.tools:checkstyle from 10.17.0 to 10.20.1 (#3299) 
  * [view commit](https://github.com/yahoo/elide/commit/92a7f491073a17fa5cbd4b106135cb640d362986) Bump jakarta.validation:jakarta.validation-api from 3.0.2 to 3.1.0 (#3288) 
