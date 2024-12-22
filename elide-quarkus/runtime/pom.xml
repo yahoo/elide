@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-quarkus-extension-parent</artifactId>
-    <version>7.1.1-SNAPSHOT</version>
+    <version>7.1.5-SNAPSHOT</version>
   </parent>
   <artifactId>elide-quarkus-extension</artifactId>
   <name>Elide Quarkus Extension - Runtime</name>
@@ -108,6 +108,9 @@
               <version>${quarkus.version}</version>
             </path>
           </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-AlegacyConfigRoot=true</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>

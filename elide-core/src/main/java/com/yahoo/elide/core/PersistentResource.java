@@ -33,6 +33,7 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
@@ -43,6 +44,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
 import com.yahoo.elide.core.type.ClassType;
@@ -250,14 +252,33 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             // try to load object
             Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass,
                     requestScope, projection.getRequestedFields());
-            Type<?> idType = dictionary.getIdType(loadClass);
 
             projection = projection
                     .copyOf()
                     .filterExpression(permissionFilter.orElse(null))
                     .build();
+            Serializable idOrEntityId;
+            Type<?> entityIdType = dictionary.getEntityIdType(loadClass);
+            if (entityIdType != null) {
+                // If it is by entity id use it
+                idOrEntityId = (Serializable) CoerceUtil.coerce(id, entityIdType);
+            } else {
+                Type<?> idType = dictionary.getIdType(loadClass);
+                IdObfuscator idObfuscator = dictionary.getIdObfuscator();
+                if (idObfuscator != null) {
+                    // If an obfuscator is present use it to deobfuscate the id
+                    try {
+                        idOrEntityId = (Serializable) idObfuscator.deobfuscate(id, idType);
+                    } catch (RuntimeException e) {
+                        throw new InvalidValueException(
+                                "Invalid identifier " + id + " for " + dictionary.getJsonAliasFor(loadClass), e);
+                    }
+                } else {
+                    idOrEntityId = (Serializable) CoerceUtil.coerce(id, idType);
+                }
+            }
 
-            obj = tx.loadObject(projection, (Serializable) CoerceUtil.coerce(id, idType), requestScope);
+            obj = tx.loadObject(projection, idOrEntityId, requestScope);
             if (obj == null) {
                 throw new InvalidObjectIdentifierException(id, dictionary.getJsonAliasFor(loadClass));
             }
@@ -408,12 +429,20 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                                                             Type<?> entityType,
                                                             EntityDictionary dictionary,
                                                             RequestScope scope) {
-        Type<?> idType = dictionary.getIdType(entityType);
-        String idField = dictionary.getIdFieldName(entityType);
-
+        Type<?> entityIdType = dictionary.getEntityIdType(entityType);
+        Type<?> idType;
+        String idField;
+        if (entityIdType != null) {
+            idType = entityIdType;
+            idField = dictionary.getEntityIdFieldName(entityType);
+        } else {
+            idType = dictionary.getIdType(entityType);
+            idField = dictionary.getIdFieldName(entityType);
+        }
+        IdObfuscator idObfuscator = entityIdType != null ? null : dictionary.getIdObfuscator();
         List<Object> coercedIds = ids.stream()
                 .filter(id -> scope.getObjectById(entityType, id) == null) // these don't exist yet
-                .map(id -> CoerceUtil.coerce(id, idType))
+                .map(id -> idObfuscator == null ? CoerceUtil.coerce(id, idType) : idObfuscator.deobfuscate(id, idType))
                 .collect(Collectors.toList());
 
         /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
@@ -521,6 +550,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 throw new BadRequestException(
                         "No id provided, cannot persist " + persistentResource.getTypeName());
             }
+        }
+        // Set the entity id if necessary
+        if (StringUtils.isNotEmpty(id)) {
+            persistentResource.setEntityId(id);
         }
     }
 
@@ -1082,6 +1115,15 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     public boolean isIdGenerated() {
         return dictionary.getEntityBinding(type).isIdGenerated();
+    }
+
+    /**
+     * Set entity ID.
+     *
+     * @param entityId entity id
+     */
+    public void setEntityId(String entityId) {
+        dictionary.setEntityId(obj, entityId);
     }
 
     /**

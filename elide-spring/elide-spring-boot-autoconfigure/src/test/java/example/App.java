@@ -7,7 +7,6 @@ package example;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,6 @@ import java.util.TimeZone;
  */
 @Slf4j
 @SpringBootApplication
-@EntityScan
 public class App {
     public static void main(String[] args) throws Exception {
         SpringApplication.run(App.class, args);

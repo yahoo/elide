@@ -37,4 +37,10 @@ public @interface Paginate {
      * @return the maximum limit
      */
     int maxPageSize() default 10000;
+
+    /**
+     * The pagination modes supported such as offset pagination or cursor pagination.
+     * @return the pagination modes supported
+     */
+    PaginationMode[] modes() default { PaginationMode.OFFSET };
 }

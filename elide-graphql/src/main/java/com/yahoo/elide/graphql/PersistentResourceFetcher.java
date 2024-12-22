@@ -129,8 +129,8 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
      * @param environment Environment encapsulating graphQL's request environment
      */
     private void filterSortPaginateSanityCheck(Environment environment) {
-        if (environment.filters.isPresent() || environment.sort.isPresent() || environment.offset.isPresent()
-                || environment.first.isPresent()) {
+        if (environment.filters.isPresent() || environment.sort.isPresent() || environment.after.isPresent()
+                || environment.first.isPresent() || environment.before.isPresent() || environment.last.isPresent()) {
             throw new BadRequestException("Pagination/Filtering/Sorting is only supported with FETCH operation");
         }
     }

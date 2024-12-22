@@ -1,5 +1,56 @@
 # Change Log
 
+## 7.1.4
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/c9b24594c78ccea34e3eefc94214c4dcab092a95) Add support for extension property of OpenAPI 3_0 (#3301) (#3303) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/b4b0376c10f74fe49a6168912e7ca67a4941a163) Bump org.apache.tomcat.embed:tomcat-embed-core from 10.1.29 to 10.1.31 (#3304) 
+ * [view commit](https://github.com/yahoo/elide/commit/c1cc72686ec05f8e8b9bc2a312275042877d15e3) Bump io.swagger.core.v3:swagger-core-jakarta from 2.2.22 to 2.2.26 (#3300) 
+ * [view commit](https://github.com/yahoo/elide/commit/6642f7b4924562d69f5c61d953a6a0f3d24155f0) Bump com.puppycrawl.tools:checkstyle from 10.17.0 to 10.20.1 (#3299) 
+ * [view commit](https://github.com/yahoo/elide/commit/92a7f491073a17fa5cbd4b106135cb640d362986) Bump jakarta.validation:jakarta.validation-api from 3.0.2 to 3.1.0 (#3288) 
+ * [view commit](https://github.com/yahoo/elide/commit/c101e9f6db13156e19995264f72b0b0d1266a77a) Bump jetty.version from 12.0.10 to 12.0.13 (#3287) 
+ * [view commit](https://github.com/yahoo/elide/commit/174cf71fd985a26172b87af33e28a86c8fc0c36f) Bump slf4j.version from 2.0.13 to 2.0.16 (#3292) 
+ * [view commit](https://github.com/yahoo/elide/commit/ad894075dfc0fceb918d22dd2cb63c604be49db8) Bump tomcat.version from 10.1.25 to 10.1.29 (#3290) 
+
+## 7.1.2
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/4b5667b9bd23f2b5835adec7fa3c0cf26fb4bccd) Add support for cursor pagination (#3262)
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/681c304aaeea04cda2481e18a210a09338624242) Replace @EntityScan with @AutoConfigurationPackage for async (#3284) 
+ * [view commit](https://github.com/yahoo/elide/commit/106e5bc5b56f4718cca3eddf7aee670fa7c10260) Bump jakarta-websocket.version from 2.1.1 to 2.2.0 (#3275) 
+ * [view commit](https://github.com/yahoo/elide/commit/c1f54aae0f86e741b8da2126982e910ffb23cfd1) Bump redis.clients:jedis from 5.1.3 to 5.1.5 (#3282) 
+ * [view commit](https://github.com/yahoo/elide/commit/10a8f65f3e860483a07d8a212fc911533e4c6340) Bump spring-boot.version from 3.3.1 to 3.3.3 (#3276) 
+ * [view commit](https://github.com/yahoo/elide/commit/f5e5d64e417d5b8565e245d069001265792be7d3) Bump org.springdoc:springdoc-openapi-starter-common from 2.5.0 to 2.6.0 (#3281) 
+ * [view commit](https://github.com/yahoo/elide/commit/a28bdb7bb2414b2c143115a9ed2c48a28166479e) Bump org.apache.maven.plugins:maven-deploy-plugin from 3.1.2 to 3.1.3 (#3280) 
+ * [view commit](https://github.com/yahoo/elide/commit/558ba011b3244aae32f0fddc2f66d1f4ba285fc3) Bump commons-cli:commons-cli from 1.8.0 to 1.9.0 (#3278) 
+ * [view commit](https://github.com/yahoo/elide/commit/f5bf4454f0c0aa0ac435c083521a61bd3d07434c) Bump org.glassfish.jersey:jersey-bom from 3.1.7 to 3.1.8 (#3277) 
+
+## 7.1.1
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/8643a2f22021ae35534755ca1753c4537ad6cde0) Add support for obfuscated id or alternate entity id (#3261) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/9b39eb41c47cc26d66d9d1d4139683837f299fa6) Update readme to remove broken links and point to v7 docs (#3249) 
+ * [view commit](https://github.com/yahoo/elide/commit/566234e7303507b291ea9e021e80238f4dac83ec) Fix async when graphql not enabled (#3246) 
+ * [view commit](https://github.com/yahoo/elide/commit/5f76efda9dfe7bc03fa950d037ade906f7dcf0a6) Add atomic operations to OpenAPI document (#3248) 
+ * [view commit](https://github.com/yahoo/elide/commit/1fc5258cc3dfea3db060936e9d453e6b7e269263) Fix pagination set page totals to zero after non-zero query (#3258) 
+ * [view commit](https://github.com/yahoo/elide/commit/c68e373beb751c8d97b7e277c16e0b1536f9ff1f) Optimize required dependencies for modules (#3255) 
+ * [view commit](https://github.com/yahoo/elide/commit/702daeba73ebc300da48b9c7d30435a428991413) Bump org.apache.maven.plugins:maven-checkstyle-plugin (#3238) 
+ * [view commit](https://github.com/yahoo/elide/commit/02fb40da06417ff7231610dc7c26210801abf59e) Bump org.graalvm.buildtools:native-maven-plugin from 0.9.28 to 0.10.2 (#3239) 
+ * [view commit](https://github.com/yahoo/elide/commit/b3989389848cb44c910f6640f0fbcd352bb78c74) Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.1 to 3.2.4 (#3242) 
+ * [view commit](https://github.com/yahoo/elide/commit/fbbf2a860d79e7ca5794b16740a29f57c23d5c1f) Bump org.apache.maven.plugins:maven-jar-plugin from 3.4.1 to 3.4.2 (#3243) 
+ * [view commit](https://github.com/yahoo/elide/commit/22387ac8f4314278ae960cdb3d1857acdeec5da1) Improve mutation determination (#3269) 
+ * [view commit](https://github.com/yahoo/elide/commit/4a1111a5d1ebbc9ce3d659e78e2373651b4c9c99) Bump quarkus.version from 3.11.0 to 3.13.1 (#3270) 
+ * [view commit](https://github.com/yahoo/elide/commit/badae3cc9af7d14deb0dee1db0542429bb9ac65f) Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.6.3 to 3.10.0 (#3273) 
+ * [view commit](https://github.com/yahoo/elide/commit/88ab15c783bd2fc3fb1a2ad23fd68fefeb13a3bb) Bump com.h2database:h2 from 2.2.224 to 2.3.232 (#3272) 
+ * [view commit](https://github.com/yahoo/elide/commit/e7565763c3592949abb3e376cc3de963d674ee51) Bump rest-assured.version from 5.4.0 to 5.5.0 (#3266) 
+ * [view commit](https://github.com/yahoo/elide/commit/4155d03b3f3c7cd411700ab30163c6aa26f76a7c) Bump com.apollographql.federation:federation-graphql-java-support (#3265) 
+ * [view commit](https://github.com/yahoo/elide/commit/de948032b355ad67d95524204e00dcd119e65305) Bump org.apache.maven.plugins:maven-release-plugin from 3.0.1 to 3.1.1 (#3256) 
+ * [view commit](https://github.com/yahoo/elide/commit/701981196fd44a48cbb11493ee71b2cba92ab371) Bump org.springframework.cloud:spring-cloud-context from 4.1.2 to 4.1.4 (#3254) 
+ * [view commit](https://github.com/yahoo/elide/commit/b2b90b2bc082953ef2e6892c808a87fd94d29ec6) Bump org.skyscreamer:jsonassert from 1.5.1 to 1.5.3 (#3250) 
+
 ## 7.1.0
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/29a605d0adc1ac91a25bd70e54c9915f22783771) Remove attributes and relationships from swagger components (#3229) (#3230) 

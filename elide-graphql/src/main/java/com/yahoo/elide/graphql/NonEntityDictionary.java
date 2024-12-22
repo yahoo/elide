@@ -33,7 +33,8 @@ public class NonEntityDictionary extends EntityDictionary {
                 DEFAULT_INJECTOR,
                 serdeLookup,
                 Collections.emptySet(), //Entity excludes
-                scanner);
+                scanner,
+                null);
     }
 
     /**
