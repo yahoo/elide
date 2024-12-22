@@ -15,6 +15,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -53,7 +54,8 @@ public class Parent extends BaseId {
     @UpdatePermission(expression = "Prefab.Role.All OR Prefab.Role.None")
     // Hibernate
     @ManyToMany(
-            targetEntity = Child.class
+            targetEntity = Child.class,
+            cascade = CascadeType.ALL
     )
     @JoinTable(
             name = "Parent_Child",

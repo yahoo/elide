@@ -100,11 +100,11 @@
         <graal-sdk.version>24.0.1</graal-sdk.version>
         <guava.version>33.2.0-jre</guava.version>
         <handlebars.version>4.4.0</handlebars.version>
-        <hibernate.version>6.5.2.Final</hibernate.version>
+        <hibernate.version>6.6.3.Final</hibernate.version>
         <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
         <hibernate-search.version>6.2.4.Final</hibernate-search.version>
         <hjson.version>3.1.0</hjson.version>
-        <httpclient5.version>5.3.1</httpclient5.version>
+        <httpclient5.version>5.4.1</httpclient5.version>
         <gson.version>2.11.0</gson.version>
         <h2.version>2.3.232</h2.version>
         <hikaricp.version>5.1.0</hikaricp.version>
@@ -131,7 +131,7 @@
         <reactor-bom.version>2023.0.6</reactor-bom.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
         <slf4j.version>2.0.16</slf4j.version>
-        <spring-boot.version>3.3.3</spring-boot.version>
+        <spring-boot.version>3.4.0</spring-boot.version>
         <spring-framework.version>6.1.10</spring-framework.version>
         <spring-cloud-commons.version>4.1.4</spring-cloud-commons.version>
         <springdoc.version>2.6.0</springdoc.version>
