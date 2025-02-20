@@ -82,6 +82,11 @@ public class ElideExtensionTest {
     }
 
     @Test
+    public void testTypeConvertersAreRegistered() {
+        RestAssured.when().get("/test-jsonapi/book?filter=releaseDate<2025-02-19T19:17:53Z").then().log().all().statusCode(200);
+    }
+
+    @Test
     public void testBookGraphqlEndpoint() {
         String query = document(
                 selection(
