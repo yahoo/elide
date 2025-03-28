@@ -124,7 +124,7 @@
         <json-path.version>2.9.0</json-path.version>
         <json-schema-validator.version>1.4.2</json-schema-validator.version>
         <junit.version>5.10.2</junit.version>
-        <logback.version>1.5.6</logback.version>
+        <logback.version>1.5.18</logback.version>
         <lombok.version>1.18.36</lombok.version>
         <poi.version>5.2.5</poi.version>
         <rest-assured.version>5.5.0</rest-assured.version>
@@ -137,7 +137,7 @@
         <springdoc.version>2.6.0</springdoc.version>
         <swagger-api.version>2.2.29</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
-        <tomcat.version>11.0.2</tomcat.version>
+        <tomcat.version>11.0.5</tomcat.version>
         <mockito.version>5.12.0</mockito.version>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
