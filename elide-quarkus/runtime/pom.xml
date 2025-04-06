@@ -84,7 +84,7 @@
     <plugins>
       <plugin>
         <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-bootstrap-maven-plugin</artifactId>
+        <artifactId>quarkus-extension-maven-plugin</artifactId>
         <version>3.0.0.Beta1</version>
         <executions>
           <execution>
