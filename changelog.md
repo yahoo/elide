@@ -1,5 +1,30 @@
 # Change Log
 
+## 7.1.5
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/1ef932676e79acba7ffd1efbfb938e32ab665771) Upgrade Spring Boot from 3.3.3 to 3.4.0 (#3313)
+ * [view commit](https://github.com/yahoo/elide/commit/bc2a3367ad6a63277c2a4f2f4a1c56af3c47ad35) Upgrade hibernate from 6.5.2.Final to 6.6.3.Final (#3312)
+ * [view commit](https://github.com/yahoo/elide/commit/e5e059ed928d45b1ac7e08e706dfa23d3433688a) Bump org.apache.maven.plugins:maven-checkstyle-plugin (#3311)
+ * [view commit](https://github.com/yahoo/elide/commit/07dd345af2572735790718a3c22de885ba94e4ed) Bump jakarta.inject:jakarta.inject-api from 2.0.1 to 2.0.1.MR (#3309)
+ * [view commit](https://github.com/yahoo/elide/commit/b34fc609be854ce5be99cf68a6a775a22f68a25d) Bump org.projectlombok:lombok from 1.18.32 to 1.18.36 (#3308)
+ * [view commit](https://github.com/yahoo/elide/commit/a832ab2b332df1e06d7ac239ce10dbe3668c3841) Bump jetty.version from 12.0.13 to 12.0.15 (#3307)
+ * [view commit](https://github.com/yahoo/elide/commit/cf7cdc6c1f313b7fd964121db50aec5499d6f04c) Quarkus: Use quarkus-extension-maven-plugin as per build-time deprecation warning (#3323)
+ * [view commit](https://github.com/yahoo/elide/commit/d50be37512914a6789c37546b4a15240354e837a) Quarkus: do all scans (not limited to security checks) (#3324)
+ * [view commit](https://github.com/yahoo/elide/commit/7f7605715f366485da44f551c67d9b613e31a466) Bump com.puppycrawl.tools:checkstyle from 10.20.1 to 10.21.4 (#3327)
+ * [view commit](https://github.com/yahoo/elide/commit/0d9acc25eace1811c20cbd2f4fbc9e693acd9201) Bump spring-boot.version from 3.4.0 to 3.4.1 (#3320)
+ * [view commit](https://github.com/yahoo/elide/commit/023d59fc95fc30c3db5ca637e71b85ac91758ad1) Bump tomcat.version from 10.1.31 to 11.0.2 (#3318)
+ * [view commit](https://github.com/yahoo/elide/commit/5dc06eafb352a95f6352404e12782dc024c1987d) Bump org.apache.maven.plugins:maven-site-plugin from 3.12.1 to 3.21.0 (#3315)
+ * [view commit](https://github.com/yahoo/elide/commit/28643ec58489f3c1622154441eca6f9f1803b918) Bump com.google.guava:guava from 33.2.0-jre to 33.4.0-jre (#3316)
+ * [view commit](https://github.com/yahoo/elide/commit/ea0fbf5a0ce9ccb259d010e3362f490c410e8567) Bump logback.version from 1.5.6 to 1.5.18 (#3339)
+ * [view commit](https://github.com/yahoo/elide/commit/04b0c977e9710e834fa96bb50310f213f8173260) Bump tomcat.version from 11.0.2 to 11.0.5 (#3338)
+ * [view commit](https://github.com/yahoo/elide/commit/cc99880fa46eb1adf5958353c3b236bdf6ea60f3) Bump io.swagger.core.v3:swagger-core-jakarta from 2.2.26 to 2.2.29 (#3334)
+ * [view commit](https://github.com/yahoo/elide/commit/fedf59d0cae96b3f555a6a7bcc92a3c1871a488a) Bump org.hibernate.validator:hibernate-validator (#3333)
+ * [view commit](https://github.com/yahoo/elide/commit/80269889171936677bf55f3242d865c1db1e44e4) Bump hibernate.version from 6.6.3.Final to 6.6.12.Final (#3343)
+ * [view commit](https://github.com/yahoo/elide/commit/8c4961ddc46863d946d388c256701d301b6be27e) Bump caffeine.version from 3.1.8 to 3.2.0 (#3342)
+ * [view commit](https://github.com/yahoo/elide/commit/b04efef1aabca4986a818eee64deab689ce58a3d) Bump rest-assured.version from 5.5.0 to 5.5.1 (#3341)
+ * [view commit](https://github.com/yahoo/elide/commit/aae5f497d50d40d8141d0cd5b544df2243428e36) Bump com.networknt:json-schema-validator from 1.4.2 to 1.5.6 (#3332)
+ * [view commit](https://github.com/yahoo/elide/commit/aa8910f3d391cee8afde829895bf9f6d7e6860b6) Bump org.owasp:dependency-check-maven from 9.2.0 to 12.1.0 (#3331)
+
 ## 7.1.4
 **Features**
  * [view commit](https://github.com/yahoo/elide/commit/c9b24594c78ccea34e3eefc94214c4dcab092a95) Add support for extension property of OpenAPI 3_0 (#3301) (#3303) 
