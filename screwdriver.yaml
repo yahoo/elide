@@ -20,7 +20,7 @@ jobs:
     secrets:
         - COVERALLS_REPO_TOKEN
     steps:
-      - prebuild: microdnf install --nodocs openssl libssl3 gnupg 
+      - prebuild: microdnf install --nodocs openssl openssl-libs gnupg 
       - build: mvn -B clean verify coveralls:report
 
   elide-7-build:
@@ -29,7 +29,7 @@ jobs:
     secrets:
         - COVERALLS_REPO_TOKEN
     steps:
-      - prebuild: microdnf install --nodocs openssl libssl3 gnupg 
+      - prebuild: microdnf install --nodocs openssl openssl-libs gnupg 
       - build: mvn -B clean verify coveralls:report
 
   elide-6-build:
@@ -66,7 +66,7 @@ jobs:
         - OSSRH_TOKEN
     requires: [~tag:/^7/, ~release:/^7/]
     steps:
-      - prebuild: microdnf install --nodocs openssl libssl3 gnupg 
+      - prebuild: microdnf install --nodocs openssl openssl-libs gnupg 
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
 
