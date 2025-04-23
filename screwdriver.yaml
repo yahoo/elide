@@ -20,6 +20,7 @@ jobs:
     secrets:
         - COVERALLS_REPO_TOKEN
     steps:
+      - prebuild: microdnf install --nodocs openssl gnupg
       - build: mvn -B clean verify coveralls:report
 
   elide-7-build:
@@ -28,6 +29,7 @@ jobs:
     secrets:
         - COVERALLS_REPO_TOKEN
     steps:
+      - prebuild: microdnf install --nodocs openssl gnupg
       - build: mvn -B clean verify coveralls:report
 
   elide-6-build:
