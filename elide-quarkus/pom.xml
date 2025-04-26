@@ -8,7 +8,7 @@
   <parent>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>7.1.9-SNAPSHOT</version>
+    <version>7.1.9</version>
   </parent>
 
   <licenses>
@@ -34,7 +34,7 @@
   <scm>
     <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
     <url>https://github.com/yahoo/elide.git</url>
-    <tag>HEAD</tag>
+    <tag>7.1.9</tag>
   </scm>
 
   <modules>
@@ -50,7 +50,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.version>3.17.3</quarkus.version>
-    <elide.version>7.1.9-SNAPSHOT</elide.version>
+    <elide.version>7.1.9</elide.version>
     <surefire-plugin.version>3.2.5</surefire-plugin.version>
     <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
   </properties>
