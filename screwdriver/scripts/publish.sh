@@ -7,12 +7,12 @@ mkdir -p screwdriver/deploy
 chmod 0700 screwdriver/deploy
 
 # Decrypt
-openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE_2 -in screwdriver/pubring.gpg.enc -out screwdriver/deploy/pubring.gpg -d
-openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE_2 -in screwdriver/secring.gpg.enc -out screwdriver/deploy/secring.gpg -d
+openssl aes-256-cbc -pbkdf2 -pass pass:$GPG_ENCPHRASE_2 -in screwdriver/secring.gpg.enc -out screwdriver/deploy/secring-private.asc -d
+openssl aes-256-cbc -pbkdf2 -pass pass:$GPG_ENCPHRASE_2 -in screwdriver/keys/pubring.gpg.enc -out screwdriver/deploy/pubring-public.asc -d
 
 # Import keys into gpg-agent
-gpg --batch --yes --import screwdriver/deploy/pubring.gpg
-gpg --batch --yes --import screwdriver/deploy/secring.gpg
+gpg --batch --yes --import screwdriver/deploy/pubring-public.asc
+gpg --batch --yes --import screwdriver/deploy/secring-private.asc
 
 # Debug
 gpg --list-secret-keys --keyid-format LONG
