@@ -57,9 +57,9 @@ jobs:
   release-java17:
     image: maven:3.8.5-openjdk-17
     secrets:
-        - GPG_KEYNAME  
-        - GPG_PASSPHRASE
-        - GPG_ENCPHRASE
+        - GPG_KEYNAME_2  
+        - GPG_PASSPHRASE_2
+        - GPG_ENCPHRASE_2
         - OSSRH_USER  
         - OSSRH_TOKEN
     requires: [~tag:/^7/, ~release:/^7/]
@@ -71,9 +71,9 @@ jobs:
   release-java11:
     image: maven:3.8.2-openjdk-11
     secrets:
-        - GPG_KEYNAME  
-        - GPG_PASSPHRASE
-        - GPG_ENCPHRASE
+        - GPG_KEYNAME_2  
+        - GPG_PASSPHRASE_2
+        - GPG_ENCPHRASE_2
         - OSSRH_USER
         - OSSRH_TOKEN
     requires: [~tag:/^6/, ~release:/^6/]

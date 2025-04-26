@@ -7,8 +7,8 @@ mkdir -p screwdriver/deploy
 chmod 0700 screwdriver/deploy
 
 # Decrypt
-openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/pubring.gpg.enc -out screwdriver/deploy/pubring.gpg -d
-openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/secring.gpg.enc -out screwdriver/deploy/secring.gpg -d
+openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE_2 -in screwdriver/pubring.gpg.enc -out screwdriver/deploy/pubring.gpg -d
+openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE_2 -in screwdriver/secring.gpg.enc -out screwdriver/deploy/secring.gpg -d
 
 # Import keys into gpg-agent
 gpg --batch --yes --import screwdriver/deploy/pubring.gpg
