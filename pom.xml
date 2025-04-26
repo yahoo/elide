@@ -588,8 +588,8 @@
             <id>ossrh</id>
             <properties>
                 <gpg.executable>gpg</gpg.executable>
-                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
-                <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+                <gpg.keyname>${env.GPG_KEYNAME_2}</gpg.keyname>
+                <gpg.passphrase>${env.GPG_PASSPHRASE_2}</gpg.passphrase>
             </properties>
             <activation>
                 <property>
