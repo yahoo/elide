@@ -126,7 +126,7 @@
         <junit.version>5.10.2</junit.version>
         <logback.version>1.5.18</logback.version>
         <lombok.version>1.18.36</lombok.version>
-        <poi.version>5.2.5</poi.version>
+        <poi.version>5.4.1</poi.version>
         <rest-assured.version>5.5.1</rest-assured.version>
         <reactor-bom.version>2023.0.6</reactor-bom.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
