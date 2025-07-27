@@ -110,6 +110,19 @@ public class FetcherRemoveTest extends PersistentResourceFetcherTest {
         assertQueryFails(graphQLRequest);
     }
 
+    @Test
+    public void testNestedToOne() throws Exception {
+        String graphQLRequest = "mutation { "
+                + "author(ids: [\"1\"]) { "
+                + "edges { node {"
+                + "penName(op:REMOVE) { "
+                + "edges { node { id } } "
+                + "} } }"
+                + "}"
+                + "}";
+        assertQueryEquals(graphQLRequest, "{\"author\":{\"edges\":[{\"node\":{\"penName\":{\"edges\":[]}}}]}}");
+    }
+
     @Override
     public void runComparisonTest(String testName) throws Exception {
         super.runComparisonTest("remove/" + testName);
