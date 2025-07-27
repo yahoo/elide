@@ -360,6 +360,16 @@ public class EntityBinding {
         }
         if (fieldOrMethod.isAnnotationPresent(GeneratedValue.class)) {
             idGenerated = true;
+        } else {
+            for (Annotation annotation : fieldOrMethod.getAnnotations()) {
+                for (Annotation nestedAnnotation : annotation.annotationType().getAnnotations()) {
+                    //Annotation checked by name so as not to require hibernate dependency
+                    if ("org.hibernate.annotations.IdGeneratorType"
+                            .equals(nestedAnnotation.annotationType().getName())) {
+                        idGenerated = true;
+                    }
+                }
+            }
         }
     }
 
