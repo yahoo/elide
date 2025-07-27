@@ -88,7 +88,7 @@
         <calcite.version>1.37.0</calcite.version>
         <caffeine.version>3.2.0</caffeine.version>
         <classgraph.version>4.8.172</classgraph.version>
-        <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-cli.version>1.9.0</commons-cli.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-compress.version>1.26.2</commons-compress.version>
