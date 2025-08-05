@@ -474,19 +474,33 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             throw new BadRequestException("DELETE must not include data argument");
         }
 
-        if (!context.ids.isPresent()) {
-            throw new BadRequestException("DELETE must include ids argument");
+        if (!context.isRoot() && context.parentResource.getRelationshipType(context.field.getName()).isToOne()) {
+            // handle toOne
+            ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+            Set<PersistentResource> toDelete = connection.getPersistentResources();
+            if (context.parentResource.clearRelation(context.field.getName())) {
+                toDelete.forEach(PersistentResource::deleteResource);
+            }
+            return new ConnectionContainer(
+                    Collections.emptySet(),
+                    Optional.empty(),
+                    connection.getTypeName()
+            );
+        } else {
+            if (!context.ids.isPresent()) {
+                throw new BadRequestException("DELETE must include ids argument");
+            }
+
+            ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+            Set<PersistentResource> toDelete = connection.getPersistentResources();
+            toDelete.forEach(PersistentResource::deleteResource);
+
+            return new ConnectionContainer(
+                    Collections.emptySet(),
+                    Optional.empty(),
+                    connection.getTypeName()
+            );
         }
-
-        ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
-        Set<PersistentResource> toDelete = connection.getPersistentResources();
-        toDelete.forEach(PersistentResource::deleteResource);
-
-        return new ConnectionContainer(
-                Collections.emptySet(),
-                Optional.empty(),
-                connection.getTypeName()
-        );
     }
 
     /**
@@ -495,29 +509,39 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
      * @return set of removed {@link PersistentResource} object(s)
      */
     private ConnectionContainer removeObjects(Environment context) {
-        /* sanity check for id and data argument w REPLACE */
+        /* sanity check for id and data argument w REMOVE */
         if (context.data.isPresent()) {
-            throw new BadRequestException("REPLACE must not include data argument");
+            throw new BadRequestException("REMOVE must not include data argument");
         }
 
-        if (!context.ids.isPresent()) {
-            throw new BadRequestException("REPLACE must include ids argument");
+        if (!context.isRoot() && context.parentResource.getRelationshipType(context.field.getName()).isToOne()) {
+            // handle toOne
+            context.parentResource.clearRelation(context.field.getName());
+            ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+            return new ConnectionContainer(
+                    Collections.emptySet(),
+                    Optional.empty(),
+                    connection.getTypeName()
+            );
+        } else {
+            if (!context.ids.isPresent()) {
+                throw new BadRequestException("REMOVE must include ids argument");
+            }
+
+            ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+            Set<PersistentResource> toRemove = connection.getPersistentResources();
+            if (!context.isRoot()) { /* has parent */
+                toRemove.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
+            } else { /* is root */
+                toRemove.forEach(PersistentResource::deleteResource);
+            }
+
+            return new ConnectionContainer(
+                    Collections.emptySet(),
+                    Optional.empty(),
+                    connection.getTypeName()
+            );
         }
-
-
-        ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
-        Set<PersistentResource> toRemove = connection.getPersistentResources();
-        if (!context.isRoot()) { /* has parent */
-            toRemove.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
-        } else { /* is root */
-            toRemove.forEach(PersistentResource::deleteResource);
-        }
-
-        return new ConnectionContainer(
-                Collections.emptySet(),
-                Optional.empty(),
-                connection.getTypeName()
-        );
     }
 
     /**

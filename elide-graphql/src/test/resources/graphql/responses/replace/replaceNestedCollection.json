@@ -9,7 +9,7 @@
             "edges": [
               {
                 "node": {
-                  "id": "3",
+                  "id": "4",
                   "name": "My New Author"
                 }
               },
@@ -31,7 +31,7 @@
             "edges": [
               {
                 "node": {
-                  "id": "4",
+                  "id": "5",
                   "name": "My New Author"
                 }
               },
@@ -53,7 +53,7 @@
             "edges": [
               {
                 "node": {
-                  "id": "5",
+                  "id": "6",
                   "name": "My New Author"
                 }
               },
