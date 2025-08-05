@@ -93,6 +93,22 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
         runComparisonTest("updateComplexGraph");
     }
 
+    @Test
+    public void testNestedToOne() throws Exception {
+        // While it might be logical to update the toOne relationship in this manner
+        // the PersistentResourceFetcher#updateObject doesn't have the context on
+        // which parent resource relationship is being cleared
+        String graphQLRequest = "mutation { "
+                + "author(op:UPDATE, data:{id:\"1\", penName: null}) { "
+                + "edges { node {"
+                + "penName { "
+                + "edges { node { id } } "
+                + "} } }"
+                + "}"
+                + "}";
+        assertQueryFailsWith(graphQLRequest, "Exception while fetching data (/author) : UPDATE data objects must include ids");
+    }
+
     // TODO: Reeanble when supporting arguments into computed attributes.
     @Disabled
     public void testSetComputedAttribute() throws Exception {

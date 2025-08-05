@@ -104,7 +104,7 @@
         <hibernate-validator.version>8.0.2.Final</hibernate-validator.version>
         <hibernate-search.version>6.2.4.Final</hibernate-search.version>
         <hjson.version>3.1.0</hjson.version>
-        <httpclient5.version>5.4.1</httpclient5.version>
+        <httpclient5.version>5.4.3</httpclient5.version>
         <gson.version>2.11.0</gson.version>
         <h2.version>2.3.232</h2.version>
         <hikaricp.version>5.1.0</hikaricp.version>
@@ -114,7 +114,7 @@
         <jakarta-persistence.version>3.1.0</jakarta-persistence.version>
         <jakarta-transaction.version>2.0.1</jakarta-transaction.version>
         <jakarta-websocket.version>2.2.0</jakarta-websocket.version>
-        <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
+        <jakarta-ws-rs.version>4.0.0</jakarta-ws-rs.version>
         <jakarta-validation.version>3.1.0</jakarta-validation.version>
         <jansi.version>2.4.1</jansi.version>
         <jersey.version>3.1.8</jersey.version>
@@ -126,24 +126,24 @@
         <junit.version>5.10.2</junit.version>
         <logback.version>1.5.18</logback.version>
         <lombok.version>1.18.36</lombok.version>
-        <poi.version>5.2.5</poi.version>
+        <poi.version>5.4.0</poi.version>
         <rest-assured.version>5.5.1</rest-assured.version>
         <reactor-bom.version>2023.0.6</reactor-bom.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
-        <slf4j.version>2.0.16</slf4j.version>
+        <slf4j.version>2.0.17</slf4j.version>
         <spring-boot.version>3.4.1</spring-boot.version>
         <spring-framework.version>6.1.10</spring-framework.version>
         <spring-cloud-commons.version>4.1.4</spring-cloud-commons.version>
-        <springdoc.version>2.6.0</springdoc.version>
+        <springdoc.version>2.8.5</springdoc.version>
         <swagger-api.version>2.2.29</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
-        <tomcat.version>11.0.5</tomcat.version>
+        <tomcat.version>11.0.6</tomcat.version>
         <mockito.version>5.12.0</mockito.version>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
         <checkstyle.version>10.21.4</checkstyle.version>
         <dependency-check-maven.version>12.1.1</dependency-check-maven.version>
-        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
