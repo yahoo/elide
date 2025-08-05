@@ -185,9 +185,22 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         publisher1.setBooks(new HashSet<>(Arrays.asList(book1, book2)));
         publisher2.setBooks(new HashSet<>(Arrays.asList(book3)));
 
+        Author author3 = new Author();
+        author3.setId(3L);
+        author3.setName("Mary Ann Evans");
+        author3.setType(Author.AuthorType.EXCLUSIVE);
+
+        Pseudonym authorThree = new Pseudonym();
+        authorThree.setId(2L);
+        authorThree.setName("George Eliot");
+
+        author3.setPenName(authorThree);
+
         tx.save(author1, null);
         tx.save(authorOne, null);
         tx.save(author2, null);
+        tx.save(author3, null);
+        tx.save(authorThree, null);
         tx.save(book1, null);
         tx.save(book2, null);
         tx.save(book3, null);

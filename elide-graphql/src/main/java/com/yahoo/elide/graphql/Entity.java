@@ -164,6 +164,9 @@ public class Entity {
     public Optional<String> getId() {
         EntityDictionary dictionary = this.requestScope.getDictionary();
         String idFieldName = dictionary.getIdFieldName(this.entityClass);
+        if (this.attributes == null) {
+            return Optional.empty();
+        }
         return this.attributes.stream()
                 .filter(entry -> idFieldName.equalsIgnoreCase(entry.name))
                 .map(e -> (String) e.value)
