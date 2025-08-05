@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.1.5
+## 7.1.11
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/1ef932676e79acba7ffd1efbfb938e32ab665771) Upgrade Spring Boot from 3.3.3 to 3.4.0 (#3313)
  * [view commit](https://github.com/yahoo/elide/commit/bc2a3367ad6a63277c2a4f2f4a1c56af3c47ad35) Upgrade hibernate from 6.5.2.Final to 6.6.3.Final (#3312)
