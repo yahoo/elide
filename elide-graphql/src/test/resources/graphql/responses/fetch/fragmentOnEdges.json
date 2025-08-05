@@ -42,6 +42,18 @@
           "__typename": "Author"
         },
         "__typename": "AuthorEdge"
+      },
+      {
+        "node": {
+          "id": "3",
+          "books": {
+            "edges": [
+            ],
+            "__typename": "BookConnection"
+          },
+          "__typename": "Author"
+        },
+        "__typename": "AuthorEdge"
       }
     ]
   }

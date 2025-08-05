@@ -11,6 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
+
+import org.hibernate.annotations.IdGeneratorType;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.id.IdentifierGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +23,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,6 +83,13 @@ public class EntityBindingTest {
         assertFalse(eb.isIdGenerated());
     }
 
+    @Test
+    public void testIdGeneratedTrueWhenIdGeneratorType() throws Exception {
+        final EntityBinding eb = new EntityBinding(null,
+                ClassType.of(IdGeneratorTypeClass.class), "testBinding");
+        assertTrue(eb.isIdGenerated());
+    }
+
     private class ParentClass {
         @Id
         String parentField;
@@ -101,5 +116,29 @@ public class EntityBindingTest {
     private class BadMapsIdClass extends ParentClass {
         @MapsId
         public ParentClass parent;
+    }
+
+    public static class GeneratedId {
+        @IdGeneratorType(IdGenerator.class)
+        @Retention(RetentionPolicy.RUNTIME)
+        @Target({ ElementType.FIELD, ElementType.METHOD })
+        public @interface Generator {
+        }
+
+        public static final class IdGenerator implements IdentifierGenerator {
+            private static final long serialVersionUID = 1L;
+            private static int sequence = 1;
+
+            @Override
+            public Object generate(SharedSessionContractImplementor session, Object object) {
+                return IdGenerator.sequence++;
+            }
+        }
+    }
+
+    private class IdGeneratorTypeClass {
+        @Id
+        @GeneratedId.Generator
+        String id;
     }
 }
