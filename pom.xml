@@ -92,7 +92,7 @@
         <commons-cli.version>1.9.0</commons-cli.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-compress.version>1.26.2</commons-compress.version>
-        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
         <encoder.version>1.2.3</encoder.version>
         <federation-graphql-java-support-api.version>5.1.0</federation-graphql-java-support-api.version>
