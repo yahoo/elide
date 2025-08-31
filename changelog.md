@@ -1,4 +1,8 @@
 # Change Log
+## 7.1.14
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/0ebd15d1b18b86f06c6fb1f227b825b36121419a) Fixing nexus URL 
+
 ## 7.1.13
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/295e0035fb77ec531a78c6cfdd49cb2fd4b93037) Fixing switch from oss.sonatype to central.sonatype.org (#3381)
