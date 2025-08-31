@@ -1,5 +1,8 @@
 # Change Log
-
+## 7.1.13
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/295e0035fb77ec531a78c6cfdd49cb2fd4b93037) Fixing switch from oss.sonatype to central.sonatype.org (#3381)
+    
 ## 7.1.12
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/7a7ab677b57136fbde6fb76829f341c868bf5154) Fix coercing to String for Serdes (#3365) 
