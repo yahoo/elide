@@ -60,8 +60,8 @@ jobs:
         - GPG_KEYNAME_2  
         - GPG_PASSPHRASE_2
         - GPG_ENCPHRASE_2
-        - OSSRH_USER  
-        - OSSRH_TOKEN
+        - SONATYPE_USER
+        - SONATYPE_TOKEN
     requires: [~tag:/^7/, ~release:/^7/]
     steps:
       - prebuild: microdnf install --nodocs openssl gnupg 
@@ -74,8 +74,8 @@ jobs:
         - GPG_KEYNAME_2  
         - GPG_PASSPHRASE_2
         - GPG_ENCPHRASE_2
-        - OSSRH_USER
-        - OSSRH_TOKEN
+        - SONATYPE_USER
+        - SONATYPE_TOKEN
     requires: [~tag:/^6/, ~release:/^6/]
     steps:
       - build: "screwdriver/scripts/build.sh"
