@@ -626,7 +626,7 @@
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>central</serverId>
-                            <nexusUrl>https://central.sonatype.com/service/local/</nexusUrl>
+                            <nexusUrl>https://central.sonatype.com</nexusUrl>
                             <autoReleaseAfterClose>false</autoReleaseAfterClose>
                         </configuration>
                     </plugin>
