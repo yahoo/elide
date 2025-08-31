@@ -52,14 +52,14 @@
     </developers>
 
     <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </snapshotRepository>
+       <snapshotRepository>
+         <id>central</id>
+         <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+       </snapshotRepository>
+       <repository>
+         <id>central</id>
+         <url>https://central.sonatype.com/repository/maven-releases/</url>
+       </repository>
     </distributionManagement>
 
     <scm>
@@ -585,7 +585,7 @@
     
     <profiles>
         <profile>
-            <id>ossrh</id>
+            <id>central</id>
             <properties>
                 <gpg.executable>gpg</gpg.executable>
                 <gpg.keyname>${env.GPG_KEYNAME_2}</gpg.keyname>
@@ -625,10 +625,10 @@
                         <version>${nexus-staging-maven-plugin.version}</version>
                         <extensions>true</extensions>
                         <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <serverId>central</serverId>
+                            <nexusUrl>https://central.sonatype.com/service/local/</nexusUrl>
                             <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                            </configuration>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
