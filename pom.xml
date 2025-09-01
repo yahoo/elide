@@ -52,14 +52,14 @@
     </developers>
 
     <distributionManagement>
-       <snapshotRepository>
-         <id>central</id>
-         <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-       </snapshotRepository>
-       <repository>
-         <id>central</id>
-         <url>https://central.sonatype.com/repository/maven-releases/</url>
-       </repository>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher/</url>
+        </snapshotRepository>
+        <repository>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher/</url>
+        </repository>
     </distributionManagement>
 
     <scm>
@@ -69,8 +69,6 @@
     </scm>
 
     <properties>
-        <releaseRepoUrl>https://oss.sonatype.org/service/local/staging/deploy/maven2/</releaseRepoUrl>
-        <snapshotRepoUrl>https://oss.sonatype.org/content/repositories/snapshots/</snapshotRepoUrl>
         <autoVersionSubmodules>true</autoVersionSubmodules>
         <min.jdk.version>17</min.jdk.version>
         <max.jdk.version>18</max.jdk.version>
@@ -620,15 +618,15 @@
                         </executions>
                     </plugin>
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${nexus-staging-maven-plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>central</serverId>
-                            <nexusUrl>https://central.sonatype.com</nexusUrl>
-                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                        </configuration>
+                      <groupId>org.sonatype.central</groupId>
+                      <artifactId>central-publishing-maven-plugin</artifactId>
+                      <version>0.8.0</version>
+                      <extensions>true</extensions>
+                      <configuration>
+                         <publishingServerId>central</publishingServerId>
+                         <autoPublish>true</autoPublish>
+                         <waitUntil>published</waitUntil>
+                      </configuration>
                     </plugin>
                 </plugins>
             </build>
