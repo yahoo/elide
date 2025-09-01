@@ -617,7 +617,6 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <build>
                     <plugin>
                       <groupId>org.sonatype.central</groupId>
                       <artifactId>central-publishing-maven-plugin</artifactId>
