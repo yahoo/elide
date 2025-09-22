@@ -224,7 +224,7 @@ public static class IsAdminUser extends UserCheck {
 
 ## 开源许可
 
-该项目根据 [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.html) 开源许可证条款获得许可。请参阅[许可证](https://github.com/paion-data/elide/blob/master/LICENSE.txt)了解完整条款。
+该项目根据 [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.html) 开源许可证条款获得许可。请参阅[许可证](https://github.com/yahoo/elide/blob/master/LICENSE.txt)了解完整条款。
 
 ## 参考文献
 
