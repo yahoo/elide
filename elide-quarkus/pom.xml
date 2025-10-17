@@ -49,7 +49,7 @@
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <quarkus.version>3.17.3</quarkus.version>
+    <quarkus.version>3.23.4</quarkus.version>
     <elide.version>7.1.16-SNAPSHOT</elide.version>
     <surefire-plugin.version>3.2.5</surefire-plugin.version>
     <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
