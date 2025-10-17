@@ -19,3 +19,4 @@ dependency-reduced-pom.xml
 *.vscode
 .DS_Store
 tmlog*.log
+/elide-quarkus/deployment/build.dot

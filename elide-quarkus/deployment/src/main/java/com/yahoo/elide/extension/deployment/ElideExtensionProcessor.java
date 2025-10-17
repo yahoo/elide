@@ -7,16 +7,21 @@
 package com.yahoo.elide.extension.deployment;
 
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
+import static io.quarkus.gizmo.Type.classType;
+import static io.quarkus.gizmo.Type.parameterizedType;
+import static io.quarkus.gizmo.Type.voidType;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.prefab.Collections;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.extension.runtime.ElideBeans;
 import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
-import com.yahoo.elide.extension.runtime.ElideResourceBuilder;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.GraphQLEndpoint;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -34,8 +39,8 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 
+import graphql.execution.DataFetcherExceptionHandler;
 import graphql.schema.GraphQLSchema;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerListenerBuildItem;
@@ -49,16 +54,28 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyBuildItem;
-import io.quarkus.resteasy.server.common.deployment.ResteasyDeploymentCustomizerBuildItem;
-import io.quarkus.undertow.deployment.ServletInitParamBuildItem;
+import io.quarkus.gizmo.ClassCreator;
+import io.quarkus.gizmo.ClassOutput;
+import io.quarkus.gizmo.MethodCreator;
+import io.quarkus.gizmo.MethodDescriptor;
+import io.quarkus.gizmo.ResultHandle;
+import io.quarkus.gizmo.SignatureBuilder;
+import io.quarkus.resteasy.reactive.spi.GeneratedJaxRsResourceBuildItem;
+import io.quarkus.resteasy.reactive.spi.GeneratedJaxRsResourceGizmoAdaptor;
 import jakarta.enterprise.inject.Default;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import jakarta.ws.rs.Path;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-class ElideExtensionProcessor {
+/**
+ * Quarkus extension processor for Elide.
+ */
+public class ElideExtensionProcessor {
     private static final Logger LOG = Logger.getLogger(ElideExtensionProcessor.class.getName());
 
     private static final String FEATURE = "elide";
@@ -70,7 +87,6 @@ class ElideExtensionProcessor {
 
     @BuildStep
     public void indexDependencies(BuildProducer<IndexDependencyBuildItem> dependencies) {
-        dependencies.produce(new IndexDependencyBuildItem("com.yahoo.elide", "elide-core"));
         dependencies.produce(new IndexDependencyBuildItem("io.swagger.core.v3", "swagger-core-jakarta"));
         dependencies.produce(new IndexDependencyBuildItem("io.swagger.core.v3", "swagger-models-jakarta"));
 
@@ -80,54 +96,45 @@ class ElideExtensionProcessor {
     }
 
     @BuildStep
-    public AdditionalBeanBuildItem configureElideEndpoints(ElideConfig config) {
-        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder();
-
-        if (config.baseJsonapi != null) {
-            LOG.info("Enabling JSON-API Endpoint");
-            builder = builder.addBeanClass(JsonApiEndpoint.class);
-        }
-
-        if (config.baseGraphql != null) {
-            LOG.info("Enabling GraphQL Endpoint");
-            builder = builder.addBeanClass(GraphQLEndpoint.class);
-        }
-
-        if (config.baseSwagger != null && config.baseJsonapi != null) {
-            LOG.info("Enabling Swagger Endpoint");
-            builder = builder.addBeanClass(ApiDocsEndpoint.class);
-        }
-
-        return builder.build();
+    public void registerElideBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+        additionalBeans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClass(ElideBeans.class)
+                .build());
+        additionalBeans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClass(ElideConfig.class)
+                .build());
+        additionalBeans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClass(ElideRecorder.class)
+                .build());
     }
 
     @BuildStep
-    public void configureRestEasy(
-            BuildProducer<ResteasyDeploymentCustomizerBuildItem> deploymentCustomizerProducer,
-            BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
-            BuildProducer<ServletInitParamBuildItem> initParamProducer
-    ) {
-        initParamProducer.produce(
-                new ServletInitParamBuildItem(
-                        ResteasyContextParameters.RESTEASY_SCANNED_RESOURCE_CLASSES_WITH_BUILDER,
-                        ElideResourceBuilder.class.getName() + ":"
-                                + JsonApiEndpoint.class.getCanonicalName() + ","
-                                + GraphQLEndpoint.class.getCanonicalName() + ","
-                                + ApiDocsEndpoint.class.getCanonicalName()
-                ));
+    public void configureElideEndpoints(ElideConfig config,
+            BuildProducer<GeneratedJaxRsResourceBuildItem> generatedJaxRsResourceBuildItemBuildProducer) {
+        if (config.jsonApiPath != null) {
+            LOG.infof("Enabling JSON-API Endpoint for path: %s", config.jsonApiPath);
+            generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "JsonApi",
+                    JsonApiEndpoint.class, config.jsonApiPath,
+                    new Param("elide", Elide.class, null), new Param(Optional.class, RouteResolver.class));
+        }
 
-        deploymentCustomizerProducer.produce(new ResteasyDeploymentCustomizerBuildItem((deployment) -> {
-            deployment.getScannedResourceClassesWithBuilder().put(
-                    ElideResourceBuilder.class.getCanonicalName(),
-                    Arrays.asList(
-                            JsonApiEndpoint.class.getCanonicalName(),
-                            GraphQLEndpoint.class.getCanonicalName(),
-                            ApiDocsEndpoint.class.getCanonicalName()
-                    ));
-        }));
+        if (config.graphqlPath != null) {
+            LOG.infof("Enabling GraphQL Endpoint for path: %s", config.graphqlPath);
+            generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "GraphQL",
+                    GraphQLEndpoint.class, config.graphqlPath,
+                    new Param("elide", Elide.class, null),
+                    new Param(Optional.class, DataFetcherExceptionHandler.class),
+                    new Param(Optional.class, RouteResolver.class));
+        }
 
-        reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, false,
-                ElideResourceBuilder.class.getName()));
+        if (config.apiDocsPath != null && config.jsonApiPath != null) {
+            LOG.infof("Enabling Swagger Endpoint for path: %s", config.apiDocsPath);
+            generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "ApiDocs",
+                    ApiDocsEndpoint.class, config.apiDocsPath,
+                    new Param("apiDocs", List.class, ApiDocsEndpoint.ApiDocsRegistration.class),
+                    new Param("elide", Elide.class, null),
+                    new Param(Optional.class, RouteResolver.class));
+        }
     }
 
     @Record(STATIC_INIT)
@@ -235,7 +242,100 @@ class ElideExtensionProcessor {
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, SimpleLog.class));
     }
 
-    private Type convertToType(Class<?> cls) {
-        return Type.create(DotName.createSimple(cls.getCanonicalName()), Type.Kind.CLASS);
+    private org.jboss.jandex.Type convertToType(Class<?> cls) {
+        return org.jboss.jandex.Type.create(DotName.createSimple(cls.getCanonicalName()), Type.Kind.CLASS);
+    }
+
+    /**
+     * We customise @Path.value at build time by generating a subclass of the corresponding Elide endpoint with Gizmo.
+     * Note that the ability to customise the value of @Path.value depends on us NOT including the standard Elide
+     * endpoint classes by default. If they were present (for example, if they were added to the indexed classes),
+     * Quarkus would register them with their default @Path values (in addition to these generated instances).
+     *
+     * @param generatedJaxRsResourceBuildItemBuildProducer the build producer
+     * @param endpointStyle the endpoint style name
+     * @param endpointClass the endpoint class
+     * @param customPath the custom path
+     * @param params the constructor parameters
+     */
+    private void generateEndpointClass(
+            BuildProducer<GeneratedJaxRsResourceBuildItem> generatedJaxRsResourceBuildItemBuildProducer,
+            String endpointStyle, Class endpointClass, String customPath, Param... params) {
+        // Deconstruct Param instances
+        Class[] paramClasses = new Class[params.length];
+        io.quarkus.gizmo.Type[] paramTypes = new io.quarkus.gizmo.Type[params.length];
+        String[] paramNames = new String[params.length];
+        for (int i = 0; i < params.length; i++) {
+            paramClasses[i] = params[i].clazz;
+            paramNames[i] = params[i].atNamed;
+            if (params[i].parameterizedType != null) {
+                paramTypes[i] = parameterizedType(classType(params[i].clazz),
+                        classType(params[i].parameterizedType));
+            } else {
+                paramTypes[i] = classType(params[i].clazz);
+            }
+        }
+        // Use Gizmo to generate an instance of the endpoint class with a custom @Path(value)
+        String generatedClassName = "com.yahoo.elide.extension.generated.Configurable"
+                + endpointStyle + "Endpoint";
+        ClassOutput classOutput = new GeneratedJaxRsResourceGizmoAdaptor(
+                generatedJaxRsResourceBuildItemBuildProducer);
+        try (ClassCreator classCreator = ClassCreator.builder()
+                .classOutput(classOutput)
+                .className(generatedClassName)
+                .superClass(endpointClass)
+                .build()) {
+
+            // Add @Path annotation with custom path value
+            classCreator.addAnnotation(Path.class).addValue("value", customPath);
+
+            // Create a constructor that matches endpoint's current @Injected constructor
+            try (MethodCreator constructor = classCreator.getMethodCreator("<init>", void.class,
+                    paramClasses)) {
+                // Using Gizmo's SignatureBuilder allows us to define a parameterised injection point
+                SignatureBuilder.MethodSignatureBuilder signatureBuilder = SignatureBuilder.forMethod()
+                        .setReturnType(voidType());
+                Arrays.stream(paramTypes).forEach(signatureBuilder::addParameterType);
+                constructor.setSignature(signatureBuilder.build());
+                // Add @Inject annotation to constructor
+                constructor.addAnnotation(jakarta.inject.Inject.class);
+                // Add @Named annotations to parameters where applicable
+                Arrays.stream(paramNames).forEach((paramName) -> {
+                    if (paramName != null) {
+                        int paramIndex = Arrays.asList(paramNames).indexOf(paramName);
+                        constructor.getParameterAnnotations(paramIndex).addAnnotation(Named.class)
+                                .addValue("value", paramName);
+                    }
+                });
+                // Call super constructor with the parameters
+                ResultHandle[] constructorParams = new ResultHandle[constructor.getMethodDescriptor()
+                        .getParameterTypes().length];
+                for (int i = 0; i < constructorParams.length; i++) {
+                    constructorParams[i] = constructor.getMethodParam(i);
+                }
+                constructor.invokeSpecialMethod(
+                        MethodDescriptor.ofConstructor(endpointClass, paramClasses),
+                        constructor.getThis(), constructorParams);
+                constructor.returnValue(null);
+            }
+        }
+        LOG.infof("Generated configurable %s endpoint with path: %s", endpointStyle, customPath);
+    }
+
+    class Param {
+        String atNamed;
+        Class<?> clazz;
+        Class<?> parameterizedType;
+
+        public Param(String atNamed, Class<?> clazz, Class<?> parameterizedType) {
+            this.atNamed = atNamed;
+            this.clazz = clazz;
+            this.parameterizedType = parameterizedType;
+        }
+
+        public Param(Class<?> clazz, Class<?> parameterizedType) {
+            this.clazz = clazz;
+            this.parameterizedType = parameterizedType;
+        }
     }
 }

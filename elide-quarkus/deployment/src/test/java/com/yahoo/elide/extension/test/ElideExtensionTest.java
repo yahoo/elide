@@ -18,6 +18,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -74,7 +75,7 @@ public class ElideExtensionTest {
                                 )
                         )
                 )
-                .post("/book")
+                .post("/test-jsonapi/book")
                 .then()
                 .log().all()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -84,6 +85,18 @@ public class ElideExtensionTest {
     @Test
     public void testTypeConvertersAreRegistered() {
         RestAssured.when().get("/test-jsonapi/book?filter=releaseDate<2025-02-19T19:17:53Z").then().log().all().statusCode(200);
+    }
+
+    /**
+     * Previously, when we had a IndexDependencyBuildItem for "com.yahoo.elide:elide-core", it would cause each Elide JAX-RS endpoint to be
+     * deployed at its default, root path, as well as at the configured path. This test is a reminder that the current build-time advice of
+     * "Consider adding them to the index" for certain Elide classes is not without consequence.
+     */
+    @Test
+    public void testNothingDeployedAtRoot() {
+        RestAssured.when().get("/").then().log().all()
+                .body(containsString("Resource not found"))
+                .statusCode(404);
     }
 
     @Test
@@ -128,7 +141,7 @@ public class ElideExtensionTest {
                                 )
                         )
                 )
-                .post("/supplier")
+                .post("/test-jsonapi/supplier")
                 .then()
                 .log().all()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
