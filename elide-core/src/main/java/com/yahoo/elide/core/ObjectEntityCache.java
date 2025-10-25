@@ -8,19 +8,23 @@ package com.yahoo.elide.core;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Cache to store object entity.
  */
 public class ObjectEntityCache {
+    private static final int MAX_CACHE_SIZE = 10000;
     private final Map<String, Object> resourceCache;
     private final Map<Object, String> uuidReverseMap;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
      * Constructor.
      */
     public ObjectEntityCache() {
-        resourceCache = new LinkedHashMap<>();
+        resourceCache = new LinkedHashMap<String, Object>(16, 0.75f, true);
         uuidReverseMap = new IdentityHashMap<>();
     }
 
@@ -33,8 +37,38 @@ public class ObjectEntityCache {
      * @return the object
      */
     public Object put(String type, String id, Object entity) {
-        uuidReverseMap.put(entity, id);
-        return resourceCache.put(getCacheKey(type, id), entity);
+        lock.writeLock().lock();
+        try {
+            uuidReverseMap.put(entity, id);
+
+            if (resourceCache.size() >= MAX_CACHE_SIZE) {
+                evictLRU();
+            }
+
+            return resourceCache.put(getCacheKey(type, id), entity);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    private void evictLRU() {
+        if (resourceCache.isEmpty()) {
+            return;
+        }
+
+        String oldestKey = resourceCache.keySet().iterator().next();
+        resourceCache.remove(oldestKey);
+
+        uuidReverseMap.entrySet().removeIf(entry -> getCacheKeyFromUUID(entry.getValue()).equals(oldestKey));
+    }
+
+    private String getCacheKeyFromUUID(String uuidValue) {
+        for (String key : resourceCache.keySet()) {
+            if (key.endsWith("_" + uuidValue)) {
+                return key;
+            }
+        }
+        return null;
     }
 
     /**
@@ -45,7 +79,12 @@ public class ObjectEntityCache {
      * @return object
      */
     public Object get(String type, String id) {
-        return resourceCache.get(getCacheKey(type, id));
+        lock.readLock().lock();
+        try {
+            return resourceCache.get(getCacheKey(type, id));
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -55,7 +94,12 @@ public class ObjectEntityCache {
      * @return uUID
      */
     public String getUUID(Object obj) {
-        return uuidReverseMap.get(obj);
+        lock.readLock().lock();
+        try {
+            return uuidReverseMap.get(obj);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
