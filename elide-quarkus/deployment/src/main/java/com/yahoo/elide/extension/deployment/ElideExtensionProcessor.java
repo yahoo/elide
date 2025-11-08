@@ -51,6 +51,7 @@ import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
@@ -101,7 +102,7 @@ public class ElideExtensionProcessor {
      * @param additionalIndexedClassesBuildItemBuildProducer
      */
     @BuildStep
-    public void indexElideClasses(BuildProducer<io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem>
+    public void indexElideClasses(BuildProducer<AdditionalIndexedClassesBuildItem>
                                                  additionalIndexedClassesBuildItemBuildProducer) {
         additionalIndexedClassesBuildItemBuildProducer.produce(
                 new io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem(
