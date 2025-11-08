@@ -15,7 +15,9 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.request.route.RouteResolver;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
@@ -24,7 +26,7 @@ import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.GraphQLEndpoint;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.*;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.jsonapi.serialization.DataDeserializer;
 import com.yahoo.elide.jsonapi.serialization.DataSerializer;
@@ -67,10 +69,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.Path;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Quarkus extension processor for Elide.
@@ -93,6 +92,29 @@ public class ElideExtensionProcessor {
         /* Needed for CoerceUtil which loads LogFactoryImpl */
         dependencies.produce(new IndexDependencyBuildItem("commons-logging", "commons-logging"));
         dependencies.produce(new IndexDependencyBuildItem("com.graphql-java", "graphql-java"));
+    }
+
+    /**
+     * When Quaruks warns during build-time about Elide-specific classes that "are not in the Jandex  index"
+     * we add those classes here. Unlike using the IndexDependencyBuildItem, this more specific approach
+     * prevents the Elide JAX-RS endpoints from being deployed at their default "/" paths.
+     * @param additionalIndexedClassesBuildItemBuildProducer
+     */
+    @BuildStep
+    public void indexElideClasses(BuildProducer<io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem>
+                                                 additionalIndexedClassesBuildItemBuildProducer) {
+        additionalIndexedClassesBuildItemBuildProducer.produce(
+                new io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem(
+                        OperationCheck.class.getCanonicalName(),
+                        RelationshipType.class.getCanonicalName(),
+                        JsonApiDocument.class.getCanonicalName(),
+                        Data.class.getCanonicalName(),
+                        Meta.class.getCanonicalName(),
+                        Relationship.class.getCanonicalName(),
+                        Resource.class.getCanonicalName(),
+                        ResourceIdentifier.class.getCanonicalName(),
+                        OpenApiDocument.class.getCanonicalName()
+                ));
     }
 
     @BuildStep
