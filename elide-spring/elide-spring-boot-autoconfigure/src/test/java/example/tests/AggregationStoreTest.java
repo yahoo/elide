@@ -91,7 +91,7 @@ public class AggregationStoreTest extends IntegrationTest {
          requestHeaders.put("bypassCache", "true");
          HttpHeaders headers = new HttpHeaders();
          headers.set("bypassCache", "true");
-         given().headers(headers)
+         given().headers(headers.asMultiValueMap())
                 .get("/json/stats?fields[stats]=measure")
                 .then()
                 .body(equalTo(

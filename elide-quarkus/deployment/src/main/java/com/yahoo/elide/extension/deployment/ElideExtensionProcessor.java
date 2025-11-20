@@ -134,26 +134,26 @@ public class ElideExtensionProcessor {
     @BuildStep
     public void configureElideEndpoints(ElideConfig config,
             BuildProducer<GeneratedJaxRsResourceBuildItem> generatedJaxRsResourceBuildItemBuildProducer) {
-        if (config.jsonApiPath != null) {
-            LOG.infof("Enabling JSON-API Endpoint for path: %s", config.jsonApiPath);
+        if (config.jsonApi().path() != null) {
+            LOG.infof("Enabling JSON-API Endpoint for path: %s", config.jsonApi().path());
             generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "JsonApi",
-                    JsonApiEndpoint.class, config.jsonApiPath,
+                    JsonApiEndpoint.class, config.jsonApi().path(),
                     new Param("elide", Elide.class, null), new Param(Optional.class, RouteResolver.class));
         }
 
-        if (config.graphqlPath != null) {
-            LOG.infof("Enabling GraphQL Endpoint for path: %s", config.graphqlPath);
+        if (config.graphql().path() != null) {
+            LOG.infof("Enabling GraphQL Endpoint for path: %s", config.graphql().path());
             generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "GraphQL",
-                    GraphQLEndpoint.class, config.graphqlPath,
+                    GraphQLEndpoint.class, config.graphql().path(),
                     new Param("elide", Elide.class, null),
                     new Param(Optional.class, DataFetcherExceptionHandler.class),
                     new Param(Optional.class, RouteResolver.class));
         }
 
-        if (config.apiDocsPath != null && config.jsonApiPath != null) {
-            LOG.infof("Enabling Swagger Endpoint for path: %s", config.apiDocsPath);
+        if (config.apiDocs().path() != null && config.jsonApi().path() != null) {
+            LOG.infof("Enabling Swagger Endpoint for path: %s", config.apiDocs().path());
             generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "ApiDocs",
-                    ApiDocsEndpoint.class, config.apiDocsPath,
+                    ApiDocsEndpoint.class, config.apiDocs().path(),
                     new Param("apiDocs", List.class, ApiDocsEndpoint.ApiDocsRegistration.class),
                     new Param("elide", Elide.class, null),
                     new Param(Optional.class, RouteResolver.class));

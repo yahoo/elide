@@ -100,9 +100,9 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
                 new StandardServiceRegistryBuilder()
                         .configure("hibernate.cfg.xml")
                         .applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
-                        .applySetting(Environment.URL, JDBC)
-                        .applySetting(Environment.USER, ROOT)
-                        .applySetting(Environment.PASS, ROOT)
+                        .applySetting(Environment.JAKARTA_JDBC_URL, JDBC)
+                        .applySetting(Environment.JAKARTA_JDBC_USER, ROOT)
+                        .applySetting(Environment.JAKARTA_JDBC_PASSWORD, ROOT)
                         .applySetting(Environment.DIALECT, "org.hibernate.dialect.H2Dialect")
                         .build());
 

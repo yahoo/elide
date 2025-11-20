@@ -27,11 +27,10 @@ import com.yahoo.elide.extension.test.models.Book;
 import com.yahoo.elide.extension.test.models.DenyCheck;
 import com.yahoo.elide.extension.test.models.Supplier;
 import org.apache.http.HttpStatus;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import io.quarkus.test.QuarkusUnitTest;
+
+import io.quarkus.test.QuarkusExtensionTest;
 import io.restassured.RestAssured;
 
 import jakarta.inject.Inject;
@@ -43,8 +42,8 @@ public class ElideExtensionTest {
 
     // Start unit test with your extension loaded
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
-        .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
+        .withApplicationRoot(jar -> jar
                 .addAsResource("application.properties")
                 .addClass(Book.class)
                 .addClass(Supplier.class)
