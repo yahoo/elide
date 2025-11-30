@@ -93,8 +93,9 @@
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <embedded-redis.version>1.4.3</embedded-redis.version>
         <encoder.version>1.2.3</encoder.version>
-        <federation-graphql-java-support-api.version>5.1.0</federation-graphql-java-support-api.version>
-        <graphql-java.version>22.0</graphql-java.version>
+        <federation-graphql-java-support-api.version>5.4.0</federation-graphql-java-support-api.version>
+        <graphql-java.version>25.0</graphql-java.version>
+        <graphql-java-extended-scalars.version>24.0</graphql-java-extended-scalars.version>
         <graal-sdk.version>24.0.1</graal-sdk.version>
         <guava.version>33.4.0-jre</guava.version>
         <handlebars.version>4.4.0</handlebars.version>
@@ -272,7 +273,7 @@
             <dependency>
                 <groupId>com.graphql-java</groupId>
                 <artifactId>graphql-java-extended-scalars</artifactId>
-                <version>${graphql-java.version}</version>
+                <version>${graphql-java-extended-scalars.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
