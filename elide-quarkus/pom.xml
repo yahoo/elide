@@ -43,7 +43,7 @@
   </modules>
   <properties>
     <compiler-plugin.version>3.13.0</compiler-plugin.version>
-    <failsafe-plugin.version>3.2.5</failsafe-plugin.version>
+    <failsafe-plugin.version>3.5.4</failsafe-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
@@ -51,7 +51,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.version>3.30.1</quarkus.version>
     <elide.version>7.1.18-SNAPSHOT</elide.version>
-    <surefire-plugin.version>3.2.5</surefire-plugin.version>
+    <surefire-plugin.version>3.5.4</surefire-plugin.version>
     <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
   </properties>
   <dependencyManagement>
