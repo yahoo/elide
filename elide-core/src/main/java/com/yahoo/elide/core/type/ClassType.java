@@ -13,6 +13,7 @@ import lombok.Getter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
+import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -43,6 +44,8 @@ public class ClassType<T> implements Type<T> {
     public static final ClassType<Class> CLASS_TYPE = ClassType.of(Class.class);
     public static final ClassType<Integer> INTEGER_TYPE = ClassType.of(Integer.class);
     public static final ClassType<Integer> PRIMITIVE_INTEGER_TYPE = ClassType.of(int.class);
+    public static final ClassType<Enum> ENUM_TYPE = ClassType.of(Enum.class);
+    public static final ClassType<Temporal> TEMPORAL_TYPE = ClassType.of(Temporal.class);
 
     @Getter
     private Class<T> cls;
