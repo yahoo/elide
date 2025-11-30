@@ -58,14 +58,18 @@ public class ElideBeans {
     @Startup
     public Elide produceElide(DataStore store, EntityDictionary dictionary) {
         LOG.debug("Creating Elide bean");
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettingsBuilder = new JsonApiSettings.JsonApiSettingsBuilder();
+        jsonApiSettingsBuilder.path(config.jsonApiPath);
+        GraphQLSettings.GraphQLSettingsBuilder graphQLSettingsBuilder = new GraphQLSettings.GraphQLSettingsBuilder();
+        graphQLSettingsBuilder.path(config.graphqlPath);
         ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder()
                 .entityDictionary(dictionary)
                 .maxPageSize(config.defaultMaxPageSize)
                 .defaultPageSize(config.defaultPageSize)
                 .auditLogger(new Slf4jLogger())
                 .baseUrl(rootPath)
-                .settings(new JsonApiSettings.JsonApiSettingsBuilder())
-                .settings(new GraphQLSettings.GraphQLSettingsBuilder())
+                .settings(jsonApiSettingsBuilder)
+                .settings(graphQLSettingsBuilder)
                 .dataStore(store);
 
         if (config.verboseErrors) {

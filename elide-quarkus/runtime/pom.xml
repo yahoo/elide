@@ -68,7 +68,7 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-server-common</artifactId>
+      <artifactId>quarkus-rest-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
