@@ -1,4 +1,23 @@
 # Change Log
+## 7.1.15
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/2940b1a4d79c691ac2f4fb2250d5ac3e7861c75d) Fixing switch from oss.sonatype to central.sonatype.org (#3382) 
+ * [view commit](https://github.com/yahoo/elide/commit/0ebd15d1b18b86f06c6fb1f227b825b36121419a) Fixing nexus URL 
+ * [view commit](https://github.com/yahoo/elide/commit/295e0035fb77ec531a78c6cfdd49cb2fd4b93037) Fixing switch from oss.sonatype to central.sonatype.org (#3381)
+    
+## 7.1.12
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/7a7ab677b57136fbde6fb76829f341c868bf5154) Fix coercing to String for Serdes (#3365) 
+ * [view commit](https://github.com/yahoo/elide/commit/f9769a6ed87092f9f91251ae28c19871efcbc2d5) Fix graphql fetcher to allow REMOVE and DELETE for toOne relationship (#3375) 
+ * [view commit](https://github.com/yahoo/elide/commit/c877a9a1f37912249f51f9e7221a39b0381f97ce) Support @IdGeneratorType (#3376) 
+ * [view commit](https://github.com/yahoo/elide/commit/68cee11d9febd77c2e75290d597cb87d3bf5f19b) Bump org.springdoc:springdoc-openapi-starter-common from 2.6.0 to 2.8.5 (#3325) 
+ * [view commit](https://github.com/yahoo/elide/commit/fb8f411ec8733e3547aaa27462249cab2d5d931e) Bump slf4j.version from 2.0.16 to 2.0.17 (#3345) 
+ * [view commit](https://github.com/yahoo/elide/commit/fd65d071d241e4289a576a1164ee613365eda4bb) Bump org.jacoco:jacoco-maven-plugin from 0.8.12 to 0.8.13 (#3346) 
+ * [view commit](https://github.com/yahoo/elide/commit/17db6c975df193fc856b8d1b39a215c115b3f91a) Bump jakarta.ws.rs:jakarta.ws.rs-api from 3.1.0 to 4.0.0 (#3348) 
+ * [view commit](https://github.com/yahoo/elide/commit/bd54098a8af7763c9c6e17154128a18ab2a1514f) Bump org.apache.poi:poi-ooxml from 5.2.5 to 5.4.0 (#3349) 
+ * [view commit](https://github.com/yahoo/elide/commit/799410132d13c34f14e8ca8f2792e2a617ef9b9f) Bump org.apache.httpcomponents.client5:httpclient5 from 5.4.1 to 5.4.3 (#3358) 
+ * [view commit](https://github.com/yahoo/elide/commit/3f6c7dbf61a5e56eddcaac97b5e5ee5622b8cd3a) Bump org.apache.tomcat.embed:tomcat-embed-core from 11.0.5 to 11.0.6 (#3364) 
+ * [view commit](https://github.com/yahoo/elide/commit/43e6d39a10abf63eea89adc66fe024a3ad3e1f25) Bump commons-beanutils:commons-beanutils from 1.9.4 to 1.11.0 (#3368) 
 
 ## 7.1.11
 **Fixes**

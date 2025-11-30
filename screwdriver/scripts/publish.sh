@@ -18,7 +18,7 @@ gpg --batch --yes --import screwdriver/deploy/secring-private.asc
 gpg --list-secret-keys --keyid-format LONG
 
 # Maven deploy
-mvn -B deploy -P ossrh -Dmaven.test.skip=true \
+mvn -B deploy -P central -Dmaven.test.skip=true \
     --settings screwdriver/settings/settings-publish.xml \
     -Dgpg.executable=gpg \
     -Dgpg.args="--batch --yes --pinentry-mode loopback"
