@@ -7,8 +7,6 @@ package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.ElideErrorResponse;
 
-import javax.annotation.Nullable;
-
 /**
  * Maps an exception to an {@link ElideErrorResponse}.
  *
@@ -24,6 +22,5 @@ public interface ExceptionMapper<E extends Throwable, T> {
      * @param errorContext the error context
      * @return the mapped ElideErrorResponse or null if you do not want to map this error
      */
-    @Nullable
     ElideErrorResponse<? extends T> toErrorResponse(E exception, ErrorContext errorContext);
 }
