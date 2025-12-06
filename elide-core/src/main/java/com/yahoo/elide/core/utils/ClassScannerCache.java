@@ -66,4 +66,8 @@ public class ClassScannerCache {
     public static Map<String, Set<Class<?>>> getInstance() {
         return INSTANCE;
     }
+
+    public static String[] getCachedAnnotations() {
+        return CACHE_ANNOTATIONS;
+    }
 }
