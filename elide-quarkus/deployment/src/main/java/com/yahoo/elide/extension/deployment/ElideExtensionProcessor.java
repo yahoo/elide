@@ -345,7 +345,7 @@ public class ElideExtensionProcessor {
         LOG.infof("Generated configurable %s endpoint with path: %s", endpointStyle, customPath);
     }
 
-    class Param {
+    static class Param {
         String atNamed;
         Class<?> clazz;
         Class<?> parameterizedType;
