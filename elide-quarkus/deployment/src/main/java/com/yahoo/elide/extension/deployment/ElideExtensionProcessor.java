@@ -103,8 +103,8 @@ public class ElideExtensionProcessor {
      */
     @BuildStep
     public void indexElideClasses(BuildProducer<AdditionalIndexedClassesBuildItem>
-                                                 additionalIndexedClassesBuildItemBuildProducer) {
-        additionalIndexedClassesBuildItemBuildProducer.produce(
+                                                 indexedClassesProducer) {
+        indexedClassesProducer.produce(
                 new io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem(
                         OperationCheck.class.getCanonicalName(),
                         RelationshipType.class.getCanonicalName(),
