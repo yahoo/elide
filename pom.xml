@@ -80,63 +80,64 @@
         <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
-        <antlr4.version>4.13.1</antlr4.version>
-        <artemis.version>2.33.0</artemis.version>
+        <antlr4.version>4.13.2</antlr4.version>
+        <artemis.version>2.40.0</artemis.version>
         <atomikos.version>6.0.0</atomikos.version>
-        <calcite.version>1.37.0</calcite.version>
-        <caffeine.version>3.2.0</caffeine.version>
-        <classgraph.version>4.8.172</classgraph.version>
+        <calcite.version>1.41.0</calcite.version>
+        <caffeine.version>3.2.3</caffeine.version>
+        <classgraph.version>4.8.184</classgraph.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
-        <commons-cli.version>1.9.0</commons-cli.version>
-        <commons-collections4.version>4.4</commons-collections4.version>
-        <commons-compress.version>1.26.2</commons-compress.version>
-        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <commons-cli.version>1.11.0</commons-cli.version>
+        <commons-collections4.version>4.5.0</commons-collections4.version>
+        <commons-compress.version>1.28.0</commons-compress.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
         <embedded-redis.version>0.11.0</embedded-redis.version>
-        <encoder.version>1.2.3</encoder.version>
-        <federation-graphql-java-support-api.version>5.1.0</federation-graphql-java-support-api.version>
-        <graphql-java.version>22.0</graphql-java.version>
-        <graal-sdk.version>24.0.1</graal-sdk.version>
-        <guava.version>33.4.0-jre</guava.version>
-        <handlebars.version>4.4.0</handlebars.version>
-        <hibernate.version>6.6.12.Final</hibernate.version>
-        <hibernate-validator.version>8.0.2.Final</hibernate-validator.version>
+        <encoder.version>1.4.0</encoder.version>
+        <federation-graphql-java-support-api.version>5.4.0</federation-graphql-java-support-api.version>
+        <graphql-java.version>24.3</graphql-java.version>
+        <graphql-java-extended-scalars.version>24.0</graphql-java-extended-scalars.version>
+        <graal-sdk.version>25.0.1</graal-sdk.version>
+        <guava.version>33.5.0-jre</guava.version>
+        <handlebars.version>4.5.0</handlebars.version>
+        <hibernate.version>6.6.36.Final</hibernate.version>
+        <hibernate-validator.version>8.0.3.Final</hibernate-validator.version>
         <hibernate-search.version>6.2.4.Final</hibernate-search.version>
         <hjson.version>3.1.0</hjson.version>
-        <httpclient5.version>5.4.3</httpclient5.version>
-        <gson.version>2.11.0</gson.version>
+        <httpclient5.version>5.5.1</httpclient5.version>
+        <gson.version>2.13.2</gson.version>
         <h2.version>2.3.232</h2.version>
-        <hikaricp.version>5.1.0</hikaricp.version>
-        <jackson-bom.version>2.17.1</jackson-bom.version>
-        <jakarta-inject.version>2.0.1.MR</jakarta-inject.version>
+        <hikaricp.version>6.3.3</hikaricp.version>
+        <jackson-bom.version>2.19.4</jackson-bom.version>
+        <jakarta-inject.version>2.0.1</jakarta-inject.version>
         <jakarta-jms.version>3.1.0</jakarta-jms.version>
         <jakarta-persistence.version>3.1.0</jakarta-persistence.version>
         <jakarta-transaction.version>2.0.1</jakarta-transaction.version>
         <jakarta-websocket.version>2.2.0</jakarta-websocket.version>
         <jakarta-ws-rs.version>4.0.0</jakarta-ws-rs.version>
         <jakarta-validation.version>3.1.0</jakarta-validation.version>
-        <jansi.version>2.4.1</jansi.version>
-        <jersey.version>3.1.8</jersey.version>
-        <jetty.version>12.0.15</jetty.version>
-        <jedis.version>5.1.5</jedis.version>
+        <jansi.version>2.4.2</jansi.version>
+        <jersey.version>3.1.11</jersey.version>
+        <jetty.version>12.0.30</jetty.version>
+        <jedis.version>6.0.0</jedis.version>
         <jsonassert.version>1.5.3</jsonassert.version>
-        <json-path.version>2.9.0</json-path.version>
-        <json-schema-validator.version>1.5.6</json-schema-validator.version>
+        <json-path.version>2.10.0</json-path.version>
+        <json-schema-validator.version>1.5.9</json-schema-validator.version>
         <junit.version>5.10.2</junit.version>
-        <logback.version>1.5.18</logback.version>
+        <logback.version>1.5.21</logback.version>
         <lombok.version>1.18.36</lombok.version>
-        <poi.version>5.4.0</poi.version>
-        <rest-assured.version>5.5.1</rest-assured.version>
-        <reactor-bom.version>2023.0.6</reactor-bom.version>
+        <poi.version>5.5.1</poi.version>
+        <rest-assured.version>5.5.6</rest-assured.version>
+        <reactor-bom.version>2024.0.12</reactor-bom.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
         <slf4j.version>2.0.17</slf4j.version>
-        <spring-boot.version>3.4.1</spring-boot.version>
-        <spring-framework.version>6.1.10</spring-framework.version>
-        <spring-cloud-commons.version>4.1.4</spring-cloud-commons.version>
-        <springdoc.version>2.8.5</springdoc.version>
-        <swagger-api.version>2.2.29</swagger-api.version>
+        <spring-boot.version>3.5.8</spring-boot.version>
+        <spring-framework.version>6.2.14</spring-framework.version>
+        <spring-cloud-commons.version>4.3.0</spring-cloud-commons.version>
+        <springdoc.version>2.8.14</springdoc.version>
+        <swagger-api.version>2.2.41</swagger-api.version>
         <system-lambda.version>1.2.1</system-lambda.version>
-        <tomcat.version>11.0.6</tomcat.version>
-        <mockito.version>5.12.0</mockito.version>
+        <tomcat.version>11.0.14</tomcat.version>
+        <mockito.version>5.20.0</mockito.version>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
         <checkstyle.version>10.21.4</checkstyle.version>
@@ -271,7 +272,7 @@
             <dependency>
                 <groupId>com.graphql-java</groupId>
                 <artifactId>graphql-java-extended-scalars</artifactId>
-                <version>${graphql-java.version}</version>
+                <version>${graphql-java-extended-scalars.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
