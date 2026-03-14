@@ -5,84 +5,84 @@
               "type": "string",
               "pattern": "^(?!(?i)grain$)^[A-Za-z][0-9A-Za-z_]*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideArgumentName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only and cannot be ''grain''."
+                  "pattern": "does not match the elideArgumentName pattern must start with an alphabetic character and can include alphabets, numbers and '_' only and cannot be 'grain'."
               }
         },
         "elideFieldType" : {
               "type": "string",
               "pattern": "^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean|Enum_Text|Enum_Ordinal)$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideFieldType pattern must be one of [Integer, Decimal, Money, Text, Coordinate, Boolean, Enum_Text, Enum_Ordinal]."
+                  "pattern": "does not match the elideFieldType pattern must be one of [Integer, Decimal, Money, Text, Coordinate, Boolean, Enum_Text, Enum_Ordinal]."
               }
         },
         "elideFieldName" : {
               "type": "string",
               "pattern": "^(?!(?i)(id|sql)$)^[a-z][0-9A-Za-z_]*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideFieldName pattern must start with lower case alphabet and can include alphabets, numbers and ''_'' only and cannot be one of [id, sql]"
+                  "pattern": "does not match the elideFieldName pattern must start with lower case alphabet and can include alphabets, numbers and '_' only and cannot be one of [id, sql]"
               }
         },
         "elideName" : {
               "type": "string",
               "pattern": "^[A-Za-z][0-9A-Za-z_]*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only."
+                  "pattern": "does not match the elideName pattern must start with an alphabetic character and can include alphabets, numbers and '_' only."
               }
         },
         "elideNamespaceName" : {
               "type": "string",
               "pattern": "^default$|^(?!(?i)default$)^[A-Za-z][0-9A-Za-z_]*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideNamespaceName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only and must not clash with the ''default'' namespace."
+                  "pattern": "does not match the elideNamespaceName pattern must start with an alphabetic character and can include alphabets, numbers and '_' only and must not clash with the 'default' namespace."
               }
         },
         "elideJoinType" : {
               "type": "string",
               "pattern": "^(?i)(left|inner|full|cross)$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideJoinType pattern must be one of [left, inner, full, cross]."
+                  "pattern": "does not match the elideJoinType pattern must be one of [left, inner, full, cross]."
               }
         },
         "elideJoinKind" : {
               "type": "string",
               "pattern": "^(?i)(ToOne|ToMany)$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideJoinKind pattern must be one of [ToOne, ToMany]."
+                  "pattern": "does not match the elideJoinKind pattern must be one of [ToOne, ToMany]."
               }
         },
         "javaClassName" : {
               "type": "string",
               "pattern": "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)+(\\.\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the javaClassName pattern is not a valid Java class name."
+                  "pattern": "does not match the javaClassName pattern is not a valid Java class name."
               }
         },
         "javaClassNameWithExt" : {
               "type": "string",
               "pattern": "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)+(\\.\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)*class$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the javaClassNameWithExt pattern is not a valid Java class name with .class extension."
+                  "pattern": "does not match the javaClassNameWithExt pattern is not a valid Java class name with .class extension."
               }
         },
         "elideCardinality" : {
               "type": "string",
               "pattern": "^(?i)(Tiny|Small|Medium|Large|Huge)$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideCardinality pattern must be one of [Tiny, Small, Medium, Large, Huge]."
+                  "pattern": "does not match the elideCardinality pattern must be one of [Tiny, Small, Medium, Large, Huge]."
               }
         },
         "elideTimeFieldType" : {
               "type": "string",
               "pattern": "^(?i)(Time)$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideTimeFieldType pattern must be [Time] for any time dimension."
+                  "pattern": "does not match the elideTimeFieldType pattern must be [Time] for any time dimension."
               }
         },
         "elideGrainType" : {
               "type": "string",
               "pattern": "^(?i)(Second|Minute|Hour|Day|IsoWeek|Week|Month|Quarter|Year)$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideGrainType pattern must be one of [Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year]."
+                  "pattern": "does not match the elideGrainType pattern must be one of [Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year]."
               }
         },
         "argument" : {
@@ -140,7 +140,7 @@
             },
             "additionalProperties": false,
             "errorMessage": {
-                "not": "{0}: tableSource and values cannot both be defined for an argument. Choose One or None."
+                "not": "tableSource and values cannot both be defined for an argument. Choose One or None."
             }
         },
         "join": {
@@ -448,7 +448,7 @@
                 ]
             },
             "errorMessage": {
-                "not": "{0}: tableSource and values cannot both be defined for a dimension. Choose One or None."
+                "not": "tableSource and values cannot both be defined for a dimension. Choose One or None."
             }
         },
         "timeDimension": {

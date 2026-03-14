@@ -5,21 +5,21 @@
               "type": "string",
               "pattern": "^[A-Za-z][0-9A-Za-z_]*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only."
+                  "pattern": "does not match the elideName pattern must start with an alphabetic character and can include alphabets, numbers and '_' only."
               }
         },
         "elideJdbcUrl" : {
               "type": "string",
               "pattern": "^(jdbc:).*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideJdbcUrl pattern must start with ''jdbc:''."
+                  "pattern": "does not match the elideJdbcUrl pattern must start with 'jdbc:'."
               }
         },
         "javaClassName" : {
               "type": "string",
               "pattern": "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)+(\\.\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the javaClassName pattern is not a valid Java class name."
+                  "pattern": "does not match the javaClassName pattern is not a valid Java class name."
               }
         }
     },

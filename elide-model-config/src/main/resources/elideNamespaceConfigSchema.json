@@ -5,7 +5,7 @@
               "type": "string",
               "pattern": "^default$|^(?!(?i)default$)^[A-Za-z][0-9A-Za-z_]*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideNamespaceName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only and must not clash with the ''default'' namespace."
+                  "pattern": "does not match the elideNamespaceName pattern must start with an alphabetic character and can include alphabets, numbers and '_' only and must not clash with the 'default' namespace."
               }
         }
     },

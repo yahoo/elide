@@ -5,19 +5,18 @@
  */
 package com.yahoo.elide.modelconfig;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 
 import java.util.List;
-import java.util.Set;
 
-public class ValidationMessages {
+public class ValidationErrors {
     private static final String NEWLINE = System.lineSeparator();
 
-    public static String toString(Set<ValidationMessage> results) {
-        if (results == null || results.isEmpty()) {
+    public static String toString(List<Error> errors) {
+        if (errors == null || errors.isEmpty()) {
             return null;
         }
-        List<String> list = results.stream().map(message -> message.getMessage()).toList();
+        List<String> list = errors.stream().map(error -> error.toString()).toList();
         return NEWLINE + String.join(NEWLINE, list);
     }
 }

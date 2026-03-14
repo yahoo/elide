@@ -5,7 +5,7 @@
               "type": "string",
               "pattern": "^[A-Za-z][0-9A-Za-z. ]*$",
               "errorMessage": {
-                  "pattern": "{0}: does not match the elideRole pattern must start with an alphabetic character and can include alphabets, numbers, spaces and ''.'' only."
+                  "pattern": "does not match the elideRole pattern must start with an alphabetic character and can include alphabets, numbers, spaces and '.' only."
               }
         }
     },
