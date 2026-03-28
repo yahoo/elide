@@ -8,23 +8,25 @@ package com.yahoo.elide.graphql.subscriptions.serialization;
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
 
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
-import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.SerializationConfig;
+import tools.jackson.databind.ser.BeanPropertyWriter;
+import tools.jackson.databind.ser.ValueSerializerModifier;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@link BeanSerializerModifier} that only serializes ID fields and fields annotated
+ * {@link ValueSerializerModifier} that only serializes ID fields and fields annotated
  * with SubscriptionField.
  */
-public class SubscriptionBeanSerializerModifier extends BeanSerializerModifier {
+public class SubscriptionBeanSerializerModifier extends ValueSerializerModifier {
+
+    private static final long serialVersionUID = 1L;
 
     @Override
-    public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription beanDesc,
+    public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription.Supplier beanDesc,
             List<BeanPropertyWriter> beanProperties) {
         List<BeanPropertyWriter> result = new ArrayList<>();
         for (BeanPropertyWriter beanProperty : beanProperties) {

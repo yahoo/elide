@@ -30,13 +30,11 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.jms.websocket.SubscriptionWebSocketTestClient;
 import com.yahoo.elide.graphql.GraphQLExceptionHandler;
 import com.yahoo.elide.jsonapi.JsonApi;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import graphql.ExecutionResult;
@@ -58,12 +56,6 @@ public class SubscriptionTest extends IntegrationTest {
             return serdesBuilder -> {
                 serdesBuilder.entry(OffsetDateTime.class, serde);
             };
-        }
-
-        @Bean
-        Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
-            Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.json().modules(new JavaTimeModule());
-            return builder;
         }
     }
 

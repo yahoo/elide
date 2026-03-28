@@ -7,13 +7,10 @@
 package com.yahoo.elide.datastores.jpa.usertypes;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * JsonType serializes an object to json string and vice versa.
@@ -32,7 +29,7 @@ public class JsonConverter<T> implements AttributeConverter<T, String> {
     public String convertToDatabaseColumn(T value) {
         try {
             return MAPPER.writeValueAsString(value);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new InvalidValueException("Unable to serialize", e);
         }
     }
@@ -41,7 +38,7 @@ public class JsonConverter<T> implements AttributeConverter<T, String> {
     public T convertToEntityAttribute(String rawJson) {
         try {
             return MAPPER.readValue(rawJson, objectClass);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new InvalidValueException("Unable to deserialize", e);
         }
     }

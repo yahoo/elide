@@ -8,35 +8,33 @@ package com.yahoo.elide.graphql.serialization;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+
 import java.util.List;
 import java.util.Map;
 
 class GraphQLModuleTest {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setup() {
-        objectMapper.registerModule(new GraphQLModule());
+        this.objectMapper = JsonMapper.builder().addModule(new GraphQLModule()).build();
     }
 
     /**
      * Checks that the execution result error messages should be HTML encoded.
      * This is as the GraphQLModule has registered the GraphQLErrorSerializer.
-     *
-     * @throws JsonProcessingException the exception
      */
     @Test
-    void executionResultErrorMessageShouldBeHtmlEncoded() throws JsonProcessingException {
+    void executionResultErrorMessageShouldBeHtmlEncoded() {
         ExecutionResult executionResult = ExecutionResult.newExecutionResult()
                 .errors(List.of(GraphQLError.newError().message("<script>message</script>").build()))
                 .extensions(Map.of("timestamp", "Fri Feb 9 14:33:09 UTC 2018"))

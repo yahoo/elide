@@ -9,6 +9,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -43,6 +44,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.SecurityContext;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -88,9 +90,10 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
                         dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
                     );
 
-                    JsonApiMapper jsonApiMapper = new JsonApiMapper();
+                    ElideMapper elideMapper = new ElideMapper(JsonMapper.shared());
+                    JsonApiMapper jsonApiMapper = new JsonApiMapper(elideMapper);
                     Elide elide = new Elide(ElideSettings.builder().dataStore(getDataStore())
-                            .objectMapper(jsonApiMapper.getObjectMapper())
+                            .elideMapper(elideMapper)
                             .entityDictionary(dictionary).auditLogger(new TestAuditLogger()).serdes(serdes -> serdes
                                     .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
                             .settings(GraphQLSettingsBuilder.withDefaults(dictionary))

@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.jms.websocket;
 import static com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket.DEFAULT_USER_FACTORY;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilderCustomizer;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -20,8 +21,6 @@ import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
 import com.yahoo.elide.graphql.serialization.GraphQLModule;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
@@ -87,10 +86,10 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
 
             EntityDictionary dictionary = EntityDictionary.builder().injector(injector).build();
 
-            ObjectMapper objectMapper;
+            ElideMapper elideMapper;
             ElideSettings.ElideSettingsBuilder builder = getElideSettingsBuilder(dictionary);
-            objectMapper = builder.build().getObjectMapper();
-            DataStore store = buildDataStore(dictionary, objectMapper);
+            elideMapper = builder.build().getElideMapper();
+            DataStore store = buildDataStore(dictionary, elideMapper);
             builder.dataStore(store);
 
             Elide elide = buildElide(builder);
@@ -163,14 +162,15 @@ public class SubscriptionWebSocketConfigurator extends ServerEndpointConfig.Conf
         return elide;
     }
 
-    protected DataStore buildDataStore(EntityDictionary dictionary, ObjectMapper objectMapper) {
+    protected DataStore buildDataStore(EntityDictionary dictionary, ElideMapper elideMapper) {
         return new JMSDataStore(
                 dictionary.getScanner(),
-                connectionFactory, dictionary, objectMapper, null);
+                connectionFactory, dictionary, elideMapper, null);
     }
 
     protected SubscriptionWebSocket buildWebSocket(Elide elide) {
-        elide.getObjectMapper().registerModule(new GraphQLModule());
+        elide.getElideSettings().getElideMapper()
+                .customizeObjectMapper(builder -> builder.addModule(new GraphQLModule()));
 
         return SubscriptionWebSocket.builder()
                 .elide(elide)

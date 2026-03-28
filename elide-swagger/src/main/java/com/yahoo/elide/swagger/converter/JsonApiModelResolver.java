@@ -16,7 +16,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.swagger.models.media.Relationship;
 import com.yahoo.elide.swagger.models.media.Resource;
-import com.fasterxml.jackson.databind.type.SimpleType;
+import com.fasterxml.jackson.databind.type.SimpleType; // swagger still using Jackson 2
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,6 +29,7 @@ import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import io.swagger.v3.oas.models.media.Schema;
+
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

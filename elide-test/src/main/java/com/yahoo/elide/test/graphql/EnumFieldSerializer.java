@@ -5,19 +5,17 @@
  */
 package com.yahoo.elide.test.graphql;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-
-import java.io.IOException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * A Jackson serializer for String entity field.
  */
-public class EnumFieldSerializer extends JsonSerializer<String> {
+public class EnumFieldSerializer extends ValueSerializer<String> {
 
     @Override
-    public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(String value, JsonGenerator gen, SerializationContext serializationContext) {
             gen.writeRawValue(value);
     }
 }

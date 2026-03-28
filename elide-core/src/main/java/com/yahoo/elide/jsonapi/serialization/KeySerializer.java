@@ -5,11 +5,10 @@
  */
 package com.yahoo.elide.jsonapi.serialization;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdKeySerializer;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
-import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -17,10 +16,9 @@ import java.util.Date;
  * Change from StdKeySerializer - In cases of enum value it uses
  * name() instead of defaulting to toString() since that may be overridden
  */
-public class KeySerializer extends StdKeySerializer {
+public class KeySerializer extends ValueSerializer<Object> {
     @Override
-    public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException {
+    public void serialize(Object value, JsonGenerator jgen, SerializationContext provider) {
         String str;
         Class<?> cls = value.getClass();
 
@@ -36,6 +34,6 @@ public class KeySerializer extends StdKeySerializer {
         } else {
             str = value.toString();
         }
-        jgen.writeFieldName(str);
+        jgen.writeName(str);
     }
 }

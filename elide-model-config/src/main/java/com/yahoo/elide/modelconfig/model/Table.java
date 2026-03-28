@@ -10,7 +10,6 @@ import static com.yahoo.elide.modelconfig.model.NamespaceConfig.DEFAULT;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Streams;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,6 +19,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -58,6 +59,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonDeserialize(builder = Table.TableBuilder.class)
+@JsonPOJOBuilder(withPrefix = "")
 public class Table implements Named {
     private static final long serialVersionUID = -7537337382856372741L;
 
@@ -243,5 +246,8 @@ public class Table implements Named {
         }
 
         return namespace + "_" + tableName;
+    }
+
+    public static class TableBuilder {
     }
 }

@@ -22,15 +22,15 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Pong;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 
 import graphql.GraphQL;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.Session;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -149,7 +149,7 @@ public class SessionHandler {
 
             MessageType messageType;
             try {
-                messageType = MessageType.valueOf(type.textValue().toUpperCase(Locale.ROOT));
+                messageType = MessageType.valueOf(type.stringValue().toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
                 safeClose(INVALID_MESSAGE);
                 return;
@@ -182,7 +182,7 @@ public class SessionHandler {
                     return;
                 }
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             safeClose(INVALID_MESSAGE);
         }
     }
@@ -248,24 +248,24 @@ public class SessionHandler {
     }
 
     protected void safeSendConnectionAck() {
-        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getElideMapper().getObjectMapper();
         ConnectionAck ack = new ConnectionAck();
 
         try {
             sendMessage(mapper.writeValueAsString(ack));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose(INTERNAL_ERROR);
         }
     }
 
     protected void safeSendPong() {
-        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getElideMapper().getObjectMapper();
         Pong pong = new Pong();
 
         try {
             sendMessage(mapper.writeValueAsString(pong));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose(INTERNAL_ERROR);
         }

@@ -68,9 +68,19 @@ public class JsonApiDocument {
         this.links.put(key, val);
     }
 
+    public void setLinks(Map<String, String> links) {
+        this.links.clear();
+        this.links.putAll(links);
+    }
+
     @JsonInclude(Include.NON_NULL)
     public List<Resource> getIncluded() {
         return included.isEmpty() ? null : included;
+    }
+
+    public void setIncluded(List<Resource> included) {
+        this.included.clear();
+        this.included.addAll(included);
     }
 
     public void addIncluded(Resource resource) {

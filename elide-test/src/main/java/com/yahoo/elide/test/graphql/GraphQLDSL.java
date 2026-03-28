@@ -19,10 +19,14 @@ import com.yahoo.elide.test.graphql.elements.SelectionSet;
 import com.yahoo.elide.test.graphql.elements.VariableDefinition;
 import com.yahoo.elide.test.graphql.elements.VariableDefinitions;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.collect.ImmutableList;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -197,10 +201,19 @@ public final class GraphQLDSL {
     /**
      * Jackson-serializes objects.
      */
-    private static final ObjectMapper BASE_MAPPER = new ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
-            .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+    private static final ObjectMapper BASE_MAPPER = JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .changeDefaultPropertyInclusion(c -> JsonInclude.Value.construct(Include.NON_EMPTY, Include.NON_EMPTY)
+                    .withValueInclusion(Include.NON_DEFAULT))
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .build();
+
+    private static final ObjectMapper ARGUMENT_MAPPER = JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .changeDefaultPropertyInclusion(c -> JsonInclude.Value.construct(Include.NON_EMPTY, Include.NON_EMPTY)
+                    .withValueInclusion(Include.NON_DEFAULT))
+            .disable(JsonWriteFeature.QUOTE_PROPERTY_NAMES)
+            .build();
 
     /**
      * Returns the JSON representation of an object.
@@ -212,11 +225,7 @@ public final class GraphQLDSL {
      * @throws IllegalStateException
      */
     public static String toJson(Object object) {
-        try {
-            return BASE_MAPPER.writer().writeValueAsString(object);
-        } catch (JsonProcessingException exception) {
-            throw new IllegalArgumentException(exception);
-        }
+        return BASE_MAPPER.writer().writeValueAsString(object);
     }
 
     /**
@@ -515,15 +524,10 @@ public final class GraphQLDSL {
         try {
             return new Argument(
                     name,
-                    BASE_MAPPER
-                            .configure(
-                                    // GraphQL argument name is unquoted; hence quoted field is disabled.
-                                    JsonGenerator.Feature.QUOTE_FIELD_NAMES,
-                                    false
-                            )
+                    ARGUMENT_MAPPER
                             .writeValueAsString(value)
             );
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalStateException(String.format("Cannot serialize %s", value), exception);
         }
     }

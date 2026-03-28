@@ -8,12 +8,12 @@ package com.yahoo.elide.modelconfig.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +35,8 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DBConfig implements Named {
+
+    private static final long serialVersionUID = 1L;
 
     @JsonProperty("name")
     private String name;

@@ -7,13 +7,12 @@ package com.yahoo.elide.graphql.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
 
 import graphql.language.SourceLocation;
 
+import tools.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -24,7 +23,7 @@ class GraphQLErrorTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void extensionsConsumer() throws JsonProcessingException {
+    void extensionsConsumer() {
         graphql.GraphQLError error = GraphQLError.builder()
                 .message("Name for character with ID 1002 could not be fetched.").extensions(extensions -> {
                     extensions.put("code", "CAN_NOT_FETCH_BY_ID");
@@ -38,7 +37,7 @@ class GraphQLErrorTest {
     }
 
     @Test
-    void extensions() throws JsonProcessingException {
+    void extensions() {
         graphql.GraphQLError error = GraphQLError.builder()
                 .message("Name for character with ID 1002 could not be fetched.")
                 .extensions(Map.of("code", "CAN_NOT_FETCH_BY_ID")).build();
@@ -50,7 +49,7 @@ class GraphQLErrorTest {
     }
 
     @Test
-    void locationsConsumer() throws JsonProcessingException {
+    void locationsConsumer() {
         SourceLocation location = new SourceLocationBuilder().line(6).column(7).build();
         graphql.GraphQLError error = GraphQLError.builder()
                 .message("Name for character with ID 1002 could not be fetched.")
@@ -62,7 +61,7 @@ class GraphQLErrorTest {
     }
 
     @Test
-    void locationsConsumerMultiple() throws JsonProcessingException {
+    void locationsConsumerMultiple() {
         graphql.GraphQLError error = GraphQLError.builder()
                 .message("Name for character with ID 1002 could not be fetched.")
                 .location(location -> location.line(1).column(2)).location(location -> location.line(3).column(4))
@@ -74,7 +73,7 @@ class GraphQLErrorTest {
     }
 
     @Test
-    void locations() throws JsonProcessingException {
+    void locations() {
         SourceLocation location = new SourceLocationBuilder().line(6).column(7).build();
         graphql.GraphQLError error = GraphQLError.builder()
                 .message("Name for character with ID 1002 could not be fetched.").locations(Arrays.asList(location))

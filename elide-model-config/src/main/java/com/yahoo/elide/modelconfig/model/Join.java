@@ -16,6 +16,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Joins describe the SQL expression necessary to join two physical tables.
@@ -35,6 +37,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonDeserialize(builder = Join.JoinBuilder.class)
+@JsonPOJOBuilder(withPrefix = "")
 public class Join implements Named {
     private static final long serialVersionUID = -1416294756711914111L;
 
@@ -42,6 +46,7 @@ public class Join implements Named {
     private String name;
 
     @JsonProperty("namespace")
+    @Builder.Default
     private String namespace = DEFAULT;
 
     @JsonProperty("to")
@@ -51,6 +56,7 @@ public class Join implements Named {
     private Join.Type type;
 
     @JsonProperty("kind")
+    @Builder.Default
     private Join.Kind kind = Join.Kind.TOONE;
 
     @JsonProperty("definition")
@@ -102,5 +108,8 @@ public class Join implements Named {
         public String toString() {
             return this.value;
         }
+    }
+
+    public static class JoinBuilder {
     }
 }

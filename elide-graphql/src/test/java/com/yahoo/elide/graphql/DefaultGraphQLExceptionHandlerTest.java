@@ -16,10 +16,6 @@ import com.yahoo.elide.core.exceptions.InvalidConstraintException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.graphql.models.GraphQLErrors;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -36,6 +32,10 @@ import jakarta.validation.ValidatorFactory;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.WebApplicationException;
+
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.DatabindException;
 
 import java.io.IOException;
 import java.util.List;
@@ -54,8 +54,8 @@ class DefaultGraphQLExceptionHandlerTest {
         INVALID_API(new InvalidApiVersionException(""), GraphQLErrorContext.builder().build(), 400),
         INVALID_ENTITY_BODY(new InvalidEntityBodyException(""), GraphQLErrorContext.builder().build(), 200),
         INVALID_CONSTRAINT(new InvalidConstraintException(""), GraphQLErrorContext.builder().build(), 200),
-        INVALID_ENTITY_BODY_JSON_PARSE(new InvalidEntityBodyException("", new JsonParseException("")), GraphQLErrorContext.builder().build(), 400),
-        JSON_PROCESSING(JsonMappingException.from((JsonParser) null, ""), GraphQLErrorContext.builder().build(), 400),
+        INVALID_ENTITY_BODY_JSON_PARSE(new InvalidEntityBodyException("", new StreamReadException("")), GraphQLErrorContext.builder().build(), 400),
+        JSON_PROCESSING(DatabindException.from((JsonParser) null, ""), GraphQLErrorContext.builder().build(), 400),
         IO(new IOException(""), GraphQLErrorContext.builder().build(), 423),
         ;
 

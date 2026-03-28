@@ -7,7 +7,7 @@ package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.ElideErrorResponse;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Exception describing error caused from JSON API Atomic Extension request.

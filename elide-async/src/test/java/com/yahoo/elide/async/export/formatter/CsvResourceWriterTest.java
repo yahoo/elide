@@ -15,10 +15,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +23,10 @@ import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Data;
+
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -149,7 +149,7 @@ class CsvResourceWriterTest {
                """;
         assertEquals(header, results.get(0));
         String row = """
-                "name","a;b;c","VALUE1","1.0","1.0","1","1","2023-12-25T12:30:30.000000010Z","2023-12-25T12:30:30.000+00:00","2023-12-25T12:30:30.00000001","2023-12-25","2023-12-25T12:30:30.00000001Z","2023-12-25T12:30:30.00000001Z"\
+                "name","a;b;c","VALUE1","1.0","1.0","1","1","2023-12-25T12:30:30.000000010Z","2023-12-25T12:30:30.000Z","2023-12-25T12:30:30.00000001","2023-12-25","2023-12-25T12:30:30.00000001Z","2023-12-25T12:30:30.00000001Z"\
                 """;
         assertEquals(row, results.get(1));
     }
@@ -166,8 +166,7 @@ class CsvResourceWriterTest {
 
     byte[] process(EntityProjection entityProjection, ResourceWriterProcessor processor) {
         ObjectMapper objectMapper = JsonMapper.builder()
-                .addModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .build();
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 ResourceWriter writer = new CsvResourceWriter(outputStream, objectMapper, true, entityProjection)) {

@@ -9,7 +9,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.request.EntityProjection;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.OutputStream;
 

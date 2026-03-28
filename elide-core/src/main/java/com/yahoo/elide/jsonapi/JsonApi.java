@@ -29,14 +29,14 @@ import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -314,7 +314,7 @@ public class JsonApi {
         } else {
             try {
                 result = body != null ? this.mapper.writeJsonApiDocument(body) : null;
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 return ElideResponse.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body(e.toString());
             }
         }

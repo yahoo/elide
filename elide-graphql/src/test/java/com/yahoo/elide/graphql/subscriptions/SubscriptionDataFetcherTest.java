@@ -34,8 +34,6 @@ import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;
 import example.Author;
 import example.Book;
@@ -54,6 +52,8 @@ import graphql.GraphQL;
 import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
 
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -338,7 +338,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 );
 
                 assertTrue(actualResponse.getErrors().toString().contains(expectedError));
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 fail("JSON parsing exception", e);
             }
         }

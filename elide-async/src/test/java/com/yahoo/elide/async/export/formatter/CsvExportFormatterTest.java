@@ -47,7 +47,7 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 
 public class CsvExportFormatterTest {
-    public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
+    public static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private static final FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("GMT"));
     private HashMapDataStore dataStore;
     private Elide elide;

@@ -6,6 +6,7 @@
 package example.tests;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.TransactionRegistry;
@@ -39,6 +40,7 @@ public class Update200StatusTestSetup {
                                                 HeaderProcessor headerProcessor,
                                                 TransactionRegistry transactionRegistry,
                                                 ElideConfigProperties settings,
+                                                ElideMapper elideMapper,
                                                 JsonApiMapper mapper,
                                                 ExceptionMappersBuilder exceptionMappersBuilder) {
         ExceptionMappers exceptionMappers = exceptionMappersBuilder.build();
@@ -56,7 +58,7 @@ public class Update200StatusTestSetup {
                         new DefaultGraphQLErrorMapper()));
         ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
-                .objectMapper(mapper.getObjectMapper())
+                .elideMapper(elideMapper)
                 .maxPageSize(settings.getMaxPageSize())
                 .defaultPageSize(settings.getDefaultPageSize())
                 .auditLogger(new Slf4jLogger())

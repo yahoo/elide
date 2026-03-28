@@ -29,13 +29,13 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.ToString;
 import reactor.core.publisher.Flux;
+import tools.jackson.core.JacksonException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -200,7 +200,7 @@ public class CollectionTerminalState extends BaseState {
         if (resource == null) {
             try {
                 throw new InvalidEntityBodyException(mapper.writeJsonApiDocument(doc));
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new InternalServerErrorException(e);
             }
         }

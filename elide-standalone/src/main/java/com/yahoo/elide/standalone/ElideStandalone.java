@@ -21,10 +21,10 @@ import org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketSe
 import org.eclipse.jetty.server.Server;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import io.dropwizard.metrics.servlet.InstrumentedFilter;
-import io.dropwizard.metrics.servlets.AdminServlet;
-import io.dropwizard.metrics.servlets.HealthCheckServlet;
-import io.dropwizard.metrics.servlets.MetricsServlet;
+import io.dropwizard.metrics5.servlet.InstrumentedFilter;
+import io.dropwizard.metrics5.servlets.AdminServlet;
+import io.dropwizard.metrics5.servlets.HealthCheckServlet;
+import io.dropwizard.metrics5.servlets.MetricsServlet;
 import jakarta.servlet.DispatcherType;
 import lombok.extern.slf4j.Slf4j;
 

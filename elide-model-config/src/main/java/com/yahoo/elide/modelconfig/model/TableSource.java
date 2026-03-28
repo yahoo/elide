@@ -10,13 +10,14 @@ import static com.yahoo.elide.modelconfig.model.NamespaceConfig.DEFAULT;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.io.Serializable;
 import java.util.LinkedHashSet;
@@ -38,6 +39,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonDeserialize(builder = TableSource.TableSourceBuilder.class)
+@JsonPOJOBuilder(withPrefix = "")
 public class TableSource implements Serializable {
     private static final long serialVersionUID = 5721654374755116755L;
 
@@ -45,6 +48,7 @@ public class TableSource implements Serializable {
     private String table;
 
     @JsonProperty("namespace")
+    @Builder.Default
     private String namespace = DEFAULT;
 
     @JsonProperty("column")
@@ -52,5 +56,9 @@ public class TableSource implements Serializable {
 
     @JsonProperty("suggestionColumns")
     @JsonDeserialize(as = LinkedHashSet.class)
+    @Builder.Default
     private Set<String> suggestionColumns = new LinkedHashSet<>();
+
+    public static class TableSourceBuilder {
+    }
 }

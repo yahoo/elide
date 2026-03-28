@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideErrorResponse;
 import com.yahoo.elide.ElideErrors;
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.TransactionRegistry;
@@ -35,12 +36,13 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.jsonapi.DefaultJsonApiErrorMapper;
 import com.yahoo.elide.jsonapi.DefaultJsonApiExceptionHandler;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests the error mapping logic.
@@ -141,7 +143,7 @@ public class ExceptionMapperTest {
     }
 
     @Test
-    public void testElideIOExceptionWithErrorResponseMapperUnmapped() throws Exception {
+    public void testElideJacksonExceptionWithErrorResponseMapperUnmapped() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         FieldTestModel mockModel = mock(FieldTestModel.class);
@@ -192,7 +194,7 @@ public class ExceptionMapperTest {
     }
 
     @Test
-    void testElideIOExceptionWithErrorResponseMapperMapped() throws Exception {
+    void testElideJacksonExceptionWithErrorResponseMapperMapped() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         FieldTestModel mockModel = mock(FieldTestModel.class);
@@ -206,7 +208,7 @@ public class ExceptionMapperTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
-        when(MOCK_EXCEPTION_MAPPER.toErrorResponse(isA(IOException.class), any())).thenReturn((ElideErrorResponse<Object>) MAPPED_EXCEPTION.getErrorResponse());
+        when(MOCK_EXCEPTION_MAPPER.toErrorResponse(isA(JacksonException.class), any())).thenReturn((ElideErrorResponse<Object>) MAPPED_EXCEPTION.getErrorResponse());
 
         Route route = Route.builder().baseUrl(baseUrl).path("/testModel").apiVersion(NO_VERSION).build();
         ElideResponse<String> response = jsonApi.post(route, body, null, null);
@@ -224,14 +226,17 @@ public class ExceptionMapperTest {
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, ExceptionMappers exceptionMappers) {
+        ElideMapper elideMapper = new ElideMapper(JsonMapper.shared());
+        JsonApiMapper jsonApiMapper = new JsonApiMapper(elideMapper);
         JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder()
+                .jsonApiMapper(jsonApiMapper)
                 .jsonApiExceptionHandler(new DefaultJsonApiExceptionHandler(new Slf4jExceptionLogger(),
                         exceptionMappers, new DefaultJsonApiErrorMapper()));
         return ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
                 .verboseErrors(true)
                 .settings(jsonApiSettings)
-                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
+                .elideMapper(elideMapper)
                 .build();
     }
 }

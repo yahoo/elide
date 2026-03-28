@@ -5,16 +5,29 @@
  */
 package com.yahoo.elide;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.MapperBuilder;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.function.Consumer;
 
 /**
- * Used to store the singleton shared {@link ObjectMapper} instance.
+ * Used to store the shared {@link ObjectMapper} instance.
  */
-@Getter
-@AllArgsConstructor
 public class ElideMapper {
-    private final ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
+
+    public ElideMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
+
+    public ElideMapper customizeObjectMapper(Consumer<MapperBuilder> customizer) {
+        MapperBuilder builder = objectMapper.rebuild();
+        customizer.accept(builder);
+        this.objectMapper = builder.build();
+        return this;
+    }
 }

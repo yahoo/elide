@@ -6,10 +6,10 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.exceptions.ErrorContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Builder;
 import lombok.Getter;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * GraphQLErrorContext.

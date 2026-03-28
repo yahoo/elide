@@ -15,6 +15,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Namespace Config JSON.
@@ -32,6 +34,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonDeserialize(builder = NamespaceConfig.NamespaceConfigBuilder.class)
+@JsonPOJOBuilder(withPrefix = "")
 public class NamespaceConfig implements Named {
     private static final long serialVersionUID = 279959092479649876L;
 
@@ -61,5 +65,8 @@ public class NamespaceConfig implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
+    }
+
+    public static class NamespaceConfigBuilder {
     }
 }

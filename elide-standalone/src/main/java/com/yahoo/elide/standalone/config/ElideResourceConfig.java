@@ -43,13 +43,14 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.health.HealthCheckRegistry;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.jersey.inject.hk2.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import graphql.execution.DataFetcherExceptionHandler;
+
+import io.dropwizard.metrics5.MetricRegistry;
+import io.dropwizard.metrics5.health.HealthCheckRegistry;
 
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManagerFactory;
@@ -139,7 +140,7 @@ public class ElideResourceConfig extends ResourceConfig {
             }
 
             ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore,
-                    settings.getJsonApiMapper());
+                    settings.getElideMapper(), settings.getJsonApiMapper());
             Elide elide = new Elide(elideSettings, new TransactionRegistry(),
                     elideSettings.getEntityDictionary().getScanner(), false);
 

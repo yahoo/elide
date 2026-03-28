@@ -8,7 +8,6 @@ package com.yahoo.elide.modelconfig.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +15,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -49,6 +50,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonDeserialize(builder = Dimension.DimensionBuilder.class)
+@JsonPOJOBuilder(withPrefix = "")
 public class Dimension implements Named {
     private static final long serialVersionUID = 7886036651874169795L;
 
@@ -87,6 +90,7 @@ public class Dimension implements Named {
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
+    @Builder.Default
     private Set<String> tags = new LinkedHashSet<>();
 
     @JsonProperty("arguments")
@@ -95,6 +99,7 @@ public class Dimension implements Named {
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
+    @Builder.Default
     private Set<String> values = new LinkedHashSet<>();
 
     @JsonProperty("tableSource")
@@ -119,5 +124,8 @@ public class Dimension implements Named {
      */
     public boolean hasArgument(String argName) {
         return hasName(this.arguments, argName);
+    }
+
+    public static class DimensionBuilder {
     }
 }

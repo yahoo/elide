@@ -21,8 +21,6 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Ping;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -34,6 +32,8 @@ import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.language.SourceLocation;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -121,7 +121,7 @@ public class RequestHandler implements Closeable {
             try {
                 responseBody = elide.getObjectMapper().writeValueAsString(response.getBody());
                 safeSendError(responseBody);
-            } catch (JsonProcessingException e1) {
+            } catch (JacksonException e1) {
                 safeSendError(e1.toString());
             }
             safeClose();
@@ -194,12 +194,12 @@ public class RequestHandler implements Closeable {
     }
 
     protected void safeSendPing() {
-        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getElideMapper().getObjectMapper();
         Ping ping = new Ping();
 
         try {
             sendMessage(mapper.writeValueAsString(ping));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose();
         }
@@ -207,14 +207,14 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendNext(ExecutionResult result) {
         log.debug("Sending Next {}", result);
-        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getElideMapper().getObjectMapper();
         Next next = Next.builder()
                 .result(result)
                 .id(protocolID)
                 .build();
         try {
             sendMessage(mapper.writeValueAsString(next));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose();
         }
@@ -222,13 +222,13 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendComplete() {
         log.debug("Sending Complete");
-        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getElideMapper().getObjectMapper();
         Complete complete = Complete.builder()
                 .id(protocolID)
                 .build();
         try {
             sendMessage(mapper.writeValueAsString(complete));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose();
         }
@@ -236,14 +236,14 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendError(GraphQLError[] errors) {
         log.debug("Sending Error {}", errors);
-        ObjectMapper mapper = elide.getElideSettings().getObjectMapper();
+        ObjectMapper mapper = elide.getElideSettings().getElideMapper().getObjectMapper();
         Error error = Error.builder()
                 .id(protocolID)
                 .payload(errors)
                 .build();
         try {
             sendMessage(mapper.writeValueAsString(error));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("UNEXPECTED Json Serialization Error {}", e.getMessage());
             safeClose();
         }
@@ -252,6 +252,8 @@ public class RequestHandler implements Closeable {
 
     protected void safeSendError(String message) {
         GraphQLError error = new GraphQLError() {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public String getMessage() {
                 return message;

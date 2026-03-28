@@ -14,8 +14,8 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.junit.jupiter.api.BeforeAll;
 
 import lombok.NoArgsConstructor;
+import tools.jackson.core.JacksonException;
 
-import java.io.IOException;
 import java.util.function.Supplier;
 
 @NoArgsConstructor
@@ -51,7 +51,7 @@ public abstract class AbstractHibernateTestService {
             JsonApiDocument expectedDoc = jsonApiMapper.readJsonApiDocument(expected);
             JsonApiDocument actualDoc = jsonApiMapper.readJsonApiDocument(actual);
             assertEquals(expectedDoc, actualDoc, "\n" + actual + "\n" + expected + "\n");
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             fail("\n" + actual + "\n" + expected + "\n", e);
         }
     }

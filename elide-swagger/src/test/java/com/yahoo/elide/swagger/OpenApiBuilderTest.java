@@ -30,8 +30,6 @@ import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
-import com.fasterxml.jackson.databind.JsonNode;
-
 import example.models.Agent;
 import example.models.Author;
 import example.models.Book;
@@ -64,6 +62,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -1051,13 +1052,13 @@ class OpenApiBuilderTest {
         dictionary.bindEntity(Book.class);
         OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
         OpenAPI openApi = builder.build();
-        JsonNode jsonNode = Json.mapper().readTree(Json.pretty(openApi));
+        JsonNode jsonNode = JsonMapper.shared().readTree(Json.mapper().readTree(Json.pretty(openApi)).toString());
         JsonNode operations = jsonNode.at("/paths/~1operations");
         JsonNode schema = operations.at("/post/requestBody/content/application~1vnd.api+json; ext=\"https:~1~1jsonapi.org~1ext~1atomic\"/schema");
         JsonNode dataSchema = schema.at("/properties/atomic:operations/items/properties/data");
         JsonNode typeSchema = dataSchema.at("/anyOf/1/type");
-        assertTrue(typeSchema.isTextual()); // OpenAPI 3.0 doesn't support type: null
-        assertEquals("object", typeSchema.asText());
+        assertTrue(typeSchema.isString()); // OpenAPI 3.0 doesn't support type: null
+        assertEquals("object", typeSchema.asString());
         JsonNode nullableSchema = dataSchema.at("/anyOf/1/nullable");
         assertTrue(nullableSchema.isBoolean()); // OpenaAPI 3.0 supports nullable
         assertTrue(nullableSchema.booleanValue());
@@ -1071,13 +1072,13 @@ class OpenApiBuilderTest {
         OpenApiBuilder builder = new OpenApiBuilder(dictionary,
                 openApi -> openApi.specVersion(SpecVersion.V31).openapi("3.1.0")).apiVersion(info.getVersion());
         OpenAPI openApi = builder.build();
-        JsonNode jsonNode = Json31.mapper().readTree(Json31.pretty(openApi));
+        JsonNode jsonNode = JsonMapper.shared().readTree(Json31.mapper().readTree(Json31.pretty(openApi)).toString());
         JsonNode operations = jsonNode.at("/paths/~1operations");
         JsonNode schema = operations.at("/post/requestBody/content/application~1vnd.api+json; ext=\"https:~1~1jsonapi.org~1ext~1atomic\"/schema");
         JsonNode dataSchema = schema.at("/properties/atomic:operations/items/properties/data");
         JsonNode typeSchema = dataSchema.at("/anyOf/1/type");
         assertTrue(typeSchema.isArray());
-        assertEquals("null", typeSchema.get(1).asText()); // OpenAPI 3.1 supports type: null
+        assertEquals("null", typeSchema.get(1).asString()); // OpenAPI 3.1 supports type: null
         JsonNode nullableSchema = dataSchema.at("/anyOf/1/nullable");
         assertTrue(nullableSchema.isMissingNode()); // OpenAPI 3.1 does not support nullable
     }

@@ -39,7 +39,6 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.MoreExecutors;
 import example.Author;
 import example.Book;
@@ -55,6 +54,8 @@ import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.Session;
 import lombok.extern.slf4j.Slf4j;
+
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -115,7 +116,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         elide = new Elide(settings);
 
-        elide.getObjectMapper().registerModule(new GraphQLModule());
+        elide.getElideSettings().getElideMapper()
+                .customizeObjectMapper(builder -> builder.addModule(new GraphQLModule()));
     }
 
     @BeforeEach

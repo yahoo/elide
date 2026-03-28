@@ -119,7 +119,7 @@ import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrationsBuilderCus
 import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.utils.HeaderProcessor;
 import com.yahoo.elide.utils.Headers;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -140,7 +140,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.function.SingletonSupplier;
 
@@ -157,6 +156,8 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
+
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -218,7 +219,7 @@ public class ElideAutoConfiguration {
             SerdesBuilder serdesBuilder, ObjectProvider<SettingsBuilder> settingsProvider,
             ObjectProvider<ElideSettingsBuilderCustomizer> customizerProvider) {
         return ElideSettingsBuilderCustomizers.buildElideSettingsBuilder(builder -> {
-            builder.dataStore(dataStore).entityDictionary(entityDictionary).objectMapper(elideMapper.getObjectMapper())
+            builder.dataStore(dataStore).entityDictionary(entityDictionary).elideMapper(elideMapper)
                     .maxPageSize(settings.getMaxPageSize())
                     .defaultPageSize(settings.getDefaultPageSize()).auditLogger(auditLogger)
                     .baseUrl(settings.getBaseUrl())
@@ -584,12 +585,12 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @Scope(SCOPE_PROTOTYPE)
-    public ObjectMapperBuilder objectMapperBuilder(
-            Optional<Jackson2ObjectMapperBuilder> optionalJackson2ObjectMapperBuilder) {
-        if (optionalJackson2ObjectMapperBuilder.isPresent()) {
-            return optionalJackson2ObjectMapperBuilder.get()::build;
+    ObjectMapperBuilder objectMapperBuilder(
+            Optional<JsonMapper.Builder> optionalJsonMapperBuilder) {
+        if (optionalJsonMapperBuilder.isPresent()) {
+            return optionalJsonMapperBuilder.get()::build;
         }
-        return ObjectMapper::new;
+        return JsonMapper::shared;
     }
 
     @Bean
@@ -938,7 +939,7 @@ public class ElideAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public JsonApiMapper jsonApiMapper(ElideMapper elideMapper) {
-            return new JsonApiMapper(elideMapper.getObjectMapper());
+            return new JsonApiMapper(elideMapper);
         }
     }
 

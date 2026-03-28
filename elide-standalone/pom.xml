@@ -44,7 +44,7 @@
     </scm>
 
     <properties>
-        <metrics.version>4.2.38</metrics.version>
+        <metrics.version>5.0.6</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -53,7 +53,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>io.dropwizard.metrics</groupId>
+                <groupId>io.dropwizard.metrics5</groupId>
                 <artifactId>metrics-bom</artifactId>
                 <version>${metrics.version}</version>
                 <type>pom</type>
@@ -164,22 +164,22 @@
 
         <!-- Monitoring -->
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
+            <groupId>io.dropwizard.metrics5</groupId>
             <artifactId>metrics-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
+            <groupId>io.dropwizard.metrics5</groupId>
             <artifactId>metrics-jakarta-servlet</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
+            <groupId>io.dropwizard.metrics5</groupId>
             <artifactId>metrics-jakarta-servlets</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
+            <groupId>io.dropwizard.metrics5</groupId>
             <artifactId>metrics-jetty12-ee10</artifactId>
         </dependency>
 

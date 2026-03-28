@@ -58,7 +58,7 @@ public class ElideSubscriptionScanningConfiguration {
                 .scanner(elide.getScanner())
                 .entityDictionary(elide.getElideSettings().getEntityDictionary())
                 .connectionFactory(connectionFactory)
-                .objectMapper(elide.getElideSettings().getObjectMapper())
+                .elideMapper(elide.getElideSettings().getElideMapper())
                 .build();
 
         scanner.bindLifecycleHooks();

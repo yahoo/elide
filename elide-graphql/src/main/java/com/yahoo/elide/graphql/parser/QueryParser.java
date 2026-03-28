@@ -6,10 +6,9 @@
 
 package com.yahoo.elide.graphql.parser;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,9 +29,8 @@ public interface QueryParser {
      * @param message The document to parse.
      * @param mapper An object mapper to do JSON parsing.
      * @return A list of 1 or more parsed GraphQL queries.
-     * @throws IOException If there is a JSON processing error.
      */
-    default List<GraphQLQuery> parseDocument(String message, ObjectMapper mapper) throws IOException {
+    default List<GraphQLQuery> parseDocument(String message, ObjectMapper mapper) {
         List<GraphQLQuery> results = new ArrayList<>();
         JsonNode topLevel = mapper.readTree(message);
 
@@ -56,10 +54,9 @@ public interface QueryParser {
      * @param topLevel The query JsonNode to further parse.
      * @param mapper An object mapper to do JSON parsing.
      * @return A parsed GraphQL queries.
-     * @throws IOException If there is a JSON processing error.
      */
-    default GraphQLQuery parseQuery(JsonNode topLevel, ObjectMapper mapper) throws IOException {
-        String query = topLevel.has(QUERY) ? topLevel.get(QUERY).asText() : null;
+    default GraphQLQuery parseQuery(JsonNode topLevel, ObjectMapper mapper) {
+        String query = topLevel.has(QUERY) ? topLevel.get(QUERY).asString() : null;
         String operationName = "";
 
         Map<String, Object> variables = new HashMap<>();
@@ -68,7 +65,7 @@ public interface QueryParser {
         }
 
         if (topLevel.has(OPERATION_NAME) && !topLevel.get(OPERATION_NAME).isNull()) {
-            operationName = topLevel.get(OPERATION_NAME).asText();
+            operationName = topLevel.get(OPERATION_NAME).asString();
         }
 
         return new GraphQLQuery(query, operationName, variables);

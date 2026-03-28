@@ -12,11 +12,10 @@ import com.yahoo.elide.jsonapi.models.JsonApiError;
 import com.yahoo.elide.jsonapi.models.JsonApiError.Links;
 import com.yahoo.elide.jsonapi.models.JsonApiError.Source;
 import com.yahoo.elide.jsonapi.serialization.JsonApiModule;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 
@@ -25,16 +24,16 @@ import java.util.Map;
  */
 class DefaultJsonApiErrorMapperTest {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
     private JsonApiErrorMapper mapper = new DefaultJsonApiErrorMapper();
 
     @BeforeEach
     public void setup() {
-        objectMapper.registerModule(new JsonApiModule());
+        objectMapper = JsonMapper.builder().addModule(new JsonApiModule()).build();
     }
 
     @Test
-    void toJsonApiError() throws JsonProcessingException {
+    void toJsonApiError() {
         JsonApiError jsonApiError = mapper
                 .toJsonApiError(ElideError.builder()
                         .message("<script>message</script>")
@@ -52,7 +51,7 @@ class DefaultJsonApiErrorMapperTest {
     }
 
     @Test
-    void toJsonApiErrorMeta() throws JsonProcessingException {
+    void toJsonApiErrorMeta() {
         JsonApiError jsonApiError = mapper
                 .toJsonApiError(ElideError.builder()
                         .message("message")
@@ -65,7 +64,7 @@ class DefaultJsonApiErrorMapperTest {
     }
 
     @Test
-    void toJsonApiErrorLinks() throws JsonProcessingException {
+    void toJsonApiErrorLinks() {
         JsonApiError jsonApiError = mapper
                 .toJsonApiError(ElideError.builder()
                         .message("message")
@@ -78,7 +77,7 @@ class DefaultJsonApiErrorMapperTest {
     }
 
     @Test
-    void toJsonApiErrorSource() throws JsonProcessingException {
+    void toJsonApiErrorSource() {
         JsonApiError jsonApiError = mapper
                 .toJsonApiError(ElideError.builder()
                         .message("message")

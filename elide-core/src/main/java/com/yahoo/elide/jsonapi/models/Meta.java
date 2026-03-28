@@ -8,7 +8,7 @@ package com.yahoo.elide.jsonapi.models;
 import com.yahoo.elide.jsonapi.serialization.MetaDeserializer;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Map;
 

@@ -21,10 +21,6 @@ import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.jsonapi.models.JsonApiError;
 import com.yahoo.elide.jsonapi.models.JsonApiErrors;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,6 +35,10 @@ import jakarta.validation.ValidatorFactory;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.WebApplicationException;
+
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.DatabindException;
 
 import java.io.IOException;
 import java.util.List;
@@ -56,8 +56,8 @@ class DefaultJsonApiExceptionHandlerTest {
         INVALID_API(new InvalidApiVersionException(""), JsonApiErrorContext.builder().build(), 400),
         INVALID_ENTITY_BODY(new InvalidEntityBodyException(""), JsonApiErrorContext.builder().build(), 400),
         INVALID_CONSTRAINT(new InvalidConstraintException(""), JsonApiErrorContext.builder().build(), 400),
-        INVALID_ENTITY_BODY_JSON_PARSE(new InvalidEntityBodyException("", new JsonParseException("")), JsonApiErrorContext.builder().build(), 400),
-        JSON_PROCESSING(JsonMappingException.from((JsonParser) null, ""), JsonApiErrorContext.builder().build(), 400),
+        INVALID_ENTITY_BODY_JSON_PARSE(new InvalidEntityBodyException("", new StreamReadException("")), JsonApiErrorContext.builder().build(), 400),
+        JSON_PROCESSING(DatabindException.from((JsonParser) null, ""), JsonApiErrorContext.builder().build(), 400),
         IO(new IOException(""), JsonApiErrorContext.builder().build(), 423),
         FORBIDDEN_ACCESS(new ForbiddenAccessException(UpdatePermission.class), JsonApiErrorContext.builder().build(), 403),
         JSON_PATCH(new JsonPatchExtensionException(403, null), JsonApiErrorContext.builder().build(), 403),

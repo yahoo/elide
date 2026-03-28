@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.graphql.subscriptions.serialization;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.core.Version;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * GraphQL Subscription Module.
@@ -21,6 +21,6 @@ public class GraphQLSubscriptionModule extends SimpleModule {
     @Override
     public void setupModule(SetupContext context) {
         super.setupModule(context);
-        context.addBeanSerializerModifier(new SubscriptionBeanSerializerModifier());
+        context.addSerializerModifier(new SubscriptionBeanSerializerModifier());
     }
 }

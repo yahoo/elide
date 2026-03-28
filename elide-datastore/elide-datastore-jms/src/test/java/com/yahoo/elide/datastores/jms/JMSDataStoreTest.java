@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -22,7 +23,6 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.route.Route;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import example.Author;
 import example.Book;
@@ -41,6 +41,8 @@ import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSContext;
 import jakarta.jms.JMSProducer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Iterator;
@@ -72,7 +74,7 @@ public class JMSDataStoreTest {
 
         store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class), ClassType.of(Author.class),
                 ClassType.of(Chat.class)),
-                connectionFactory, dictionary, new ObjectMapper(), Duration.ofMillis(2500L));
+                connectionFactory, dictionary, new ElideMapper(JsonMapper.shared()), Duration.ofMillis(2500L));
         store.populateEntityDictionary(dictionary);
     }
 
