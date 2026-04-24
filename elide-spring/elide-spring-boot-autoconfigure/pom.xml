@@ -264,7 +264,7 @@
         
         <dependency>
             <groupId>com.atomikos</groupId>
-            <artifactId>transactions-spring-boot3-starter</artifactId>
+            <artifactId>transactions-spring-boot4-starter</artifactId>
             <scope>test</scope>
         </dependency>
 

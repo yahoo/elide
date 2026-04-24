@@ -31,7 +31,6 @@ import example.models.jpa.v3.ArtifactGroupV3;
 
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -491,7 +490,6 @@ class ElideAutoConfigurationTransactionTest {
     }
 
     @Test
-    @Disabled // Disabled as no Spring Boot 4 compatible atomikos starter
     void multiplexDataStoreJtaTransaction() {
         contextRunner
                 .withPropertyValues("spring.cloud.refresh.enabled=false",
@@ -558,7 +556,6 @@ class ElideAutoConfigurationTransactionTest {
     }
 
     @Test
-    @Disabled // Disabled as no Spring Boot 4 compatible atomikos starter
     void multipleDataStoreJtaTransaction() {
         contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false", "atomikos.properties.max-timeout=0")
                 .withConfiguration(AutoConfigurations.of(AtomikosAutoConfiguration.class))

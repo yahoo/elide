@@ -82,7 +82,7 @@
         <!-- dependency versions -->
         <antlr4.version>4.13.2</antlr4.version>
         <artemis.version>2.52.0</artemis.version>
-        <atomikos.version>6.0.0</atomikos.version>
+        <atomikos.version>6.0.1</atomikos.version>
         <calcite.version>1.41.0</calcite.version>
         <caffeine.version>3.2.3</caffeine.version>
         <classgraph.version>4.8.184</classgraph.version>
@@ -200,7 +200,7 @@
             </dependency>
             <dependency>
                 <groupId>com.atomikos</groupId>
-                <artifactId>transactions-spring-boot3-starter</artifactId>
+                <artifactId>transactions-spring-boot4-starter</artifactId>
                 <version>${atomikos.version}</version>
             </dependency>
             <dependency>
