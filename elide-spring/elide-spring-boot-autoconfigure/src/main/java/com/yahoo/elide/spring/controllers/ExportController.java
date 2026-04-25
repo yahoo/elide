@@ -71,10 +71,7 @@ public class ExportController {
                     // This will return 200 status.
                     // Add error message in the attachment as a way to signal errors.
                     outputStream.write("Error Occured....".concat(System.lineSeparator()).getBytes());
-                    log.debug(ie.getMessage());
-                } finally {
-                    outputStream.flush();
-                    outputStream.close();
+                    log.error(ie.getMessage(), ie);
                 }
             }
         };
