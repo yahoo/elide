@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>7.1.16-SNAPSHOT</version>
+        <version>7.1.17-SNAPSHOT</version>
     </parent>
 
     <licenses>

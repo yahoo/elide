@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.exceptions;
 
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -57,6 +58,6 @@ class Slf4jExceptionLoggerTest {
         IllegalArgumentException illegalArgumentException = mock(IllegalArgumentException.class);
         Slf4jExceptionLogger logger = new Slf4jExceptionLogger();
         logger.log(illegalArgumentException);
-        verify(illegalArgumentException).getMessage();
+        verify(illegalArgumentException, atLeastOnce()).getMessage();
     }
 }

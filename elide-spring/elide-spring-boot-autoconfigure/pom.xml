@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>7.1.16-SNAPSHOT</version>
+        <version>7.1.17-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -48,63 +48,63 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jms</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
@@ -204,7 +204,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

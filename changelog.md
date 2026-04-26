@@ -1,4 +1,10 @@
 # Change Log
+## 7.1.16
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/3db86a007f36b52c0534f31ab973043d4a5a2454) Remove empty link (#3384) 
+ * [view commit](https://github.com/yahoo/elide/commit/654e539bcd26544d020057b7b45b5ce553ce233a) Fix spring transactional resource leak (#3395) 
+ * [view commit](https://github.com/yahoo/elide/commit/950917814179ae23ea7a7c351b82dfe015a6e535) Include number, temporal, date and enum in OpenAPI sortable fields (#3397)
+   
 ## 7.1.15
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/2940b1a4d79c691ac2f4fb2250d5ac3e7861c75d) Fixing switch from oss.sonatype to central.sonatype.org (#3382) 

@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>7.1.16-SNAPSHOT</version>
+        <version>7.1.17-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -79,7 +79,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>7.1.16-SNAPSHOT</version>
+            <version>7.1.17-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
