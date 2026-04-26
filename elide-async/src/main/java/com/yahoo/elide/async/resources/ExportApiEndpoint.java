@@ -6,13 +6,14 @@
 package com.yahoo.elide.async.resources;
 
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.core.exceptions.HttpStatus;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.container.AsyncResponse;
@@ -83,9 +84,13 @@ public class ExportApiEndpoint {
                     try {
                         log.debug(message);
                         if (message != null && message.equals(ResultStorageEngine.RETRIEVE_ERROR)) {
-                            httpServletResponse.sendError(HttpStatus.SC_NOT_FOUND, asyncQueryId + " Not Found");
+                            String errorMessage = asyncQueryId + " Not Found";
+                            throw new NotFoundException(errorMessage,
+                                    Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build());
                         } else {
-                            httpServletResponse.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                            throw new InternalServerErrorException(
+                                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                                            .entity("Internal Server Error").build());
                         }
                     } catch (IllegalStateException ise) {
                         // If stream was flushed, Attachment download has already started.
