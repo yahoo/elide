@@ -1,4 +1,12 @@
 # Change Log
+## 7.1.17
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/ee41d4aa55676d83a976eaa6bb72c55b5ca90eb3) [maven-release-plugin] prepare for next development iteration 
+ * [view commit](https://github.com/yahoo/elide/commit/d744caeb8f829218323fd5c7fbc30cf868a3920b) Update to Spring Boot 3.5.14 and align dependencies (#3398) 
+ * [view commit](https://github.com/yahoo/elide/commit/759bd0e1c39e61a7c2e7448dfd995697315f5d24) Upgrade Quarkus to RestEasy Reactive (#3391) 
+ * [view commit](https://github.com/yahoo/elide/commit/df19d32773315fafe3fcc69136d6f222da42a6e9) Bump com.github.codemonstur:embedded-redis from 0.11.0 to 1.4.3 (#3192) 
+ * [view commit](https://github.com/yahoo/elide/commit/844d2896bd1079fa3557ed7acd44ba899d23d129) Bump org.apache.tomcat.embed:tomcat-embed-core from 11.0.14 to 11.0.21 (#3402)
+   
 ## 7.1.16
 **Fixes**
  * [view commit](https://github.com/yahoo/elide/commit/3db86a007f36b52c0534f31ab973043d4a5a2454) Remove empty link (#3384) 
