@@ -23,7 +23,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 
-import io.reactivex.Observable;
+import reactor.core.publisher.Flux;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -77,8 +77,8 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                         .filter(Objects::nonNull)
                         .flatMap(x ->
                                 getValueChecked(x, fieldName, requestScope)
-                                        .toList(LinkedHashSet::new)
-                                        .blockingGet()
+                                        .collect(Collectors.toCollection(LinkedHashSet::new))
+                                        .block()
                                         .stream())
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
@@ -94,7 +94,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         return true;
     }
 
-    private Observable<PersistentResource> getValueChecked(PersistentResource<?> resource, String fieldName,
+    private Flux<PersistentResource> getValueChecked(PersistentResource<?> resource, String fieldName,
                                                            RequestScope requestScope) {
 
         EntityDictionary dictionary = resource.getDictionary();
@@ -105,7 +105,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         Object entity = resource.getObject();
         if (entity == null || resource.getDictionary()
                 .getRelationshipType(resource.getResourceType(), fieldName) == RelationshipType.NONE) {
-            return Observable.empty();
+            return Flux.empty();
         }
 
         Relationship relationship = Relationship.builder()

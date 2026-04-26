@@ -34,7 +34,7 @@ class BasicOpenApiDocumentCustomizerTest {
     @OpenAPIDefinition(info = @Info(title = "My Title"))
     public static class UserDefinitionOpenApiConfiguration {
         @Bean
-        public OpenApiDocumentCustomizer openApiDocumentCustomizer() {
+        OpenApiDocumentCustomizer openApiDocumentCustomizer() {
             return new BasicOpenApiDocumentCustomizer();
         }
     }
@@ -43,7 +43,7 @@ class BasicOpenApiDocumentCustomizerTest {
     @OpenAPIDefinition(info = @Info(description = "My Description"))
     public static class UserDefinitionNoTitleOpenApiConfiguration {
         @Bean
-        public OpenApiDocumentCustomizer openApiDocumentCustomizer() {
+        OpenApiDocumentCustomizer openApiDocumentCustomizer() {
             return new BasicOpenApiDocumentCustomizer();
         }
     }
@@ -51,7 +51,7 @@ class BasicOpenApiDocumentCustomizerTest {
     @Configuration
     public static class UserNoDefinitionOpenApiConfiguration {
         @Bean
-        public OpenApiDocumentCustomizer openApiDocumentCustomizer() {
+        OpenApiDocumentCustomizer openApiDocumentCustomizer() {
             return new BasicOpenApiDocumentCustomizer();
         }
     }
@@ -66,7 +66,7 @@ class BasicOpenApiDocumentCustomizerTest {
         )
     public static class UserSecurityOpenApiConfiguration {
         @Bean
-        public OpenApiDocumentCustomizer openApiDocumentCustomizer() {
+        OpenApiDocumentCustomizer openApiDocumentCustomizer() {
             return new BasicOpenApiDocumentCustomizer();
         }
     }
@@ -121,6 +121,30 @@ class BasicOpenApiDocumentCustomizerTest {
             openApi.addTagsItem(new Tag().name("1-test"));
             context.getBean(OpenApiDocumentCustomizer.class).customize(openApi);
             assertThat(openApi.getTags()).extracting("name").containsExactly("1-test", "a-test", "b-test", "z-test");
+        });
+    }
+
+    @Test
+    void shouldUseOpenApiDefinitionExceptNonNullExisting() {
+        contextRunner.withUserConfiguration(UserDefinitionOpenApiConfiguration.class).run(context -> {
+            OpenAPI openApi = new OpenAPI();
+            openApi.setInfo(new io.swagger.v3.oas.models.info.Info().title("Should Be Overridden").version("v2"));
+            context.getBean(OpenApiDocumentCustomizer.class).customize(openApi);
+            assertThat(openApi.getInfo().getTitle()).isEqualTo("My Title");
+            assertThat(openApi.getInfo().getVersion()).isEqualTo("v2");
+        });
+    }
+
+    /**
+     * The OpenAPI document /info/version is a required property.
+     */
+    @Test
+    void shouldNotHaveNullVersion() {
+        contextRunner.withUserConfiguration(UserDefinitionOpenApiConfiguration.class).run(context -> {
+            OpenAPI openApi = new OpenAPI();
+            context.getBean(OpenApiDocumentCustomizer.class).customize(openApi);
+            assertThat(openApi.getInfo().getVersion()).isNotNull();
+            assertThat(openApi.getInfo().getVersion()).isEqualTo("");
         });
     }
 }

@@ -31,7 +31,7 @@ public class SubscriptionNodeContainer extends NodeContainer {
         if (type.isToOne()) {
             Set<PersistentResource> resources = (Set<PersistentResource>) context.parentResource
                     .getRelationCheckedFiltered(relationship)
-                    .toList(LinkedHashSet::new).blockingGet();
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
             if (resources.size() > 0) {
                 return new SubscriptionNodeContainer(resources.iterator().next());
             } else {
@@ -40,7 +40,7 @@ public class SubscriptionNodeContainer extends NodeContainer {
         } else {
             Set<PersistentResource> resources = (Set<PersistentResource>) context.parentResource
                     .getRelationCheckedFiltered(relationship)
-                    .toList(LinkedHashSet::new).blockingGet();
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
 
             return resources.stream()
                     .map(SubscriptionNodeContainer::new)

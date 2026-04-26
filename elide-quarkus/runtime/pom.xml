@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-quarkus-extension-parent</artifactId>
-    <version>7.0.5-SNAPSHOT</version>
+    <version>7.1.17-SNAPSHOT</version>
   </parent>
   <artifactId>elide-quarkus-extension</artifactId>
   <name>Elide Quarkus Extension - Runtime</name>
@@ -46,6 +46,10 @@
     </dependency>
     <dependency>
       <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-graphql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.elide</groupId>
       <artifactId>elide-datastore-aggregation</artifactId>
     </dependency>
     <dependency>
@@ -64,7 +68,7 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-server-common</artifactId>
+      <artifactId>quarkus-rest-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
@@ -80,7 +84,7 @@
     <plugins>
       <plugin>
         <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-bootstrap-maven-plugin</artifactId>
+        <artifactId>quarkus-extension-maven-plugin</artifactId>
         <version>3.0.0.Beta1</version>
         <executions>
           <execution>
@@ -104,6 +108,9 @@
               <version>${quarkus.version}</version>
             </path>
           </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-AlegacyConfigRoot=true</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>

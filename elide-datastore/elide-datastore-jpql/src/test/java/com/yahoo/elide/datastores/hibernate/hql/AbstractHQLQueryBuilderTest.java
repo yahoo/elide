@@ -29,6 +29,8 @@ import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jpql.porting.Query;
 import com.yahoo.elide.datastores.jpql.query.AbstractHQLQueryBuilder;
+import com.yahoo.elide.datastores.jpql.query.JacksonCursorEncoder;
+
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -57,7 +59,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
 
     public AbstractHQLQueryBuilderTest() {
-        super(getMockEntityProjection(), EntityDictionary.builder().build(), new TestSessionWrapper());
+        super(getMockEntityProjection(), EntityDictionary.builder().build(), new TestSessionWrapper(), new JacksonCursorEncoder());
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Chapter.class);

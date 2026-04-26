@@ -20,6 +20,7 @@ public enum KeyWord {
     NODE("node"),
     EDGES("edges"),
     PAGE_INFO("pageInfo"),
+    PAGE_INFO_HAS_PREVIOUS_PAGE("hasPreviousPage"),
     PAGE_INFO_HAS_NEXT_PAGE("hasNextPage"),
     PAGE_INFO_START_CURSOR("startCursor"),
     PAGE_INFO_END_CURSOR("endCursor"),

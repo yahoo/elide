@@ -17,7 +17,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipCon
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
 import com.google.common.base.Preconditions;
 
-import io.reactivex.Observable;
+import reactor.core.publisher.Flux;
 
 import java.util.Optional;
 
@@ -58,7 +58,7 @@ public class RecordState extends BaseState {
         final CollectionTerminalState collectionTerminalState =
                 new CollectionTerminalState(entityClass, Optional.of(resource),
                         Optional.of(subCollection), projection);
-        Observable<PersistentResource> collection = null;
+        Flux<PersistentResource> collection = null;
         if (type.isToOne()) {
             collection = resource.getRelationCheckedFiltered(projection.getRelationship(subCollection)
                     .orElseThrow(IllegalStateException::new));

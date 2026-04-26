@@ -256,9 +256,10 @@ public class ElideStandaloneTest {
                 .get("/api-docs")
                 .then()
                 .statusCode(200)
-                .body("tags.name", containsInAnyOrder("post", "argument", "metric",
-                        "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "postView", "namespace", "tableSource"));
+                .body("tags.name",
+                        containsInAnyOrder("atomic", "post", "argument", "metric", "dimension", "column", "table",
+                                "asyncQuery", "timeDimensionGrain", "timeDimension", "postView", "namespace",
+                                "tableSource"));
     }
 
     @Test

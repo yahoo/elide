@@ -22,7 +22,7 @@ import java.util.function.Function;
  */
 public class DataStoreBuilder {
     private final List<DataStore> dataStores = new ArrayList<>();
-    private Function<DataStore[], DataStore> multiplexer = MultiplexManager::new;
+    private Function<DataStore[], DataStore> multiplexer = null;
 
     public DataStoreBuilder dataStores(List<DataStore> dataStores) {
         this.dataStores.clear();
@@ -52,6 +52,11 @@ public class DataStoreBuilder {
         if (this.dataStores.size() == 1) {
             return this.dataStores.get(0);
         }
-        return multiplexer.apply(this.dataStores.toArray(DataStore[]::new));
+        if (multiplexer != null) {
+            return multiplexer.apply(this.dataStores.toArray(DataStore[]::new));
+        } else {
+            // Not set in ctor as multiplexer = MultiplexManager::new to make elide-datastore-multiplex optional
+            return new MultiplexManager(this.dataStores.toArray(DataStore[]::new));
+        }
     }
 }

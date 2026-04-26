@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>7.0.5-SNAPSHOT</version>
+        <version>7.1.17-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -83,6 +83,10 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-client-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>jakarta.jms</groupId>
             <artifactId>jakarta.jms-api</artifactId>

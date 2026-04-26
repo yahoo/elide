@@ -112,6 +112,19 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testNestedToOne() throws Exception {
+        String graphQLRequest = "mutation { "
+                + "author(ids: [\"1\"]) { "
+                + "edges { node {"
+                + "penName(op:DELETE) { "
+                + "edges { node { id } } "
+                + "} } }"
+                + "}"
+                + "}";
+        assertQueryEquals(graphQLRequest, "{\"author\":{\"edges\":[{\"node\":{\"penName\":{\"edges\":[]}}}]}}");
+    }
+
+    @Test
     public void testNestedCollection() throws Exception {
         // Part 1: Delete the objects
         runComparisonTest("nestedCollectionPt1");

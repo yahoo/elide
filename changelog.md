@@ -1,4 +1,132 @@
 # Change Log
+## 7.1.16
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/3db86a007f36b52c0534f31ab973043d4a5a2454) Remove empty link (#3384) 
+ * [view commit](https://github.com/yahoo/elide/commit/654e539bcd26544d020057b7b45b5ce553ce233a) Fix spring transactional resource leak (#3395) 
+ * [view commit](https://github.com/yahoo/elide/commit/950917814179ae23ea7a7c351b82dfe015a6e535) Include number, temporal, date and enum in OpenAPI sortable fields (#3397)
+   
+## 7.1.15
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/2940b1a4d79c691ac2f4fb2250d5ac3e7861c75d) Fixing switch from oss.sonatype to central.sonatype.org (#3382) 
+ * [view commit](https://github.com/yahoo/elide/commit/0ebd15d1b18b86f06c6fb1f227b825b36121419a) Fixing nexus URL 
+ * [view commit](https://github.com/yahoo/elide/commit/295e0035fb77ec531a78c6cfdd49cb2fd4b93037) Fixing switch from oss.sonatype to central.sonatype.org (#3381)
+    
+## 7.1.12
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/7a7ab677b57136fbde6fb76829f341c868bf5154) Fix coercing to String for Serdes (#3365) 
+ * [view commit](https://github.com/yahoo/elide/commit/f9769a6ed87092f9f91251ae28c19871efcbc2d5) Fix graphql fetcher to allow REMOVE and DELETE for toOne relationship (#3375) 
+ * [view commit](https://github.com/yahoo/elide/commit/c877a9a1f37912249f51f9e7221a39b0381f97ce) Support @IdGeneratorType (#3376) 
+ * [view commit](https://github.com/yahoo/elide/commit/68cee11d9febd77c2e75290d597cb87d3bf5f19b) Bump org.springdoc:springdoc-openapi-starter-common from 2.6.0 to 2.8.5 (#3325) 
+ * [view commit](https://github.com/yahoo/elide/commit/fb8f411ec8733e3547aaa27462249cab2d5d931e) Bump slf4j.version from 2.0.16 to 2.0.17 (#3345) 
+ * [view commit](https://github.com/yahoo/elide/commit/fd65d071d241e4289a576a1164ee613365eda4bb) Bump org.jacoco:jacoco-maven-plugin from 0.8.12 to 0.8.13 (#3346) 
+ * [view commit](https://github.com/yahoo/elide/commit/17db6c975df193fc856b8d1b39a215c115b3f91a) Bump jakarta.ws.rs:jakarta.ws.rs-api from 3.1.0 to 4.0.0 (#3348) 
+ * [view commit](https://github.com/yahoo/elide/commit/bd54098a8af7763c9c6e17154128a18ab2a1514f) Bump org.apache.poi:poi-ooxml from 5.2.5 to 5.4.0 (#3349) 
+ * [view commit](https://github.com/yahoo/elide/commit/799410132d13c34f14e8ca8f2792e2a617ef9b9f) Bump org.apache.httpcomponents.client5:httpclient5 from 5.4.1 to 5.4.3 (#3358) 
+ * [view commit](https://github.com/yahoo/elide/commit/3f6c7dbf61a5e56eddcaac97b5e5ee5622b8cd3a) Bump org.apache.tomcat.embed:tomcat-embed-core from 11.0.5 to 11.0.6 (#3364) 
+ * [view commit](https://github.com/yahoo/elide/commit/43e6d39a10abf63eea89adc66fe024a3ad3e1f25) Bump commons-beanutils:commons-beanutils from 1.9.4 to 1.11.0 (#3368) 
+
+## 7.1.11
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/1ef932676e79acba7ffd1efbfb938e32ab665771) Upgrade Spring Boot from 3.3.3 to 3.4.0 (#3313)
+ * [view commit](https://github.com/yahoo/elide/commit/bc2a3367ad6a63277c2a4f2f4a1c56af3c47ad35) Upgrade hibernate from 6.5.2.Final to 6.6.3.Final (#3312)
+ * [view commit](https://github.com/yahoo/elide/commit/e5e059ed928d45b1ac7e08e706dfa23d3433688a) Bump org.apache.maven.plugins:maven-checkstyle-plugin (#3311)
+ * [view commit](https://github.com/yahoo/elide/commit/07dd345af2572735790718a3c22de885ba94e4ed) Bump jakarta.inject:jakarta.inject-api from 2.0.1 to 2.0.1.MR (#3309)
+ * [view commit](https://github.com/yahoo/elide/commit/b34fc609be854ce5be99cf68a6a775a22f68a25d) Bump org.projectlombok:lombok from 1.18.32 to 1.18.36 (#3308)
+ * [view commit](https://github.com/yahoo/elide/commit/a832ab2b332df1e06d7ac239ce10dbe3668c3841) Bump jetty.version from 12.0.13 to 12.0.15 (#3307)
+ * [view commit](https://github.com/yahoo/elide/commit/cf7cdc6c1f313b7fd964121db50aec5499d6f04c) Quarkus: Use quarkus-extension-maven-plugin as per build-time deprecation warning (#3323)
+ * [view commit](https://github.com/yahoo/elide/commit/d50be37512914a6789c37546b4a15240354e837a) Quarkus: do all scans (not limited to security checks) (#3324)
+ * [view commit](https://github.com/yahoo/elide/commit/7f7605715f366485da44f551c67d9b613e31a466) Bump com.puppycrawl.tools:checkstyle from 10.20.1 to 10.21.4 (#3327)
+ * [view commit](https://github.com/yahoo/elide/commit/0d9acc25eace1811c20cbd2f4fbc9e693acd9201) Bump spring-boot.version from 3.4.0 to 3.4.1 (#3320)
+ * [view commit](https://github.com/yahoo/elide/commit/023d59fc95fc30c3db5ca637e71b85ac91758ad1) Bump tomcat.version from 10.1.31 to 11.0.2 (#3318)
+ * [view commit](https://github.com/yahoo/elide/commit/5dc06eafb352a95f6352404e12782dc024c1987d) Bump org.apache.maven.plugins:maven-site-plugin from 3.12.1 to 3.21.0 (#3315)
+ * [view commit](https://github.com/yahoo/elide/commit/28643ec58489f3c1622154441eca6f9f1803b918) Bump com.google.guava:guava from 33.2.0-jre to 33.4.0-jre (#3316)
+ * [view commit](https://github.com/yahoo/elide/commit/ea0fbf5a0ce9ccb259d010e3362f490c410e8567) Bump logback.version from 1.5.6 to 1.5.18 (#3339)
+ * [view commit](https://github.com/yahoo/elide/commit/04b0c977e9710e834fa96bb50310f213f8173260) Bump tomcat.version from 11.0.2 to 11.0.5 (#3338)
+ * [view commit](https://github.com/yahoo/elide/commit/cc99880fa46eb1adf5958353c3b236bdf6ea60f3) Bump io.swagger.core.v3:swagger-core-jakarta from 2.2.26 to 2.2.29 (#3334)
+ * [view commit](https://github.com/yahoo/elide/commit/fedf59d0cae96b3f555a6a7bcc92a3c1871a488a) Bump org.hibernate.validator:hibernate-validator (#3333)
+ * [view commit](https://github.com/yahoo/elide/commit/80269889171936677bf55f3242d865c1db1e44e4) Bump hibernate.version from 6.6.3.Final to 6.6.12.Final (#3343)
+ * [view commit](https://github.com/yahoo/elide/commit/8c4961ddc46863d946d388c256701d301b6be27e) Bump caffeine.version from 3.1.8 to 3.2.0 (#3342)
+ * [view commit](https://github.com/yahoo/elide/commit/b04efef1aabca4986a818eee64deab689ce58a3d) Bump rest-assured.version from 5.5.0 to 5.5.1 (#3341)
+ * [view commit](https://github.com/yahoo/elide/commit/aae5f497d50d40d8141d0cd5b544df2243428e36) Bump com.networknt:json-schema-validator from 1.4.2 to 1.5.6 (#3332)
+ * [view commit](https://github.com/yahoo/elide/commit/aa8910f3d391cee8afde829895bf9f6d7e6860b6) Bump org.owasp:dependency-check-maven from 9.2.0 to 12.1.0 (#3331)
+
+## 7.1.4
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/c9b24594c78ccea34e3eefc94214c4dcab092a95) Add support for extension property of OpenAPI 3_0 (#3301) (#3303) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/b4b0376c10f74fe49a6168912e7ca67a4941a163) Bump org.apache.tomcat.embed:tomcat-embed-core from 10.1.29 to 10.1.31 (#3304) 
+ * [view commit](https://github.com/yahoo/elide/commit/c1cc72686ec05f8e8b9bc2a312275042877d15e3) Bump io.swagger.core.v3:swagger-core-jakarta from 2.2.22 to 2.2.26 (#3300) 
+ * [view commit](https://github.com/yahoo/elide/commit/6642f7b4924562d69f5c61d953a6a0f3d24155f0) Bump com.puppycrawl.tools:checkstyle from 10.17.0 to 10.20.1 (#3299) 
+ * [view commit](https://github.com/yahoo/elide/commit/92a7f491073a17fa5cbd4b106135cb640d362986) Bump jakarta.validation:jakarta.validation-api from 3.0.2 to 3.1.0 (#3288) 
+ * [view commit](https://github.com/yahoo/elide/commit/c101e9f6db13156e19995264f72b0b0d1266a77a) Bump jetty.version from 12.0.10 to 12.0.13 (#3287) 
+ * [view commit](https://github.com/yahoo/elide/commit/174cf71fd985a26172b87af33e28a86c8fc0c36f) Bump slf4j.version from 2.0.13 to 2.0.16 (#3292) 
+ * [view commit](https://github.com/yahoo/elide/commit/ad894075dfc0fceb918d22dd2cb63c604be49db8) Bump tomcat.version from 10.1.25 to 10.1.29 (#3290) 
+
+## 7.1.2
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/4b5667b9bd23f2b5835adec7fa3c0cf26fb4bccd) Add support for cursor pagination (#3262)
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/681c304aaeea04cda2481e18a210a09338624242) Replace @EntityScan with @AutoConfigurationPackage for async (#3284) 
+ * [view commit](https://github.com/yahoo/elide/commit/106e5bc5b56f4718cca3eddf7aee670fa7c10260) Bump jakarta-websocket.version from 2.1.1 to 2.2.0 (#3275) 
+ * [view commit](https://github.com/yahoo/elide/commit/c1f54aae0f86e741b8da2126982e910ffb23cfd1) Bump redis.clients:jedis from 5.1.3 to 5.1.5 (#3282) 
+ * [view commit](https://github.com/yahoo/elide/commit/10a8f65f3e860483a07d8a212fc911533e4c6340) Bump spring-boot.version from 3.3.1 to 3.3.3 (#3276) 
+ * [view commit](https://github.com/yahoo/elide/commit/f5e5d64e417d5b8565e245d069001265792be7d3) Bump org.springdoc:springdoc-openapi-starter-common from 2.5.0 to 2.6.0 (#3281) 
+ * [view commit](https://github.com/yahoo/elide/commit/a28bdb7bb2414b2c143115a9ed2c48a28166479e) Bump org.apache.maven.plugins:maven-deploy-plugin from 3.1.2 to 3.1.3 (#3280) 
+ * [view commit](https://github.com/yahoo/elide/commit/558ba011b3244aae32f0fddc2f66d1f4ba285fc3) Bump commons-cli:commons-cli from 1.8.0 to 1.9.0 (#3278) 
+ * [view commit](https://github.com/yahoo/elide/commit/f5bf4454f0c0aa0ac435c083521a61bd3d07434c) Bump org.glassfish.jersey:jersey-bom from 3.1.7 to 3.1.8 (#3277) 
+
+## 7.1.1
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/8643a2f22021ae35534755ca1753c4537ad6cde0) Add support for obfuscated id or alternate entity id (#3261) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/9b39eb41c47cc26d66d9d1d4139683837f299fa6) Update readme to remove broken links and point to v7 docs (#3249) 
+ * [view commit](https://github.com/yahoo/elide/commit/566234e7303507b291ea9e021e80238f4dac83ec) Fix async when graphql not enabled (#3246) 
+ * [view commit](https://github.com/yahoo/elide/commit/5f76efda9dfe7bc03fa950d037ade906f7dcf0a6) Add atomic operations to OpenAPI document (#3248) 
+ * [view commit](https://github.com/yahoo/elide/commit/1fc5258cc3dfea3db060936e9d453e6b7e269263) Fix pagination set page totals to zero after non-zero query (#3258) 
+ * [view commit](https://github.com/yahoo/elide/commit/c68e373beb751c8d97b7e277c16e0b1536f9ff1f) Optimize required dependencies for modules (#3255) 
+ * [view commit](https://github.com/yahoo/elide/commit/702daeba73ebc300da48b9c7d30435a428991413) Bump org.apache.maven.plugins:maven-checkstyle-plugin (#3238) 
+ * [view commit](https://github.com/yahoo/elide/commit/02fb40da06417ff7231610dc7c26210801abf59e) Bump org.graalvm.buildtools:native-maven-plugin from 0.9.28 to 0.10.2 (#3239) 
+ * [view commit](https://github.com/yahoo/elide/commit/b3989389848cb44c910f6640f0fbcd352bb78c74) Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.1 to 3.2.4 (#3242) 
+ * [view commit](https://github.com/yahoo/elide/commit/fbbf2a860d79e7ca5794b16740a29f57c23d5c1f) Bump org.apache.maven.plugins:maven-jar-plugin from 3.4.1 to 3.4.2 (#3243) 
+ * [view commit](https://github.com/yahoo/elide/commit/22387ac8f4314278ae960cdb3d1857acdeec5da1) Improve mutation determination (#3269) 
+ * [view commit](https://github.com/yahoo/elide/commit/4a1111a5d1ebbc9ce3d659e78e2373651b4c9c99) Bump quarkus.version from 3.11.0 to 3.13.1 (#3270) 
+ * [view commit](https://github.com/yahoo/elide/commit/badae3cc9af7d14deb0dee1db0542429bb9ac65f) Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.6.3 to 3.10.0 (#3273) 
+ * [view commit](https://github.com/yahoo/elide/commit/88ab15c783bd2fc3fb1a2ad23fd68fefeb13a3bb) Bump com.h2database:h2 from 2.2.224 to 2.3.232 (#3272) 
+ * [view commit](https://github.com/yahoo/elide/commit/e7565763c3592949abb3e376cc3de963d674ee51) Bump rest-assured.version from 5.4.0 to 5.5.0 (#3266) 
+ * [view commit](https://github.com/yahoo/elide/commit/4155d03b3f3c7cd411700ab30163c6aa26f76a7c) Bump com.apollographql.federation:federation-graphql-java-support (#3265) 
+ * [view commit](https://github.com/yahoo/elide/commit/de948032b355ad67d95524204e00dcd119e65305) Bump org.apache.maven.plugins:maven-release-plugin from 3.0.1 to 3.1.1 (#3256) 
+ * [view commit](https://github.com/yahoo/elide/commit/701981196fd44a48cbb11493ee71b2cba92ab371) Bump org.springframework.cloud:spring-cloud-context from 4.1.2 to 4.1.4 (#3254) 
+ * [view commit](https://github.com/yahoo/elide/commit/b2b90b2bc082953ef2e6892c808a87fd94d29ec6) Bump org.skyscreamer:jsonassert from 1.5.1 to 1.5.3 (#3250) 
+
+## 7.1.0
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/29a605d0adc1ac91a25bd70e54c9915f22783771) Remove attributes and relationships from swagger components (#3229) (#3230) 
+ * [view commit](https://github.com/yahoo/elide/commit/1d9223bfe6dc140c18543230f8c027566e3105fe) Upgrade dependencies (#3217) 
+ * [view commit](https://github.com/yahoo/elide/commit/00a05e8189a81708c9ae92cab034c270cfc82ac5) Migrate rxjava2 to reactor (#3227) 
+ * [view commit](https://github.com/yahoo/elide/commit/ae4c615060718e787d3e825564515c0ecc769f2c) Migrate to networknt json schema validator implementation (#3212) 
+ * [view commit](https://github.com/yahoo/elide/commit/4999559047a7b19243f77006ecd24118a29688c7) Bump jetty.version from 12.0.9 to 12.0.10 (#3235) 
+ * [view commit](https://github.com/yahoo/elide/commit/63f0f6a18c757698c303407988b0a5d56dce7a9d) Bump spring-boot.version from 3.3.0 to 3.3.1 (#3234) 
+ * [view commit](https://github.com/yahoo/elide/commit/a7eb46291d9a7b9de208ca205b1617dee0101a2a) Bump spring-framework.version from 6.1.8 to 6.1.10 (#3233) 
+
+## 7.0.5
+**Features**
+ * [view commit](https://github.com/yahoo/elide/commit/7925edc78c8c013c6db9acc69051b36b929cc55f) Allow customization of GraphQLFieldDefinition (#3216) 
+
+**Fixes**
+ * [view commit](https://github.com/yahoo/elide/commit/61a9361f3d3b11b0c3a442d908e69add88177073) Apply DISTINCT for RootCollectionPageTotalsQueryBuilder only on JOINS (#3210) 
+ * [view commit](https://github.com/yahoo/elide/commit/23b81ea09e662b1a499daf755fe407acf04193ff) Bump slf4j.version from 2.0.12 to 2.0.13 (#3203) 
+ * [view commit](https://github.com/yahoo/elide/commit/d3ec411b2f7e8490f7aa1be5af603755ed75a398) Bump io.github.classgraph:classgraph from 4.8.170 to 4.8.172 (#3209) 
+ * [view commit](https://github.com/yahoo/elide/commit/1aa7c9b410fbe2d3e4aa6bb2b4844f60230f381b) Bump org.projectlombok:lombok from 1.18.30 to 1.18.32 (#3206) 
+ * [view commit](https://github.com/yahoo/elide/commit/af5450c9f978438f65f1ffb04ef3f7ff44b81d1d) Bump org.apache.maven.plugins:maven-jar-plugin from 3.3.0 to 3.4.1 (#3207) 
+ * [view commit](https://github.com/yahoo/elide/commit/ab28e2b2719e3f2c755070b3f754adea971fdc5d) Bump mockito.version from 5.8.0 to 5.11.0 (#3205) 
+ * [view commit](https://github.com/yahoo/elide/commit/ca972c8f43f767a241ef69b48ac2e5b6c53e308a) Bump logback.version from 1.4.14 to 1.5.6 (#3204) 
+ * [view commit](https://github.com/yahoo/elide/commit/3d6d7dbbef4996bc7024efb1890388ac1429f1f0) Bump org.apache.maven.scm:maven-scm-api from 2.0.1 to 2.1.0 (#3208) 
+ * [view commit](https://github.com/yahoo/elide/commit/bf5e20733b3a6b47707194d59a8c9343255607e0) Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.4.1 to 3.6.3 (#3202) 
+ * [view commit](https://github.com/yahoo/elide/commit/79551ee78fe34d89b84476edab2288922318b96d) Bump com.puppycrawl.tools:checkstyle from 10.12.5 to 10.16.0 (#3211) 
+ * [view commit](https://github.com/yahoo/elide/commit/eda310227424618eee2d5c2c857cd37f508b28cd) Remove spring-boot-properties-migrator (#3215) 
 
 ## 7.0.4
 **Fixes**

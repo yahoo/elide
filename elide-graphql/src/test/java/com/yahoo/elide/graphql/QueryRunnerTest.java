@@ -39,6 +39,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import graphql.GraphQLError;
+import graphql.language.Document;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -56,11 +57,34 @@ public class QueryRunnerTest extends GraphQLTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "#abcd\nmutation",
-            "#abcd\n\nmutation",
-            "   #abcd\n\nmutation",
-            "#abcd\n  #befd\n mutation",
-            "mutation"
+            """
+            # Queries can have comments!
+                         mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
+            createReview(episode: $ep, review: $review) {
+                stars
+                commentary
+                    }
+            }
+            """,
+            "mutation {book(op: UPSERT data: {id:1,title:\"1984\",price:{total:10.0,currency:{isoCode:\"USD\"}}}) {edges {node {id title authors(op: UPSERT data: {id:1,name:\"George Orwell\"}) {edges {node {id name}}}}}}}",
+            """
+            fragment postData on Post {
+              id
+              title
+              text
+              author {
+                username
+                displayName
+              }
+            }
+            mutation addPost($post: AddPostInput!) {
+              addPost(input: [$post]) {
+                post {
+                  ...postData
+                }
+              }
+            }
+            """
     })
     public void testIsMutation(String input) {
         assertTrue(QueryRunner.isMutation(input));
@@ -72,15 +96,48 @@ public class QueryRunnerTest extends GraphQLTest {
             "query",
             "QUERY",
             "MUTATION",
-            ""
+            "",
+            """
+            {
+              hero {
+                name
+              }
+            }
+            """,
+            """
+            query HeroComparison($first: Int = 3) {
+              leftComparison: hero(episode: EMPIRE) {
+                ...comparisonFields
+              }
+              rightComparison: hero(episode: JEDI) {
+                ...comparisonFields
+              }
+            }
+            fragment comparisonFields on Character {
+              name
+              friendsConnection(first: $first) {
+                totalCount
+                edges {
+                  node {
+                    name
+                  }
+                }
+              }
+            }
+            """
     })
     public void testIsNotMutation(String input) {
         assertFalse(QueryRunner.isMutation(input));
     }
 
     @Test
-    public void testNullMutation() {
-        assertFalse(QueryRunner.isMutation(null));
+    public void testNullMutationString() {
+        assertFalse(QueryRunner.isMutation((String) null));
+    }
+
+    @Test
+    public void testNullMutationDocument() {
+        assertFalse(QueryRunner.isMutation((Document) null));
     }
 
     @Test

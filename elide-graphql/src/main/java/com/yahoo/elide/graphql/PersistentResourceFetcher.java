@@ -27,12 +27,11 @@ import com.google.common.collect.Sets;
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.reactivex.Observable;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -130,8 +129,8 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
      * @param environment Environment encapsulating graphQL's request environment
      */
     private void filterSortPaginateSanityCheck(Environment environment) {
-        if (environment.filters.isPresent() || environment.sort.isPresent() || environment.offset.isPresent()
-                || environment.first.isPresent()) {
+        if (environment.filters.isPresent() || environment.sort.isPresent() || environment.after.isPresent()
+                || environment.first.isPresent() || environment.before.isPresent() || environment.last.isPresent()) {
             throw new BadRequestException("Pagination/Filtering/Sorting is only supported with FETCH operation");
         }
     }
@@ -167,16 +166,16 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
         String typeName = dictionary.getJsonAliasFor(projection.getType());
 
         /* fetching a collection */
-        Observable<PersistentResource> records = ids.map((idList) -> {
+        Flux<PersistentResource> records = ids.map((idList) -> {
             /* handle empty list of ids */
             if (idList.isEmpty()) {
                 throw new BadRequestException("Empty list passed to ids");
             }
 
             return PersistentResource.loadRecords(projection, idList, requestScope);
-        }).orElseGet(() -> PersistentResource.loadRecords(projection, new ArrayList<>(), requestScope));
+        }).orElseGet(() -> PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope));
 
-        return new ConnectionContainer(records.toList(LinkedHashSet::new).blockingGet(),
+        return new ConnectionContainer(records.collect(Collectors.toCollection(LinkedHashSet::new)).block(),
                 Optional.ofNullable(projection.getPagination()), typeName);
     }
 
@@ -199,11 +198,11 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
 
         Set<PersistentResource> relationResources;
         if (ids.isPresent()) {
-            relationResources =
-                    parentResource.getRelation(ids.get(), relationship).toList(LinkedHashSet::new).blockingGet();
+            relationResources = parentResource.getRelation(ids.get(), relationship)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
         } else {
-            relationResources =
-                    parentResource.getRelationCheckedFiltered(relationship).toList(LinkedHashSet::new).blockingGet();
+            relationResources = parentResource.getRelationCheckedFiltered(relationship)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)).block();
         }
 
         return new ConnectionContainer(
@@ -475,19 +474,33 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             throw new BadRequestException("DELETE must not include data argument");
         }
 
-        if (!context.ids.isPresent()) {
-            throw new BadRequestException("DELETE must include ids argument");
+        if (!context.isRoot() && context.parentResource.getRelationshipType(context.field.getName()).isToOne()) {
+            // handle toOne
+            ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+            Set<PersistentResource> toDelete = connection.getPersistentResources();
+            if (context.parentResource.clearRelation(context.field.getName())) {
+                toDelete.forEach(PersistentResource::deleteResource);
+            }
+            return new ConnectionContainer(
+                    Collections.emptySet(),
+                    Optional.empty(),
+                    connection.getTypeName()
+            );
+        } else {
+            if (!context.ids.isPresent()) {
+                throw new BadRequestException("DELETE must include ids argument");
+            }
+
+            ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+            Set<PersistentResource> toDelete = connection.getPersistentResources();
+            toDelete.forEach(PersistentResource::deleteResource);
+
+            return new ConnectionContainer(
+                    Collections.emptySet(),
+                    Optional.empty(),
+                    connection.getTypeName()
+            );
         }
-
-        ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
-        Set<PersistentResource> toDelete = connection.getPersistentResources();
-        toDelete.forEach(PersistentResource::deleteResource);
-
-        return new ConnectionContainer(
-                Collections.emptySet(),
-                Optional.empty(),
-                connection.getTypeName()
-        );
     }
 
     /**
@@ -496,29 +509,39 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
      * @return set of removed {@link PersistentResource} object(s)
      */
     private ConnectionContainer removeObjects(Environment context) {
-        /* sanity check for id and data argument w REPLACE */
+        /* sanity check for id and data argument w REMOVE */
         if (context.data.isPresent()) {
-            throw new BadRequestException("REPLACE must not include data argument");
+            throw new BadRequestException("REMOVE must not include data argument");
         }
 
-        if (!context.ids.isPresent()) {
-            throw new BadRequestException("REPLACE must include ids argument");
+        if (!context.isRoot() && context.parentResource.getRelationshipType(context.field.getName()).isToOne()) {
+            // handle toOne
+            context.parentResource.clearRelation(context.field.getName());
+            ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+            return new ConnectionContainer(
+                    Collections.emptySet(),
+                    Optional.empty(),
+                    connection.getTypeName()
+            );
+        } else {
+            if (!context.ids.isPresent()) {
+                throw new BadRequestException("REMOVE must include ids argument");
+            }
+
+            ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+            Set<PersistentResource> toRemove = connection.getPersistentResources();
+            if (!context.isRoot()) { /* has parent */
+                toRemove.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
+            } else { /* is root */
+                toRemove.forEach(PersistentResource::deleteResource);
+            }
+
+            return new ConnectionContainer(
+                    Collections.emptySet(),
+                    Optional.empty(),
+                    connection.getTypeName()
+            );
         }
-
-
-        ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
-        Set<PersistentResource> toRemove = connection.getPersistentResources();
-        if (!context.isRoot()) { /* has parent */
-            toRemove.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
-        } else { /* is root */
-            toRemove.forEach(PersistentResource::deleteResource);
-        }
-
-        return new ConnectionContainer(
-                Collections.emptySet(),
-                Optional.empty(),
-                connection.getTypeName()
-        );
     }
 
     /**

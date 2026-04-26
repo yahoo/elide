@@ -57,7 +57,6 @@ import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.StrictNoTransfer;
 import example.nontransferable.Untransferable;
 
-import io.reactivex.Observable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
@@ -65,6 +64,7 @@ import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
+import reactor.core.publisher.Flux;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -76,6 +76,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class PersistenceResourceTestSetup extends PersistentResource {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
@@ -288,10 +289,10 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
-        Observable<PersistentResource> resources =
+        Flux<PersistentResource> resources =
                 resource.getRelationCheckedFiltered(getRelationship(resource.getResourceType(), relation));
 
-        return resources.toList(LinkedHashSet::new).blockingGet();
+        return resources.collect(Collectors.toCollection(LinkedHashSet::new)).block();
     }
 
     public com.yahoo.elide.core.request.Relationship getRelationship(Type<?> type, String name) {

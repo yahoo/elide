@@ -30,21 +30,26 @@ import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.swagger.models.media.Data;
 import com.yahoo.elide.swagger.models.media.Datum;
 import com.yahoo.elide.swagger.models.media.Relationship;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import example.models.Agent;
 import example.models.Author;
 import example.models.Book;
 import example.models.Product;
 import example.models.Publisher;
+import example.models.Sort;
 import example.models.v2.BookV2;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Content;
@@ -92,6 +97,7 @@ class OpenApiBuilderTest {
         dictionary.bindEntity(Agent.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Product.class);
+        dictionary.bindEntity(Sort.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
@@ -108,6 +114,10 @@ class OpenApiBuilderTest {
         Schema<?> schema = openApi.getComponents().getSchemas().get("v2_book");
         assertNotNull(schema);
         openApi.getPaths().forEach((path, pathItem) -> {
+          if ("/operations".equals(path)) {
+              return; // skip atomic:operations
+          }
+
           Operation get = pathItem.getGet();
           if (get != null) {
               get.getTags().contains(tag);
@@ -140,7 +150,7 @@ class OpenApiBuilderTest {
 
         OpenApiBuilder builder = new OpenApiBuilder(dynamicDictionary).apiVersion(info.getVersion());
         OpenAPI dynamicOpenApi = builder.build();
-        assertEquals(2, dynamicOpenApi.getPaths().size());
+        assertEquals(3, dynamicOpenApi.getPaths().size());
     }
 
     @Test
@@ -196,13 +206,18 @@ class OpenApiBuilderTest {
         assertTrue(openApi.getPaths().containsKey("/product"));
         assertTrue(openApi.getPaths().containsKey("/product/{productId}"));
 
-        assertEquals(24, openApi.getPaths().size());
+        assertTrue(openApi.getPaths().containsKey("/operations")); // atomic:operations
+
+        assertEquals(27, openApi.getPaths().size());
     }
 
     @Test
     void testOperationGeneration() throws Exception {
         /* For each path, ensure the correct operations exist */
         openApi.getPaths().forEach((url, path) -> {
+            if ("/operations".equals(url)) {
+                return; // skip atomic:operations
+            }
 
             /* All paths should have a GET */
             assertNotNull(path.getGet());
@@ -365,7 +380,9 @@ class OpenApiBuilderTest {
     void testOperationSuccessResponseCodes() throws Exception {
         /* For each path, ensure the correct operations exist */
         openApi.getPaths().forEach((url, path) -> {
-
+            if ("/operations".equals(url)) {
+                return; // skip atomic:operations
+            }
             Operation getOperation = path.getGet();
             assertTrue(getOperation.getResponses().containsKey("200"));
 
@@ -517,6 +534,31 @@ class OpenApiBuilderTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void testSortParamFieldTypes() throws Exception {
+        List<Parameter> params = openApi.getPaths().get("/sort").getGet().getParameters();
+
+        Set<String> paramNames = params.stream()
+                .map((param) -> param.getName())
+                .collect(Collectors.toSet());
+
+        long sortParams = paramNames.stream().filter((name) -> name.startsWith("sort")).count();
+        assertEquals(1, sortParams);
+        assertTrue(paramNames.contains("sort"));
+
+        QueryParameter sortParam = (QueryParameter) params.stream()
+                .filter((param) -> param.getName().equals("sort"))
+                .findFirst()
+                .get();
+
+        assertEquals("query", sortParam.getIn());
+
+        List<String> sortValues = Arrays.asList("id", "-id", "localDateTime", "-localDateTime", "enumeration",
+                "-enumeration", "date", "-date", "bigDecimal", "-bigDecimal");
+        assertTrue(sortParam.getSchema().getItems().getEnum().containsAll(sortValues));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void testIncludeParam() throws Exception {
         List<Parameter> params = openApi.getPaths().get("/book").getGet().getParameters();
 
@@ -569,7 +611,7 @@ class OpenApiBuilderTest {
     void testTagGeneration() throws Exception {
 
         /* Check for the global tag definitions */
-        assertEquals(5, openApi.getTags().size());
+        assertEquals(7, openApi.getTags().size());
 
         String bookTag = openApi.getTags().stream()
                 .filter((tag) -> tag.getName().equals("book"))
@@ -806,6 +848,26 @@ class OpenApiBuilderTest {
     }
 
     @Test
+    void testExtendedAttribute() {
+        OpenAPI openAPI = new OpenApiBuilder(dictionary).build();
+        Schema<?> book = openAPI.getComponents().getSchemas().get("book");
+        Schema<?> attributes = book.getProperties().get("attributes");
+        Schema<?> titleAttribute = attributes.getProperties().get("title");
+        assertEquals("false", titleAttribute.getExtensions().get("isLocalized"));
+    }
+
+    @Test
+    void testExtendedAttributeRelationship() {
+        OpenAPI openAPI = new OpenApiBuilder(dictionary).build();
+        Schema<?> book = openAPI.getComponents().getSchemas().get("book");
+        Schema<?> relationships = book.getProperties().get("relationships");
+        Schema<?> publisherRelationship = relationships.getProperties().get("publisher");
+        Schema<?> publisherData = publisherRelationship.getProperties().get("data");
+        Schema<?> publisherItems = publisherData.getItems();
+        assertEquals("oneToOne", publisherItems.getExtensions().get("relationType"));
+    }
+
+    @Test
     void testEntityFilterCrud() {
         EntityDictionary entityDictionary = EntityDictionary.builder().build();
 
@@ -980,6 +1042,44 @@ class OpenApiBuilderTest {
                 assertNull(path.getPost());
             }
         });
+    }
+
+    @Test
+    void testAtomicOperationsOpenApi30() throws Exception {
+        Info info = new Info().title("Test Service").version(NO_VERSION);
+        EntityDictionary dictionary = EntityDictionary.builder().build();
+        dictionary.bindEntity(Book.class);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
+        OpenAPI openApi = builder.build();
+        JsonNode jsonNode = Json.mapper().readTree(Json.pretty(openApi));
+        JsonNode operations = jsonNode.at("/paths/~1operations");
+        JsonNode schema = operations.at("/post/requestBody/content/application~1vnd.api+json; ext=\"https:~1~1jsonapi.org~1ext~1atomic\"/schema");
+        JsonNode dataSchema = schema.at("/properties/atomic:operations/items/properties/data");
+        JsonNode typeSchema = dataSchema.at("/anyOf/1/type");
+        assertTrue(typeSchema.isTextual()); // OpenAPI 3.0 doesn't support type: null
+        assertEquals("object", typeSchema.asText());
+        JsonNode nullableSchema = dataSchema.at("/anyOf/1/nullable");
+        assertTrue(nullableSchema.isBoolean()); // OpenaAPI 3.0 supports nullable
+        assertTrue(nullableSchema.booleanValue());
+    }
+
+    @Test
+    void testAtomicOperationsOpenApi31() throws Exception {
+        Info info = new Info().title("Test Service").version(NO_VERSION);
+        EntityDictionary dictionary = EntityDictionary.builder().build();
+        dictionary.bindEntity(Book.class);
+        OpenApiBuilder builder = new OpenApiBuilder(dictionary,
+                openApi -> openApi.specVersion(SpecVersion.V31).openapi("3.1.0")).apiVersion(info.getVersion());
+        OpenAPI openApi = builder.build();
+        JsonNode jsonNode = Json31.mapper().readTree(Json31.pretty(openApi));
+        JsonNode operations = jsonNode.at("/paths/~1operations");
+        JsonNode schema = operations.at("/post/requestBody/content/application~1vnd.api+json; ext=\"https:~1~1jsonapi.org~1ext~1atomic\"/schema");
+        JsonNode dataSchema = schema.at("/properties/atomic:operations/items/properties/data");
+        JsonNode typeSchema = dataSchema.at("/anyOf/1/type");
+        assertTrue(typeSchema.isArray());
+        assertEquals("null", typeSchema.get(1).asText()); // OpenAPI 3.1 supports type: null
+        JsonNode nullableSchema = dataSchema.at("/anyOf/1/nullable");
+        assertTrue(nullableSchema.isMissingNode()); // OpenAPI 3.1 does not support nullable
     }
 
     /**

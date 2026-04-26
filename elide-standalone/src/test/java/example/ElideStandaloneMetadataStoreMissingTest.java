@@ -7,6 +7,7 @@ package example;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -61,7 +62,8 @@ public class ElideStandaloneMetadataStoreMissingTest {
             }
 
             @Override
-            public MetaDataStore getMetaDataStore(ClassScanner scanner, Optional<DynamicConfiguration> validator) {
+            public MetaDataStore getMetaDataStore(ClassScanner scanner, Injector injector,
+                    Optional<DynamicConfiguration> validator) {
                 return null;
             }
         });

@@ -33,6 +33,7 @@ import com.apollographql.federation.graphqljava.FederationDirectives;
 import example.Address;
 import example.Author;
 import example.Book;
+import example.Preview;
 import example.Publisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -116,6 +117,7 @@ public class ModelBuilderTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Address.class);
+        dictionary.bindEntity(Preview.class);
     }
 
     @Test
@@ -224,7 +226,6 @@ public class ModelBuilderTest {
         GraphQLType internalBookInput = schema.getType("ElideInternalBookInput");
         assertNotNull(internalBookInput);
     }
-
 
     @Test
     public void testPageInfoObject() {
@@ -411,6 +412,24 @@ public class ModelBuilderTest {
         /* book.authors is a 'to many' relationship and has the argument "filterAuthor" defined */
         GraphQLFieldDefinition authorField = bookType.getFieldDefinition(FIELD_AUTHORS);
         assertNotNull(authorField.getArgument("filterAuthor"));
+    }
+
+    @Test
+    public void testGraphQLFieldDefinitionCustomizer() {
+        GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer = DefaultGraphQLFieldDefinitionCustomizer.INSTANCE;
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        ElideSettings settings = ElideSettings.builder().entityDictionary(dictionary).settings(GraphQLSettingsBuilder
+                .withDefaults(dictionary).graphqlFieldDefinitionCustomizer(graphqlFieldDefinitionCustomizer)).build();
+        ModelBuilder builder = new ModelBuilder(dictionary,
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                settings, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+        GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(TYPE_BOOK);
+        assertEquals("The title of the book", bookType.getFieldDefinition("title").getDescription());
+        assertEquals("The genre of the book", bookType.getFieldDefinition("genre").getDescription());
+        assertEquals("The previews of the book", bookType.getFieldDefinition("previews").getDescription());
+        assertEquals("The authors of the book", bookType.getFieldDefinition("authors").getDescription());
     }
 
     @Include

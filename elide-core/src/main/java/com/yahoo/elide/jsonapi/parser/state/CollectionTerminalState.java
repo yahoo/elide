@@ -34,12 +34,11 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import io.reactivex.Observable;
 import lombok.ToString;
-
-import java.util.ArrayList;
+import reactor.core.publisher.Flux;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -53,13 +52,13 @@ import java.util.stream.Collectors;
  */
 @ToString
 public class CollectionTerminalState extends BaseState {
-    private final Optional<PersistentResource> parent;
+    private final Optional<PersistentResource<?>> parent;
     private final Optional<String> relationName;
     private final Type<?> entityClass;
-    private PersistentResource newObject;
+    private PersistentResource<?> newObject;
     private final EntityProjection parentProjection;
 
-    public CollectionTerminalState(Type<?> entityClass, Optional<PersistentResource> parent,
+    public CollectionTerminalState(Type<?> entityClass, Optional<PersistentResource<?>> parent,
                                    Optional<String> relationName, EntityProjection projection) {
         this.parentProjection = projection;
         this.parent = parent;
@@ -74,7 +73,7 @@ public class CollectionTerminalState extends BaseState {
         Map<String, List<String>> queryParams = requestScope.getRoute().getParameters();
 
         LinkedHashSet<PersistentResource> collection =
-                getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
+                getResourceCollection(requestScope).collect(Collectors.toCollection(LinkedHashSet::new)).block();
 
         // Set data
         jsonApiDocument.setData(getData(collection, requestScope.getDictionary()));
@@ -92,7 +91,7 @@ public class CollectionTerminalState extends BaseState {
         // Add pagination meta data
         if (!pagination.isDefaultInstance()) {
 
-            Map<String, Number> pageMetaData = new HashMap<>();
+            Map<String, Object> pageMetaData = new LinkedHashMap<>();
             pageMetaData.put("number", (pagination.getOffset() / pagination.getLimit()) + 1);
             pageMetaData.put("limit", pagination.getLimit());
 
@@ -103,8 +102,26 @@ public class CollectionTerminalState extends BaseState {
                         + ((totalRecords % pagination.getLimit()) > 0 ? 1 : 0));
                 pageMetaData.put("totalRecords", totalRecords);
             }
+            String startCursor = pagination.getStartCursor();
+            if (startCursor != null) {
+                pageMetaData.put("startCursor", startCursor);
+                pageMetaData.remove("number"); // remove page number
+            }
+            String endCursor = pagination.getEndCursor();
+            if (endCursor != null) {
+                pageMetaData.put("endCursor", endCursor);
+                pageMetaData.remove("number"); // remove page number
+            }
+            Boolean hasPreviousPage = pagination.getHasPreviousPage();
+            if (hasPreviousPage != null) {
+                pageMetaData.put("hasPreviousPage", hasPreviousPage);
+            }
+            Boolean hasNextPage = pagination.getHasNextPage();
+            if (hasNextPage != null) {
+                pageMetaData.put("hasNextPage", hasNextPage);
+            }
 
-            Map<String, Object> allMetaData = new HashMap<>();
+            Map<String, Object> allMetaData = new LinkedHashMap<>();
             allMetaData.put("page", pageMetaData);
 
             Meta meta = new Meta(allMetaData);
@@ -134,8 +151,8 @@ public class CollectionTerminalState extends BaseState {
         };
     }
 
-    private Observable<PersistentResource> getResourceCollection(RequestScope requestScope) {
-        final Observable<PersistentResource> collection;
+    private Flux<PersistentResource> getResourceCollection(RequestScope requestScope) {
+        final Flux<PersistentResource> collection;
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
 
@@ -146,7 +163,7 @@ public class CollectionTerminalState extends BaseState {
         } else {
             collection = PersistentResource.loadRecords(
                 parentProjection,
-                new ArrayList<>(), //Empty list of IDs
+                Collections.emptyList(), //Empty list of IDs
                 requestScope);
         }
 

@@ -1,5 +1,14 @@
 {
-    "$schema": "https://json-schema.org/draft-04/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "elideRole" : {
+              "type": "string",
+              "pattern": "^[A-Za-z][0-9A-Za-z. ]*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideRole pattern must start with an alphabetic character and can include alphabets, numbers, spaces and ''.'' only."
+              }
+        }
+    },
     "description": "Elide Security config json/hjson schema",
     "type": "object",
     "properties": {
@@ -9,8 +18,7 @@
             "type": "array",
             "uniqueItems": true,
             "items": {
-                "type": "string",
-                "format": "elideRole"
+                "$ref": "#/$defs/elideRole"
             }
         },
         "rules": {

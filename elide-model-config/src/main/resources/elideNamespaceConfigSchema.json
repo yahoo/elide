@@ -1,5 +1,14 @@
 {
-    "$schema": "https://json-schema.org/draft-04/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "elideNamespaceName" : {
+              "type": "string",
+              "pattern": "^default$|^(?!(?i)default$)^[A-Za-z][0-9A-Za-z_]*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideNamespaceName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only and must not clash with the ''default'' namespace."
+              }
+        }
+    },
     "type": "object",
     "title": "Elide Namespace Config Root Schema",
     "description": "Elide Namespace config json/hjson schema",
@@ -24,10 +33,9 @@
                 "additionalProperties": false,
                 "properties": {
                     "name": {
-                        "type": "string",
                         "title": "Namespace Name",
                         "description": "Name of the Namespace. This can used for grouping the tables by subject area.",
-                        "format": "elideNamespaceName",
+                        "$ref": "#/$defs/elideNamespaceName",
                         "examples": [
                             "MyNamespace"
                         ]

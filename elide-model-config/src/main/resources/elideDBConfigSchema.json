@@ -1,5 +1,28 @@
 {
-    "$schema": "https://json-schema.org/draft-04/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "elideName" : {
+              "type": "string",
+              "pattern": "^[A-Za-z][0-9A-Za-z_]*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only."
+              }
+        },
+        "elideJdbcUrl" : {
+              "type": "string",
+              "pattern": "^(jdbc:).*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideJdbcUrl pattern must start with ''jdbc:''."
+              }
+        },
+        "javaClassName" : {
+              "type": "string",
+              "pattern": "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)+(\\.\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the javaClassName pattern is not a valid Java class name."
+              }
+        }
+    },
     "type": "object",
     "title": "Elide DB Config Root Schema",
     "description": "Elide database connection config json/hjson schema",
@@ -28,28 +51,25 @@
                 "additionalProperties": false,
                 "properties": {
                     "name": {
-                        "type": "string",
                         "title": "DB Connection Name",
                         "description": "Name of the database connection. This will be used for the persistent unit name.",
-                        "format": "elideName",
+                        "$ref": "#/$defs/elideName",
                         "examples": [
                             "MySQLConnection"
                         ]
                     },
                     "url": {
-                        "type": "string",
                         "title": "JDBC URL",
                         "description": "JDBC URL for the database connection i.e. javax.persistence.jdbc.URL",
-                        "format": "elideJdbcUrl",
+                        "$ref": "#/$defs/elideJdbcUrl",
                         "examples": [
                             "jdbc:mysql://localhost/elide?serverTimezone=UTC"
                         ]
                     },
                     "driver": {
-                        "type": "string",
                         "title": "JDBC Driver Name",
                         "description": "JDBC Driver for the database connection i.e. javax.persistence.jdbc.driver",
-                        "format": "javaClassName",
+                        "$ref": "#/$defs/javaClassName",
                         "examples": [
                             "com.mysql.jdbc.Driver"
                         ]
@@ -63,10 +83,9 @@
                         ]
                     },
                     "dialect": {
-                        "type": "string",
                         "title": "Elide Dialect",
                         "description": "The Elide Dialect to use for query generation.",
-                        "format": "javaClassName",
+                        "$ref": "#/$defs/javaClassName",
                         "examples": [
                             "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect"
                         ]

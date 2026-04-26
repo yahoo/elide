@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionaryBuilderCustomizer;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.security.checks.Check;
@@ -46,12 +47,11 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.collections.CollectionUtils;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,7 +69,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
 /**
  * Util class to validate and parse the config files. Optionally compiles config files.
  */
@@ -81,11 +80,6 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     private static final String SQL_SPLIT_REGEX = "\\s+";
     private static final String SEMI_COLON = ";";
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
-    private static final String RESOURCES = "resources";
-    private static final int RESOURCES_LENGTH = 9; //"resources".length()
-    private static final String CLASSPATH_PATTERN = "classpath*:";
-    private static final String FILEPATH_PATTERN = "file:";
-    private static final String HJSON_EXTN = "**/*.hjson";
 
     @Getter private final ElideTableConfig elideTableConfig = new ElideTableConfig();
     @Getter private ElideSecurityConfig elideSecurityConfig;
@@ -100,10 +94,27 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     private static final Pattern FILTER_VARIABLE_PATTERN = Pattern.compile(".*?\\{\\{(\\w+)\\}\\}");
 
     public DynamicConfigValidator(ClassScanner scanner, String configDir) {
-        dictionary = EntityDictionary.builder().scanner(scanner).build();
-        fileLoader = new FileLoader(configDir);
+        this(builder -> builder.scanner(scanner), configDir);
+    }
 
+    public DynamicConfigValidator(EntityDictionaryBuilderCustomizer entityDictionaryBuilderCustomizer,
+            String configDir) {
+        this(buildEntityDictionary(entityDictionaryBuilderCustomizer), configDir);
+    }
+
+    public DynamicConfigValidator(EntityDictionary dictionary, String configDir) {
+        this.dictionary = dictionary;
+        this.fileLoader = new FileLoader(configDir);
         initialize();
+    }
+
+    protected static EntityDictionary buildEntityDictionary(
+            EntityDictionaryBuilderCustomizer entityDictionaryBuilderCustomizer) {
+        EntityDictionary.EntityDictionaryBuilder  builder = EntityDictionary.builder();
+        if (entityDictionaryBuilderCustomizer != null) {
+            entityDictionaryBuilderCustomizer.customize(builder);
+        }
+        return builder.build();
     }
 
     private void initialize() {
@@ -323,7 +334,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     }
 
     private Map<String, Measure> getInheritedMeasures(Table table, Map<String, Measure> measures) {
-        Inheritance action = () -> {
+        Inheritance<?> action = () -> {
             table.getMeasures().forEach(measure -> {
                 if (!measures.containsKey(measure.getName())) {
                     measures.put(measure.getName(), measure);
@@ -337,7 +348,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     }
 
     private Map<String, Dimension> getInheritedDimensions(Table table, Map<String, Dimension> dimensions) {
-        Inheritance action = () -> {
+        Inheritance<?> action = () -> {
             table.getDimensions().forEach(dimension -> {
                 if (!dimensions.containsKey(dimension.getName())) {
                     dimensions.put(dimension.getName(), dimension);
@@ -351,7 +362,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
     }
 
     private Map<String, Join> getInheritedJoins(Table table, Map<String, Join> joins) {
-        Inheritance action = () -> {
+        Inheritance<?> action = () -> {
             table.getJoins().forEach(join -> {
                 if (!joins.containsKey(join.getName())) {
                     joins.put(join.getName(), join);
@@ -364,42 +375,32 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
         return joins;
     }
 
-    private <T> T getInheritedAttribute(Inheritance action, T property) {
-        return property == null ? (T) action.inherit() : property;
+    private <T> T getInheritedAttribute(Inheritance<T> action, T property) {
+        return property == null ? action.inherit() : property;
     }
 
-    private <T> Collection<T> getInheritedAttribute(Inheritance action, Collection<T> property) {
-        return CollectionUtils.isEmpty(property) ? (Collection<T>) action.inherit() : property;
+    private <T extends Collection<?>> T getInheritedAttribute(Inheritance<T> action, T property) {
+        return property == null || property.isEmpty() ? action.inherit() : property;
     }
 
     private String getInheritedSchema(Table table, String schema) {
-        Inheritance action = table::getSchema;
-
-        return getInheritedAttribute(action, schema);
+        return getInheritedAttribute(table::getSchema, schema);
     }
 
     private String getInheritedConnection(Table table, String connection) {
-        Inheritance action = table::getDbConnectionName;
-
-        return getInheritedAttribute(action, connection);
+        return getInheritedAttribute(table::getDbConnectionName, connection);
     }
 
     private String getInheritedSql(Table table, String sql) {
-        Inheritance action = table::getSql;
-
-        return getInheritedAttribute(action, sql);
+        return getInheritedAttribute(table::getSql, sql);
     }
 
     private String getInheritedTable(Table table, String tableName) {
-        Inheritance action = table::getTable;
-
-        return getInheritedAttribute(action, tableName);
+        return getInheritedAttribute(table::getTable, tableName);
     }
 
     private List<Argument> getInheritedArguments(Table table, List<Argument> arguments) {
-        Inheritance action = table::getArguments;
-
-        return (List<Argument>) getInheritedAttribute(action, arguments);
+        return getInheritedAttribute(table::getArguments, arguments);
     }
 
     /**
@@ -418,7 +419,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
                                 return DynamicConfigHelpers.stringToVariablesPojo(entry.getKey(),
                                                 entry.getValue().getContent(), schemaValidator);
                             } catch (IOException e) {
-                                throw new IllegalStateException(e);
+                                throw new UncheckedIOException(e.getMessage(), e);
                             }
                         })
                         .findFirst()
@@ -441,7 +442,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
                                 return DynamicConfigHelpers.stringToElideSecurityPojo(entry.getKey(),
                                                 content, this.modelVariables, schemaValidator);
                             } catch (IOException e) {
-                                throw new IllegalStateException(e);
+                                throw new UncheckedIOException(e.getMessage(), e);
                             }
                         })
                         .findAny()
@@ -465,7 +466,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
                                 return DynamicConfigHelpers.stringToElideDBConfigPojo(entry.getKey(),
                                                 content, this.dbVariables, schemaValidator);
                             } catch (IOException e) {
-                                throw new IllegalStateException(e);
+                                throw new UncheckedIOException(e.getMessage(), e);
                             }
                         })
                         .flatMap(dbconfig -> dbconfig.getDbconfigs().stream())
@@ -490,7 +491,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
                                 return DynamicConfigHelpers.stringToElideNamespaceConfigPojo(fileName,
                                                 content, this.modelVariables, schemaValidator);
                             } catch (IOException e) {
-                                throw new IllegalStateException(e);
+                                throw new UncheckedIOException(e.getMessage(), e);
                             }
                         })
                         .flatMap(namespaceconfig -> namespaceconfig.getNamespaceconfigs().stream())
@@ -513,7 +514,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
                                 return DynamicConfigHelpers.stringToElideTablePojo(entry.getKey(),
                                                 content, this.modelVariables, schemaValidator);
                             } catch (IOException e) {
-                                throw new IllegalStateException(e);
+                                throw new UncheckedIOException(e.getMessage(), e);
                             }
                         })
                         .flatMap(table -> table.getTables().stream())
@@ -604,7 +605,7 @@ public class DynamicConfigValidator implements DynamicConfiguration, Validator {
             extractChecksFromExpr(namespace.getReadAccess(), extractedChecks, visitor);
         }
 
-        validateChecks(extractedChecks, Collections.EMPTY_SET);
+        validateChecks(extractedChecks, Collections.emptySet());
 
         return true;
     }

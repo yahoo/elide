@@ -14,11 +14,17 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.graphql.GraphQLFieldDefinitionCustomizer;
 import com.yahoo.elide.graphql.GraphQLScalars;
+import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.annotation.GraphQLDescription;
+
 import example.Address;
 import example.Author;
 import example.Book;
@@ -30,6 +36,7 @@ import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLFieldDefinition.Builder;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
@@ -69,15 +76,29 @@ public class SubscriptionModelBuilderTest {
 
     @Test
     public void testRootType() {
-        DataFetcher fetcher = mock(DataFetcher.class);
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
+        GraphQLFieldDefinitionCustomizer graphqlFieldDefinitionCustomizer = (Builder fieldDefinition,
+                Type<?> parentClass, Type<?> attributeClass, String attribute, DataFetcher<?> dataFetcher,
+                EntityDictionary entityDictionary) -> {
+            GraphQLDescription description = entityDictionary.getAttributeOrRelationAnnotation(parentClass,
+                    GraphQLDescription.class, attribute);
+            if (description != null) {
+                fieldDefinition.description(description.value());
+            }
+        };
         SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary,
-                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup),
+                ElideSettings.builder().settings(GraphQLSettings.builder().graphqlFieldDefinitionCustomizer(graphqlFieldDefinitionCustomizer)).build(), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
         GraphQLObjectType subscriptionType = (GraphQLObjectType) schema.getType("Subscription");
 
         //Book Type
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(TYPE_BOOK);
+        assertEquals("The title of the book", bookType.getFieldDefinition("title").getDescription());
+        assertEquals("The genre of the book", bookType.getFieldDefinition("genre").getDescription());
+        assertEquals("The previews of the book", bookType.getFieldDefinition("previews").getDescription());
+        assertEquals("The authors of the book", bookType.getFieldDefinition("authors").getDescription());
 
         GraphQLFieldDefinition bookField = subscriptionType.getFieldDefinition(BOOK);
         GraphQLEnumType bookTopicType = (GraphQLEnumType) bookField.getArgument(TOPIC).getType();
@@ -113,9 +134,10 @@ public class SubscriptionModelBuilderTest {
 
     @Test
     public void testModelTypes() {
-        DataFetcher fetcher = mock(DataFetcher.class);
+        DataFetcher<?> fetcher = mock(DataFetcher.class);
         SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary,
-                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup), fetcher, NO_VERSION);
+                new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup), ElideSettings.builder().build(),
+                fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 

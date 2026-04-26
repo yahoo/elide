@@ -41,7 +41,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -1107,11 +1106,11 @@ public class ControllerTest extends IntegrationTest {
                 .get("/doc")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("tags.name", containsInAnyOrder("group", "argument", "metric",
-                        "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats", "namespace", "tableSource", "maintainer", "book", "publisher", "person",
-                        "export"));
+                .body("tags.name",
+                        containsInAnyOrder("atomic", "group", "argument", "metric", "dimension", "column", "table",
+                                "asyncQuery", "timeDimensionGrain", "timeDimension", "product", "playerCountry",
+                                "version", "playerStats", "stats", "namespace", "tableSource", "maintainer", "book",
+                                "publisher", "person", "export"));
     }
 
     @Test
@@ -1129,7 +1128,6 @@ public class ControllerTest extends IntegrationTest {
         assertTrue(tags.isArray());
     }
 
-
     @Test
     public void versionedApiDocsDocumentTest() {
         ExtractableResponse<Response> v0 = given()
@@ -1138,6 +1136,7 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
+        assertEquals("", v0.path("info.version"));
 
         ExtractableResponse<Response> v1 = given()
                 .header("ApiVersion", "1.0")
@@ -1147,7 +1146,6 @@ public class ControllerTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .extract();
         assertNotEquals(v0.asString(), v1.asString());
-        assertNull(v0.path("info.version"));
         assertEquals("1.0", v1.path("info.version"));
 
         given()

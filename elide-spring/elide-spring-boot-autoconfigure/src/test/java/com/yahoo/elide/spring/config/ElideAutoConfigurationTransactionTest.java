@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.core.RequestScope;
@@ -23,6 +24,7 @@ import com.yahoo.elide.spring.orm.jpa.config.JpaDataStoreRegistrations;
 import com.atomikos.spring.AtomikosAutoConfiguration;
 import com.atomikos.spring.AtomikosDataSourceBean;
 
+import example.AppConfiguration;
 import example.models.jpa.ArtifactGroup;
 import example.models.jpa.v2.ArtifactGroupV2;
 import example.models.jpa.v3.ArtifactGroupV3;
@@ -38,6 +40,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryBuilderCustomizer;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.orm.jpa.hibernate.SpringJtaPlatform;
@@ -46,19 +49,23 @@ import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
+import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -71,6 +78,7 @@ import javax.sql.XADataSource;
  */
 class ElideAutoConfigurationTransactionTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withConfiguration(UserConfigurations.of(AppConfiguration.class))
             .withConfiguration(AutoConfigurations.of(ElideAutoConfiguration.class, DataSourceAutoConfiguration.class,
                     HibernateJpaAutoConfiguration.class, TransactionAutoConfiguration.class, RefreshAutoConfiguration.class));
 
@@ -158,6 +166,41 @@ class ElideAutoConfigurationTransactionTest {
                 return null;
             });
 
+        });
+    }
+
+    @Test
+    void dataStoreTransactionShouldCleanUpTransactionResourcesIfEntityManagerClosed() {
+        contextRunner.withPropertyValues("spring.cloud.refresh.enabled=false")
+                .withUserConfiguration(EntityConfiguration.class).run(context -> {
+            try {
+                DataStore dataStore = context.getBean(DataStore.class);
+                EntityManagerFactory entityManagerFactory = context.getBean(EntityManagerFactory.class);
+
+                try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
+                    // Mimics the call from OpenEntityManagerInViewInterceptor#afterCompletion
+                    EntityManagerHolder entityManagerHolder = (EntityManagerHolder) TransactionSynchronizationManager
+                        .unbindResource(entityManagerFactory);
+                    EntityManagerFactoryUtils.closeEntityManager(entityManagerHolder.getEntityManager());
+                }
+                DataStoreTransaction transaction = null;
+                try {
+                    // Should not throw IllegalTransactionStateException Pre-bound JDBC Connection found!
+                    transaction = assertDoesNotThrow(() -> dataStore.beginTransaction());
+                } finally {
+                    if (transaction != null) {
+                        transaction.close();
+                    }
+                }
+                assertThat(TransactionSynchronizationManager.getResourceMap()).isEmpty();
+            } finally {
+                // Clean up thread locals
+                TransactionSynchronizationManager.clear();
+                List<Object> keys = new ArrayList<>(TransactionSynchronizationManager.getResourceMap().keySet());
+                for (Object key : keys) {
+                    TransactionSynchronizationManager.unbindResourceIfPossible(key);
+                }
+            }
         });
     }
 

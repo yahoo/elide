@@ -42,10 +42,22 @@
             }
           }
         }
+      },
+      {
+        "node": {
+          "id": "3",
+          "books": {
+            "edges": [
+            ],
+            "pageInfo": {
+              "totalRecords": 0
+            }
+          }
+        }
       }
     ],
     "pageInfo": {
-      "totalRecords": 2
+      "totalRecords": 3
     }
   }
 }

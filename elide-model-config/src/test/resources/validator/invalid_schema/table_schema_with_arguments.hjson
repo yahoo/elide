@@ -1,0 +1,29 @@
+{
+  // unsupported: additional property 'name'
+  name: Geography
+  tables:
+  [
+    {
+      name: Country
+      table: country
+      // unsupported: cardinality value
+      cardinality: Extra Large
+      filterTemplate: countryIsoCode={{code}};startTime=={{start}}
+      arguments:
+      [
+        {
+          // both tableSource and values are not supported. Choose One or None
+          name: aggregation
+          description: Aggregation
+          type : TEXT
+          values: ['SUM', 'MIN', 'MAX']
+          tableSource:  {
+              table: abc
+              column: def
+          }
+          default: SUM
+        }
+      ]
+    }
+  ]
+}

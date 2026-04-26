@@ -60,6 +60,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             try {
                 newInputStream(tableExportID).transferTo(outputStream);
             } catch (IOException e) {
+                log.error("Error transferring " + tableExportID + " to output stream.", e);
                 throw new UncheckedIOException(e);
             }
         };
@@ -85,7 +86,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             validatePath(path);
             return Files.newInputStream(path);
         } catch (IOException e) {
-            log.debug(e.getMessage());
+            log.error(RETRIEVE_ERROR, e);
             throw new UncheckedIOException(RETRIEVE_ERROR, e);
         }
     }
@@ -96,7 +97,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             validatePath(path);
             return Files.newOutputStream(path);
         } catch (IOException e) {
-            log.debug(e.getMessage());
+            log.error(STORE_ERROR, e);
             throw new UncheckedIOException(STORE_ERROR, e);
         }
     }

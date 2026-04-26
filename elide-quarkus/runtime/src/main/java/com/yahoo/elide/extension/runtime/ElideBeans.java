@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.graphql.GraphQLSettings;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.swagger.OpenApiBuilder;
-import com.yahoo.elide.swagger.OpenApiDocument;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.Session;
@@ -59,24 +58,27 @@ public class ElideBeans {
     @Startup
     public Elide produceElide(DataStore store, EntityDictionary dictionary) {
         LOG.debug("Creating Elide bean");
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettingsBuilder = new JsonApiSettings.JsonApiSettingsBuilder();
+        jsonApiSettingsBuilder.path(config.jsonApiPath);
+        GraphQLSettings.GraphQLSettingsBuilder graphQLSettingsBuilder = new GraphQLSettings.GraphQLSettingsBuilder();
+        graphQLSettingsBuilder.path(config.graphqlPath);
         ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder()
                 .entityDictionary(dictionary)
                 .maxPageSize(config.defaultMaxPageSize)
                 .defaultPageSize(config.defaultPageSize)
                 .auditLogger(new Slf4jLogger())
                 .baseUrl(rootPath)
-                .settings(new JsonApiSettings.JsonApiSettingsBuilder())
-                .settings(new GraphQLSettings.GraphQLSettingsBuilder())
+                .settings(jsonApiSettingsBuilder)
+                .settings(graphQLSettingsBuilder)
                 .dataStore(store);
 
         if (config.verboseErrors) {
             builder = builder.verboseErrors(true);
         }
 
-        LOG.debug("Scanning for security checks...");
-        dictionary.scanForSecurityChecks();
-
-        return new Elide(builder.build());
+        Elide elide = new Elide(builder.build());
+        elide.doScans();
+        return elide;
     }
 
     @Produces
@@ -131,8 +133,7 @@ public class ElideBeans {
             OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
             String moduleBasePath = "/apiDocs/";
             OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
-            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("api", () -> openApi,
-                    OpenApiDocument.Version.OPENAPI_3_0.getValue(), apiVersion));
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("api", () -> openApi, apiVersion));
         });
 
         return docs;

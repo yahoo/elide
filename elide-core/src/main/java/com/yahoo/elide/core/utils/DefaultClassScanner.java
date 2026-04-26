@@ -64,13 +64,9 @@ public class DefaultClassScanner implements ClassScanner {
     public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations,
             FilterExpression filter) {
         Set<Class<?>> result = new LinkedHashSet<>();
-
         for (Class<? extends Annotation> annotation : annotations) {
-            result.addAll(startupCache.get(annotation.getCanonicalName()).stream()
-                    .filter(filter::include)
-                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+            startupCache.get(annotation.getCanonicalName()).stream().filter(filter::include).forEach(result::add);
         }
-
         return result;
     }
 

@@ -83,8 +83,11 @@ public class CoerceUtil {
         ConvertUtils.register(new Converter() {
 
             @Override
-            public <T> T convert(Class<T> aClass, Object o) {
-                return (T) serde.deserialize(aClass, (S) o);
+            public <V> V convert(Class<V> aClass, Object o) {
+                if (String.class.equals(aClass)) {
+                    return (V) serde.serialize((T) o);
+                }
+                return (V) serde.deserialize(aClass, (S) o);
             }
 
         }, targetType);

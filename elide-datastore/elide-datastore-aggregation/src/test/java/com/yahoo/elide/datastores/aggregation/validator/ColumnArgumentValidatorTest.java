@@ -118,7 +118,7 @@ class ColumnArgumentValidatorTest {
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
         tables.add(joinTableBuilder.build());
-        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(new DefaultClassScanner(), EntityDictionary.DEFAULT_INJECTOR, tables, this.namespaceConfigs, true);
         QueryPlanMerger merger = new DefaultQueryPlanMerger(metaDataStore);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connectionLookup, optimizers, merger, queryValidator));
 

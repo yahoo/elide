@@ -1,6 +1,90 @@
 {
-    "$schema": "https://json-schema.org/draft-04/schema#",
-    "definitions": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "elideArgumentName" : {
+              "type": "string",
+              "pattern": "^(?!(?i)grain$)^[A-Za-z][0-9A-Za-z_]*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideArgumentName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only and cannot be ''grain''."
+              }
+        },
+        "elideFieldType" : {
+              "type": "string",
+              "pattern": "^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean|Enum_Text|Enum_Ordinal)$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideFieldType pattern must be one of [Integer, Decimal, Money, Text, Coordinate, Boolean, Enum_Text, Enum_Ordinal]."
+              }
+        },
+        "elideFieldName" : {
+              "type": "string",
+              "pattern": "^(?!(?i)(id|sql)$)^[a-z][0-9A-Za-z_]*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideFieldName pattern must start with lower case alphabet and can include alphabets, numbers and ''_'' only and cannot be one of [id, sql]"
+              }
+        },
+        "elideName" : {
+              "type": "string",
+              "pattern": "^[A-Za-z][0-9A-Za-z_]*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only."
+              }
+        },
+        "elideNamespaceName" : {
+              "type": "string",
+              "pattern": "^default$|^(?!(?i)default$)^[A-Za-z][0-9A-Za-z_]*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideNamespaceName pattern must start with an alphabetic character and can include alphabets, numbers and ''_'' only and must not clash with the ''default'' namespace."
+              }
+        },
+        "elideJoinType" : {
+              "type": "string",
+              "pattern": "^(?i)(left|inner|full|cross)$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideJoinType pattern must be one of [left, inner, full, cross]."
+              }
+        },
+        "elideJoinKind" : {
+              "type": "string",
+              "pattern": "^(?i)(ToOne|ToMany)$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideJoinKind pattern must be one of [ToOne, ToMany]."
+              }
+        },
+        "javaClassName" : {
+              "type": "string",
+              "pattern": "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)+(\\.\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)*$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the javaClassName pattern is not a valid Java class name."
+              }
+        },
+        "javaClassNameWithExt" : {
+              "type": "string",
+              "pattern": "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)+(\\.\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)*class$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the javaClassNameWithExt pattern is not a valid Java class name with .class extension."
+              }
+        },
+        "elideCardinality" : {
+              "type": "string",
+              "pattern": "^(?i)(Tiny|Small|Medium|Large|Huge)$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideCardinality pattern must be one of [Tiny, Small, Medium, Large, Huge]."
+              }
+        },
+        "elideTimeFieldType" : {
+              "type": "string",
+              "pattern": "^(?i)(Time)$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideTimeFieldType pattern must be [Time] for any time dimension."
+              }
+        },
+        "elideGrainType" : {
+              "type": "string",
+              "pattern": "^(?i)(Second|Minute|Hour|Day|IsoWeek|Week|Month|Quarter|Year)$",
+              "errorMessage": {
+                  "pattern": "{0}: does not match the elideGrainType pattern must be one of [Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year]."
+              }
+        },
         "argument" : {
             "title" : "Arguments",
             "description" : "Arguments are supported for table, measures and dimensions.",
@@ -8,9 +92,8 @@
             "properties": {
                 "name": {
                     "title": "Argument name",
-                    "description": "Name must start with an alphabetic character and can include alaphabets, numbers and '_' only.",
-                    "type": "string",
-                    "format": "elideArgumentName"
+                    "description": "Name must start with an alphabetic character and can include alphabets, numbers and '_' only.",
+                    "$ref": "#/$defs/elideArgumentName"
                 },
                 "description": {
                     "title": "Argument description",
@@ -20,8 +103,7 @@
                 "type": {
                     "title": "Argument type",
                     "description": "Must be one of Integer, Decimal, Money, Text, Coordinate, Boolean",
-                    "type": "string",
-                    "format": "elideFieldType"
+                    "$ref": "#/$defs/elideFieldType"
                 },
                 "values": {
                     "title": "Argument values",
@@ -33,7 +115,7 @@
                     }
                 },
                 "tableSource": {
-                    "$ref": "#/definitions/tableSource"
+                    "$ref": "#/$defs/tableSource"
                 },
                 "default": {
                     "title": "Default argument value",
@@ -50,8 +132,16 @@
                 "type",
                 "default"
             ],
-            "validateArgumentProperties": true,
-            "additionalProperties": false
+            "not": {
+                "required": [
+                    "tableSource",
+                    "values"
+                ]
+            },
+            "additionalProperties": false,
+            "errorMessage": {
+                "not": "{0}: tableSource and values cannot both be defined for an argument. Choose One or None."
+            }
         },
         "join": {
             "title": "Join",
@@ -61,33 +151,28 @@
                 "name": {
                     "title": "Join name",
                     "description": "The name of the join relationship.",
-                    "type": "string",
-                    "format": "elideFieldName"
+                    "$ref": "#/$defs/elideFieldName"
                 },
                 "namespace": {
                         "title": "Join Namespace",
                         "description": "Namespace for the Join.",
-                        "type": "string",
-                        "format": "elideNamespaceName",
+                        "$ref": "#/$defs/elideNamespaceName",
                         "default": "default"
                 },
                 "to": {
                     "title": "Join table name",
                     "description": "The name of the table that is being joined to",
-                    "type": "string",
-                    "format": "elideName"
+                    "$ref": "#/$defs/elideName"
                 },
                 "type": {
                     "title": "Type of Join",
                     "description": "Type of the join - left, inner, full or cross",
-                    "type": "string",
-                    "format": "elideJoinType"
+                    "$ref": "#/$defs/elideJoinType"
                 },
                 "kind": {
                     "title": "Kind of Join",
                     "description": "Kind of the join - toOne or toMany",
-                    "type": "string",
-                    "format": "elideJoinKind"
+                    "$ref": "#/$defs/elideJoinKind"
                 },
                 "definition": {
                     "title": "Join definition SQL",
@@ -109,21 +194,18 @@
                 "table": {
                     "title": "Source table",
                     "description": "The source table that contains the colum or argument values.",
-                    "type": "string",
-                    "format": "elideName"
+                    "$ref": "#/$defs/elideName"
                 },
                 "namespace": {
                     "title": "Source table namespace",
                     "description": "Namespace for the source table.",
-                    "type": "string",
-                    "format": "elideNamespaceName",
+                    "$ref": "#/$defs/elideNamespaceName",
                     "default": "default"
                 },
                 "column": {
                     "title": "Primary source table column name",
                     "description": "The column that provides a unique list of values for the given column or argument",
-                    "type": "string",
-                    "format": "elideFieldName"
+                    "$ref": "#/$defs/elideFieldName"
                 },
                 "suggestionColumns": {
                     "title": "Secondary search columns",
@@ -131,8 +213,7 @@
                     "type": "array",
                     "uniqueItems": true,
                     "items": {
-                        "type": "string",
-                        "format": "elideFieldName"
+                        "$ref": "#/$defs/elideFieldName"
                     }
                 }
             },
@@ -150,8 +231,7 @@
                 "name": {
                     "title": "Metric name",
                     "description": "The name of the metric. This will be the same as the POJO field name.",
-                    "type": "string",
-                    "format": "elideFieldName"
+                    "$ref": "#/$defs/elideFieldName"
                 },
                 "friendlyName": {
                     "title": "Metric friendly name",
@@ -188,14 +268,12 @@
                 "maker": {
                     "title": "Metric Projection Maker",
                     "description": "Registers a custom function to create a projection for this metric",
-                    "type": "string",
-                    "format": "javaClassName"
+                    "$ref": "#/$defs/javaClassName"
                 },
                 "type": {
                     "title": "Measure field type",
                     "description": "The data type of the measure field",
-                    "type": "string",
-                    "format": "elideFieldType"
+                    "$ref": "#/$defs/elideFieldType"
                 },
                 "tags": {
                     "title": "Measure tags",
@@ -211,7 +289,7 @@
                     "description": "An array of supported arguments for measure",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/argument"
+                        "$ref": "#/$defs/argument"
                     }
                 },
                 "filterTemplate": {
@@ -247,8 +325,7 @@
                 "name": {
                     "title": "Dimension name",
                     "description": "The name of the dimension. This will be the same as the POJO field name.",
-                    "type": "string",
-                    "format": "elideFieldName"
+                    "$ref": "#/$defs/elideFieldName"
                 },
                 "friendlyName": {
                     "title": "Dimension friendly name",
@@ -285,8 +362,7 @@
                 "cardinality": {
                     "title": "Dimension cardinality",
                     "description": "Dimension cardinality: (tiny, small, medium, large, huge). The relative sizes are decided by the table designer(s).",
-                    "type": "string",
-                    "format": "elideCardiality"
+                    "$ref": "#/$defs/elideCardinality"
                 },
                 "tags": {
                     "title": "Dimension tags",
@@ -302,7 +378,7 @@
                     "description": "An array of supported arguments for dimensions",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/argument"
+                        "$ref": "#/$defs/argument"
                     }
                 },
                 "filterTemplate": {
@@ -319,15 +395,14 @@
             "type": "object",
             "allOf": [
                 {
-                    "$ref": "#/definitions/dimensionRef"
+                    "$ref": "#/$defs/dimensionRef"
                 },
                 {
                     "properties": {
                         "type": {
                             "title": "Dimension field type",
                             "description": "The data type of the dimension field",
-                            "type": "string",
-                            "format": "elideFieldType"
+                            "$ref": "#/$defs/elideFieldType"
                         },
                         "values": {
                             "title": "Dimension values",
@@ -339,17 +414,42 @@
                             }
                         },
                         "tableSource": {
-                            "$ref": "#/definitions/tableSource"
+                            "$ref": "#/$defs/tableSource"
                         }
                     }
                 }
             ],
-            "validateDimensionProperties": true,
             "required": [
                 "name",
                 "type",
                 "definition"
-            ]
+            ],
+            "properties": {
+                "name": true,
+                "friendlyName": true,
+                "description": true,
+                "category": true,
+                "hidden": true,
+                "readAccess": true,
+                "definition": true,
+                "cardinality": true,
+                "tags": true,
+                "type": true,
+                "arguments": true,
+                "filterTemplate": true,
+                "values": true,
+                "tableSource": true
+            },
+            "additionalProperties": false,
+            "not": {
+                "required": [
+                    "tableSource",
+                    "values"
+                ]
+            },
+            "errorMessage": {
+                "not": "{0}: tableSource and values cannot both be defined for a dimension. Choose One or None."
+            }
         },
         "timeDimension": {
             "title": "Time Dimension",
@@ -357,15 +457,14 @@
             "type": "object",
             "allOf": [
                 {
-                    "$ref": "#/definitions/dimensionRef"
+                    "$ref": "#/$defs/dimensionRef"
                 },
                 {
                     "properties": {
                         "type": {
                             "title": "Dimension field type",
                             "description": "The data type of the dimension field",
-                            "type": "string",
-                            "format": "elideTimeFieldType"
+                            "$ref": "#/$defs/elideTimeFieldType"
                         },
                         "grains" : {
                             "title" : "Time Dimension grains",
@@ -379,8 +478,7 @@
                                     "type": {
                                         "title": "Time granularity",
                                         "description": "Indicates grain time granularity",
-                                        "type": "string",
-                                        "format": "elideGrainType"
+                                        "$ref": "#/$defs/elideGrainType"
                                     },
                                     "sql": {
                                         "title": "Grain SQL",
@@ -395,12 +493,27 @@
                     }
                 }
             ],
-            "validateTimeDimensionProperties": true,
             "required": [
                 "name",
                 "type",
                 "definition"
-            ]
+            ],
+            "properties": {
+                "name": true,
+                "friendlyName": true,
+                "description": true,
+                "category": true,
+                "hidden": true,
+                "readAccess": true,
+                "definition": true,
+                "cardinality": true,
+                "tags": true,
+                "type": true,
+                "arguments": true,
+                "filterTemplate": true,
+                "grains": true
+            },
+            "additionalProperties": false
         }
     },
     "type": "object",
@@ -421,8 +534,7 @@
                     "name": {
                         "title": "Table Model Name",
                         "description": "The name of the model. This will be the same as the POJO class name.",
-                        "type": "string",
-                        "format": "elideName"
+                        "$ref": "#/$defs/elideName"
                     },
                     "friendlyName": {
                         "title": "Table friendly name",
@@ -455,8 +567,7 @@
                     "cardinality": {
                         "title": "Table cardinality",
                         "description": "Table cardinality: (tiny, small, medium, large, huge). The relative sizes are decided by the table designer(s).",
-                        "type": "string",
-                        "format": "elideCardiality"
+                        "$ref": "#/$defs/elideCardinality"
                     },
                     "readAccess": {
                         "title": "Table read access",
@@ -467,8 +578,7 @@
                     "namespace": {
                         "title": "Table Namespace",
                         "description": "Namespace for the table.",
-                        "type": "string",
-                        "format": "elideNamespaceName",
+                        "$ref": "#/$defs/elideNamespaceName",
                         "default": "default"
                     },
                     "hints": {
@@ -485,7 +595,7 @@
                         "description": "Describes SQL joins to other tables for column references.",
                         "type": "array",
                         "items": {
-                            "$ref": "#/definitions/join"
+                            "$ref": "#/$defs/join"
                         }
                     },
                     "measures": {
@@ -493,7 +603,7 @@
                         "description": "Zero or more metric definitions.",
                         "type": "array",
                         "items": {
-                            "$ref": "#/definitions/measure"
+                            "$ref": "#/$defs/measure"
                         }
                     },
                     "dimensions": {
@@ -503,10 +613,10 @@
                         "items": {
                             "oneOf": [
                                 {
-                                    "$ref": "#/definitions/dimension"
+                                    "$ref": "#/$defs/dimension"
                                 },
                                 {
-                                    "$ref": "#/definitions/timeDimension"
+                                    "$ref": "#/$defs/timeDimension"
                                 }
                             ]
                         }
@@ -525,7 +635,7 @@
                         "description": "An array of supported arguments for tables.",
                         "type": "array",
                         "items": {
-                            "$ref": "#/definitions/argument"
+                            "$ref": "#/$defs/argument"
                         }
                     }
                 },
@@ -540,8 +650,7 @@
                             "dbConnectionName": {
                                 "title": "DB Connection Name",
                                 "description": "The database connection name for this model.",
-                                "type": "string",
-                                "format": "elideName"
+                                "$ref": "#/$defs/elideName"
                             }
                         },
                         "required": [
@@ -555,14 +664,12 @@
                             "maker": {
                                 "title": "Table SQL maker function",
                                 "description": "JVM function to invoke to generate the SQL query which is used to populate the table.",
-                                "type": "string",
-                                "format": "javaClassName"
+                                "$ref": "#/$defs/javaClassName"
                             },
                             "dbConnectionName": {
                                 "title": "DB Connection Name",
                                 "description": "The database connection name for this model.",
-                                "type": "string",
-                                "format": "elideName"
+                                "$ref": "#/$defs/elideName"
                             }
                         },
                         "required": [
@@ -586,8 +693,7 @@
                             "dbConnectionName": {
                                 "title": "DB Connection Name",
                                 "description": "The database connection name for this model.",
-                                "type": "string",
-                                "format": "elideName"
+                                "$ref": "#/$defs/elideName"
                             }
                         },
                         "required": [
@@ -601,8 +707,7 @@
                             "extend": {
                                 "title": "Table Extends",
                                 "description": "Extends another logical table.",
-                                "type": "string",
-                                "format": "elideName"
+                                "$ref": "#/$defs/elideName"
                             }
                         },
                         "required": [

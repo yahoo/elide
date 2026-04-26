@@ -14,13 +14,12 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.QueryRunners;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
-import com.yahoo.elide.spring.security.AuthenticationUser;
+import com.yahoo.elide.spring.security.HttpServletRequestUser;
 import com.yahoo.elide.utils.HeaderProcessor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -75,16 +74,16 @@ public class GraphqlController {
      * Single entry point for GraphQL requests.
      *
      * @param requestHeaders request headers
+     * @param allRequestParams request parameters
      * @param graphQLDocument post data as json document
-     * @param principal The user principal
+     * @param request http servlet request
      * @return response
      */
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
     public Callable<ResponseEntity<String>> post(@RequestHeader HttpHeaders requestHeaders,
                                                  @RequestParam MultiValueMap<String, String> allRequestParams,
-                                                 @RequestBody String graphQLDocument, HttpServletRequest request,
-                                                 Authentication principal) {
-        final User user = new AuthenticationUser(principal);
+                                                 @RequestBody String graphQLDocument, HttpServletRequest request) {
+        final User user = new HttpServletRequestUser(request);
         final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getGraphql().getPath();
         final String baseUrl = getBaseUrl(prefix);

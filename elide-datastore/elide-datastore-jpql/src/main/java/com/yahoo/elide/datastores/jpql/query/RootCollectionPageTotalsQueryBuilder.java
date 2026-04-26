@@ -27,8 +27,8 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
 
     public RootCollectionPageTotalsQueryBuilder(EntityProjection entityProjection,
                                                 EntityDictionary dictionary,
-                                                Session session) {
-        super(entityProjection, dictionary, session);
+                                                Session session, CursorEncoder cursorEncoder) {
+        super(entityProjection, dictionary, session, cursorEncoder);
     }
 
     /**
@@ -69,7 +69,9 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
             joinClause = "";
         }
 
-        Query query = session.createQuery("SELECT COUNT(DISTINCT "
+        boolean requiresDistinct = joinClause != null && !joinClause.isEmpty();
+
+        Query query = session.createQuery("SELECT COUNT(" + (requiresDistinct ? DISTINCT  + " " : "")
                 + entityAlias
                 + ") "
                 + FROM

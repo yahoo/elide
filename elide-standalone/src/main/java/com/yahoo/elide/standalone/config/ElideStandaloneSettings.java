@@ -28,6 +28,7 @@ import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.route.RouteResolver;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.obfuscation.IdObfuscator;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
@@ -82,6 +83,7 @@ import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
 
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManager;
@@ -471,15 +473,19 @@ public interface ElideStandaloneSettings {
             Info info = new Info()
                     .title(getApiTitle())
                     .version(apiVersion);
-            OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
+            OpenApiBuilder builder = new OpenApiBuilder(dictionary, openApi -> {
+                OpenApiVersion openApiVersion = getOpenApiVersion();
+                if (OpenApiVersion.OPENAPI_3_1.equals(openApiVersion)) {
+                    openApi.specVersion(SpecVersion.V31).openapi("3.1.0");
+                }
+            }).apiVersion(apiVersion);
             if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
                 // Path needs to be set
                 builder.basePath("/" + "v" + apiVersion);
             }
             String moduleBasePath = getJsonApiPathSpec().replace("/*", "");
             OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));
-            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("", () -> openApi, getOpenApiVersion().getValue(),
-                    apiVersion));
+            docs.add(new ApiDocsEndpoint.ApiDocsRegistration("", () -> openApi, apiVersion));
         });
 
         return docs;
@@ -548,15 +554,20 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the dynamic configuration for models, security roles, and database connection.
      * @param scanner Class scanner
+     * @param injector Injector injector
      * @return Optional DynamicConfiguration
      * @throws IOException thrown when validator fails to read configuration.
      */
-    default Optional<DynamicConfiguration> getDynamicConfiguration(ClassScanner scanner) throws IOException {
+    default Optional<DynamicConfiguration> getDynamicConfiguration(ClassScanner scanner, Injector injector)
+            throws IOException {
         DynamicConfigValidator validator = null;
 
         if (getAnalyticProperties().enableAggregationDataStore()
-                        && getAnalyticProperties().enableDynamicModelConfig()) {
-            validator = new DynamicConfigValidator(scanner, getAnalyticProperties().getDynamicConfigPath());
+                && getAnalyticProperties().enableDynamicModelConfig()) {
+            validator = new DynamicConfigValidator(
+                    entityDictionaryBuilderCustomizer -> entityDictionaryBuilderCustomizer.scanner(scanner)
+                            .injector(injector),
+                    getAnalyticProperties().getDynamicConfigPath());
             validator.readAndValidateConfigs();
         }
 
@@ -577,10 +588,11 @@ public interface ElideStandaloneSettings {
      * @param metaDataStore MetaDataStore object.
      * @param aggregationDataStore AggregationDataStore object.
      * @param entityManagerFactory EntityManagerFactory object.
+     * @param injector the injector
      * @return DataStore object initialized.
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
-            EntityManagerFactory entityManagerFactory) {
+            EntityManagerFactory entityManagerFactory, Injector injector) {
 
         List<DataStore> stores = new ArrayList<>();
 
@@ -592,8 +604,8 @@ public interface ElideStandaloneSettings {
         stores.add(jpaDataStore);
 
         if (getAnalyticProperties().enableDynamicModelConfigAPI()) {
-            stores.add(new ConfigDataStore(getAnalyticProperties().getDynamicConfigPath(),
-                    new TemplateConfigValidator(getClassScanner(), getAnalyticProperties().getDynamicConfigPath())));
+            stores.add(new ConfigDataStore(getAnalyticProperties().getDynamicConfigPath(), new TemplateConfigValidator(
+                    getClassScanner(), injector, getAnalyticProperties().getDynamicConfigPath())));
         }
 
         stores.add(metaDataStore);
@@ -637,10 +649,12 @@ public interface ElideStandaloneSettings {
      * @param injector Service locator for web service for dependency injection.
      * @param dynamicConfiguration optional dynamic config object.
      * @param entitiesToExclude set of Entities to exclude from binding.
+     * @param idObfuscator the id obfuscator
      * @return EntityDictionary object initialized.
      */
     default EntityDictionary getEntityDictionary(ServiceLocator injector, ClassScanner scanner,
-            Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
+            Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude,
+            IdObfuscator idObfuscator) {
 
         Map<String, Class<? extends Check>> checks = new HashMap<>();
 
@@ -667,7 +681,8 @@ public interface ElideStandaloneSettings {
                 },
                 CoerceUtil::lookup, //Serde Lookup
                 entitiesToExclude,
-                scanner);
+                scanner,
+                idObfuscator);
 
         dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
             dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
@@ -679,17 +694,18 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the metadatastore for elide.
      * @param scanner Class scanner.
+     * @param injector the injector
      * @param dynamicConfiguration optional dynamic config object.
      * @return MetaDataStore object initialized.
      */
-    default MetaDataStore getMetaDataStore(ClassScanner scanner,
+    default MetaDataStore getMetaDataStore(ClassScanner scanner, Injector injector,
             Optional<DynamicConfiguration> dynamicConfiguration) {
         boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
         return dynamicConfiguration
-                .map(dc -> new MetaDataStore(scanner, dc.getTables(),
+                .map(dc -> new MetaDataStore(scanner, injector, dc.getTables(),
                         dc.getNamespaceConfigurations(), enableMetaDataStore))
-                .orElseGet(() -> new MetaDataStore(scanner, enableMetaDataStore));
+                .orElseGet(() -> new MetaDataStore(scanner, injector, enableMetaDataStore));
     }
 
     /**
@@ -853,5 +869,14 @@ public interface ElideStandaloneSettings {
      */
     default int getDefaultPageSize() {
         return Pagination.DEFAULT_PAGE_SIZE;
+    }
+
+    /**
+     * The id obfuscator to use to obfuscate ids.
+     *
+     * @return the id obfuscator
+     */
+    default IdObfuscator getIdObfuscator() {
+        return null;
     }
 }

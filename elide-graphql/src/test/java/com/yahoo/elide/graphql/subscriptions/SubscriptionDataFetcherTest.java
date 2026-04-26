@@ -109,7 +109,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         NonEntityDictionary nonEntityDictionary =
                 new NonEntityDictionary(new DefaultClassScanner(), CoerceUtil::lookup);
 
-        SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary,
+        SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary, nonEntityDictionary, settings,
                 new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
 
         api = GraphQL.newGraphQL(builder.build())

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <version>7.0.5-SNAPSHOT</version>
   <artifactId>elide-quarkus-extension-parent</artifactId>
   <packaging>pom</packaging>
   <name>Elide Quarkus Extension - Parent</name>
@@ -9,7 +8,7 @@
   <parent>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>7.0.5-SNAPSHOT</version>
+    <version>7.1.17-SNAPSHOT</version>
   </parent>
 
   <licenses>
@@ -43,15 +42,15 @@
     <module>runtime</module>
   </modules>
   <properties>
-    <compiler-plugin.version>3.8.1</compiler-plugin.version>
+    <compiler-plugin.version>3.13.0</compiler-plugin.version>
     <failsafe-plugin.version>3.2.5</failsafe-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <quarkus.version>3.9.4</quarkus.version>
-    <elide.version>7.0.5-SNAPSHOT</elide.version>
+    <quarkus.version>3.20.3</quarkus.version>
+    <elide.version>7.1.17-SNAPSHOT</elide.version>
     <surefire-plugin.version>3.2.5</surefire-plugin.version>
     <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
   </properties>
@@ -71,12 +70,22 @@
       </dependency>
       <dependency>
         <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-graphql</artifactId>
+        <version>${elide.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-aggregation</artifactId>
         <version>${elide.version}</version>
       </dependency>
       <dependency>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-jpa</artifactId>
+        <version>${elide.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-datastore-multiplex</artifactId>
         <version>${elide.version}</version>
       </dependency>
       <dependency>

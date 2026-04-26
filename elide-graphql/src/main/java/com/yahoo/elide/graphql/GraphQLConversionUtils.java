@@ -59,9 +59,9 @@ public class GraphQLConversionUtils {
     protected NonEntityDictionary nonEntityDictionary;
     protected EntityDictionary entityDictionary;
 
-    private final Map<Type, GraphQLObjectType> outputConversions = new HashMap<>();
-    private final Map<Type, GraphQLInputObjectType> inputConversions = new HashMap<>();
-    private final Map<Type, GraphQLEnumType> enumConversions = new HashMap<>();
+    private final Map<Type<?>, GraphQLObjectType> outputConversions = new HashMap<>();
+    private final Map<Type<?>, GraphQLInputObjectType> inputConversions = new HashMap<>();
+    private final Map<Type<?>, GraphQLEnumType> enumConversions = new HashMap<>();
     private final Map<String, GraphQLEnumType> namedEnumConversions = new HashMap<>();
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
     private final GraphQLNameUtils nameUtils;
@@ -194,7 +194,7 @@ public class GraphQLConversionUtils {
      * @param fetcher The Datafetcher to assign to the created GraphQL object.
      * @return The created type.
      */
-    public GraphQLList classToQueryMap(Type<?> keyClazz, Type<?> valueClazz, DataFetcher fetcher) {
+    public GraphQLList classToQueryMap(Type<?> keyClazz, Type<?> valueClazz, DataFetcher<?> fetcher) {
         String mapName = nameUtils.toMapEntryOutputName(keyClazz, valueClazz);
 
         if (mapConversions.containsKey(mapName)) {
@@ -203,7 +203,6 @@ public class GraphQLConversionUtils {
 
         GraphQLOutputType keyType = fetchScalarOrObjectOutput(keyClazz, fetcher);
         GraphQLOutputType valueType = fetchScalarOrObjectOutput(valueClazz, fetcher);
-
         GraphQLObjectType mapType = newObject()
                 .name(mapName)
                 .field(newFieldDefinition()
@@ -267,7 +266,7 @@ public class GraphQLConversionUtils {
     public GraphQLOutputType attributeToQueryObject(Type<?> parentClass,
                                                     Type<?> attributeClass,
                                                     String attribute,
-                                                    DataFetcher fetcher) {
+                                                    DataFetcher<?> fetcher) {
         return attributeToQueryObject(
                 parentClass,
                 attributeClass,
@@ -289,7 +288,7 @@ public class GraphQLConversionUtils {
     protected GraphQLOutputType attributeToQueryObject(Type<?> parentClass,
                                                        Type<?> attributeClass,
                                                        String attribute,
-                                                       DataFetcher fetcher,
+                                                       DataFetcher<?> fetcher,
                                                        EntityDictionary dictionary) {
 
         /* Determine if we've already processed this item. */
@@ -399,7 +398,7 @@ public class GraphQLConversionUtils {
      */
     public GraphQLObjectType classToQueryObject(
             Type<?> clazz,
-            DataFetcher fetcher) {
+            DataFetcher<?> fetcher) {
         log.info("Building query object for type: {}", clazz.getName());
 
         if (!nonEntityDictionary.hasBinding(clazz)) {
@@ -491,7 +490,7 @@ public class GraphQLConversionUtils {
      */
     public List<GraphQLArgument> attributeArgumentToQueryObject(Type<?> entityClass,
                                                                 String attribute,
-                                                                DataFetcher fetcher) {
+                                                                DataFetcher<?> fetcher) {
         return attributeArgumentToQueryObject(entityClass, attribute, fetcher, entityDictionary);
     }
 
@@ -505,7 +504,7 @@ public class GraphQLConversionUtils {
      */
     public List<GraphQLArgument> attributeArgumentToQueryObject(Type<?> entityClass,
                                                                 String attribute,
-                                                                DataFetcher fetcher,
+                                                                DataFetcher<?> fetcher,
                                                                 EntityDictionary dictionary) {
         return dictionary.getAttributeArguments(entityClass, attribute)
                 .stream()

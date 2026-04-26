@@ -12,6 +12,9 @@ import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
 import com.yahoo.elide.datastores.jpql.JPQLTransaction;
 import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
+import com.yahoo.elide.datastores.jpql.query.CursorEncoder;
+import com.yahoo.elide.datastores.jpql.query.JacksonCursorEncoder;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import jakarta.persistence.EntityManager;
@@ -50,14 +53,31 @@ public abstract class AbstractJpaTransaction extends JPQLTransaction implements 
      * @param em The entity manager / session.
      * @param jpaTransactionCancel A function which can cancel a session.
      * @param logger Logs queries.
-     * @param isScrollEnabled Whether or not scrolling is enabled
      * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
      *                                whether or not to do sorting, filtering and pagination in memory - or
      *                                do N+1 queries.
+     * @param isScrollEnabled Whether or not scrolling is enabled
      */
     protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel, QueryLogger logger,
             boolean delegateToInMemoryStore, boolean isScrollEnabled) {
-        super(new EntityManagerWrapper(em, logger), delegateToInMemoryStore, isScrollEnabled);
+        this(em, jpaTransactionCancel, logger, delegateToInMemoryStore, isScrollEnabled, new JacksonCursorEncoder());
+    }
+
+    /**
+     * Creates a new JPA transaction.
+     *
+     * @param em The entity manager / session.
+     * @param jpaTransactionCancel A function which can cancel a session.
+     * @param logger Logs queries.
+     * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
+     *                                whether or not to do sorting, filtering and pagination in memory - or
+     *                                do N+1 queries.
+     * @param isScrollEnabled Whether or not scrolling is enabled
+     * @param cursorEncoder the cursor encoder
+     */
+    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel, QueryLogger logger,
+            boolean delegateToInMemoryStore, boolean isScrollEnabled, CursorEncoder cursorEncoder) {
+        super(new EntityManagerWrapper(em, logger), delegateToInMemoryStore, isScrollEnabled, cursorEncoder);
         this.em = em;
         this.jpaTransactionCancel = jpaTransactionCancel;
     }
