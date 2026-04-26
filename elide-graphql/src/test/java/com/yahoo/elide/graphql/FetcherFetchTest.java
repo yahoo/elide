@@ -54,7 +54,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "  }\n"
                 + "}";
 
-        assertQueryFailsWith(query, "Schema is not configured for subscriptions.");
+        assertQueryFailsWith(query, "Validation error (UnknownOperation): The &#39;Subscription&#39; operation is not supported by the schema");
     }
 
     @Test

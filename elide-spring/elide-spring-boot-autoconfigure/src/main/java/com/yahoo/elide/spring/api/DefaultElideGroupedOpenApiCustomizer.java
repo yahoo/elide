@@ -40,7 +40,7 @@ public class DefaultElideGroupedOpenApiCustomizer implements ElideGroupedOpenApi
 
     @Override
     public void customize(GroupedOpenApi groupedOpenApi) {
-        groupedOpenApi.getOpenApiCustomizers().add(0, new ElideOpenApiCustomizer() {
+        groupedOpenApi.getOpenApiCustomizers().add(new ElideOpenApiCustomizer() {
             @Override
             public void customise(OpenAPI openApi) {
                 OpenApis.removePathsByTags(openApi, "graphql-controller", "api-docs-controller", "json-api-controller");
@@ -65,7 +65,7 @@ public class DefaultElideGroupedOpenApiCustomizer implements ElideGroupedOpenApi
 
             if (match(groupedOpenApi, path)) {
                 String basePath = path;
-                groupedOpenApi.getOpenApiCustomizers().add(0, new ElideOpenApiCustomizer() {
+                groupedOpenApi.getOpenApiCustomizers().add(new ElideOpenApiCustomizer() {
                     @Override
                     public void customise(OpenAPI openApi) {
                         OpenApiBuilder builder = new OpenApiBuilder(

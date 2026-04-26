@@ -35,7 +35,7 @@ public class PlatformJpaTransaction extends AbstractJpaTransaction {
 
     private final EntityManagerFactory entityManagerFactory;
 
-    private TransactionStatus status;
+    private TransactionStatus status = null;
 
     public PlatformJpaTransaction(PlatformTransactionManager transactionManager, TransactionDefinition definition,
             EntityManagerFactory entityManagerFactory, EntityManager em, Consumer<EntityManager> jpaTransactionCancel,
@@ -48,8 +48,8 @@ public class PlatformJpaTransaction extends AbstractJpaTransaction {
 
     @Override
     public void begin() {
-        this.status = this.transactionManager.getTransaction(this.definition);
         if (this.em instanceof SupplierEntityManager supplierEntityManager) {
+            this.status = this.transactionManager.getTransaction(this.definition);
             EntityManagerHolder entityManagerHolder = (EntityManagerHolder) TransactionSynchronizationManager
                     .getResource(this.entityManagerFactory);
             if (entityManagerHolder != null) {
@@ -85,6 +85,6 @@ public class PlatformJpaTransaction extends AbstractJpaTransaction {
 
     @Override
     public boolean isOpen() {
-        return this.em.isOpen() && this.status != null && !this.status.isCompleted();
+        return this.status != null && !this.status.isCompleted();
     }
 }

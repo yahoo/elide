@@ -16,6 +16,8 @@ import static org.mockito.Mockito.verify;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
+import com.yahoo.elide.core.utils.coerce.converters.InstantSerde;
+import com.yahoo.elide.core.utils.coerce.converters.OffsetDateTimeSerde;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,6 +29,8 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -222,6 +226,24 @@ public class CoerceUtilTest {
         assertEquals(date.getTime(), timestamp.getTime());
         CoerceUtil.register(Date.class, oldDateSerde);
         CoerceUtil.register(java.sql.Timestamp.class, oldTimestampSerde);
+    }
+
+    @Test
+    public void testOffsetDateTimeToString() {
+        CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
+        OffsetDateTime time = OffsetDateTime.now();
+        String value = CoerceUtil.coerce(time, String.class);
+        OffsetDateTime converted = CoerceUtil.coerce(value, OffsetDateTime.class);
+        assertEquals(time, converted);
+    }
+
+    @Test
+    public void testInstantToString() {
+        CoerceUtil.register(Instant.class, new InstantSerde());
+        Instant time = Instant.now();
+        String value = CoerceUtil.coerce(time, String.class);
+        Instant converted = CoerceUtil.coerce(value, Instant.class);
+        assertEquals(time, converted);
     }
 
     /**

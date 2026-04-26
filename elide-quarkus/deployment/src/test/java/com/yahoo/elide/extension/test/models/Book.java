@@ -11,6 +11,8 @@ import com.yahoo.elide.annotation.Include;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
+import java.time.OffsetDateTime;
+
 @Include
 @Entity
 public class Book {
@@ -18,4 +20,6 @@ public class Book {
     private long id;
 
     private String title;
+
+    private OffsetDateTime releaseDate;
 }

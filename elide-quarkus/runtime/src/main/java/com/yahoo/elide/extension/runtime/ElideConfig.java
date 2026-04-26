@@ -6,15 +6,16 @@
 
 package com.yahoo.elide.extension.runtime;
 
-import static com.yahoo.elide.extension.runtime.ElideResourceBuilder.GRAPHQL_BASE;
-import static com.yahoo.elide.extension.runtime.ElideResourceBuilder.JSONAPI_BASE;
-import static com.yahoo.elide.extension.runtime.ElideResourceBuilder.SWAGGER_BASE;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 
-@ConfigRoot(name = "elide", phase = ConfigPhase.BUILD_TIME)
+@ConfigRoot(prefix = "", name = "elide", phase = ConfigPhase.BUILD_TIME)
 public class ElideConfig {
+
+    public static final String JSONAPI_PATH = "/jsonapi";
+    public static final String GRAPHQL_PATH = "/graphql";
+    public static final String APIDOCS_PATH = "/apiDocs";
 
     /**
      * Default page size if client doesn't request any.
@@ -38,20 +39,21 @@ public class ElideConfig {
      * The base URL path prefix for Elide JSON-API service endpoints.
      * This is appended to the basePath.
      */
-    @ConfigItem(defaultValue = JSONAPI_BASE)
-    public String baseJsonapi;
+    @ConfigItem(name = "json-api.path", defaultValue = JSONAPI_PATH)
+    public String jsonApiPath;
 
     /**
      * The base URL path prefix for Elide GraphQL service endpoints.
      * This is appended to the basePath.
      */
-    @ConfigItem(defaultValue = GRAPHQL_BASE)
-    public String baseGraphql;
+    @ConfigItem(name = "graphql.path", defaultValue = GRAPHQL_PATH)
+    public String graphqlPath;
+
 
     /**
      * The base URL path prefix for the Elide Swagger document.
      * This is appended to the basePath.
      */
-    @ConfigItem(defaultValue = SWAGGER_BASE)
-    public String baseSwagger;
+    @ConfigItem(name = "api-docs.path", defaultValue = APIDOCS_PATH)
+    public String apiDocsPath;
 }

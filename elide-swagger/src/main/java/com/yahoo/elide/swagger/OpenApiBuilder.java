@@ -620,7 +620,11 @@ public class OpenApiBuilder {
         private Parameter getSortParameter() {
             List<String> filterAttributes = dictionary.getAttributes(type).stream().filter(name -> {
                 Type<?> attributeClass = dictionary.getType(type, name);
-                return (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass));
+                return (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass)
+                        || ClassType.DATE_TYPE.isAssignableFrom(attributeClass)
+                        || ClassType.NUMBER_TYPE.isAssignableFrom(attributeClass)
+                        || ClassType.ENUM_TYPE.isAssignableFrom(attributeClass)
+                        || ClassType.TEMPORAL_TYPE.isAssignableFrom(attributeClass));
             }).map(name -> Arrays.asList(name, "-" + name)).flatMap(Collection::stream).collect(Collectors.toList());
 
             filterAttributes.add("id");

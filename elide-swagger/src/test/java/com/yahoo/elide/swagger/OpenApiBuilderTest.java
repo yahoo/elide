@@ -37,6 +37,7 @@ import example.models.Author;
 import example.models.Book;
 import example.models.Product;
 import example.models.Publisher;
+import example.models.Sort;
 import example.models.v2.BookV2;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -96,6 +97,7 @@ class OpenApiBuilderTest {
         dictionary.bindEntity(Agent.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Product.class);
+        dictionary.bindEntity(Sort.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);
 
         OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(info.getVersion());
@@ -206,7 +208,7 @@ class OpenApiBuilderTest {
 
         assertTrue(openApi.getPaths().containsKey("/operations")); // atomic:operations
 
-        assertEquals(25, openApi.getPaths().size());
+        assertEquals(27, openApi.getPaths().size());
     }
 
     @Test
@@ -532,6 +534,31 @@ class OpenApiBuilderTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void testSortParamFieldTypes() throws Exception {
+        List<Parameter> params = openApi.getPaths().get("/sort").getGet().getParameters();
+
+        Set<String> paramNames = params.stream()
+                .map((param) -> param.getName())
+                .collect(Collectors.toSet());
+
+        long sortParams = paramNames.stream().filter((name) -> name.startsWith("sort")).count();
+        assertEquals(1, sortParams);
+        assertTrue(paramNames.contains("sort"));
+
+        QueryParameter sortParam = (QueryParameter) params.stream()
+                .filter((param) -> param.getName().equals("sort"))
+                .findFirst()
+                .get();
+
+        assertEquals("query", sortParam.getIn());
+
+        List<String> sortValues = Arrays.asList("id", "-id", "localDateTime", "-localDateTime", "enumeration",
+                "-enumeration", "date", "-date", "bigDecimal", "-bigDecimal");
+        assertTrue(sortParam.getSchema().getItems().getEnum().containsAll(sortValues));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void testIncludeParam() throws Exception {
         List<Parameter> params = openApi.getPaths().get("/book").getGet().getParameters();
 
@@ -584,7 +611,7 @@ class OpenApiBuilderTest {
     void testTagGeneration() throws Exception {
 
         /* Check for the global tag definitions */
-        assertEquals(6, openApi.getTags().size());
+        assertEquals(7, openApi.getTags().size());
 
         String bookTag = openApi.getTags().stream()
                 .filter((tag) -> tag.getName().equals("book"))
