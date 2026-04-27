@@ -42,7 +42,7 @@
     <module>runtime</module>
   </modules>
   <properties>
-    <compiler-plugin.version>3.13.0</compiler-plugin.version>
+    <compiler-plugin.version>3.15.0</compiler-plugin.version>
     <failsafe-plugin.version>3.2.5</failsafe-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
