@@ -124,7 +124,7 @@
         <json-schema-validator.version>1.5.9</json-schema-validator.version>
         <junit.version>5.10.2</junit.version>
         <logback.version>1.5.32</logback.version>
-        <lombok.version>1.18.36</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
         <poi.version>5.5.1</poi.version>
         <rest-assured.version>5.5.7</rest-assured.version>
         <reactor-bom.version>2024.0.12</reactor-bom.version>
