@@ -105,7 +105,7 @@
         <hjson.version>3.1.0</hjson.version>
         <httpclient5.version>5.5.2</httpclient5.version>
         <gson.version>2.13.2</gson.version>
-        <h2.version>2.3.232</h2.version>
+        <h2.version>2.4.240</h2.version>
         <hikaricp.version>6.3.3</hikaricp.version>
         <jackson-bom.version>2.21.2</jackson-bom.version>
         <jakarta-inject.version>2.0.1</jakarta-inject.version>
