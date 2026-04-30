@@ -42,16 +42,7 @@
     <module>runtime</module>
   </modules>
   <properties>
-    <compiler-plugin.version>3.13.0</compiler-plugin.version>
-    <failsafe-plugin.version>3.5.5</failsafe-plugin.version>
-    <maven.compiler.parameters>true</maven.compiler.parameters>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.version>3.35.0</quarkus.version>
-    <elide.version>7.1.18-SNAPSHOT</elide.version>
-    <surefire-plugin.version>3.5.5</surefire-plugin.version>
     <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
   </properties>
   <dependencyManagement>
@@ -66,37 +57,37 @@
       <dependency>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-core</artifactId>
-        <version>${elide.version}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-graphql</artifactId>
-        <version>${elide.version}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-aggregation</artifactId>
-        <version>${elide.version}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-jpa</artifactId>
-        <version>${elide.version}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-multiplex</artifactId>
-        <version>${elide.version}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-swagger</artifactId>
-        <version>${elide.version}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-test-helpers</artifactId>
-        <version>${elide.version}</version>
+        <version>${project.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -109,7 +100,6 @@
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>${surefire-plugin.version}</version>
           <configuration>
             <systemPropertyVariables>
               <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -120,7 +110,6 @@
         </plugin>
         <plugin>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${failsafe-plugin.version}</version>
           <configuration>
             <systemPropertyVariables>
               <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -138,7 +127,6 @@
         </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${compiler-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
