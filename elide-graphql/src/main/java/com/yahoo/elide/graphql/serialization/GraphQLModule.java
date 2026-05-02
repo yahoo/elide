@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.graphql.serialization;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+
+import tools.jackson.core.Version;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * GraphQL Module.

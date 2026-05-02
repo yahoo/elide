@@ -7,10 +7,10 @@ package com.yahoo.elide.async.export.formatter;
 
 import com.yahoo.elide.core.PersistentResource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -79,7 +79,7 @@ public class JsonResourceWriter extends ResourceWriterSupport {
     protected String convert(ObjectMapper mapper, Map<String, Object> attributes) {
         try {
             return mapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Exception when converting to JSON {}", e.getMessage());
             throw new IllegalStateException(e);
         }

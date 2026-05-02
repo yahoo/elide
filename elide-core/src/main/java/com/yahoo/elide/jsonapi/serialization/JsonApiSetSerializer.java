@@ -5,29 +5,25 @@
  */
 package com.yahoo.elide.jsonapi.serialization;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
-import java.io.IOException;
 import java.util.Set;
 
 /**
  * JSON API Set Serializer.
  */
 public class JsonApiSetSerializer extends StdSerializer<Set> {
-    private static final long serialVersionUID = 1L;
-
     JsonApiSetSerializer() {
         super(Set.class);
     }
 
     @Override
-    public void serialize(Set set, JsonGenerator jsonGenerator, SerializerProvider provider)
-            throws IOException {
+    public void serialize(Set set, JsonGenerator jsonGenerator, SerializationContext provider) {
         jsonGenerator.writeStartArray();
         for (Object value : set) {
-            jsonGenerator.writeObject(value);
+            jsonGenerator.writePOJO(value);
         }
         jsonGenerator.writeEndArray();
     }

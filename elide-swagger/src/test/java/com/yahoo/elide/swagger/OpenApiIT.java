@@ -14,11 +14,11 @@ import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
 import com.yahoo.elide.swagger.OpenApiDocument.MediaType;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 class OpenApiIT extends AbstractApiResourceInitializer {
     public OpenApiIT() {

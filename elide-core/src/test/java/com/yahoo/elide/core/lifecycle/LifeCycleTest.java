@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.PersistentResource;
@@ -52,6 +53,7 @@ import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.jsonapi.JsonApi;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.google.common.collect.ImmutableSet;
@@ -59,6 +61,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import jakarta.validation.ConstraintViolationException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -1849,12 +1852,14 @@ public class LifeCycleTest {
     }
 
     private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
-        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder();
+        ElideMapper elideMapper = new ElideMapper(JsonMapper.shared());
+        JsonApiMapper jsonApiMapper = new JsonApiMapper(elideMapper);
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().jsonApiMapper(jsonApiMapper);
         return ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
                 .auditLogger(auditLogger)
                 .verboseErrors(true)
-                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
+                .elideMapper(elideMapper)
                 .settings(jsonApiSettings)
                 .build();
     }

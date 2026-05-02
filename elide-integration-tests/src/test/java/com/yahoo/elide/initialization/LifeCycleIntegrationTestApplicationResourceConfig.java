@@ -23,7 +23,7 @@ import example.models.triggers.Invoice;
 import example.models.triggers.InvoiceCompletionHook;
 import example.models.triggers.services.BillingService;
 import org.glassfish.hk2.api.ServiceLocator;
-import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.inject.hk2.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import jakarta.inject.Inject;

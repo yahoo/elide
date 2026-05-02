@@ -6,16 +6,15 @@
 
 package com.yahoo.elide.graphql.serialization;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-
 import graphql.ErrorClassification;
 import graphql.GraphQLError;
 import graphql.language.SourceLocation;
 
-import java.io.IOException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.deser.std.StdDeserializer;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,8 +24,6 @@ import java.util.Map;
  * Deserializes JSON into a GraphQLError.
  */
 public class GraphQLErrorDeserializer extends StdDeserializer<GraphQLError> {
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructor.
      */
@@ -36,15 +33,15 @@ public class GraphQLErrorDeserializer extends StdDeserializer<GraphQLError> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public GraphQLError deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-        JsonNode root = parser.getCodec().readTree(parser);
+    public GraphQLError deserialize(JsonParser parser, DeserializationContext context) {
+        JsonNode root = context.readTree(parser);
 
         JsonNode messageNode = root.get("message");
         JsonNode pathNode = root.get("path");
         JsonNode sourceLocations = root.get("locations");
         JsonNode extensions = root.get("extensions");
         Map<String, Object> extensionsMap = extensions == null ? Collections.emptyMap()
-                : parser.getCodec().treeToValue(extensions, Map.class);
+                : context.readTreeAsValue(extensions, Map.class);
 
         return new GraphQLError() {
             private static final long serialVersionUID = 1L;
@@ -59,7 +56,7 @@ public class GraphQLErrorDeserializer extends StdDeserializer<GraphQLError> {
 
             @Override
             public String getMessage() {
-                return messageNode == null ? null : messageNode.textValue();
+                return messageNode == null ? null : messageNode.stringValue();
             }
 
             @Override
@@ -97,7 +94,7 @@ public class GraphQLErrorDeserializer extends StdDeserializer<GraphQLError> {
                 if (pathNode != null) {
                     List<Object> paths = new ArrayList<>();
                     pathNode.forEach(path ->
-                        paths.add(path.asText())
+                        paths.add(path.asString())
                     );
                     return paths;
                 }

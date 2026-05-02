@@ -8,12 +8,12 @@ package example.hooks;
 
 import static example.Chat.CHAT;
 
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.graphql.subscriptions.hooks.NotifyTopicLifeCycleHook;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Chat;
 import example.ChatBot;
 
@@ -21,6 +21,8 @@ import jakarta.inject.Inject;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSContext;
 import lombok.Data;
+
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Optional;
 
@@ -40,7 +42,7 @@ public class ChatBotCreateHook implements LifeCycleHook<ChatBot> {
 
         NotifyTopicLifeCycleHook<Chat> publisher = new NotifyTopicLifeCycleHook<>(
                 connectionFactory,
-                new ObjectMapper(),
+                new ElideMapper(JsonMapper.shared()),
                 JMSContext::createProducer
         );
 

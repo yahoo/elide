@@ -10,15 +10,17 @@ import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
+
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -64,9 +66,12 @@ public class CsvResourceWriter extends ResourceWriterSupport {
             EntityProjection entityProjection) {
         super(outputStream);
         this.writeHeader = writeHeader;
-        this.objectMapper = objectMapper;
+        // Keep the declaration order
+        this.objectMapper = objectMapper.rebuild().configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, false)
+                .build();
         this.entityProjection = entityProjection;
-        this.headers = entityProjection != null ? Attributes.getHeaders(objectMapper, entityProjection.getAttributes())
+        this.headers = entityProjection != null
+                ? Attributes.getHeaders(this.objectMapper, entityProjection.getAttributes())
                 : Collections.emptyList();
     }
 
@@ -138,8 +143,8 @@ public class CsvResourceWriter extends ResourceWriterSupport {
             return "";
         }
 
-        Map<String, Attribute> attributes = projection.getAttributes().stream()
-                .collect(Collectors.toMap(Attribute::getName, Function.identity()));
+        Map<String, Attribute> attributes = projection.getAttributes().stream().collect(Collectors.toMap(
+                Attribute::getName, Function.identity(), (existing, replacement) -> existing, LinkedHashMap::new));
         String result = headers.stream().map(header -> {
            String headerValue = getHeader(header, attributes);
            return quote(headerValue);

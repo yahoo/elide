@@ -7,14 +7,12 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
-import java.io.IOException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * Methods for operating on a {@link Serde}.
@@ -25,12 +23,12 @@ public class SerdeRegistrations {
      *
      * @param <S> The serialized type
      * @param <T> The deserialized type
-     * @param objectMapper the object mapper to register with
+     * @param builder the object mapper to register with
      * @param type the deserialized type
      * @param serde the serde
      */
-    public static <S, T> void register(ObjectMapper objectMapper, Class<T> type, Serde<S, T> serde) {
-        register(objectMapper, type, serde, type.getSimpleName());
+    public static <S, T> void register(MapperBuilder builder, Class<T> type, Serde<S, T> serde) {
+        register(builder, type, serde, type.getSimpleName());
     }
 
     /**
@@ -38,18 +36,17 @@ public class SerdeRegistrations {
      *
      * @param <S> The serialized type
      * @param <T> The deserialized type
-     * @param objectMapper the object mapper to register with
+     * @param builder the object mapper to register with
      * @param type the deserialized type
      * @param serde the serde
      * @param name the name to register with
      */
-    public static <S, T> void register(ObjectMapper objectMapper, Class<T> type, Serde<S, T> serde,
+    public static <S, T> void register(MapperBuilder builder, Class<T> type, Serde<S, T> serde,
             String name) {
-        objectMapper.registerModule(new SimpleModule(name).addSerializer(type, new JsonSerializer<T>() {
+        builder.addModule(new SimpleModule(name).addSerializer(type, new ValueSerializer<T>() {
             @Override
-            public void serialize(T value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
-                    throws IOException, JsonProcessingException {
-                jsonGenerator.writeObject(serde.serialize(value));
+            public void serialize(T value, JsonGenerator jsonGenerator, SerializationContext serializationContext) {
+                jsonGenerator.writePOJO(serde.serialize(value));
             }
         }));
     }

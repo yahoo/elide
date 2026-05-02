@@ -8,13 +8,14 @@ package com.yahoo.elide.modelconfig.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -36,6 +37,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonDeserialize(builder = Argument.ArgumentBuilder.class)
+@JsonPOJOBuilder(withPrefix = "")
 public class Argument implements Named {
     private static final long serialVersionUID = -6628282044575311784L;
 
@@ -50,6 +53,7 @@ public class Argument implements Named {
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
+    @Builder.Default
     private Set<String> values = new LinkedHashSet<>();
 
     @JsonProperty("tableSource")
@@ -65,5 +69,8 @@ public class Argument implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
+    }
+
+    public static class ArgumentBuilder {
     }
 }

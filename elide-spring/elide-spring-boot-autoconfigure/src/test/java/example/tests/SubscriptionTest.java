@@ -34,8 +34,8 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import graphql.ExecutionResult;
 import jakarta.websocket.ContainerProvider;
@@ -65,7 +65,7 @@ public class SubscriptionTest extends IntegrationTest {
         reset(serde);
     }
 
-    @SpyBean
+    @MockitoSpyBean
     GraphQLExceptionHandler graphqlExceptionHandler;
 
     @Test

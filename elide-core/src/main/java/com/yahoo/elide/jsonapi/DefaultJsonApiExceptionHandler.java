@@ -22,14 +22,13 @@ import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.jsonapi.models.JsonApiErrors;
 
-import com.fasterxml.jackson.core.JacksonException;
-
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -55,6 +54,15 @@ public class DefaultJsonApiExceptionHandler extends ExceptionHandlerSupport<Json
 
     @Override
     protected ElideResponse<?> handleRuntimeException(RuntimeException exception, JsonApiErrorContext errorContext) {
+        if (exception instanceof JacksonException jacksonException) {
+            String message = (jacksonException.getLocation() != null
+                    && jacksonException.getLocation().contentReference().getRawContent() != null)
+                            ? exception.getMessage() //This will leak Java class info if the location isn't known.
+                    : jacksonException.getOriginalMessage();
+
+            return buildResponse(new BadRequestException(message), errorContext);
+        }
+
         if (exception instanceof ForbiddenAccessException e) {
             return buildResponse(e, errorContext);
         }
@@ -103,15 +111,6 @@ public class DefaultJsonApiExceptionHandler extends ExceptionHandlerSupport<Json
 
     @Override
     protected ElideResponse<?> handleNonRuntimeException(Exception exception, JsonApiErrorContext errorContext) {
-        if (exception instanceof JacksonException jacksonException) {
-            String message = (jacksonException.getLocation() != null
-                    && jacksonException.getLocation().contentReference().getRawContent() != null)
-                            ? exception.getMessage() //This will leak Java class info if the location isn't known.
-                    : jacksonException.getOriginalMessage();
-
-            return buildResponse(new BadRequestException(message), errorContext);
-        }
-
         if (exception instanceof IOException) {
             return buildResponse(new TransactionException(exception), errorContext);
         }

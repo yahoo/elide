@@ -44,8 +44,6 @@ import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -68,8 +66,9 @@ import jakarta.validation.ValidatorFactory;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
+import tools.jackson.databind.DatabindException;
+
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -102,7 +101,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeSingleNoAttributesNoRel() throws JsonProcessingException {
+    public void writeSingleNoAttributesNoRel() {
         Parent parent = new Parent();
         parent.setId(123L);
 
@@ -133,7 +132,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeSingle() throws JsonProcessingException {
+    public void writeSingle() {
         Parent parent = new Parent();
         Child child = new Child();
         parent.setId(123L);
@@ -170,7 +169,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeSingleWithMeta() throws JsonProcessingException {
+    public void writeSingleWithMeta() {
         Child child = new Child();
         child.setId(2);
         child.setMetadataField("foo", "bar");
@@ -191,7 +190,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeSingleIncluded() throws JsonProcessingException {
+    public void writeSingleIncluded() {
         Parent parent = new Parent();
         Child child = new Child();
         parent.setId(123L);
@@ -248,7 +247,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeList() throws JsonProcessingException {
+    public void writeList() {
         Parent parent = new Parent();
         Child child = new Child();
         parent.setId(123L);
@@ -287,7 +286,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeListIncluded() throws JsonProcessingException {
+    public void writeListIncluded() {
         Parent parent = new Parent();
         Child child = new Child();
         parent.setId(123L);
@@ -348,7 +347,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeEmptyList() throws JsonProcessingException {
+    public void writeEmptyList() {
         String expected = "{\"data\":[]}";
 
         Data<Resource> empty = new Data<>(new ArrayList<>());
@@ -365,7 +364,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeEmptyObject() throws JsonProcessingException {
+    public void writeEmptyObject() {
         String expected = "{\"data\":null}";
 
         Data<Resource> empty = new Data<>((Resource) null);
@@ -382,7 +381,7 @@ public class JsonApiTest {
     }
 
     @Test
-    public void writeNullObject() throws JsonProcessingException {
+    public void writeNullObject() {
         String expected = "{\"data\":null}";
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
@@ -400,14 +399,14 @@ public class JsonApiTest {
     public void testMissingTypeInResource() {
         String doc = "{ \"data\": { \"id\": \"22\", \"attributes\": { \"title\": \"works fine\" } } }";
 
-        assertThrows(JsonMappingException.class, () -> mapper.readJsonApiDocument(doc));
+        assertThrows(DatabindException.class, () -> mapper.readJsonApiDocument(doc));
     }
 
     @Test
     public void testMissingTypeInResourceList() {
         String doc = "{ \"data\": [{ \"id\": \"22\", \"attributes\": { \"title\": \"works fine\" } } ]}";
 
-        assertThrows(JsonMappingException.class, () -> mapper.readJsonApiDocument(doc));
+        assertThrows(DatabindException.class, () -> mapper.readJsonApiDocument(doc));
     }
 
     @Test
@@ -580,12 +579,8 @@ public class JsonApiTest {
 
     private void checkEquality(JsonApiDocument doc1) {
         JsonApiDocument doc2;
-        try {
-            String json = mapper.writeJsonApiDocument(doc1);
-            doc2 = mapper.readJsonApiDocument(json);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        String json = mapper.writeJsonApiDocument(doc1);
+        doc2 = mapper.readJsonApiDocument(json);
         assertEquals(doc1, doc2);
         assertEquals(doc1.hashCode(), doc2.hashCode());
     }

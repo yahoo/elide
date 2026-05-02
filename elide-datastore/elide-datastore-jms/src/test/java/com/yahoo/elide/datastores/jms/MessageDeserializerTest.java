@@ -9,12 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.core.type.ClassType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Book;
 import org.junit.jupiter.api.Test;
 
 import jakarta.jms.TextMessage;
+import tools.jackson.databind.json.JsonMapper;
 
 public class MessageDeserializerTest {
 
@@ -24,7 +25,7 @@ public class MessageDeserializerTest {
         when(message.getText()).thenReturn("{ \"title\": \"Foo\", \"id\" : 123 }");
 
         MessageDeserializer<Book> deserializer = new MessageDeserializer(ClassType.of(Book.class),
-                new ObjectMapper());
+                new ElideMapper(JsonMapper.shared()));
 
         Book book = deserializer.apply(message);
         assertEquals("Foo", book.getTitle());

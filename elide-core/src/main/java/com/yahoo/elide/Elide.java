@@ -15,13 +15,13 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Set;
+import tools.jackson.databind.ObjectMapper;
 
+import java.util.Set;
 
 /**
  * Elide.
@@ -31,7 +31,6 @@ public class Elide {
     @Getter private final ElideSettings elideSettings;
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
-    @Getter private final ObjectMapper objectMapper;
     @Getter private final TransactionRegistry transactionRegistry;
     @Getter private final ClassScanner scanner;
     private boolean initialized = false;
@@ -78,7 +77,6 @@ public class Elide {
         this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
-        this.objectMapper = elideSettings.getObjectMapper();
         this.transactionRegistry = transactionRegistry;
 
         if (doScans) {
@@ -136,7 +134,9 @@ public class Elide {
     }
 
     protected <S, T> void registerCustomSerdeInObjectMapper(Class<T> type, Serde<S, T> serde, String name) {
-        SerdeRegistrations.register(objectMapper, type, serde, name);
+        elideSettings.getElideMapper().customizeObjectMapper(builder -> {
+            SerdeRegistrations.register(builder, type, serde, name);
+        });
     }
 
     protected Set<Class<?>> registerCustomSerdeScan() {
@@ -145,5 +145,9 @@ public class Elide {
 
     public <T extends Settings> T getSettings(Class<T> clazz) {
         return this.elideSettings.getSettings(clazz);
+    }
+
+    public ObjectMapper getObjectMapper() {
+        return this.elideSettings.getElideMapper().getObjectMapper();
     }
 }

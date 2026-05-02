@@ -124,7 +124,7 @@ public class ElideSubscriptionConfiguration {
                             serdesBuilder.build().entrySet().stream().forEach(entry -> {
                                 entries.put(entry.getKey(), entry.getValue());
                             });
-                        })).objectMapper(elideMapper.getObjectMapper()).auditLogger(auditLogger)
+                        })).elideMapper(elideMapper).auditLogger(auditLogger)
                                 .verboseErrors(config.isVerboseErrors())
                                 .maxPageSize(config.getMaxPageSize())
                                 .defaultPageSize(config.getDefaultPageSize());

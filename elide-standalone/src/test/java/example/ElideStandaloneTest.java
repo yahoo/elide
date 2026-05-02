@@ -227,7 +227,7 @@ public class ElideStandaloneTest {
                 .get("/stats/metrics")
                 .then()
                 .statusCode(200)
-                .body("meters", hasKey("io.dropwizard.metrics.servlet.InstrumentedFilter.responseCodes.ok"));
+                .body("meters", hasKey("io.dropwizard.metrics5.servlet.InstrumentedFilter.responseCodes.ok"));
     }
 
     @Test

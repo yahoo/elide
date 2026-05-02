@@ -5,13 +5,13 @@
  */
 package com.yahoo.elide.jsonapi.extensions;
 
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Patch;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,10 +20,10 @@ import java.util.List;
  * The mapper for the JSON API JSON Patch extension.
  */
 public class JsonApiJsonPatchMapper {
-    protected final ObjectMapper objectMapper;
+    protected final ElideMapper elideMapper;
 
-    public JsonApiJsonPatchMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public JsonApiJsonPatchMapper(ElideMapper elideMapper) {
+        this.elideMapper = elideMapper;
     }
 
     /**
@@ -31,11 +31,10 @@ public class JsonApiJsonPatchMapper {
      *
      * @param value the value
      * @return the json api document
-     * @throws JsonProcessingException the json processing exception
      */
-    public JsonApiDocument readValue(JsonNode value) throws JsonProcessingException {
+    public JsonApiDocument readValue(JsonNode value) {
         JsonNode data = JsonNodeFactory.instance.objectNode().set("data", value);
-        return this.objectMapper.treeToValue(data, JsonApiDocument.class);
+        return this.elideMapper.getObjectMapper().treeToValue(data, JsonApiDocument.class);
     }
 
     /**
@@ -45,8 +44,9 @@ public class JsonApiJsonPatchMapper {
      * @return the list
      * @throws IOException the iO exception
      */
-    public List<Patch> readDoc(String doc) throws IOException {
-        return this.objectMapper.readValue(doc,
-                this.objectMapper.getTypeFactory().constructCollectionType(List.class, Patch.class));
+    public List<Patch> readDoc(String doc) {
+        ObjectMapper objectMapper = elideMapper.getObjectMapper();
+        return objectMapper.readValue(doc,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Patch.class));
     }
 }

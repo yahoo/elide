@@ -11,10 +11,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.core.exceptions.HttpStatus;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.json.JSONException;
 import org.junit.jupiter.api.TestInstance;
@@ -23,6 +19,10 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import io.restassured.response.ValidatableResponse;
 import jakarta.ws.rs.core.MediaType;
 
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

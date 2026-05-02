@@ -6,17 +6,16 @@
 
 package example;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.IOException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.deser.std.StdDeserializer;
+
 import java.math.BigDecimal;
 import java.util.Currency;
 
@@ -35,8 +34,8 @@ public class Price {
 
 
         @Override
-        public Price deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
-            JsonNode node = parser.getCodec().readTree(parser);
+        public Price deserialize(JsonParser parser, DeserializationContext ctxt) {
+            JsonNode node = ctxt.readTree(parser);
             if (node == null) {
                 return null;
             }
@@ -53,7 +52,7 @@ public class Price {
                 return new Price(new BigDecimal(unitNode.asDouble()), null);
             }
 
-            Currency currency = Currency.getInstance(node.get("currency").get("currencyCode").asText(""));
+            Currency currency = Currency.getInstance(node.get("currency").get("currencyCode").asString(""));
 
             return new Price(new BigDecimal(unitNode.asDouble()), currency);
         }

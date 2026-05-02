@@ -22,13 +22,14 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import example.Left;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.Response;
+
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
 
 /**
  * Tests @NonTransferable annotation integration tests.
@@ -395,9 +396,9 @@ class TransferableIT extends IntegrationTest {
 
         // Should have 3 results, 1st is container, 2nd and 3rd are untransferables
         assertEquals(3, patchJson.size());
-        assertEquals("container", patchJson.get(0).get("data").get("type").asText());
-        assertEquals("untransferable", patchJson.get(1).get("data").get("type").asText());
-        assertEquals("untransferable", patchJson.get(2).get("data").get("type").asText());
+        assertEquals("container", patchJson.get(0).get("data").get("type").asString());
+        assertEquals("untransferable", patchJson.get(1).get("data").get("type").asString());
+        assertEquals("untransferable", patchJson.get(2).get("data").get("type").asString());
 
         // Container should have 2 untransferables
         assertEquals(2, patchJson.get(0).get("data").get("relationships").get("untransferables").get("data").size());
@@ -457,9 +458,9 @@ class TransferableIT extends IntegrationTest {
 
         // Should have 3 results, 1st is container, 2nd and 3rd are transferables
         assertEquals(3, patchJson.size());
-        assertEquals("container", patchJson.get(0).get("data").get("type").asText());
-        assertEquals("transferable", patchJson.get(1).get("data").get("type").asText());
-        assertEquals("transferable", patchJson.get(2).get("data").get("type").asText());
+        assertEquals("container", patchJson.get(0).get("data").get("type").asString());
+        assertEquals("transferable", patchJson.get(1).get("data").get("type").asString());
+        assertEquals("transferable", patchJson.get(2).get("data").get("type").asString());
 
         // Container should have 2 transferables
         assertEquals(2, patchJson.get(0).get("data").get("relationships").get("transferables").get("data").size());

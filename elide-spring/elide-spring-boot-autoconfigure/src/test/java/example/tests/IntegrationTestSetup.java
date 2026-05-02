@@ -8,6 +8,7 @@ package example.tests;
 import static org.mockito.Mockito.spy;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.RefreshableElide;
 import com.yahoo.elide.async.AsyncSettings;
@@ -46,12 +47,13 @@ public class IntegrationTestSetup {
                                             DataStore dataStore,
                                             ElideConfigProperties settings,
                                             HeaderProcessor headerProcessor,
+                                            ElideMapper elideMapper,
                                             JsonApiMapper mapper,
                                             ExceptionMappersBuilder exceptionMappersBuilder) {
 
         ElideSettings.ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
-                .objectMapper(mapper.getObjectMapper())
+                .elideMapper(elideMapper)
                 .maxPageSize(settings.getMaxPageSize())
                 .defaultPageSize(settings.getDefaultPageSize())
                 .auditLogger(new Slf4jLogger())

@@ -113,8 +113,8 @@ public class ApiDocsController {
         String prefix = elideConfigProperties.getApiDocs().getPath();
         String pathname = getPath(request, prefix);
         final String baseUrl = getBaseUrl(prefix);
-        Route route = routeResolver.resolve(MediaType.APPLICATION_JSON, baseUrl, pathname, requestHeaders,
-                allRequestParams);
+        Route route = routeResolver.resolve(MediaType.APPLICATION_JSON, baseUrl, pathname,
+                requestHeaders.asMultiValueMap(), allRequestParams);
         String path = route.getPath();
         if (path.startsWith("/")) {
             path = path.substring(1);
@@ -132,8 +132,8 @@ public class ApiDocsController {
         String prefix = elideConfigProperties.getApiDocs().getPath();
         String pathname = getPath(request, prefix);
         final String baseUrl = getBaseUrl(prefix);
-        Route route = routeResolver.resolve(MediaType.APPLICATION_YAML, baseUrl, pathname, requestHeaders,
-                allRequestParams);
+        Route route = routeResolver.resolve(MediaType.APPLICATION_YAML, baseUrl, pathname,
+                requestHeaders.asMultiValueMap(), allRequestParams);
         String path = route.getPath();
         if (path.startsWith("/")) {
             path = path.substring(1);

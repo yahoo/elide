@@ -12,14 +12,14 @@ import com.yahoo.elide.ElideError;
 import com.yahoo.elide.graphql.models.SourceLocationBuilder;
 import com.yahoo.elide.graphql.serialization.GraphQLModule;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import graphql.GraphQLError;
 import graphql.execution.ResultPath;
+
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -29,16 +29,16 @@ import java.util.Map;
  */
 class DefaultGraphQLErrorMapperTest {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
     private GraphQLErrorMapper mapper = new DefaultGraphQLErrorMapper();
 
     @BeforeEach
     public void setup() {
-        objectMapper.registerModule(new GraphQLModule());
+        objectMapper = JsonMapper.builder().addModule(new GraphQLModule()).build();
     }
 
     @Test
-    void toGraphQLError() throws JsonProcessingException {
+    void toGraphQLError() {
         GraphQLError graphqlError = mapper
                 .toGraphQLError(ElideError.builder()
                         .message("<script>message</script>")
@@ -54,7 +54,7 @@ class DefaultGraphQLErrorMapperTest {
     }
 
     @Test
-    void toGraphQLErrorExtensions() throws JsonProcessingException {
+    void toGraphQLErrorExtensions() {
         GraphQLError graphqlError = mapper
                 .toGraphQLError(ElideError.builder()
                         .message("message")
@@ -67,7 +67,7 @@ class DefaultGraphQLErrorMapperTest {
     }
 
     @Test
-    void toGraphQLErrorLinks() throws JsonProcessingException {
+    void toGraphQLErrorLinks() {
         GraphQLError graphqlError = mapper
                 .toGraphQLError(ElideError.builder()
                         .message("message")
@@ -80,7 +80,7 @@ class DefaultGraphQLErrorMapperTest {
     }
 
     @Test
-    void toGraphQLErrorSource() throws JsonProcessingException {
+    void toGraphQLErrorSource() {
         GraphQLError graphqlError = mapper
                 .toGraphQLError(ElideError.builder()
                         .message("message")
@@ -93,7 +93,7 @@ class DefaultGraphQLErrorMapperTest {
     }
 
     @Test
-    void toGraphQLErrorClassification() throws JsonProcessingException {
+    void toGraphQLErrorClassification() {
         GraphQLError graphqlError = mapper
                 .toGraphQLError(ElideError.builder()
                         .message("message")
@@ -106,7 +106,7 @@ class DefaultGraphQLErrorMapperTest {
     }
 
     @Test
-    void toGraphQLErrorPath() throws JsonProcessingException {
+    void toGraphQLErrorPath() {
         GraphQLError graphqlError = mapper
                 .toGraphQLError(ElideError.builder()
                         .message("message")
@@ -119,7 +119,7 @@ class DefaultGraphQLErrorMapperTest {
     }
 
     @Test
-    void toGraphQLErrorResultPath() throws JsonProcessingException {
+    void toGraphQLErrorResultPath() {
         GraphQLError graphqlError = mapper
                 .toGraphQLError(ElideError.builder()
                         .message("message")
@@ -132,7 +132,7 @@ class DefaultGraphQLErrorMapperTest {
     }
 
     @Test
-    void toGraphQLErrorLocations() throws JsonProcessingException {
+    void toGraphQLErrorLocations() {
         GraphQLError graphqlError = mapper
                 .toGraphQLError(ElideError.builder()
                         .message("message")

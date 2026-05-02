@@ -9,11 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.jsonapi.models.Meta;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +24,7 @@ class MetaDeserializerTest {
 
     @SuppressWarnings("rawtypes")
     @Test
-    void shouldDeserialize() throws JsonMappingException, JsonProcessingException {
+    void shouldDeserialize() {
         String value = """
                 {
                   "hello": "world",

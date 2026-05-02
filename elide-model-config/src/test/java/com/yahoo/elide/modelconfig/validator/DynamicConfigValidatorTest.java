@@ -20,6 +20,8 @@ import com.yahoo.elide.modelconfig.model.Type;
 import com.yahoo.elide.modelconfig.store.models.ConfigFile;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class DynamicConfigValidatorTest {
@@ -410,7 +412,9 @@ public class DynamicConfigValidatorTest {
 
         // PlayerStats table already has argument 'countryCode' with type 'TEXT'.
         // Adding another argument 'countryCode' with type 'INTEGER'.
-        playerStatsTable.getArguments().add(Argument.builder().name("countryCode").type(Type.INTEGER).build());
+        List<Argument> arguments = new ArrayList<>(playerStatsTable.getArguments());
+        arguments.add(Argument.builder().name("countryCode").type(Type.INTEGER).build());
+        playerStatsTable.setArguments(arguments);
         Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
         assertEquals("Multiple Arguments found with the same name: countryCode", e.getMessage());
     }
@@ -433,7 +437,9 @@ public class DynamicConfigValidatorTest {
         Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
 
         // PlayerStats table already has a filter argument 'code' with type 'TEXT'.
-        playerStatsTable.getArguments().add(Argument.builder().name("code").type(Type.TEXT).build());
+        List<Argument> arguments = new ArrayList<>(playerStatsTable.getArguments());
+        arguments.add(Argument.builder().name("code").type(Type.TEXT).build());
+        playerStatsTable.setArguments(arguments);
         Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
         assertEquals("Multiple Arguments found with the same name: code", e.getMessage());
     }
@@ -446,7 +452,9 @@ public class DynamicConfigValidatorTest {
         Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
 
         // PlayerStats table already has a filter argument 'code' with type 'TEXT'.
-        playerStatsTable.getArguments().add(Argument.builder().name("code").type(Type.TEXT).build());
+        List<Argument> arguments = new ArrayList<>(playerStatsTable.getArguments());
+        arguments.add(Argument.builder().name("code").type(Type.TEXT).build());
+        playerStatsTable.setArguments(arguments);
         playerStatsTable.setFilterTemplate("foo=={{bar}};blah=={{code}}");
         Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
         assertEquals("Multiple Arguments found with the same name: code", e.getMessage());

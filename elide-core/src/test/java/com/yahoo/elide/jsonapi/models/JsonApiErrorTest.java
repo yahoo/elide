@@ -8,12 +8,10 @@ package com.yahoo.elide.jsonapi.models;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.Test;
 
 import lombok.Getter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -24,7 +22,7 @@ class JsonApiErrorTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void getMeta() throws JsonProcessingException {
+    void getMeta() {
         JsonApiError error = JsonApiError.builder()
                 .meta(meta -> meta.put("property", "property"))
                 .build();
@@ -33,7 +31,7 @@ class JsonApiErrorTest {
     }
 
     @Test
-    void meta() throws JsonProcessingException {
+    void meta() {
         JsonApiError error = JsonApiError.builder()
                 .meta(Map.of("property1", "value1"))
                 .build();
@@ -45,7 +43,7 @@ class JsonApiErrorTest {
 
 
     @Test
-    void links() throws JsonProcessingException {
+    void links() {
         JsonApiError error = JsonApiError.builder()
                 .links(links -> links.about("https://about").type("https://type"))
                 .build();
@@ -56,7 +54,7 @@ class JsonApiErrorTest {
     }
 
     @Test
-    void linksObject() throws JsonProcessingException {
+    void linksObject() {
         JsonApiError error = JsonApiError.builder()
                 .links(JsonApiError.Links.builder().about("https://about").type("https://type").build())
                 .build();
@@ -67,7 +65,7 @@ class JsonApiErrorTest {
     }
 
     @Test
-    void source() throws JsonProcessingException {
+    void source() {
         JsonApiError error = JsonApiError.builder()
                 .source(source -> source.header("header").parameter("parameter").pointer("/data/attributes/title"))
                 .build();
@@ -78,7 +76,7 @@ class JsonApiErrorTest {
     }
 
     @Test
-    void sourceObject() throws JsonProcessingException {
+    void sourceObject() {
         JsonApiError error = JsonApiError.builder()
                 .source(JsonApiError.Source.builder().header("header").parameter("parameter")
                         .pointer("/data/attributes/title").build())
@@ -95,7 +93,7 @@ class JsonApiErrorTest {
     }
 
     @Test
-    void metaObject() throws JsonProcessingException {
+    void metaObject() {
         JsonApiError error = JsonApiError.builder()
                 .meta(new MetaObject())
                 .build();

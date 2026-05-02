@@ -9,10 +9,10 @@ import static graphql.Assert.assertNotNull;
 
 import com.yahoo.elide.graphql.serialization.GraphQLErrorSerializer;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import graphql.ErrorClassification;
 import graphql.language.SourceLocation;
+
+import tools.jackson.databind.annotation.JsonSerialize;
 
 import java.util.ArrayList;
 import java.util.Arrays;

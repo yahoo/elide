@@ -16,9 +16,6 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.test.jsonapi.elements.Data;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
@@ -36,7 +33,9 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -149,11 +148,11 @@ public abstract class IntegrationTest {
         return server;
     }
 
-    protected JsonNode getAsNode(String url) throws JsonProcessingException {
+    protected JsonNode getAsNode(String url) {
         return getAsNode(url, HttpStatus.SC_OK);
     }
 
-    protected JsonNode getAsNode(String url, int httpStatus) throws JsonProcessingException {
+    protected JsonNode getAsNode(String url, int httpStatus) {
         return mapper.readTree(get(url)
                 .then()
                 .statusCode(httpStatus)
@@ -176,7 +175,7 @@ public abstract class IntegrationTest {
             JsonApiDocument expectedDoc = jsonApiMapper.readJsonApiDocument(expected);
             JsonApiDocument actualDoc = jsonApiMapper.readJsonApiDocument(actual);
             assertEquals(expectedDoc, actualDoc, "\n" + actual + "\n" + expected + "\n");
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             fail("\n" + actual + "\n" + expected + "\n", e);
         }
     }

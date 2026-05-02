@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.core.utils.coerce.converters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.beanutils.Converter;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Uses Jackson to Convert from Map to target object.

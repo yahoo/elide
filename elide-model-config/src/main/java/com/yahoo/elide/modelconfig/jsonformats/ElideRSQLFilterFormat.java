@@ -8,7 +8,7 @@ package com.yahoo.elide.modelconfig.jsonformats;
 import static com.yahoo.elide.core.filter.dialect.RSQLFilterDialect.getDefaultOperatorsWithIsnull;
 
 import com.networknt.schema.ExecutionContext;
-import com.networknt.schema.Format;
+import com.networknt.schema.format.Format;
 
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
@@ -22,7 +22,7 @@ import cz.jirutka.rsql.parser.RSQLParserException;
 public class ElideRSQLFilterFormat implements Format {
 
     public static final String NAME = "elideRSQLFilter";
-    public static final String ERROR_MESSAGE_DESCRIPTION = "{0}: does not match the elideRSQLFilter pattern "
+    public static final String ERROR_MESSAGE_DESCRIPTION = "does not match the elideRSQLFilter pattern "
             + "is not a valid RSQL filter expression."
             + " Please visit page https://elide.io/pages/guide/v5/11-graphql.html#operators for samples.";
 

@@ -35,16 +35,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryBuilderCustomizer;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.boot.context.annotation.UserConfigurations;
+import org.springframework.boot.hibernate.SpringJtaPlatform;
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
 import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
-import org.springframework.boot.orm.jpa.hibernate.SpringJtaPlatform;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.jpa.EntityManagerFactoryBuilder;
+import org.springframework.boot.jpa.autoconfigure.EntityManagerFactoryBuilderCustomizer;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.transaction.autoconfigure.TransactionAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,6 +64,7 @@ import jakarta.persistence.EntityManagerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -221,7 +222,7 @@ class ElideAutoConfigurationTransactionTest {
                 ObjectProvider<PersistenceUnitManager> persistenceUnitManager,
                 ObjectProvider<EntityManagerFactoryBuilderCustomizer> customizers) {
             EntityManagerFactoryBuilder builder = new EntityManagerFactoryBuilder(new HibernateJpaVendorAdapter(),
-                    new HashMap<>(), persistenceUnitManager.getIfAvailable());
+                    datasource -> Collections.emptyMap(), persistenceUnitManager.getIfAvailable());
             customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
             return builder;
         }
@@ -451,7 +452,7 @@ class ElideAutoConfigurationTransactionTest {
                 ObjectProvider<PersistenceUnitManager> persistenceUnitManager,
                 ObjectProvider<EntityManagerFactoryBuilderCustomizer> customizers) {
             EntityManagerFactoryBuilder builder = new EntityManagerFactoryBuilder(new HibernateJpaVendorAdapter(),
-                    new HashMap<>(), persistenceUnitManager.getIfAvailable());
+                    datasource -> Collections.emptyMap(), persistenceUnitManager.getIfAvailable());
             customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
             return builder;
         }

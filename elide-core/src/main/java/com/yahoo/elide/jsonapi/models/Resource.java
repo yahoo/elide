@@ -16,11 +16,12 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.serialization.KeySerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import lombok.ToString;
+
+import tools.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Map;
 import java.util.Objects;

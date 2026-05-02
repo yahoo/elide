@@ -12,13 +12,15 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.core.type.ClassType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import jakarta.jms.JMSConsumer;
 import jakarta.jms.JMSRuntimeException;
 import jakarta.jms.TextMessage;
+
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Iterator;
 
@@ -43,7 +45,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 1000,
-                new MessageDeserializer(ClassType.of(String.class), new ObjectMapper())).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new ElideMapper(JsonMapper.shared()))).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());
@@ -67,7 +69,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 0,
-                new MessageDeserializer(ClassType.of(String.class), new ObjectMapper())).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new ElideMapper(JsonMapper.shared()))).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());
@@ -87,7 +89,7 @@ public class MessageIterableTest {
         Iterator<String> iterator = new MessageIterable(
                 consumer,
                 -1,
-                new MessageDeserializer(ClassType.of(String.class), new ObjectMapper())).iterator();
+                new MessageDeserializer(ClassType.of(String.class), new ElideMapper(JsonMapper.shared()))).iterator();
 
         assertTrue(iterator.hasNext());
         assertEquals("1", iterator.next());

@@ -8,6 +8,7 @@ package com.yahoo.elide.core;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.mockito.Mockito.mock;
 
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -27,6 +28,7 @@ import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiRequestScope;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -65,6 +67,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
 import reactor.core.publisher.Flux;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -126,14 +129,16 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected static ElideSettings initSettings() {
-        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder();
+        ElideMapper elideMapper = new ElideMapper(JsonMapper.shared());
+        JsonApiMapper jsonApiMapper = new JsonApiMapper(elideMapper);
+        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().jsonApiMapper(jsonApiMapper);
         return ElideSettings.builder().dataStore(null)
                 .entityDictionary(initDictionary())
                 .auditLogger(MOCK_AUDIT_LOGGER)
                 .maxPageSize(10)
                 .defaultPageSize(10)
                 .settings(jsonApiSettings)
-                .objectMapper(jsonApiSettings.build().getJsonApiMapper().getObjectMapper())
+                .elideMapper(elideMapper)
                 .build();
     }
 

@@ -8,11 +8,11 @@ package com.yahoo.elide.jsonapi.serialization;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.jsonapi.models.JsonApiError;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Collections;
 import java.util.Map;
@@ -22,15 +22,15 @@ import java.util.Map;
  */
 class JsonApiErrorSerializerTest {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setup() {
-        objectMapper.registerModule(new JsonApiModule());
+        objectMapper = JsonMapper.builder().addModule(new JsonApiModule()).build();
     }
 
     @Test
-    void idBlank() throws JsonProcessingException {
+    void idBlank() {
         JsonApiError jsonApiError = JsonApiError.builder().id("  ").build();
         String actual = objectMapper.writeValueAsString(jsonApiError);
         String expected = """
@@ -39,7 +39,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void detailShouldBeEncoded() throws JsonProcessingException {
+    void detailShouldBeEncoded() {
         JsonApiError jsonApiError = JsonApiError.builder().detail("<script></script>").build();
         String actual = objectMapper.writeValueAsString(jsonApiError);
         String expected = """
@@ -48,7 +48,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void detailBlank() throws JsonProcessingException {
+    void detailBlank() {
         JsonApiError jsonApiError = JsonApiError.builder().detail("  ").build();
         String actual = objectMapper.writeValueAsString(jsonApiError);
         String expected = """
@@ -57,7 +57,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void meta() throws JsonProcessingException {
+    void meta() {
         JsonApiError error = JsonApiError.builder()
                 .meta(Map.of("property1", "value1"))
                 .build();
@@ -72,7 +72,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void metaObject() throws JsonProcessingException {
+    void metaObject() {
         JsonApiError error = JsonApiError.builder()
                 .meta(new Meta())
                 .build();
@@ -83,7 +83,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void metaEmptyMap() throws JsonProcessingException {
+    void metaEmptyMap() {
         JsonApiError error = JsonApiError.builder()
                 .meta(Collections.emptyMap())
                 .build();
@@ -94,7 +94,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void links() throws JsonProcessingException {
+    void links() {
         JsonApiError error = JsonApiError.builder()
                 .links(links -> links.about("https://about").type("https://type"))
                 .build();
@@ -105,7 +105,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void linksObject() throws JsonProcessingException {
+    void linksObject() {
         JsonApiError error = JsonApiError.builder()
                 .links(JsonApiError.Links.builder().about("https://about").type("https://type").build())
                 .build();
@@ -116,7 +116,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void source() throws JsonProcessingException {
+    void source() {
         JsonApiError error = JsonApiError.builder()
                 .source(source -> source.header("header").parameter("parameter").pointer("/data/attributes/title"))
                 .build();
@@ -127,7 +127,7 @@ class JsonApiErrorSerializerTest {
     }
 
     @Test
-    void sourceObject() throws JsonProcessingException {
+    void sourceObject() {
         JsonApiError error = JsonApiError.builder()
                 .source(JsonApiError.Source.builder().header("header").parameter("parameter")
                         .pointer("/data/attributes/title").build())

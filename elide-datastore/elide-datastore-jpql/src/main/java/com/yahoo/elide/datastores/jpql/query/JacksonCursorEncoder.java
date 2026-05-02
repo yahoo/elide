@@ -7,12 +7,9 @@ package com.yahoo.elide.datastores.jpql.query;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -38,12 +35,8 @@ public class JacksonCursorEncoder implements CursorEncoder {
 
     @Override
     public String encode(Map<String, String> keys) {
-        try {
-            byte[] result = this.objectMapper.writeValueAsBytes(keys);
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(result);
-        } catch (JsonProcessingException e) {
-            throw new UncheckedIOException(e);
-        }
+        byte[] result = this.objectMapper.writeValueAsBytes(keys);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(result);
     }
 
     @Override
@@ -56,7 +49,7 @@ public class JacksonCursorEncoder implements CursorEncoder {
             TypeReference<LinkedHashMap<String, String>> typeRef = new TypeReference<LinkedHashMap<String, String>>() {
             };
             return this.objectMapper.readValue(result, typeRef);
-        } catch (IOException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new InvalidValueException("cursor " + cursor);
         }
     }

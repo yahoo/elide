@@ -8,13 +8,13 @@ package com.yahoo.elide.jsonapi.extensions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Operations;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for JsonApiAtomicOperationsMapper.
@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 class JsonApiAtomicOperationsMapperTest {
 
     @Test
-    void readDataCollection() throws JsonProcessingException {
-        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ObjectMapper());
+    void readDataCollection() {
+        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ElideMapper(JsonMapper.shared()));
         String operationsDoc = """
                {
                   "atomic:operations": [{
@@ -46,8 +46,8 @@ class JsonApiAtomicOperationsMapperTest {
     }
 
     @Test
-    void readDataSingleId() throws JsonProcessingException {
-        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ObjectMapper());
+    void readDataSingleId() {
+        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ElideMapper(JsonMapper.shared()));
         String operationsDoc = """
                 {
                   "atomic:operations": [{
@@ -73,8 +73,8 @@ class JsonApiAtomicOperationsMapperTest {
     }
 
     @Test
-    void readDataSingleLid() throws JsonProcessingException {
-        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ObjectMapper());
+    void readDataSingleLid() {
+        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ElideMapper(JsonMapper.shared()));
         String operationsDoc = """
                 {
                   "atomic:operations": [{
@@ -100,8 +100,8 @@ class JsonApiAtomicOperationsMapperTest {
     }
 
     @Test
-    void readDataNull() throws JsonProcessingException {
-        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ObjectMapper());
+    void readDataNull() {
+        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ElideMapper(JsonMapper.shared()));
         String operationsDoc = """
                 {
                   "atomic:operations": [{
@@ -121,8 +121,8 @@ class JsonApiAtomicOperationsMapperTest {
     }
 
     @Test
-    void readNull() throws JsonProcessingException {
-        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ObjectMapper());
+    void readNull() {
+        JsonApiAtomicOperationsMapper mapper = new JsonApiAtomicOperationsMapper(new ElideMapper(JsonMapper.shared()));
         String operationsDoc = """
                 {
                   "atomic:operations": [{

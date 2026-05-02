@@ -25,11 +25,6 @@ import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.jsonapi.JsonApiSettings;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import example.Author;
 import example.Book;
 import example.Price;
@@ -46,6 +41,10 @@ import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.SimpleDataFetcherExceptionHandler;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -310,7 +309,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         void evaluate(String graphQLRequest, String graphQLResponse) throws Exception;
     }
 
-    protected String getBody(ElideResponse<?> response) throws JsonProcessingException {
+    protected String getBody(ElideResponse<?> response) {
         if (response.getBody() instanceof String value) {
             return value;
         }

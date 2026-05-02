@@ -25,8 +25,6 @@ import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 import com.yahoo.elide.test.jsonapi.elements.Data;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -36,6 +34,8 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -150,9 +150,9 @@ public class DataStoreIT extends IntegrationTest {
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
-        assertEquals(SONG_OF_ICE_AND_FIRE, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText());
-        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asText());
-        assertEquals(STORM_OF_SWORDS, result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asText());
+        assertEquals(SONG_OF_ICE_AND_FIRE, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asString());
+        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asString());
+        assertEquals(STORM_OF_SWORDS, result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asString());
 
         assertEquals(ICE_AND_FIRE_CHAPTER_COUNT, result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
         assertEquals(CLASH_OF_KINGS_CHAPTER_COUNT, result.get(DATA).get(1).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
@@ -170,9 +170,9 @@ public class DataStoreIT extends IntegrationTest {
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
-        assertEquals(SONG_OF_ICE_AND_FIRE, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText());
-        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asText());
-        assertEquals(STORM_OF_SWORDS, result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asText());
+        assertEquals(SONG_OF_ICE_AND_FIRE, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asString());
+        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asString());
+        assertEquals(STORM_OF_SWORDS, result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asString());
 
         assertEquals(ICE_AND_FIRE_CHAPTER_COUNT, result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
         assertEquals(CLASH_OF_KINGS_CHAPTER_COUNT, result.get(DATA).get(1).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
@@ -191,7 +191,7 @@ public class DataStoreIT extends IntegrationTest {
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(1, result.get(DATA).size());
-        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText());
+        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asString());
 
         assertEquals(CLASH_OF_KINGS_CHAPTER_COUNT, result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
     }
@@ -208,7 +208,7 @@ public class DataStoreIT extends IntegrationTest {
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(1, result.get(DATA).size());
-        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText());
+        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asString());
 
         assertEquals(CLASH_OF_KINGS_CHAPTER_COUNT, result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
     }
@@ -225,9 +225,9 @@ public class DataStoreIT extends IntegrationTest {
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
-        assertEquals(STORM_OF_SWORDS, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText());
-        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asText());
-        assertEquals(SONG_OF_ICE_AND_FIRE, result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asText());
+        assertEquals(STORM_OF_SWORDS, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asString());
+        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asString());
+        assertEquals(SONG_OF_ICE_AND_FIRE, result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asString());
 
         assertEquals(STORM_OF_SWORDS_CHAPTER_COUNT, result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
         assertEquals(CLASH_OF_KINGS_CHAPTER_COUNT, result.get(DATA).get(1).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
@@ -246,9 +246,9 @@ public class DataStoreIT extends IntegrationTest {
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
-        assertEquals(STORM_OF_SWORDS, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText());
-        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asText());
-        assertEquals(SONG_OF_ICE_AND_FIRE, result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asText());
+        assertEquals(STORM_OF_SWORDS, result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asString());
+        assertEquals(CLASH_OF_KINGS, result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asString());
+        assertEquals(SONG_OF_ICE_AND_FIRE, result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asString());
 
         assertEquals(STORM_OF_SWORDS_CHAPTER_COUNT, result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());
         assertEquals(CLASH_OF_KINGS_CHAPTER_COUNT, result.get(DATA).get(1).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt());

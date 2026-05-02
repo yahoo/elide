@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.jsonapi.serialization;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.core.Version;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * JSON API Module.

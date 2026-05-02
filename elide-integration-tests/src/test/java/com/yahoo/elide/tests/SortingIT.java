@@ -16,10 +16,11 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.JsonApi;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -66,10 +67,10 @@ public class SortingIT extends IntegrationTest {
         assertEquals(8, size);
 
         JsonNode books = result.get("data");
-        String firstBookName = books.get(0).get("attributes").get("title").asText();
+        String firstBookName = books.get(0).get("attributes").get("title").asString();
         assertEquals("For Whom the Bell Tolls", firstBookName);
 
-        String secondBookName = books.get(1).get("attributes").get("title").asText();
+        String secondBookName = books.get(1).get("attributes").get("title").asString();
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = getAsNode("/book?sort=publisher.name");
@@ -77,10 +78,10 @@ public class SortingIT extends IntegrationTest {
         assertEquals(8, size);
 
         books = result.get("data");
-        firstBookName = books.get(size - 2).get("attributes").get("title").asText();
+        firstBookName = books.get(size - 2).get("attributes").get("title").asString();
         assertEquals("The Old Man and the Sea", firstBookName);
 
-        secondBookName = books.get(size - 1).get("attributes").get("title").asText();
+        secondBookName = books.get(size - 1).get("attributes").get("title").asString();
         assertEquals("For Whom the Bell Tolls", secondBookName);
     }
 
@@ -91,10 +92,10 @@ public class SortingIT extends IntegrationTest {
         assertEquals(2, result.get("data").size());
 
         JsonNode books = result.get("data");
-        String firstBookName = books.get(0).get("attributes").get("title").asText();
+        String firstBookName = books.get(0).get("attributes").get("title").asString();
         assertEquals("For Whom the Bell Tolls", firstBookName);
 
-        String secondBookName = books.get(1).get("attributes").get("title").asText();
+        String secondBookName = books.get(1).get("attributes").get("title").asString();
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = getAsNode("/author/1/books?sort=publisher.name");
@@ -102,10 +103,10 @@ public class SortingIT extends IntegrationTest {
         assertEquals(2, result.get("data").size());
 
         books = result.get("data");
-        firstBookName = books.get(0).get("attributes").get("title").asText();
+        firstBookName = books.get(0).get("attributes").get("title").asString();
         assertEquals("The Old Man and the Sea", firstBookName);
 
-        secondBookName = books.get(1).get("attributes").get("title").asText();
+        secondBookName = books.get(1).get("attributes").get("title").asString();
         assertEquals("For Whom the Bell Tolls", secondBookName);
     }
 
@@ -124,20 +125,20 @@ public class SortingIT extends IntegrationTest {
         assertEquals(8, result.get("data").size());
 
         JsonNode books = result.get("data");
-        String firstBookName = books.get(0).get("attributes").get("title").asText();
+        String firstBookName = books.get(0).get("attributes").get("title").asString();
         assertEquals("For Whom the Bell Tolls", firstBookName);
 
-        String secondBookName = books.get(1).get("attributes").get("title").asText();
+        String secondBookName = books.get(1).get("attributes").get("title").asString();
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = getAsNode("/book?sort=publisher.id");
         assertEquals(8, result.get("data").size());
 
         books = result.get("data");
-        firstBookName = books.get(6).get("attributes").get("title").asText();
+        firstBookName = books.get(6).get("attributes").get("title").asString();
         assertEquals("The Old Man and the Sea", firstBookName);
 
-        secondBookName = books.get(7).get("attributes").get("title").asText();
+        secondBookName = books.get(7).get("attributes").get("title").asString();
         assertEquals("For Whom the Bell Tolls", secondBookName);
     }
 
@@ -166,7 +167,7 @@ public class SortingIT extends IntegrationTest {
         JsonNode books = result.get("data");
         for (int idx = 0; idx < isoCodes.size(); idx++) {
             String expectedCode = isoCodes.get(idx);
-            String actualCode = books.get(idx).get("attributes").get("price").get("currency").get("isoCode").asText();
+            String actualCode = books.get(idx).get("attributes").get("price").get("currency").get("isoCode").asString();
             assertEquals(expectedCode, actualCode);
         }
     }
@@ -181,7 +182,7 @@ public class SortingIT extends IntegrationTest {
         JsonNode books = result.get("data");
         for (int idx = 0; idx < isoCodes.size(); idx++) {
             String expectedCode = isoCodes.get(idx);
-            String actualCode = books.get(idx).get("attributes").get("price").get("currency").get("isoCode").asText();
+            String actualCode = books.get(idx).get("attributes").get("price").get("currency").get("isoCode").asString();
             assertEquals(expectedCode, actualCode);
         }
     }
@@ -205,7 +206,7 @@ public class SortingIT extends IntegrationTest {
         JsonNode books = result.get("data");
         for (int idx = 0; idx < bookTitles.size(); idx++) {
             String expectedTitle = bookTitles.get(idx);
-            String actualTitle = books.get(idx).get("attributes").get("title").asText();
+            String actualTitle = books.get(idx).get("attributes").get("title").asString();
             assertEquals(expectedTitle, actualTitle);
         }
     }

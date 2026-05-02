@@ -18,9 +18,11 @@ import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.utils.HeaderProcessor;
 import com.yahoo.elide.utils.Headers;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Getter;
+
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -38,7 +40,7 @@ public class ElideSettings {
     private final AuditLogger auditLogger;
     private final DataStore dataStore;
     private final EntityDictionary entityDictionary;
-    private final ObjectMapper objectMapper;
+    private final ElideMapper elideMapper;
     private final Function<RequestScope, PermissionExecutor> permissionExecutor;
     private final HeaderProcessor headerProcessor;
     private final int maxPageSize;
@@ -49,14 +51,14 @@ public class ElideSettings {
     private final Map<Class<? extends Settings>, Settings> settings;
 
     public ElideSettings(AuditLogger auditLogger, DataStore dataStore, EntityDictionary entityDictionary,
-            ObjectMapper objectMapper, Function<RequestScope, PermissionExecutor> permissionExecutor,
+            ElideMapper elideMapper, Function<RequestScope, PermissionExecutor> permissionExecutor,
             HeaderProcessor headerProcessor, int maxPageSize, int defaultPageSize, Serdes serdes, String baseUrl,
             boolean verboseErrors, Map<Class<? extends Settings>, Settings> settings) {
         super();
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.entityDictionary = entityDictionary;
-        this.objectMapper = objectMapper;
+        this.elideMapper = elideMapper;
         this.permissionExecutor = permissionExecutor;
         this.headerProcessor = headerProcessor;
         this.maxPageSize = maxPageSize;
@@ -77,7 +79,7 @@ public class ElideSettings {
                 .auditLogger(this.auditLogger)
                 .dataStore(this.dataStore)
                 .entityDictionary(this.entityDictionary)
-                .objectMapper(this.objectMapper)
+                .elideMapper(this.elideMapper)
                 .permissionExecutor(this.permissionExecutor)
                 .headerProcessor(this.headerProcessor)
                 .maxPageSize(this.maxPageSize)
@@ -130,7 +132,7 @@ public class ElideSettings {
                 Settings result = value.build();
                 settings.put(result.getClass(), result);
             });
-            return new ElideSettings(this.auditLogger, this.dataStore, this.entityDictionary, this.objectMapper,
+            return new ElideSettings(this.auditLogger, this.dataStore, this.entityDictionary, this.elideMapper,
                     this.permissionExecutor, this.headerProcessor, this.maxPageSize,
                     this.defaultPageSize, this.serdes.build(), this.baseUrl, this.verboseErrors, settings);
         }
@@ -141,7 +143,7 @@ public class ElideSettings {
         protected String baseUrl = "";
         protected AuditLogger auditLogger = new Slf4jLogger();
         protected HeaderProcessor headerProcessor = Headers::removeAuthorizationHeaders;
-        protected ObjectMapper objectMapper = new ObjectMapper();
+        protected ElideMapper elideMapper = new ElideMapper(JsonMapper.shared());
         protected int maxPageSize = Pagination.MAX_PAGE_SIZE;
         protected int defaultPageSize = Pagination.DEFAULT_PAGE_SIZE;
         protected Function<RequestScope, PermissionExecutor> permissionExecutor = ActivePermissionExecutor::new;
@@ -241,11 +243,11 @@ public class ElideSettings {
         /**
          * Sets the Jackson {@link ObjectMapper} for serialization and deserialization.
          *
-         * @param objectMapper the object mapper
+         * @param elideMapper the object mapper
          * @return the builder
          */
-        public S objectMapper(ObjectMapper objectMapper) {
-            this.objectMapper = objectMapper;
+        public S elideMapper(ElideMapper elideMapper) {
+            this.elideMapper = elideMapper;
             return self();
         }
 

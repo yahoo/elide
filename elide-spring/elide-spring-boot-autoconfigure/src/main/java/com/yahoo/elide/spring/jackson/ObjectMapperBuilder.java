@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.spring.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Used to build an ObjectMapper.
  *
- * @see com.fasterxml.jackson.databind.ObjectMapper
+ * @see tools.jackson.databind.ObjectMapper
  */
 @FunctionalInterface
 public interface ObjectMapperBuilder {

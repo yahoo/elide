@@ -5,11 +5,9 @@
  */
 package com.yahoo.elide.test.graphql;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-
-import java.io.IOException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * A Jackson serializer for String entity field.
@@ -47,13 +45,13 @@ import java.io.IOException;
  *
  * @see <a href="https://graphql.org/learn/queries/#variables">Variables</a>
  */
-public class VariableFieldSerializer extends JsonSerializer<String> {
+public class VariableFieldSerializer extends ValueSerializer<String> {
 
     private static final String VARIABLE_SIGN = "$";
     private static final String ENUM_SIGN = "#";
 
     @Override
-    public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(String value, JsonGenerator gen, SerializationContext serializers) {
 
         if (value.startsWith(VARIABLE_SIGN)) {
             // this is a variable

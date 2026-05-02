@@ -84,11 +84,13 @@ public class GraphqlController {
                                                  @RequestParam MultiValueMap<String, String> allRequestParams,
                                                  @RequestBody String graphQLDocument, HttpServletRequest request) {
         final User user = new HttpServletRequestUser(request);
-        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor
+                .process(requestHeaders.asMultiValueMap());
         final String prefix = settings.getGraphql().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
-        Route route = routeResolver.resolve(JSON_CONTENT_TYPE, baseUrl, pathname, requestHeaders, allRequestParams);
+        Route route = routeResolver.resolve(JSON_CONTENT_TYPE, baseUrl, pathname, requestHeadersCleaned,
+                allRequestParams);
 
         final QueryRunner runner = runners.getRunner(route.getApiVersion());
 

@@ -25,18 +25,17 @@ import com.yahoo.elide.jsonapi.parser.DeleteVisitor;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,11 +93,11 @@ public class JsonApiAtomicOperations {
     static {
         ERR_NODE_OPERATION_NOT_RUN = JsonNodeFactory.instance.objectNode();
         ERR_NODE_OPERATION_NOT_RUN.set("detail",
-            JsonNodeFactory.instance.textNode("Operation not executed. Terminated by earlier failure."));
+            JsonNodeFactory.instance.stringNode("Operation not executed. Terminated by earlier failure."));
 
         ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION = JsonNodeFactory.instance.objectNode();
         ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION.set("detail",
-                JsonNodeFactory.instance.textNode("Subsequent operation failed."));
+                JsonNodeFactory.instance.stringNode("Subsequent operation failed."));
     }
 
     /**
@@ -127,7 +126,7 @@ public class JsonApiAtomicOperations {
             } else {
                 throw new InvalidEntityBodyException(operationsDoc);
             }
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new InvalidEntityBodyException(operationsDoc);
         }
         JsonApiAtomicOperations processor = new JsonApiAtomicOperations(dataStore, actions, uri, requestScope);
@@ -318,7 +317,7 @@ public class JsonApiAtomicOperations {
                         }
                     }
                 }
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 // Do nothing as it will fall back on InvalidEntityBodyException
             }
         }
@@ -385,7 +384,7 @@ public class JsonApiAtomicOperations {
         } catch (HttpStatusException e) {
             action.cause = e;
             throw e;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new InvalidEntityBodyException("Could not parse Atomic Operations extension value: " + dataValue);
         }
     }
@@ -411,7 +410,7 @@ public class JsonApiAtomicOperations {
             // Defer relationship updating until the end
             PatchVisitor visitor = new PatchVisitor(new JsonApiAtomicOperationsRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new InvalidEntityBodyException("Could not parse Atomic Operations extension value: " + dataValue);
         }
     }
@@ -440,7 +439,7 @@ public class JsonApiAtomicOperations {
             DeleteVisitor visitor = new DeleteVisitor(
                 new JsonApiAtomicOperationsRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(fullPath));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new InvalidEntityBodyException("Could not parse Atomic Operations extension value: " + dataValue);
         }
     }
@@ -537,9 +536,9 @@ public class JsonApiAtomicOperations {
      */
     private static JsonNode toErrorNode(String detail, Integer status) {
         ObjectNode formattedError = JsonNodeFactory.instance.objectNode();
-        formattedError.set("detail", JsonNodeFactory.instance.textNode(Encode.forHtml(detail)));
+        formattedError.set("detail", JsonNodeFactory.instance.stringNode(Encode.forHtml(detail)));
         if (status != null) {
-            formattedError.set("status", JsonNodeFactory.instance.textNode(status.toString()));
+            formattedError.set("status", JsonNodeFactory.instance.stringNode(status.toString()));
         }
         return formattedError;
     }

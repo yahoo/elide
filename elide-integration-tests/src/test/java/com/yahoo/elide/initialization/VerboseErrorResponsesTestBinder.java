@@ -8,6 +8,7 @@ package com.yahoo.elide.initialization;
 import static com.yahoo.elide.initialization.IntegrationTest.getDataStore;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.AsyncSettings;
 import com.yahoo.elide.async.AsyncSettings.AsyncSettingsBuilder;
@@ -17,6 +18,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.JsonApiSettings.JsonApiSettingsBuilder;
 
 import example.TestCheckMappings;
@@ -25,6 +27,10 @@ import example.models.triggers.services.BillingService;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
+
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 
@@ -60,8 +66,12 @@ public class VerboseErrorResponsesTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
-
+                ElideMapper elideMapper = new ElideMapper(
+                        JsonMapper.builder().disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                                .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build());
+                JsonApiMapper jsonApiMapper = new JsonApiMapper(elideMapper);
                 JsonApiSettingsBuilder jsonApiSettings = JsonApiSettingsBuilder.withDefaults(dictionary)
+                        .jsonApiMapper(jsonApiMapper)
                         .joinFilterDialect(multipleFilterStrategy)
                         .subqueryFilterDialect(multipleFilterStrategy);
 
@@ -70,6 +80,7 @@ public class VerboseErrorResponsesTestBinder extends AbstractBinder {
                 AsyncSettingsBuilder asyncSettings = AsyncSettings.builder();
 
                 Elide elide = new Elide(ElideSettings.builder().dataStore(getDataStore())
+                        .elideMapper(elideMapper)
                         .auditLogger(auditLogger)
                         .settings(jsonApiSettings, graphqlSettings, asyncSettings)
                         .entityDictionary(dictionary)

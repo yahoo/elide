@@ -13,9 +13,6 @@ import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import graphql.ExecutionResult;
 import jakarta.websocket.ClientEndpoint;
 import jakarta.websocket.CloseReason;
@@ -25,6 +22,9 @@ import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,10 +61,8 @@ public class SubscriptionWebSocketTestClient {
         this.queries = queries;
         this.expectedNumberOfMessages = expectedNumberOfMessages;
         this.expectedNumberOfSubscribes = queries.size();
-        this.mapper = new ObjectMapper();
-        mapper.registerModule(new GraphQLModule());
+        this.mapper = JsonMapper.builder().addModule(new GraphQLModule()).build();
     }
-
 
     @OnOpen
     public void onOpen(Session session) throws Exception {

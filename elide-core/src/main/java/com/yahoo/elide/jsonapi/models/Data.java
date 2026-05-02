@@ -8,14 +8,15 @@ package com.yahoo.elide.jsonapi.models;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.jsonapi.serialization.DataDeserializer;
 import com.yahoo.elide.jsonapi.serialization.DataSerializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import lombok.ToString;
 import reactor.core.publisher.Flux;
 
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Collection;
 import java.util.Comparator;
+
 
 /**
  * Container for different representations of top-level data in JSON API.

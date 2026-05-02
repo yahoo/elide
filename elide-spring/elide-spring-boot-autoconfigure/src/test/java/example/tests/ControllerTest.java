@@ -47,12 +47,6 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
 import com.yahoo.elide.test.jsonapi.elements.AtomicOperationCode;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -65,6 +59,9 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import java.util.Map;
 /**
@@ -1114,7 +1111,7 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    public void apiDocsDocumentTestYaml() throws JsonMappingException, JsonProcessingException {
+    public void apiDocsDocumentTestYaml() {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         String response = given()
                 .accept("application/yaml")

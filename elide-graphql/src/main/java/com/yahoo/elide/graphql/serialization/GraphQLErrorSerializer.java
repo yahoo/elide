@@ -5,14 +5,14 @@
  */
 package com.yahoo.elide.graphql.serialization;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.owasp.encoder.Encode;
 
 import graphql.GraphQLError;
 
-import java.io.IOException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
+
 import java.util.Map;
 
 /**
@@ -20,9 +20,6 @@ import java.util.Map;
  * Supports encoding of the error's message field, making it safe for display in HTML.
  */
 public class GraphQLErrorSerializer extends StdSerializer<GraphQLError> {
-
-    private static final long serialVersionUID = 1L;
-
     /**
      * Construct a new GraphQLErrorSerializer, optionally with error encoding enabled.
      */
@@ -31,25 +28,26 @@ public class GraphQLErrorSerializer extends StdSerializer<GraphQLError> {
     }
 
     @Override
-    public void serialize(GraphQLError value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+    public void serialize(GraphQLError value, JsonGenerator gen, SerializationContext provider) {
         Map<String, Object> errorSpec = value.toSpecification();
         gen.writeStartObject();
 
-        gen.writeStringField("message", Encode.forHtml((String) errorSpec.get("message")));
+        gen.writeName("message");
+        gen.writeString(Encode.forHtml((String) errorSpec.get("message")));
 
         if (errorSpec.containsKey("locations")) {
-            gen.writeFieldName("locations");
-            gen.writeObject(errorSpec.get("locations"));
+            gen.writeName("locations");
+            gen.writePOJO(errorSpec.get("locations"));
         }
 
         if (errorSpec.containsKey("path")) {
-            gen.writeFieldName("path");
-            gen.writeObject(errorSpec.get("path"));
+            gen.writeName("path");
+            gen.writePOJO(errorSpec.get("path"));
         }
 
         if (errorSpec.containsKey("extensions")) {
-            gen.writeFieldName("extensions");
-            gen.writeObject(errorSpec.get("extensions"));
+            gen.writeName("extensions");
+            gen.writePOJO(errorSpec.get("extensions"));
         }
 
         gen.writeEndObject();

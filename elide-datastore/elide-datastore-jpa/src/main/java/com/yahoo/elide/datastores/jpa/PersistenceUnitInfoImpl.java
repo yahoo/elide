@@ -68,4 +68,16 @@ public class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
     public void addTransformer(ClassTransformer classTransformer) {
         //Not implemented
     }
+
+    @Override
+    public String getScopeAnnotationName() {
+        //Not implemented
+        return null;
+    }
+
+    @Override
+    public List<String> getQualifierAnnotationNames() {
+        //Not implemented
+        return null;
+    }
 }

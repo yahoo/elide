@@ -18,8 +18,6 @@ import com.yahoo.elide.core.exceptions.InvalidApiVersionException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.graphql.models.GraphQLErrors;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import graphql.GraphQLException;
 
@@ -27,6 +25,9 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
 import lombok.extern.slf4j.Slf4j;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -47,13 +48,17 @@ public class DefaultGraphQLExceptionHandler extends ExceptionHandlerSupport<Grap
 
     @Override
     protected ElideResponse<?> handleRuntimeException(RuntimeException exception, GraphQLErrorContext errorContext) {
+        if (exception instanceof JacksonException) {
+            return buildResponse(new InvalidEntityBodyException(errorContext.getGraphQLDocument()), errorContext);
+        }
+
         if (exception instanceof GraphQLException e) {
             String body = e.getMessage();
             return ElideResponse.status(HttpStatus.SC_OK).body(body);
         }
 
         if (exception instanceof InvalidEntityBodyException e) {
-            if (e.getCause() instanceof JsonParseException) {
+            if (e.getCause() instanceof StreamReadException) {
                 return buildResponse(e, errorContext);
             }
             return buildResponse(HttpStatus.SC_OK, e, errorContext);
@@ -92,10 +97,6 @@ public class DefaultGraphQLExceptionHandler extends ExceptionHandlerSupport<Grap
 
     @Override
     protected ElideResponse<?> handleNonRuntimeException(Exception exception, GraphQLErrorContext errorContext) {
-        if (exception instanceof JsonProcessingException) {
-            return buildResponse(new InvalidEntityBodyException(errorContext.getGraphQLDocument()), errorContext);
-        }
-
         if (exception instanceof IOException) {
             return buildResponse(new TransactionException(exception), errorContext);
         }

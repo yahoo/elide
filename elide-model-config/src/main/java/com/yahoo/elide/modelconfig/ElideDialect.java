@@ -7,16 +7,17 @@ package com.yahoo.elide.modelconfig;
 
 import com.yahoo.elide.modelconfig.jsonformats.ElideRSQLFilterFormat;
 
-import com.networknt.schema.Format;
-import com.networknt.schema.JsonMetaSchema;
+import com.networknt.schema.dialect.Dialect;
+import com.networknt.schema.dialect.Dialects;
+import com.networknt.schema.format.Format;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The Elide {@link JsonMetaSchema}.
+ * The Elide {@link Dialect}.
  */
-public class ElideMetaSchema {
+public class ElideDialect {
     public static final List<Format> FORMATS;
 
     static {
@@ -26,9 +27,9 @@ public class ElideMetaSchema {
     }
 
     private static class Holder {
-        static final JsonMetaSchema INSTANCE;
+        static final Dialect INSTANCE;
         static {
-            INSTANCE = JsonMetaSchema.builder(JsonMetaSchema.getV202012())
+            INSTANCE = Dialect.builder(Dialects.getDraft202012())
                     .formats(FORMATS)
                     // add your custom keywords
                     .build();
@@ -36,7 +37,7 @@ public class ElideMetaSchema {
         }
     }
 
-    public static JsonMetaSchema getInstance() {
+    public static Dialect getInstance() {
         return Holder.INSTANCE;
     }
 }

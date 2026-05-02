@@ -13,9 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.graphql.serialization.ExecutionResultDeserializer;
 import com.yahoo.elide.graphql.serialization.GraphQLErrorDeserializer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -23,6 +20,10 @@ import org.junit.jupiter.api.TestInstance;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import graphql.language.SourceLocation;
+
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 import java.util.Map;
 
@@ -32,16 +33,15 @@ public class ExecutionResultDeserializerTest {
 
     @BeforeAll
     public void init() {
-        mapper = new ObjectMapper();
-        mapper.registerModule(new SimpleModule("ExecutionResult")
+        mapper = JsonMapper.builder().addModule(new SimpleModule("ExecutionResult")
                 .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())
                 .addDeserializer(ExecutionResult.class, new ExecutionResultDeserializer())
-        );
+        ).build();
     }
 
     @Test
     public void testDeserialization() throws Exception {
-        String resultText = "{\"data\":{\"book\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}";
+        String resultText = "{\"data\":{\"book\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}";
 
         ExecutionResult result = mapper.readValue(resultText, ExecutionResult.class);
 
@@ -63,7 +63,7 @@ public class ExecutionResultDeserializerTest {
 
     @Test
     public void testDeserializationWithMissingData() throws Exception {
-        String resultText = "{\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}";
+        String resultText = "{\"errors\":[{\"message\":\"Exception while fetching data (/book/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":38}],\"path\":[\"book\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}";
 
         ExecutionResult result = mapper.readValue(resultText, ExecutionResult.class);
 
