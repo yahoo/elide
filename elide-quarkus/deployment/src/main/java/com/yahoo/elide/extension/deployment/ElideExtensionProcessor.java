@@ -26,12 +26,7 @@ import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.GraphQLEndpoint;
-import com.yahoo.elide.jsonapi.models.Data;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.jsonapi.models.Meta;
-import com.yahoo.elide.jsonapi.models.Relationship;
-import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+import com.yahoo.elide.jsonapi.models.*;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.jsonapi.serialization.DataDeserializer;
 import com.yahoo.elide.jsonapi.serialization.DataSerializer;
@@ -74,10 +69,8 @@ import jakarta.enterprise.inject.Default;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+
+import java.util.*;
 
 /**
  * Quarkus extension processor for Elide.
@@ -141,26 +134,26 @@ public class ElideExtensionProcessor {
     @BuildStep
     public void configureElideEndpoints(ElideConfig config,
             BuildProducer<GeneratedJaxRsResourceBuildItem> generatedJaxRsResourceBuildItemBuildProducer) {
-        if (config.jsonApi().path() != null) {
-            LOG.infof("Enabling JSON-API Endpoint for path: %s", config.jsonApi().path());
+        if (config.jsonApiPath != null) {
+            LOG.infof("Enabling JSON-API Endpoint for path: %s", config.jsonApiPath);
             generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "JsonApi",
-                    JsonApiEndpoint.class, config.jsonApi().path(),
+                    JsonApiEndpoint.class, config.jsonApiPath,
                     new Param("elide", Elide.class, null), new Param(Optional.class, RouteResolver.class));
         }
 
-        if (config.graphql().path() != null) {
-            LOG.infof("Enabling GraphQL Endpoint for path: %s", config.graphql().path());
+        if (config.graphqlPath != null) {
+            LOG.infof("Enabling GraphQL Endpoint for path: %s", config.graphqlPath);
             generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "GraphQL",
-                    GraphQLEndpoint.class, config.graphql().path(),
+                    GraphQLEndpoint.class, config.graphqlPath,
                     new Param("elide", Elide.class, null),
                     new Param(Optional.class, DataFetcherExceptionHandler.class),
                     new Param(Optional.class, RouteResolver.class));
         }
 
-        if (config.apiDocs().path() != null && config.jsonApi().path() != null) {
-            LOG.infof("Enabling Swagger Endpoint for path: %s", config.apiDocs().path());
+        if (config.apiDocsPath != null && config.jsonApiPath != null) {
+            LOG.infof("Enabling Swagger Endpoint for path: %s", config.apiDocsPath);
             generateEndpointClass(generatedJaxRsResourceBuildItemBuildProducer, "ApiDocs",
-                    ApiDocsEndpoint.class, config.apiDocs().path(),
+                    ApiDocsEndpoint.class, config.apiDocsPath,
                     new Param("apiDocs", List.class, ApiDocsEndpoint.ApiDocsRegistration.class),
                     new Param("elide", Elide.class, null),
                     new Param(Optional.class, RouteResolver.class));
@@ -210,9 +203,9 @@ public class ElideExtensionProcessor {
         index.getIndex().getKnownClasses().forEach(classInfo -> {
             boolean found = false;
 
-            for (Class<?> annotationClass : ElideRecorder.ANNOTATIONS) {
+            for (Class annotationClass : ElideRecorder.ANNOTATIONS) {
                 AnnotationInstance instance =
-                        classInfo.declaredAnnotation(DotName.createSimple(annotationClass.getCanonicalName()));
+                        classInfo.classAnnotation(DotName.createSimple(annotationClass.getCanonicalName()));
 
                 if (instance != null) {
                     found = true;
@@ -225,8 +218,9 @@ public class ElideExtensionProcessor {
                     Class<?> beanClass = Class.forName(classInfo.name().toString(), false,
                             Thread.currentThread().getContextClassLoader());
 
-                    reflectionHierarchiesBuildItems
-                            .produce(ReflectiveHierarchyBuildItem.builder(convertToType(beanClass)).build());
+                    reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder()
+                            .type(convertToType(beanClass))
+                            .build());
                     elideClasses.add(beanClass);
                 } catch (ClassNotFoundException e) {
                     LOG.error("Unable to load class from Jandex Index: " + classInfo.name());
@@ -241,35 +235,34 @@ public class ElideExtensionProcessor {
                 .addQualifier(Default.class)
                 .done());
 
-        reflectionHierarchiesBuildItems
-                .produce(ReflectiveHierarchyBuildItem.builder(convertToType(JsonApiDocument.class)).build());
-        reflectionHierarchiesBuildItems
-                .produce(ReflectiveHierarchyBuildItem.builder(convertToType(OpenApiDocument.class)).build());
-        reflectionHierarchiesBuildItems
-                .produce(ReflectiveHierarchyBuildItem.builder(convertToType(GraphQLSchema.class)).build());
+        reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder()
+                .type(convertToType(JsonApiDocument.class))
+                .build());
+        reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder()
+                .type(convertToType(OpenApiDocument.class))
+                .build());
+        reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder()
+                .type(convertToType(GraphQLSchema.class))
+                .build());
 
         //JSON-API Serialization Classes:
-        reflectionBuildItems.produce(ReflectiveClassBuildItem.builder(DataSerializer.class).methods().fields().build());
-        reflectionBuildItems
-                .produce(ReflectiveClassBuildItem.builder(DataDeserializer.class).methods().fields().build());
-        reflectionBuildItems
-                .produce(ReflectiveClassBuildItem.builder(MetaDeserializer.class).methods().fields().build());
-        reflectionBuildItems.produce(ReflectiveClassBuildItem.builder(KeySerializer.class).methods().fields().build());
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DataSerializer.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DataDeserializer.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, MetaDeserializer.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, KeySerializer.class));
 
         //Prefabbed Checks:
-        reflectionBuildItems
-                .produce(ReflectiveClassBuildItem.builder(Collections.AppendOnly.class).methods().fields().build());
-        reflectionBuildItems
-                .produce(ReflectiveClassBuildItem.builder(Collections.RemoveOnly.class).methods().fields().build());
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Collections.AppendOnly.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Collections.RemoveOnly.class));
 
         //GraphQL Schema:
-        reflectionBuildItems.produce(ReflectiveClassBuildItem.builder(DeferredId.class).methods().fields().build());
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DeferredId.class));
 //        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DeferredId.SerializeId.class));
 
         //Needed by elide dependency coerce utils which pulls in commons logging.
 //        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, JBossLogFactory.class));
-        reflectionBuildItems.produce(ReflectiveClassBuildItem.builder(LogFactory.class).methods().fields().build());
-        reflectionBuildItems.produce(ReflectiveClassBuildItem.builder(SimpleLog.class).methods().fields().build());
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, LogFactory.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, SimpleLog.class));
     }
 
     private org.jboss.jandex.Type convertToType(Class<?> cls) {
@@ -290,9 +283,9 @@ public class ElideExtensionProcessor {
      */
     private void generateEndpointClass(
             BuildProducer<GeneratedJaxRsResourceBuildItem> generatedJaxRsResourceBuildItemBuildProducer,
-            String endpointStyle, Class<?> endpointClass, String customPath, Param... params) {
+            String endpointStyle, Class endpointClass, String customPath, Param... params) {
         // Deconstruct Param instances
-        Class<?>[] paramClasses = new Class[params.length];
+        Class[] paramClasses = new Class[params.length];
         io.quarkus.gizmo.Type[] paramTypes = new io.quarkus.gizmo.Type[params.length];
         String[] paramNames = new String[params.length];
         for (int i = 0; i < params.length; i++) {

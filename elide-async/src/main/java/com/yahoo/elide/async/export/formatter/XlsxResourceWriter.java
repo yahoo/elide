@@ -11,6 +11,8 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.utils.ObjectProperties;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -22,9 +24,6 @@ import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -79,9 +78,7 @@ public class XlsxResourceWriter extends ResourceWriterSupport {
         // Rows exceeding the row access window size are flushed to disk
         this.workbook = new SXSSFWorkbook(rowAccessWindowSize);
         this.sheet = this.workbook.createSheet();
-        ObjectMapper notSorted = objectMapper.rebuild().configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, false)
-                .build();
-        this.headers = entityProjection != null ? Attributes.getHeaders(notSorted, entityProjection.getAttributes())
+        this.headers = entityProjection != null ? Attributes.getHeaders(objectMapper, entityProjection.getAttributes())
                 : Collections.emptyList();
         this.attributes = entityProjection != null && entityProjection.getAttributes() != null ? entityProjection
                 .getAttributes().stream().collect(Collectors.toMap(Attribute::getName, Function.identity()))

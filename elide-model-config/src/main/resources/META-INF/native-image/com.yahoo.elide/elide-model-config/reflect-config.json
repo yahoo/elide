@@ -20,14 +20,6 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.modelconfig.model.Argument$ArgumentBuilder",
-    "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true,
-    "allDeclaredClasses": true,
-    "allPublicClasses": true
-  },
-  {
     "name": "com.yahoo.elide.modelconfig.model.DBConfig",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
@@ -36,14 +28,6 @@
     "name": "com.yahoo.elide.modelconfig.model.Dimension",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Dimension$DimensionBuilder",
-    "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true,
-    "allDeclaredClasses": true,
-    "allPublicClasses": true
   },
   {
     "name": "com.yahoo.elide.modelconfig.model.ElideDBConfig",
@@ -76,25 +60,9 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.modelconfig.model.Grain$GrainBuilder",
-    "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true,
-    "allDeclaredClasses": true,
-    "allPublicClasses": true
-  },
-  {
     "name": "com.yahoo.elide.modelconfig.model.Join",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.Join$JoinBuilder",
-    "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true,
-    "allDeclaredClasses": true,
-    "allPublicClasses": true
   },
   {
     "name": "com.yahoo.elide.modelconfig.model.Measure",
@@ -102,25 +70,9 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.modelconfig.model.Measure$MeasureBuilder",
-    "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true,
-    "allDeclaredClasses": true,
-    "allPublicClasses": true
-  },
-  {
     "name": "com.yahoo.elide.modelconfig.model.NamespaceConfig",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.NamespaceConfig$NamespaceConfigBuilder",
-    "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true,
-    "allDeclaredClasses": true,
-    "allPublicClasses": true
   },
   {
     "name": "com.yahoo.elide.modelconfig.model.Rule",
@@ -133,24 +85,8 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "com.yahoo.elide.modelconfig.model.Table$TableBuilder",
-    "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true,
-    "allDeclaredClasses": true,
-    "allPublicClasses": true
-  },
-  {
     "name": "com.yahoo.elide.modelconfig.model.TableSource",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true
-  },
-  {
-    "name": "com.yahoo.elide.modelconfig.model.TableSource$TableSourceBuilder",
-    "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true,
-    "allDeclaredClasses": true,
-    "allPublicClasses": true
   }
 ]

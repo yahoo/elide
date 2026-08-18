@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
 
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreIterable;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -17,6 +16,7 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.jms.Destination;
 import jakarta.jms.JMSConsumer;
@@ -36,7 +36,7 @@ import java.util.Set;
 public class JMSDataStoreTransaction implements DataStoreTransaction {
     private JMSContext context;
     private EntityDictionary dictionary;
-    private ElideMapper elideMapper;
+    private ObjectMapper objectMapper;
     private long timeoutInMs;
     private List<JMSConsumer> consumers;
 
@@ -44,14 +44,14 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
      * Constructor.
      * @param context JMS Context
      * @param dictionary Elide Entity Dictionary
-     * @param elideMapper serializer to convert Elide models to topic messages.
+     * @param objectMapper serializer to convert Elide models to topic messages.
      * @param timeoutInMs request timeout in milliseconds.  0 means immediate.  -1 means no timeout.
      */
-    public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary, ElideMapper elideMapper,
+    public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary, ObjectMapper objectMapper,
             long timeoutInMs) {
         this.context = context;
         this.dictionary = dictionary;
-        this.elideMapper = elideMapper;
+        this.objectMapper = objectMapper;
         this.timeoutInMs = timeoutInMs;
         this.consumers = new ArrayList<>();
     }
@@ -97,7 +97,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
         return new MessageIterable<>(
                 consumer,
                 timeoutInMs,
-                new MessageDeserializer<>(entityProjection.getType(), elideMapper)
+                new MessageDeserializer<>(entityProjection.getType(), objectMapper)
         );
     }
 

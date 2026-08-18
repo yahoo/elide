@@ -7,7 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import org.hibernate.annotations.Generated;
-import org.hibernate.generator.EventType;
+import org.hibernate.annotations.GenerationTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +18,7 @@ import lombok.Setter;
 
 import java.util.Date;
 
+@SuppressWarnings("deprecation")
 @Entity
 @Include
 public class Generate {
@@ -32,7 +33,7 @@ public class Generate {
         return id;
     }
 
-    @Generated(event = EventType.INSERT)
+    @Generated(GenerationTime.INSERT)
     @Column(updatable = false, insertable = false, columnDefinition = "timestamp default current_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     public Date getCreated() {

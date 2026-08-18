@@ -7,13 +7,12 @@ package com.yahoo.elide.jsonapi.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.cfg.EnumFeature;
-import tools.jackson.databind.json.JsonMapper;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
@@ -78,7 +77,7 @@ class PatchTest {
 
     @Test
     void testDeserializationReadEnumsUsingToString() throws Exception {
-        ObjectMapper mapper = JsonMapper.builder().enable(EnumFeature.READ_ENUMS_USING_TO_STRING).build();
+        ObjectMapper mapper = new ObjectMapper().enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
         String input = "{\"op\":\"add\",\"path\":\"/foo/bar\",\"value\":\"stringValue\"}";
         Patch patch = mapper.readValue(input, Patch.class);
 

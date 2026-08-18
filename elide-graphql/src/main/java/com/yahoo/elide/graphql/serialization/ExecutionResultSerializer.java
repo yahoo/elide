@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.graphql.serialization;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ser.std.StdSerializer;
-
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -22,33 +23,32 @@ import java.util.Map;
  * optional encoding of the error message by having the {@link GraphQLErrorSerializer} registered on the ObjectMapper.
  */
 public class ExecutionResultSerializer extends StdSerializer<ExecutionResult> {
+    private static final long serialVersionUID = 1L;
+
     public ExecutionResultSerializer() {
         super(ExecutionResult.class);
     }
 
     @Override
-    public void serialize(ExecutionResult value, JsonGenerator gen, SerializationContext provider) {
+    public void serialize(ExecutionResult value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         // mimic the ExecutionResult.toSpecification response
         gen.writeStartObject();
         Map<String, Object> spec = value.toSpecification();
         if (spec.containsKey("data")) {
-            gen.writeName("data");
-            gen.writePOJO(spec.get("data"));
+            gen.writeObjectField("data", spec.get("data"));
         }
 
         if (spec.containsKey("errors")) {
             List<GraphQLError> errors = value.getErrors();
-            gen.writeName("errors");
-            gen.writeStartArray();
+            gen.writeArrayFieldStart("errors");
             for (GraphQLError error : errors) {
-                gen.writePOJO(error);
+                gen.writeObject(error);
             }
             gen.writeEndArray();
         }
 
         if (spec.containsKey("extensions")) {
-            gen.writeName("extensions");
-            gen.writePOJO(spec.get("extensions"));
+            gen.writeObjectField("extensions", spec.get("extensions"));
         }
 
         gen.writeEndObject();

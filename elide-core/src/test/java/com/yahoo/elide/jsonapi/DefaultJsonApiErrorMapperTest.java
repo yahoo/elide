@@ -12,10 +12,11 @@ import com.yahoo.elide.jsonapi.models.JsonApiError;
 import com.yahoo.elide.jsonapi.models.JsonApiError.Links;
 import com.yahoo.elide.jsonapi.models.JsonApiError.Source;
 import com.yahoo.elide.jsonapi.serialization.JsonApiModule;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 
@@ -24,16 +25,16 @@ import java.util.Map;
  */
 class DefaultJsonApiErrorMapperTest {
 
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
     private JsonApiErrorMapper mapper = new DefaultJsonApiErrorMapper();
 
     @BeforeEach
     public void setup() {
-        objectMapper = JsonMapper.builder().addModule(new JsonApiModule()).build();
+        objectMapper.registerModule(new JsonApiModule());
     }
 
     @Test
-    void toJsonApiError() {
+    void toJsonApiError() throws JsonProcessingException {
         JsonApiError jsonApiError = mapper
                 .toJsonApiError(ElideError.builder()
                         .message("<script>message</script>")
@@ -51,7 +52,7 @@ class DefaultJsonApiErrorMapperTest {
     }
 
     @Test
-    void toJsonApiErrorMeta() {
+    void toJsonApiErrorMeta() throws JsonProcessingException {
         JsonApiError jsonApiError = mapper
                 .toJsonApiError(ElideError.builder()
                         .message("message")
@@ -64,7 +65,7 @@ class DefaultJsonApiErrorMapperTest {
     }
 
     @Test
-    void toJsonApiErrorLinks() {
+    void toJsonApiErrorLinks() throws JsonProcessingException {
         JsonApiError jsonApiError = mapper
                 .toJsonApiError(ElideError.builder()
                         .message("message")
@@ -77,7 +78,7 @@ class DefaultJsonApiErrorMapperTest {
     }
 
     @Test
-    void toJsonApiErrorSource() {
+    void toJsonApiErrorSource() throws JsonProcessingException {
         JsonApiError jsonApiError = mapper
                 .toJsonApiError(ElideError.builder()
                         .message("message")

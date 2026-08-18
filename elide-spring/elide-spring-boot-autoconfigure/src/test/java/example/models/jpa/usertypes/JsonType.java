@@ -6,14 +6,14 @@
 
 package example.models.jpa.usertypes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
-
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -83,7 +83,7 @@ public class JsonType implements UserType<Object>, ParameterizedType {
 
             try {
                 return MAPPER.readValue(rawJson, this.objectClass);
-            } catch (JacksonException e) {
+            } catch (IOException e) {
                 throw new HibernateException("Could not retrieve an instance of the mapped class from a JDBC resultset.");
             }
         }
@@ -101,7 +101,7 @@ public class JsonType implements UserType<Object>, ParameterizedType {
             try {
                 String json = MAPPER.writeValueAsString(value);
                 preparedStatement.setString(i, json);
-            } catch (JacksonException e) {
+            } catch (JsonProcessingException e) {
                 throw new HibernateException("Could not write an instance of the mapped class to a prepared statement.");
             }
         }

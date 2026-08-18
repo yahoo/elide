@@ -8,11 +8,11 @@ package com.yahoo.elide.async.export.formatter;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.Attribute;
 
-import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.ser.PropertyWriter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,12 +62,12 @@ public class Attributes {
     public static Map<String, Object> getProperties(ObjectMapper objectMapper, Class<?> propertyClass) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
-            for (Iterator<PropertyWriter> iterator = objectMapper._serializationContext()
+            for (Iterator<PropertyWriter> iterator = objectMapper.getSerializerProviderInstance()
                     .findValueSerializer(propertyClass).properties(); iterator.hasNext();) {
                 PropertyWriter property = iterator.next();
                 result.put(property.getName(), getProperties(objectMapper, property.getType().getRawClass()));
             }
-        } catch (JacksonException e) {
+        } catch (JsonMappingException e) {
             // Do nothing
         }
         if (result.isEmpty()) {

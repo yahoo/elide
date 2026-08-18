@@ -7,31 +7,33 @@ package com.yahoo.elide.jsonapi.serialization;
 
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Resource;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
 /**
  * Custom serializer for top-level data.
  */
-public class DataSerializer extends ValueSerializer<Data<Resource>> {
+public class DataSerializer extends JsonSerializer<Data<Resource>> {
 
     @Override
-    public void serialize(Data<Resource> data, JsonGenerator jsonGenerator, SerializationContext serializerProvider) {
+    public void serialize(Data<Resource> data, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+        throws IOException {
         Collection<Resource> list = data.get();
         if (data.isToOne()) {
             if (CollectionUtils.isEmpty(list)) {
-                jsonGenerator.writePOJO(null);
+                jsonGenerator.writeObject(null);
                 return;
             }
-            jsonGenerator.writePOJO(IterableUtils.first(list));
+            jsonGenerator.writeObject(IterableUtils.first(list));
             return;
         }
-        jsonGenerator.writePOJO((list == null) ? Collections.emptyList() : list);
+        jsonGenerator.writeObject((list == null) ? Collections.emptyList() : list);
     }
 }

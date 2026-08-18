@@ -7,11 +7,10 @@ package com.yahoo.elide.jsonapi.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.cfg.EnumFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for Operation.
@@ -19,7 +18,7 @@ import tools.jackson.databind.json.JsonMapper;
 class OperationTest {
 
     @Test
-    void write() {
+    void write() throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         Ref ref = new Ref("articles", "13", null, null);
         Operation operation = new Operation(Operation.OperationCode.ADD, ref, null, null, null);
@@ -30,7 +29,7 @@ class OperationTest {
     }
 
     @Test
-    void readSingle() {
+    void readSingle() throws JsonProcessingException {
         String json = """
                 {
                   "op": "update",
@@ -51,7 +50,7 @@ class OperationTest {
     }
 
     @Test
-    void readSingleReadEnumsUsingToString() {
+    void readSingleReadEnumsUsingToString() throws JsonProcessingException {
         String json = """
                 {
                   "op": "update",
@@ -64,7 +63,7 @@ class OperationTest {
                   }
                 }
                 """;
-        ObjectMapper objectMapper = JsonMapper.builder().enable(EnumFeature.READ_ENUMS_USING_TO_STRING).build();
+        ObjectMapper objectMapper = new ObjectMapper().enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
         Operation operation = objectMapper.readValue(json, Operation.class);
         assertEquals(Operation.OperationCode.UPDATE, operation.getOperationCode());
         Resource resource = objectMapper.treeToValue(operation.getData(), Resource.class);

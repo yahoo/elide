@@ -6,15 +6,16 @@
 
 package com.yahoo.elide.graphql.serialization;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+
 import graphql.ExecutionResult;
 import graphql.ExecutionResultImpl;
 import graphql.GraphQLError;
 
-import tools.jackson.core.JsonParser;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.deser.std.StdDeserializer;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,13 +25,15 @@ import java.util.Map;
  * Deserializes JSON into an Execution Result.
  */
 public class ExecutionResultDeserializer extends StdDeserializer<ExecutionResult> {
+    private static final long serialVersionUID = 1L;
+
     public ExecutionResultDeserializer() {
         super(ExecutionResult.class);
     }
 
     @Override
-    public ExecutionResult deserialize(JsonParser parser, DeserializationContext context) {
-        JsonNode root = context.readTree(parser);
+    public ExecutionResult deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+        JsonNode root = parser.getCodec().readTree(parser);
 
         JsonNode dataNode = root.get("data");
         JsonNode errorsNode = root.get("errors");
@@ -42,12 +45,12 @@ public class ExecutionResultDeserializer extends StdDeserializer<ExecutionResult
             Iterator<JsonNode> nodeIterator = errorsNode.iterator();
             while (nodeIterator.hasNext()) {
                 JsonNode errorNode = nodeIterator.next();
-                errors.add(context.readTreeAsValue(errorNode, GraphQLError.class));
+                errors.add(parser.getCodec().treeToValue(errorNode, GraphQLError.class));
             }
         }
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> data = context.readTreeAsValue(dataNode, Map.class);
+        Map<String, Object> data = parser.getCodec().treeToValue(dataNode, Map.class);
 
         return ExecutionResultImpl.newExecutionResult()
                 .errors(errors)

@@ -67,8 +67,7 @@ public class JsonApiController {
     public Callable<ResponseEntity<String>> elideGet(@RequestHeader HttpHeaders requestHeaders,
                                                      @RequestParam MultiValueMap<String, String> allRequestParams,
                                                      HttpServletRequest request) {
-        final Map<String, List<String>> requestHeadersCleaned = headerProcessor
-                .process(requestHeaders.asMultiValueMap());
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
@@ -91,8 +90,7 @@ public class JsonApiController {
                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
                                                       @RequestBody String body,
                                                       HttpServletRequest request) {
-        final Map<String, List<String>> requestHeadersCleaned = headerProcessor
-                .process(requestHeaders.asMultiValueMap());
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
@@ -127,8 +125,7 @@ public class JsonApiController {
                                                        @RequestParam MultiValueMap<String, String> allRequestParams,
                                                        @RequestBody String body,
                                                        HttpServletRequest request) {
-        final Map<String, List<String>> requestHeadersCleaned = headerProcessor
-                .process(requestHeaders.asMultiValueMap());
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
@@ -149,8 +146,7 @@ public class JsonApiController {
     public Callable<ResponseEntity<String>> elideDelete(@RequestHeader HttpHeaders requestHeaders,
                                                         @RequestParam MultiValueMap<String, String> allRequestParams,
                                                         HttpServletRequest request) {
-        final Map<String, List<String>> requestHeadersCleaned = headerProcessor
-                .process(requestHeaders.asMultiValueMap());
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);
@@ -173,8 +169,7 @@ public class JsonApiController {
             @RequestParam MultiValueMap<String, String> allRequestParams,
             @RequestBody String body,
             HttpServletRequest request) {
-        final Map<String, List<String>> requestHeadersCleaned = headerProcessor
-                .process(requestHeaders.asMultiValueMap());
+        final Map<String, List<String>> requestHeadersCleaned = headerProcessor.process(requestHeaders);
         final String prefix = settings.getJsonApi().getPath();
         final String baseUrl = getBaseUrl(prefix);
         final String pathname = getPath(request, prefix);

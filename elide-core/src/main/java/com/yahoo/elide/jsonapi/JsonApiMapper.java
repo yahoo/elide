@@ -5,21 +5,21 @@
  */
 package com.yahoo.elide.jsonapi;
 
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.jsonapi.extensions.JsonApiAtomicOperationsMapper;
 import com.yahoo.elide.jsonapi.extensions.JsonApiJsonPatchMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.serialization.JsonApiModule;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import java.io.IOException;
 
 /**
  * Serializer/Deserializer for JSON API.
  */
 public class JsonApiMapper {
-    protected final ElideMapper elideMapper;
+    protected final ObjectMapper mapper;
     protected final JsonApiJsonPatchMapper jsonPatchMapper;
     protected final JsonApiAtomicOperationsMapper atomicOperationsMapper;
 
@@ -27,29 +27,31 @@ public class JsonApiMapper {
      * Instantiates a new Json Api Mapper.
      */
     public JsonApiMapper() {
-        this(new ElideMapper(JsonMapper.shared()));
-    }
-
-    /**
-     * Instantiates a new Json Api Mapper.
-     */
-    public JsonApiMapper(ElideMapper elideMapper) {
-        this(elideMapper, new JsonApiJsonPatchMapper(elideMapper), new JsonApiAtomicOperationsMapper(elideMapper));
+        this(new ObjectMapper());
     }
 
     /**
      * Instantiates a new Json Api Mapper.
      *
-     * @param elideMapper Custom object mapper to use internally for serializing/deserializing
+     * @param mapper Custom object mapper to use internally for serializing/deserializing
+     */
+    public JsonApiMapper(ObjectMapper mapper) {
+        this(mapper, new JsonApiJsonPatchMapper(mapper), new JsonApiAtomicOperationsMapper(mapper));
+    }
+
+    /**
+     * Instantiates a new Json Api Mapper.
+     *
+     * @param mapper Custom object mapper to use internally for serializing/deserializing
      * @param jsonPatchMapper the mapper for the JSON Patch extension
      * @param atomicOperationsMapper the mapper for the Atomic Operations extension
      */
-    public JsonApiMapper(ElideMapper elideMapper, JsonApiJsonPatchMapper jsonPatchMapper,
+    public JsonApiMapper(ObjectMapper mapper, JsonApiJsonPatchMapper jsonPatchMapper,
             JsonApiAtomicOperationsMapper atomicOperationsMapper) {
-        this.elideMapper = elideMapper;
+        this.mapper = mapper;
+        this.mapper.registerModule(new JsonApiModule());
         this.jsonPatchMapper = jsonPatchMapper;
         this.atomicOperationsMapper = atomicOperationsMapper;
-        this.elideMapper.customizeObjectMapper(builder -> builder.addModule(new JsonApiModule()));
     }
 
     /**
@@ -59,7 +61,7 @@ public class JsonApiMapper {
      * @return the json node
      */
     public JsonNode toJsonObject(JsonApiDocument jsonApiDocument) {
-        return elideMapper.getObjectMapper().convertValue(jsonApiDocument, JsonNode.class);
+        return mapper.convertValue(jsonApiDocument, JsonNode.class);
     }
 
     /**
@@ -68,9 +70,10 @@ public class JsonApiMapper {
      * @param doc the document
      * @param <T> The type of document object so serialize
      * @return the string
+     * @throws JsonProcessingException the json processing exception
      */
-    public <T> String writeJsonApiDocument(T doc) {
-        return elideMapper.getObjectMapper().writeValueAsString(doc);
+    public <T> String writeJsonApiDocument(T doc) throws JsonProcessingException {
+        return mapper.writeValueAsString(doc);
     }
 
     /**
@@ -78,9 +81,10 @@ public class JsonApiMapper {
      *
      * @param doc the doc
      * @return the json api document
+     * @throws IOException the iO exception
      */
-    public JsonApiDocument readJsonApiDocument(String doc) {
-        JsonNode node = elideMapper.getObjectMapper().readTree(doc);
+    public JsonApiDocument readJsonApiDocument(String doc) throws IOException {
+        JsonNode node = mapper.readTree(doc);
         return readJsonApiDocument(node);
     }
 
@@ -89,9 +93,10 @@ public class JsonApiMapper {
      *
      * @param node the node
      * @return the json api document
+     * @throws IOException the iO exception
      */
-    public JsonApiDocument readJsonApiDocument(JsonNode node) {
-        return elideMapper.getObjectMapper().treeToValue(node, JsonApiDocument.class);
+    public JsonApiDocument readJsonApiDocument(JsonNode node) throws IOException {
+        return mapper.treeToValue(node,  JsonApiDocument.class);
     }
 
     /**
@@ -100,7 +105,7 @@ public class JsonApiMapper {
      * @return the Jackson ObjectMapper
      */
     public ObjectMapper getObjectMapper() {
-        return elideMapper.getObjectMapper();
+        return mapper;
     }
 
     /**

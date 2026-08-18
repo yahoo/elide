@@ -135,7 +135,7 @@ public interface ElideStandaloneSubscriptionSettings {
                 .scanner(elide.getScanner())
                 .entityDictionary(elide.getElideSettings().getEntityDictionary())
                 .connectionFactory(connectionFactory)
-                .elideMapper(elide.getElideSettings().getElideMapper())
+                .objectMapper(elide.getElideSettings().getObjectMapper())
                 .build();
 
         scanner.bindLifecycleHooks();
@@ -187,7 +187,7 @@ public interface ElideStandaloneSubscriptionSettings {
             elideSettingsBuilder
                     .maxPageSize(settings.getMaxPageSize())
                     .defaultPageSize(settings.getDefaultPageSize())
-                    .elideMapper(settings.getElideMapper())
+                    .objectMapper(settings.getObjectMapper())
                     .auditLogger(settings.getAuditLogger())
                     .verboseErrors(settings.verboseErrors());
             elideSettingsBuilder.getSettings(GraphQLSettingsBuilder.class)

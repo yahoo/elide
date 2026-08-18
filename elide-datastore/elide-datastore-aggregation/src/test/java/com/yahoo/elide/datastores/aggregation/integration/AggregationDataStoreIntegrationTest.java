@@ -9,7 +9,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -33,7 +32,7 @@ import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import example.TestCheckMappings;
-import org.glassfish.jersey.inject.hk2.AbstractBinder;
+import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +43,6 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.SecurityContext;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -90,10 +88,9 @@ public abstract class AggregationDataStoreIntegrationTest extends GraphQLIntegra
                         dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
                     );
 
-                    ElideMapper elideMapper = new ElideMapper(JsonMapper.shared());
-                    JsonApiMapper jsonApiMapper = new JsonApiMapper(elideMapper);
+                    JsonApiMapper jsonApiMapper = new JsonApiMapper();
                     Elide elide = new Elide(ElideSettings.builder().dataStore(getDataStore())
-                            .elideMapper(elideMapper)
+                            .objectMapper(jsonApiMapper.getObjectMapper())
                             .entityDictionary(dictionary).auditLogger(new TestAuditLogger()).serdes(serdes -> serdes
                                     .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone()))
                             .settings(GraphQLSettingsBuilder.withDefaults(dictionary))

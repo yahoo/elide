@@ -7,9 +7,8 @@ package com.yahoo.elide.core.utils;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +34,7 @@ public class JsonParser {
     public JsonNode toJsonNode(String jsonString) {
         try {
             return objectMapper.readTree(jsonString);
-        } catch (JacksonException e) {
+        } catch (IOException e) {
             fail("Unable to parse JSON\n" + jsonString, e);
             throw new IllegalStateException(); // should not reach here
         }

@@ -48,9 +48,6 @@ public class EncodedErrorObjectsIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    /**
-     * This now requires enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) in Jackson 3 to pass.
-     */
     @Test
     public void invalidEntityBodyException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyException.req.json");
@@ -95,9 +92,6 @@ public class EncodedErrorObjectsIT extends IntegrationTest {
                 .body(equalTo(expected));
     }
 
-    /**
-     * This now requires enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) in Jackson 3 to pass.
-     */
     @Test
     public void jsonPatchExtensionException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionException.req.json");

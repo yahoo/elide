@@ -10,6 +10,10 @@ import com.yahoo.elide.modelconfig.model.ElideNamespaceConfig;
 import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
 import com.yahoo.elide.modelconfig.model.ElideTableConfig;
 import com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHydrator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hjson.JsonValue;
@@ -17,9 +21,6 @@ import org.hjson.ParseException;
 
 import lombok.extern.slf4j.Slf4j;
 
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -188,7 +189,7 @@ public class DynamicConfigHelpers {
         }
     }
 
-    private static <T> T getModelPojo(String jsonConfig, final Class<T> configPojo) {
+    private static <T> T getModelPojo(String jsonConfig, final Class<T> configPojo) throws JsonProcessingException {
         return DynamicConfigObjectMapper.getInstance().readValue(jsonConfig, configPojo);
     }
 }

@@ -36,6 +36,10 @@ import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.graphql.GraphQLSettings.GraphQLSettingsBuilder;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import example.models.versioned.BookV2;
 import org.json.JSONException;
@@ -60,11 +64,6 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
-
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.net.URI;
@@ -402,9 +401,9 @@ public class GraphQLEndpointTest {
 
         Response response = endpoint.post("", uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         JsonNode node = extract200Response(response);
-        Iterator<JsonNode> errors = node.get("errors").iterator();
+        Iterator<JsonNode> errors = node.get("errors").elements();
         assertTrue(errors.hasNext());
-        assertTrue(errors.next().get("message").asString().contains("No id provided, cannot persist incidents"));
+        assertTrue(errors.next().get("message").asText().contains("No id provided, cannot persist incidents"));
         verify(exceptionMappers).toErrorResponse(any(), any());
     }
 
@@ -1247,7 +1246,7 @@ public class GraphQLEndpointTest {
     private static void assert200DataEqual(Response response, String expected) throws IOException, JSONException {
         JsonNode actualNode = extract200Response(response);
 
-        Iterator<Map.Entry<String, JsonNode>> iterator = actualNode.properties().iterator();
+        Iterator<Map.Entry<String, JsonNode>> iterator = actualNode.fields();
 
         // get json node that has "data" key
         String actual = null;
@@ -1263,6 +1262,6 @@ public class GraphQLEndpointTest {
 
     private static void assertHasErrors(Response response) throws IOException {
         JsonNode node = extract200Response(response);
-        assertTrue(node.get("errors").iterator().hasNext());
+        assertTrue(node.get("errors").elements().hasNext());
     }
 }

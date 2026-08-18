@@ -8,14 +8,14 @@ package com.yahoo.elide.graphql.subscriptions.serialization;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.graphql.subscriptions.annotations.SubscriptionField;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import org.junit.jupiter.api.Test;
 
 import jakarta.persistence.Id;
 import lombok.Data;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
 class SubscriptionBeanSerializerModifierTest {
     @Data
@@ -64,14 +64,13 @@ class SubscriptionBeanSerializerModifierTest {
     }
 
     @Test
-    void serializeFields() {
+    void serializeFields() throws JsonProcessingException {
         FieldsModel model = new FieldsModel();
         model.setId("id");
         model.setField("field");
         model.setIgnore("ignore");
 
         ObjectMapper objectMapper = JsonMapper.builder()
-                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
                 .addModule(new GraphQLSubscriptionModule()).build();
         String actual = objectMapper.writeValueAsString(model);
         String expected = """
@@ -80,14 +79,13 @@ class SubscriptionBeanSerializerModifierTest {
     }
 
     @Test
-    void serializeProperties() {
+    void serializeProperties() throws JsonProcessingException {
         PropertiesModel model = new PropertiesModel();
         model.setId("id");
         model.setField("field");
         model.setIgnore("ignore");
 
         ObjectMapper objectMapper = JsonMapper.builder()
-                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
                 .addModule(new GraphQLSubscriptionModule()).build();
         String actual = objectMapper.writeValueAsString(model);
         String expected = """

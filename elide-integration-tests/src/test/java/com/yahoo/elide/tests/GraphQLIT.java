@@ -24,6 +24,10 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 import com.yahoo.elide.test.graphql.VariableFieldSerializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import example.Currency;
 import example.Price;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,11 +39,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import jakarta.ws.rs.core.MediaType;
 import lombok.Getter;
 import lombok.Setter;
-
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.annotation.JsonSerialize;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
 
 import java.io.IOException;
 import java.math.BigDecimal;

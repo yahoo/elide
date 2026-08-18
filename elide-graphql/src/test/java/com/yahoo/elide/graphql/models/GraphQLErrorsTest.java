@@ -7,9 +7,10 @@ package com.yahoo.elide.graphql.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Test for GraphqlErrors.
@@ -18,7 +19,7 @@ class GraphQLErrorsTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void basicErrorResult() {
+    void basicErrorResult() throws JsonProcessingException {
         GraphQLErrors errors = GraphQLErrors.builder()
                 .error(error -> error.message("Name for character with ID 1002 could not be fetched.")
                         .location(location -> location.line(6).column(7)).path("hero", "heroFriends", 1, "name")

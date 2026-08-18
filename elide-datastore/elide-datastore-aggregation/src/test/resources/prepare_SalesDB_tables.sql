@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS order_details
   order_id VARCHAR(255) NOT NULL,
   customer_id VARCHAR(255),
   order_total NUMERIC(10,2),
-  created_on TIMESTAMP,
+  created_on DATETIME,
   PRIMARY KEY (order_id)
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS delivery_details
   order_id VARCHAR(255) NOT NULL,
   tracking_number BIGINT,
   courier_name VARCHAR(255),
-  delivered_on TIMESTAMP,
+  delivered_on DATETIME,
   PRIMARY KEY (delivery_id)
 );
 

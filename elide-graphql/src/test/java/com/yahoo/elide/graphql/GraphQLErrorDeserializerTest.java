@@ -12,6 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.graphql.serialization.GraphQLErrorDeserializer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -19,18 +22,15 @@ import org.junit.jupiter.api.TestInstance;
 import graphql.GraphQLError;
 import graphql.language.SourceLocation;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.module.SimpleModule;
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GraphQLErrorDeserializerTest {
     private ObjectMapper mapper;
 
     @BeforeAll
     public void init() {
-        mapper = JsonMapper.builder().addModule(new SimpleModule("GraphQLError")
-                .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer())).build();
+        mapper = new ObjectMapper();
+        mapper.registerModule(new SimpleModule("GraphQLError")
+                .addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer()));
 
     }
 

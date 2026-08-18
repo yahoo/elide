@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS playerStats
       sub_country_id VARCHAR(255),
       player_id BIGINT,
       player2_id BIGINT,
-      recordedDate TIMESTAMP,
-      updatedDate TIMESTAMP,
+      recordedDate DATETIME,
+      updatedDate DATETIME,
       place_type_ordinal BIGINT,
       place_type_text VARCHAR(255)
     );
@@ -94,6 +94,6 @@ CREATE TABLE IF NOT EXISTS gameRevenue
       country_id VARCHAR(255),
       player_stats_id VARCHAR(255),
       category VARCHAR(255),
-      saleDate TIMESTAMP
+      saleDate DATETIME
     );
 TRUNCATE TABLE gameRevenue;

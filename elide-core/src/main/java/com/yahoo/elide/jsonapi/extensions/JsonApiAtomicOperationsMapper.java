@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.jsonapi.extensions;
 
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Operations;
 import com.yahoo.elide.jsonapi.models.Resource;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,21 +21,21 @@ import java.util.List;
  * The mapper for the JSON API Atomic Operations extension.
  */
 public class JsonApiAtomicOperationsMapper {
-    protected final ElideMapper elideMapper;
+    protected final ObjectMapper objectMapper;
 
-    public JsonApiAtomicOperationsMapper(ElideMapper elideMapper) {
-        this.elideMapper = elideMapper;
+    public JsonApiAtomicOperationsMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
-    public Operations readDoc(String operationsDoc) {
-        return this.elideMapper.getObjectMapper().readValue(operationsDoc, Operations.class);
+    public Operations readDoc(String operationsDoc) throws JsonProcessingException {
+        return this.objectMapper.readValue(operationsDoc, Operations.class);
     }
 
-    public Resource readResource(JsonNode resource) {
-        return elideMapper.getObjectMapper().treeToValue(resource, Resource.class);
+    public Resource readResource(JsonNode resource) throws JsonProcessingException {
+        return objectMapper.treeToValue(resource, Resource.class);
     }
 
-    public JsonApiDocument readData(JsonNode data) {
+    public JsonApiDocument readData(JsonNode data) throws JsonProcessingException {
         JsonApiDocument value = new JsonApiDocument();
         if (data != null) {
             if (data.isArray()) {

@@ -20,19 +20,17 @@ import com.yahoo.elide.jsonapi.parser.DeleteVisitor;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.yahoo.elide.jsonapi.parser.PatchVisitor;
 import com.yahoo.elide.jsonapi.parser.PostVisitor;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
-
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,11 +87,11 @@ public class JsonApiJsonPatch {
     static {
         ERR_NODE_OPERATION_NOT_RUN = JsonNodeFactory.instance.objectNode();
         ERR_NODE_OPERATION_NOT_RUN.set("detail",
-            JsonNodeFactory.instance.stringNode("Operation not executed. Terminated by earlier failure."));
+            JsonNodeFactory.instance.textNode("Operation not executed. Terminated by earlier failure."));
 
         ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION = JsonNodeFactory.instance.objectNode();
         ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION.set("detail",
-                JsonNodeFactory.instance.stringNode("Subsequent operation failed."));
+                JsonNodeFactory.instance.textNode("Subsequent operation failed."));
     }
 
     /**
@@ -112,7 +110,7 @@ public class JsonApiJsonPatch {
         List<Patch> actions;
         try {
             actions = requestScope.getMapper().forJsonPatch().readDoc(patchDoc);
-        } catch (JacksonException e) {
+        } catch (IOException e) {
             throw new InvalidEntityBodyException(patchDoc);
         }
         JsonApiJsonPatch processor = new JsonApiJsonPatch(dataStore, actions, uri, requestScope);
@@ -238,7 +236,7 @@ public class JsonApiJsonPatch {
         } catch (HttpStatusException e) {
             action.cause = e;
             throw e;
-        } catch (JacksonException e) {
+        } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchValue);
         }
     }
@@ -264,7 +262,7 @@ public class JsonApiJsonPatch {
             // Defer relationship updating until the end
             PatchVisitor visitor = new PatchVisitor(new JsonApiJsonPatchRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(path));
-        } catch (JacksonException e) {
+        } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchVal);
         }
     }
@@ -293,7 +291,7 @@ public class JsonApiJsonPatch {
             DeleteVisitor visitor = new DeleteVisitor(
                 new JsonApiJsonPatchRequestScope(path, value, requestScope));
             return visitor.visit(JsonApiParser.parse(fullPath));
-        } catch (JacksonException e) {
+        } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchValue);
         }
     }
@@ -386,9 +384,9 @@ public class JsonApiJsonPatch {
      */
     private static JsonNode toErrorNode(String detail, Integer status) {
         ObjectNode formattedError = JsonNodeFactory.instance.objectNode();
-        formattedError.set("detail", JsonNodeFactory.instance.stringNode(Encode.forHtml(detail)));
+        formattedError.set("detail", JsonNodeFactory.instance.textNode(Encode.forHtml(detail)));
         if (status != null) {
-            formattedError.set("status", JsonNodeFactory.instance.stringNode(status.toString()));
+            formattedError.set("status", JsonNodeFactory.instance.textNode(status.toString()));
         }
         return formattedError;
     }

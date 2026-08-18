@@ -85,7 +85,7 @@
       <plugin>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-extension-maven-plugin</artifactId>
-        <version>${quarkus.version}</version>
+        <version>3.0.0.Beta1</version>
         <executions>
           <execution>
             <phase>compile</phase>
@@ -108,6 +108,9 @@
               <version>${quarkus.version}</version>
             </path>
           </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-AlegacyConfigRoot=true</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>

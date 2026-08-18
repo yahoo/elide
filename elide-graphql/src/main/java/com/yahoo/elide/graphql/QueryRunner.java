@@ -17,6 +17,10 @@ import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.GraphQLQuery;
 import com.yahoo.elide.graphql.parser.QueryParser;
 import com.yahoo.elide.graphql.serialization.GraphQLModule;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
@@ -34,13 +38,9 @@ import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -98,8 +98,7 @@ public class QueryRunner {
                 .queryExecutionStrategy(new AsyncSerialExecutionStrategy(exceptionHandler))
                 .build();
 
-        elide.getElideSettings().getElideMapper()
-                .customizeObjectMapper(mapperBuilder -> mapperBuilder.addModule(new GraphQLModule()));
+        elide.getElideSettings().getObjectMapper().registerModule(new GraphQLModule());
     }
 
     /**
@@ -187,7 +186,7 @@ public class QueryRunner {
         try {
             queries = new QueryParser() {
             }.parseDocument(graphQLDocument, mapper);
-        } catch (JacksonException e) {
+        } catch (IOException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             return QueryRunner.handleRuntimeException(elide, new InvalidEntityBodyException(graphQLDocument, e));
         }
@@ -208,8 +207,8 @@ public class QueryRunner {
                     try {
                         String body = mapper.writeValueAsString(response.getBody());
                         return mapper.readTree(body);
-                    } catch (RuntimeException e) {
-                        log.debug("Caught a runtime exception while trying to read response body");
+                    } catch (IOException e) {
+                        log.debug("Caught an IO exception while trying to read response body");
                         return JsonNodeFactory.instance.objectNode();
                     }
                 })
@@ -225,9 +224,13 @@ public class QueryRunner {
         if (response.getBody() instanceof String string) {
             return ElideResponse.status(response.getStatus()).body(string);
         } else {
-            Object body = response.getBody();
-            return ElideResponse.status(response.getStatus())
-                    .body(body != null ? objectMapper.writeValueAsString(body) : null);
+            try {
+                Object body = response.getBody();
+                return ElideResponse.status(response.getStatus())
+                        .body(body != null ? objectMapper.writeValueAsString(body) : null);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 
@@ -237,7 +240,7 @@ public class QueryRunner {
      * @return query to execute.
      */
     public static String extractQuery(JsonNode jsonDocument) {
-        return jsonDocument.has(QUERY) ? jsonDocument.get(QUERY).asString() : null;
+        return jsonDocument.has(QUERY) ? jsonDocument.get(QUERY).asText() : null;
     }
 
     /**
@@ -263,7 +266,7 @@ public class QueryRunner {
      */
     public static String extractOperation(JsonNode jsonDocument) {
         if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
-            return jsonDocument.get(OPERATION_NAME).asString();
+            return jsonDocument.get(OPERATION_NAME).asText();
         }
 
         return null;

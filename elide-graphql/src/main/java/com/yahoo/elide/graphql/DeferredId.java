@@ -7,11 +7,14 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.PersistentResource;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import lombok.Getter;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.annotation.JsonSerialize;
+
+import java.io.IOException;
 
 /**
  * The id for any given entity might be populated at transaction commit (as opposed to inline with the data fetch).
@@ -30,10 +33,10 @@ public class DeferredId {
 /**
  * Serializer for the id value of a {@link DeferredId} object.
  */
-class SerializeId extends ValueSerializer<DeferredId> {
+class SerializeId extends JsonSerializer<DeferredId> {
     @Override
     public void serialize(DeferredId deferredId, JsonGenerator jsonGenerator,
-            SerializationContext serializerProvider) {
-        jsonGenerator.writePOJO(deferredId.getResource().getId());
+                          SerializerProvider serializerProvider) throws IOException {
+        jsonGenerator.writeObject(deferredId.getResource().getId());
     }
 }

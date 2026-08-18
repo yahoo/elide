@@ -15,15 +15,12 @@ import com.yahoo.elide.core.utils.coerce.converters.FromMapConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.core.utils.coerce.converters.ToEnumConverter;
 import com.yahoo.elide.core.utils.coerce.converters.ToUUIDConverter;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MapMaker;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.Converter;
-
-import tools.jackson.core.JacksonException;
 
 import java.lang.reflect.Array;
 import java.util.Collections;
@@ -74,7 +71,7 @@ public class CoerceUtil {
 
         try {
             return (T) ConvertUtils.convert(value, cls);
-        } catch (ConversionException | InvalidAttributeException | IllegalArgumentException | JacksonException e) {
+        } catch (ConversionException | InvalidAttributeException | IllegalArgumentException e) {
             throw new InvalidValueException(value, e.getMessage());
         }
     }

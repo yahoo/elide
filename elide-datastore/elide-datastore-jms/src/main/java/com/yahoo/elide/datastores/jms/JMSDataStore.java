@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.jms;
 
 import static com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder.TOPIC_ARGUMENT;
 
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -19,6 +18,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.graphql.subscriptions.annotations.Subscription;
 import com.yahoo.elide.graphql.subscriptions.hooks.TopicType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSContext;
@@ -41,21 +41,21 @@ public class JMSDataStore implements DataStore {
     protected long timeoutInMs = -1;
 
     //For serializing Elide models to topics.
-    protected ElideMapper elideMapper;
+    protected ObjectMapper objectMapper;
 
     /**
      * Constructor.
      * @param models The set of models to manage.
      * @param connectionFactory The JMS connection factory.
      * @param dictionary The entity dictionary.
-     * @param elideMapper Object mapper for serializing/deserializing elide models to JMS topics.
+     * @param objectMapper Object mapper for serializing/deserializing elide models to JMS topics.
      * @param timeout request timeout in milliseconds. 0 means immediate. null means no timeout.
      */
     public JMSDataStore(
             Set<Type<?>> models,
             ConnectionFactory connectionFactory,
             EntityDictionary dictionary,
-            ElideMapper elideMapper,
+            ObjectMapper objectMapper,
             Duration timeout
     ) {
         this.models = models.stream().collect(Collectors.toMap(
@@ -70,7 +70,7 @@ public class JMSDataStore implements DataStore {
 
         this.connectionFactory = connectionFactory;
         this.dictionary = dictionary;
-        this.elideMapper = elideMapper;
+        this.objectMapper = objectMapper;
         this.timeoutInMs = timeout != null ? timeout.toMillis() : -1;
     }
 
@@ -79,21 +79,21 @@ public class JMSDataStore implements DataStore {
      * @param scanner to scan for subscription annotations.
      * @param connectionFactory The JMS connection factory.
      * @param dictionary The entity dictionary.
-     * @param elideMapper Object mapper for serializing/deserializing elide models to JMS topics.
+     * @param objectMapper Object mapper for serializing/deserializing elide models to JMS topics.
      * @param timeout request timeout in milliseconds. 0 means immediate. null means no timeout.
      */
     public JMSDataStore(
             ClassScanner scanner,
             ConnectionFactory connectionFactory,
             EntityDictionary dictionary,
-            ElideMapper elideMapper,
+            ObjectMapper objectMapper,
             Duration timeout
     ) {
         this(
                 scanner.getAnnotatedClasses(Subscription.class, Include.class).stream()
                         .map(ClassType::of)
                         .collect(Collectors.toSet()),
-                connectionFactory, dictionary, elideMapper, timeout);
+                connectionFactory, dictionary, objectMapper, timeout);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class JMSDataStore implements DataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         JMSContext context = connectionFactory.createContext();
-        return new JMSDataStoreTransaction(context, dictionary, elideMapper, timeoutInMs);
+        return new JMSDataStoreTransaction(context, dictionary, objectMapper, timeoutInMs);
     }
 
     @Override

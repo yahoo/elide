@@ -75,7 +75,7 @@ public class TestBinder extends AbstractBinder {
                         .connectionFactory(connectionFactory)
                         .entityDictionary(elide.getElideSettings().getEntityDictionary())
                         .scanner(elide.getScanner())
-                        .elideMapper(elide.getElideSettings().getElideMapper())
+                        .objectMapper(elide.getElideSettings().getObjectMapper())
                         .build();
 
                 subscriptionScanner.bindLifecycleHooks();

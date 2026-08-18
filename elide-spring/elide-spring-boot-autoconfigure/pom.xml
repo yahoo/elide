@@ -233,7 +233,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.artemis</groupId>
+            <groupId>org.apache.activemq</groupId>
             <artifactId>artemis-jakarta-server</artifactId>
             <scope>test</scope>
         </dependency>
@@ -264,7 +264,7 @@
         
         <dependency>
             <groupId>com.atomikos</groupId>
-            <artifactId>transactions-spring-boot4-starter</artifactId>
+            <artifactId>transactions-spring-boot3-starter</artifactId>
             <scope>test</scope>
         </dependency>
 

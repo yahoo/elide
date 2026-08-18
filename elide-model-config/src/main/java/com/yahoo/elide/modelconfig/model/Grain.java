@@ -14,8 +14,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.io.Serializable;
 
@@ -33,8 +31,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@JsonDeserialize(builder = Grain.GrainBuilder.class)
-@JsonPOJOBuilder(withPrefix = "")
 public class Grain implements Serializable {
     private static final long serialVersionUID = -6253818551445562327L;
 
@@ -66,8 +62,5 @@ public class Grain implements Serializable {
         public String toString() {
             return this.value;
         }
-    }
-
-    public static class GrainBuilder {
     }
 }

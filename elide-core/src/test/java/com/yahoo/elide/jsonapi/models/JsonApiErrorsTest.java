@@ -8,9 +8,10 @@ package com.yahoo.elide.jsonapi.models;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 
@@ -21,7 +22,7 @@ class JsonApiErrorsTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void basicErrorObject() {
+    void basicErrorObject() throws JsonProcessingException {
         JsonApiErrors errors = JsonApiErrors.builder()
                 .error(error -> error.status("422").source(source -> source.pointer("/data/attributes/firstName"))
                         .title("Invalid Attribute").detail("First name must contain at least two characters."))
@@ -33,7 +34,7 @@ class JsonApiErrorsTest {
     }
 
     @Test
-    void multipleErrors() {
+    void multipleErrors() throws JsonProcessingException {
         JsonApiErrors errors = JsonApiErrors.builder()
                 .error(error -> error.status("403").source(source -> source.pointer("/data/attributes/secretPowers"))
                         .detail("Editing secret powers is not authorized on Sundays."))
@@ -50,7 +51,7 @@ class JsonApiErrorsTest {
     }
 
     @Test
-    void meta() {
+    void meta() throws JsonProcessingException {
         JsonApiErrors errors = JsonApiErrors.builder()
                 .error(error -> error.status("422").meta(meta -> meta.put("property", "property")))
                 .build();
@@ -67,7 +68,7 @@ class JsonApiErrorsTest {
     }
 
     @Test
-    void errorsConsumer() {
+    void errorsConsumer() throws JsonProcessingException {
         JsonApiError error = JsonApiError.builder().detail("First name must contain at least two characters.").build();
         JsonApiErrors errorObjects = JsonApiErrors.builder().errors(errors -> errors.add(error)).build();
         String actual = objectMapper.writeValueAsString(errorObjects);
@@ -77,7 +78,7 @@ class JsonApiErrorsTest {
     }
 
     @Test
-    void errors() {
+    void errors() throws JsonProcessingException {
         JsonApiError error = JsonApiError.builder().detail("First name must contain at least two characters.").build();
         JsonApiErrors errorObjects = JsonApiErrors.builder().errors(Collections.singletonList(error)).build();
         String actual = objectMapper.writeValueAsString(errorObjects);

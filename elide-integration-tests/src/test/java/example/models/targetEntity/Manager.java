@@ -31,5 +31,5 @@ public class Manager implements Employee {
 
     @OneToMany(targetEntity = SWE.class, mappedBy = "boss")
     @EqualsAndHashCode.Exclude
-    Set<SWE> reports;
+    Set<Employee> reports;
 }

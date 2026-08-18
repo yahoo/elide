@@ -7,7 +7,6 @@ package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettings.ElideSettingsBuilder;
 import com.yahoo.elide.Serdes;
@@ -71,6 +70,8 @@ import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.OpenApiBuilder;
 import com.yahoo.elide.swagger.resources.ApiDocsEndpoint;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -87,7 +88,6 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ import java.util.function.Function;
  * Interface for configuring an ElideStandalone application.
  */
 public interface ElideStandaloneSettings {
-    public static final ElideMapper DEFAULT_ELIDE_MAPPER = new ElideMapper(JsonMapper.shared());
+    public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * The OpenAPI Specification Version.
@@ -224,7 +224,6 @@ public interface ElideStandaloneSettings {
      *
      * @param dictionary the dictionary
      * @param dataStore the data store
-     * @param elideMapper the elideMapper
      * @param mapper the mapper
      * @return the ElideSettingsBuilder
      *
@@ -233,11 +232,11 @@ public interface ElideStandaloneSettings {
      * @see #getAsyncSettingsBuilder()
      */
     default ElideSettingsBuilder getElideSettingsBuilder(EntityDictionary dictionary, DataStore dataStore,
-            ElideMapper elideMapper, JsonApiMapper mapper) {
+            JsonApiMapper mapper) {
         ElideSettingsBuilder builder = ElideSettings.builder().dataStore(dataStore)
                 .entityDictionary(dictionary)
                 .baseUrl(getBaseUrl())
-                .elideMapper(elideMapper)
+                .objectMapper(mapper.getObjectMapper())
                 .auditLogger(getAuditLogger())
                 .maxPageSize(getMaxPageSize())
                 .defaultPageSize(getDefaultPageSize());
@@ -292,15 +291,13 @@ public interface ElideStandaloneSettings {
      *
      * @param dictionary EntityDictionary object.
      * @param dataStore DataStore object
-     * @param elideMapper Object elideMapper
      * @param mapper Object mapper
      * @return Configured ElideSettings object.
      *
-     * @see #getElideSettingsBuilder(EntityDictionary, DataStore, ElideMapper, JsonApiMapper)
+     * @see #getElideSettingsBuilder(EntityDictionary, DataStore, JsonApiMapper)
      */
-    default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, ElideMapper elideMapper,
-            JsonApiMapper mapper) {
-        ElideSettingsBuilder builder = getElideSettingsBuilder(dictionary, dataStore, elideMapper, mapper);
+    default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore, JsonApiMapper mapper) {
+        ElideSettingsBuilder builder = getElideSettingsBuilder(dictionary, dataStore, mapper);
         return builder.build();
     }
 
@@ -820,7 +817,7 @@ public interface ElideStandaloneSettings {
      * @return object mapper.
      */
     default JsonApiMapper getJsonApiMapper() {
-        return new JsonApiMapper(getElideMapper());
+        return new JsonApiMapper(getObjectMapper());
     }
 
     /**
@@ -828,8 +825,8 @@ public interface ElideStandaloneSettings {
      *
      * @return object mapper.
      */
-    default ElideMapper getElideMapper() {
-        return DEFAULT_ELIDE_MAPPER;
+    default ObjectMapper getObjectMapper() {
+        return DEFAULT_OBJECT_MAPPER;
     }
 
     /**

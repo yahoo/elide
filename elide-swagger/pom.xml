@@ -79,13 +79,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>tools.jackson.core</groupId>
+            <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <scope>provided</scope>
-       </dependency>
-        <dependency>
-            <groupId>tools.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
             <scope>provided</scope>
        </dependency>
        <dependency>

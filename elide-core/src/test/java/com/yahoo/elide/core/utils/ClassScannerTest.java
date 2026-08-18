@@ -48,7 +48,7 @@ public class ClassScannerTest {
     @Test
     public void testGetAnyAnnotatedClasses() {
         Set<Class<?>> classes = scanner.getAnnotatedClasses(Include.class, Entity.class);
-        assertEquals(62, classes.size());
+        assertEquals(60, classes.size());
         for (Class<?> cls : classes) {
             assertTrue(cls.isAnnotationPresent(Include.class)
                     || cls.isAnnotationPresent(Entity.class));

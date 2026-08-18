@@ -6,10 +6,10 @@
 package com.yahoo.elide.modelconfig;
 
 
-import com.networknt.schema.Error;
+import com.networknt.schema.ValidationMessage;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Indicates that the schema is not valid.
@@ -18,16 +18,16 @@ public class InvalidSchemaException extends IOException {
 
     private static final long serialVersionUID = 1L;
 
-    private final List<Error> validationMessages;
+    private final Set<ValidationMessage> validationMessages;
     private final String fileName;
 
-    public InvalidSchemaException(String fileName, List<Error> validationMessages) {
-        super("Schema validation failed for: " + fileName + ValidationErrors.toString(validationMessages));
+    public InvalidSchemaException(String fileName, Set<ValidationMessage> validationMessages) {
+        super("Schema validation failed for: " + fileName + ValidationMessages.toString(validationMessages));
         this.fileName = fileName;
         this.validationMessages = validationMessages;
     }
 
-    public List<Error> getValidationMessages() {
+    public Set<ValidationMessage> getValidationMessages() {
         return validationMessages;
     }
 

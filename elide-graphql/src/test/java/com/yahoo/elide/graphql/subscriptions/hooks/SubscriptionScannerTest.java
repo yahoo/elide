@@ -10,18 +10,17 @@ import static com.yahoo.elide.core.PersistentResource.CLASS_NO_FIELD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
 
 import jakarta.jms.ConnectionFactory;
-import tools.jackson.databind.json.JsonMapper;
 
 public class SubscriptionScannerTest {
 
@@ -35,7 +34,7 @@ public class SubscriptionScannerTest {
                 .connectionFactory(connectionFactory)
                 .entityDictionary(dictionary)
                 .scanner(classScanner)
-                .elideMapper(new ElideMapper(JsonMapper.shared()))
+                .objectMapper(new ObjectMapper())
                 .build();
 
         subscriptionScanner.bindLifecycleHooks();

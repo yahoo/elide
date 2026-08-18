@@ -6,14 +6,14 @@
 
 package com.yahoo.elide.datastores.jms;
 
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
-import tools.jackson.core.JacksonException;
 
 import java.util.function.Function;
 
@@ -23,24 +23,23 @@ import java.util.function.Function;
  */
 public class MessageDeserializer<T> implements Function<Message, T> {
     private Type<?> type;
-    private ElideMapper elideMapper;
+    private ObjectMapper objectMapper;
 
     /**
      * Constructor.
      * @param type The type to deserialize to.
-     * @param elideMapper serializer to convert Elide models to topic messages.
+     * @param objectMapper serializer to convert Elide models to topic messages.
      */
-    public MessageDeserializer(Type<?> type, ElideMapper elideMapper) {
+    public MessageDeserializer(Type<?> type, ObjectMapper objectMapper) {
         this.type = type;
-        this.elideMapper = elideMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public T apply(Message message) {
         try {
-            return (T) elideMapper.getObjectMapper().readValue(((TextMessage) message).getText(),
-                    type.getUnderlyingClass().get());
-        } catch (JacksonException | JMSException e) {
+            return (T) objectMapper.readValue(((TextMessage) message).getText(), type.getUnderlyingClass().get());
+        } catch (JsonProcessingException | JMSException e) {
             throw new InternalServerErrorException(e);
         }
     }

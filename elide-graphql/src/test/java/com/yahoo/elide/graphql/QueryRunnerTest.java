@@ -29,6 +29,8 @@ import com.yahoo.elide.core.exceptions.Slf4jExceptionLogger;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.graphql.models.GraphQLErrors;
 import com.yahoo.elide.graphql.serialization.GraphQLErrorDeserializer;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import example.Book;
 
@@ -47,9 +49,6 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-
-import tools.jackson.core.Version;
-import tools.jackson.databind.module.SimpleModule;
 
 import java.util.Map;
 import java.util.Set;
@@ -166,7 +165,7 @@ public class QueryRunnerTest extends GraphQLTest {
         ElideResponse<String> response = queryRunner.run("", body, null);
         SimpleModule module = new SimpleModule("GraphQLDeserializer", Version.unknownVersion());
         module.addDeserializer(GraphQLError.class, new GraphQLErrorDeserializer());
-        elide.getElideSettings().getElideMapper().customizeObjectMapper(builder -> builder.addModule(module));
+        elide.getObjectMapper().registerModule(module);
         GraphQLErrors errorObjects = elide.getObjectMapper().readValue(response.getBody(), GraphQLErrors.class);
         assertEquals(3, errorObjects.getErrors().size());
         for (GraphQLError errorObject : errorObjects.getErrors()) {

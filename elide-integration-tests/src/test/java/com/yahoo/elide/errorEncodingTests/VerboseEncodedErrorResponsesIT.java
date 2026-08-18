@@ -18,7 +18,6 @@ import com.yahoo.elide.initialization.VerboseEncodedErrorResponsesTestApplicatio
 import com.yahoo.elide.jsonapi.JsonApi;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -60,9 +59,6 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    /**
-     * This now requires enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) in Jackson 3 to pass.
-     */
     @Test
     public void invalidEntityBodyException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyException.req.json");
@@ -107,9 +103,6 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    /**
-     * This now requires enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) in Jackson 3 to pass.
-     */
     @Test
     public void jsonPatchExtensionException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionException.req.json");

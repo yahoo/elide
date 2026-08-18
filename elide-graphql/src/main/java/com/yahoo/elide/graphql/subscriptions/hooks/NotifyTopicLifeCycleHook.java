@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.graphql.subscriptions.hooks;
 
-import com.yahoo.elide.ElideMapper;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
@@ -14,6 +13,8 @@ import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.type.Type;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.inject.Inject;
 import jakarta.jms.ConnectionFactory;
@@ -22,7 +23,6 @@ import jakarta.jms.JMSContext;
 import jakarta.jms.JMSProducer;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import tools.jackson.core.JacksonException;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -41,19 +41,19 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
     private ConnectionFactory connectionFactory;
 
     @Inject
-    private ElideMapper elideMapper;
+    private ObjectMapper objectMapper;
 
     @Inject
     private Function<JMSContext, JMSProducer> createProducer;
 
     public NotifyTopicLifeCycleHook(
             ConnectionFactory connectionFactory,
-            ElideMapper elideMapper,
+            ObjectMapper objectMapper,
             Function<JMSContext, JMSProducer> createProducer
     ) {
         this.connectionFactory = connectionFactory;
         this.createProducer = createProducer;
-        this.elideMapper = elideMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -93,10 +93,10 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             Destination destination = context.createTopic(topicName);
 
             try {
-                String message = elideMapper.getObjectMapper().writeValueAsString(object);
+                String message = objectMapper.writeValueAsString(object);
                 log.debug("Serializing {}", message);
                 producer.send(destination, message);
-            } catch (JacksonException e) {
+            } catch (JsonProcessingException e) {
                 throw new IllegalStateException(e);
             }
         }

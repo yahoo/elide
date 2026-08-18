@@ -7,9 +7,10 @@ package com.yahoo.elide.jsonapi.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import tools.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for Operations.
@@ -17,7 +18,7 @@ import tools.jackson.databind.ObjectMapper;
 class OperationsTest {
 
     @Test
-    void read() {
+    void read() throws JsonProcessingException {
         String json = """
                 {
                   "atomic:operations": [{
