@@ -103,14 +103,12 @@ public class ElideExtensionProcessor {
     }
 
     /**
-     * When Quarkus warns during build-time about Elide-specific classes that "are not in the Jandex  index"
+     * When Quarkus warns during build-time about Elide-specific classes that "are not in the Jandex index"
      * we add those classes here. Unlike using the IndexDependencyBuildItem, this more specific approach
      * prevents the Elide JAX-RS endpoints from being deployed at their default "/" paths.
-     * @param additionalIndexedClassesBuildItemBuildProducer
      */
     @BuildStep
-    public void indexElideClasses(BuildProducer<AdditionalIndexedClassesBuildItem>
-                                                 indexedClassesProducer) {
+    public void indexElideClasses(BuildProducer<AdditionalIndexedClassesBuildItem> indexedClassesProducer) {
         indexedClassesProducer.produce(
                 new io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem(
                         OperationCheck.class.getCanonicalName(),

@@ -129,7 +129,7 @@ public class ElideBeans {
         List<ApiDocsEndpoint.ApiDocsRegistration> docs = new ArrayList<>();
 
         dictionary.getApiVersions().stream().forEach(apiVersion -> {
-            Info info = new Info().title("Elide Service").version(apiVersion);
+            Info info = new Info().title(config.apiDocs().title()).version(apiVersion);
             OpenApiBuilder builder = new OpenApiBuilder(dictionary).apiVersion(apiVersion);
             String moduleBasePath = "/apiDocs/";
             OpenAPI openApi = builder.build().info(info).addServersItem(new Server().url(moduleBasePath));

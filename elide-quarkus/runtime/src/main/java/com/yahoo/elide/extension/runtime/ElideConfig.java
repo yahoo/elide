@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.extension.runtime;
 
+import com.yahoo.elide.swagger.OpenApiDocument;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
@@ -17,6 +18,7 @@ public interface ElideConfig {
     public static final String JSONAPI_PATH = "/jsonapi";
     public static final String GRAPHQL_PATH = "/graphql";
     public static final String APIDOCS_PATH = "/apiDocs";
+    public static final String APIDOCS_TITLE = OpenApiDocument.DEFAULT_TITLE;
 
     interface JsonApiConfig {
         /**
@@ -43,6 +45,12 @@ public interface ElideConfig {
          */
         @WithDefault(APIDOCS_PATH)
         String path();
+
+        /**
+         * The title of the Elide Swagger document.
+         */
+        @WithDefault(APIDOCS_TITLE)
+        String title();
     }
 
     /**

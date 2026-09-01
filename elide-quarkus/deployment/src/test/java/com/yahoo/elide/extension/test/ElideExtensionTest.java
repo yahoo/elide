@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.extension.test;
 
-//import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
@@ -87,7 +86,7 @@ public class ElideExtensionTest {
     }
 
     /**
-     * Previously, when we had a IndexDependencyBuildItem for "com.yahoo.elide:elide-core", it would cause each Elide JAX-RS endpoint to be
+     * Previously, when we had an IndexDependencyBuildItem for "com.yahoo.elide:elide-core", it would cause each Elide JAX-RS endpoint to be
      * deployed at its default, root path, as well as at the configured path. This test is a reminder that the current build-time advice of
      * "Consider adding them to the index" for certain Elide classes is not without consequence.
      */
@@ -153,7 +152,7 @@ public class ElideExtensionTest {
 
     @Test
     public void testSwaggerApiEndpoint() {
-        RestAssured.when().get("/test-apiDocs/api").then().log().all().statusCode(200);
+        RestAssured.when().get("/test-apiDocs/api").then().log().all().body(containsString("Test Documentation")).statusCode(200);
     }
 
     @Test
