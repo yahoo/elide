@@ -44,7 +44,7 @@ import java.util.function.Consumer;
 @ApplicationScoped
 public class ElideBeans {
     private static final Logger LOG = Logger.getLogger(ElideBeans.class.getName());
-    @ConfigProperty(name = "quarkus.http.root-path")
+    @ConfigProperty(name = "quarkus.http.root-path", defaultValue = "/")
     String rootPath;
     private ElideConfig config;
 
