@@ -35,6 +35,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.util.Base64;
+import java.util.Arrays;
 
 public class DynamicConfigVerifierTest {
 
@@ -131,9 +132,13 @@ public class DynamicConfigVerifierTest {
         TarArchiveOutputStream tarOutputStream = null;
         try {
             String configPath  = "src/test/resources/configs/";
+            File[] files = new File(configPath).listFiles();
+            Arrays.sort(files);
             tarOutputStream = new TarArchiveOutputStream(new GzipCompressorOutputStream(
                     new BufferedOutputStream(new FileOutputStream(new File(TAR_FILE_PATH)))));
-            addFileToTarGz(tarOutputStream, configPath, "");
+            for (File file : files) {
+                addFileToTarGz(tarOutputStream, file.getAbsolutePath(), "");
+            }
         } finally {
             tarOutputStream.finish();
             tarOutputStream.close();
@@ -144,15 +149,16 @@ public class DynamicConfigVerifierTest {
         File f = new File(path);
         String entryName = base + f.getName();
         TarArchiveEntry tarEntry = new TarArchiveEntry(f, entryName);
-        tOut.putArchiveEntry(tarEntry);
 
         if (f.isFile()) {
+            tarEntry.setModTime(0);
+            tOut.putArchiveEntry(tarEntry);
             IOUtils.copy(new FileInputStream(f), tOut);
             tOut.closeArchiveEntry();
         } else {
-            tOut.closeArchiveEntry();
             File[] children = f.listFiles();
             if (children != null) {
+                Arrays.sort(children);
                 for (File child : children) {
                     addFileToTarGz(tOut, child.getAbsolutePath(), entryName + "/");
                 }
