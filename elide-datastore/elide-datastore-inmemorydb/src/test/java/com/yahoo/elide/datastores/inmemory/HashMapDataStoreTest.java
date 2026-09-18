@@ -151,10 +151,10 @@ public class HashMapDataStoreTest {
     @Test
     public void checkLoading() {
         final EntityDictionary entityDictionary = hashMapDataStore.getDictionary();
-        assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(FirstBean.class)));
-        assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(SecondBean.class)));
-        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(ClassType.of(NonEntity.class)));
-        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(ClassType.of(ExcludedBean.class)));
+        assertNotNull(entityDictionary.getTypeName(ClassType.of(FirstBean.class)));
+        assertNotNull(entityDictionary.getTypeName(ClassType.of(SecondBean.class)));
+        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getTypeName(ClassType.of(NonEntity.class)));
+        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getTypeName(ClassType.of(ExcludedBean.class)));
     }
 
     @Test

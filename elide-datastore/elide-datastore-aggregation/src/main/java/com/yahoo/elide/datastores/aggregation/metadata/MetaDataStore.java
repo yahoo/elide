@@ -151,9 +151,9 @@ public class MetaDataStore implements DataStore {
 
         //Built a list of static types referenced from joins in the dynamic types.
         metadataDictionary.getBindings().stream()
-                .filter(binding -> joinNames.contains(binding.getJsonApiType()))
+                .filter(binding -> joinNames.contains(binding.getTypeName()))
                 .forEach(staticType ->
-                    typeMap.put(staticType.getJsonApiType(), staticType.getEntityClass())
+                    typeMap.put(staticType.getTypeName(), staticType.getEntityClass())
                 );
 
         //Resolve the join fields & bind the dynamic types.

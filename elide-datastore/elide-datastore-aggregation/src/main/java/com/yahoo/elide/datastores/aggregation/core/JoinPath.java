@@ -84,7 +84,7 @@ public class JoinPath extends Path {
             return new PathElement(entityClass, attributeClass, fieldName, alias, arguments);
         }
 
-        String entityAlias = dictionary.getJsonAliasFor(entityClass);
+        String entityAlias = dictionary.getTypeName(entityClass);
         throw new InvalidValueException(entityAlias + " does not contain the field " + fieldName);
     }
 }

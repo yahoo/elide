@@ -28,10 +28,6 @@ import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.JsonApiRequestScope;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Sets;
 import example.Author;
 import example.Book;
@@ -130,14 +126,11 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     protected static ElideSettings initSettings() {
         ElideMapper elideMapper = new ElideMapper(JsonMapper.shared());
-        JsonApiMapper jsonApiMapper = new JsonApiMapper(elideMapper);
-        JsonApiSettings.JsonApiSettingsBuilder jsonApiSettings = JsonApiSettings.builder().jsonApiMapper(jsonApiMapper);
         return ElideSettings.builder().dataStore(null)
                 .entityDictionary(initDictionary())
                 .auditLogger(MOCK_AUDIT_LOGGER)
                 .maxPageSize(10)
                 .defaultPageSize(10)
-                .settings(jsonApiSettings)
                 .elideMapper(elideMapper)
                 .build();
     }
@@ -172,8 +165,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, Map<String, List<String>> queryParams) {
         Route route = Route.builder().path(path).apiVersion(NO_VERSION).parameters(queryParams).build();
-        return JsonApiRequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(UUID.randomUUID())
-                .jsonApiDocument(new JsonApiDocument()).elideSettings(elideSettings).build();
+        return RequestScope.builder().route(route).dataStoreTransaction(tx).user(user).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
@@ -192,9 +185,9 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
         Route route = Route.builder().apiVersion(NO_VERSION).build();
         ElideSettings elideSettings = ElideSettings.builder().dataStore(null).entityDictionary(dictionary)
-                .auditLogger(auditLogger).settings(JsonApiSettings.builder()).build();
-        return JsonApiRequestScope.builder().route(route).user(user).requestId(UUID.randomUUID())
-                .jsonApiDocument(new JsonApiDocument()).elideSettings(elideSettings).build();
+                .auditLogger(auditLogger).build();
+        return RequestScope.builder().route(route).user(user).requestId(UUID.randomUUID())
+                .elideSettings(elideSettings).build();
     }
 
     // Testing constructor, setId and non-null empty sets

@@ -130,7 +130,7 @@ public abstract class Table implements Versioned, Named, RequiresFilter {
         this.namespace = namespace;
         namespace.addTable(this);
 
-        this.name = dictionary.getJsonAliasFor(cls);
+        this.name = dictionary.getTypeName(cls);
         this.version = EntityDictionary.getModelVersion(cls);
         this.model = cls;
 

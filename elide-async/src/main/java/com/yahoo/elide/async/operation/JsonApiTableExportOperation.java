@@ -93,7 +93,7 @@ public class JsonApiTableExportOperation extends TableExportOperation {
             URIBuilder uri = new URIBuilder(export.getQuery());
             Elide elide = getService().getElide();
             projection = new EntityProjectionMaker(elide.getElideSettings().getEntityDictionary(),
-                    scope).parsePath(JsonApiAsyncQueryOperation.getPath(uri));
+                    (JsonApiRequestScope) scope).parsePath(JsonApiAsyncQueryOperation.getPath(uri));
 
         } catch (URISyntaxException e) {
             throw new BadRequestException(e.getMessage());

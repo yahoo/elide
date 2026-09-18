@@ -50,13 +50,6 @@ import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.jsonapi.JsonApiSettings;
-import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
-import com.yahoo.elide.jsonapi.models.Data;
-import com.yahoo.elide.jsonapi.models.Meta;
-import com.yahoo.elide.jsonapi.models.Relationship;
-import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
@@ -73,19 +66,13 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Resource wrapper around Entity bean.
@@ -105,11 +92,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     private final Optional<String> uuid;
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
-    /* Sort strings first by length then contents */
-    private final Comparator<String> lengthFirstComparator = (string1, string2) -> {
-        int diff = string1.length() - string2.length();
-        return diff == 0 ? string1.compareTo(string2) : diff;
-    };
     protected T obj;
     private int hashCode = 0;
 
@@ -136,7 +118,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 ? new ResourceLineage(parent.lineage, parent, parentRelationship)
                 : new ResourceLineage();
         this.dictionary = scope.getDictionary();
-        this.typeName = dictionary.getJsonAliasFor(type);
+        this.typeName = dictionary.getTypeName(type);
         this.transaction = scope.getTransaction();
         this.requestScope = scope;
         dictionary.initializeEntity(obj);
@@ -271,7 +253,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                         idOrEntityId = (Serializable) idObfuscator.deobfuscate(id, idType);
                     } catch (RuntimeException e) {
                         throw new InvalidValueException(
-                                "Invalid identifier " + id + " for " + dictionary.getJsonAliasFor(loadClass), e);
+                                "Invalid identifier " + id + " for " + dictionary.getTypeName(loadClass), e);
                     }
                 } else {
                     idOrEntityId = (Serializable) CoerceUtil.coerce(id, idType);
@@ -280,7 +262,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
             obj = tx.loadObject(projection, idOrEntityId, requestScope);
             if (obj == null) {
-                throw new InvalidObjectIdentifierException(id, dictionary.getJsonAliasFor(loadClass));
+                throw new InvalidObjectIdentifierException(id, dictionary.getTypeName(loadClass));
             }
         }
 
@@ -343,7 +325,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             if (ids.isEmpty()) {
                 return Flux.empty();
             }
-            throw new InvalidObjectIdentifierException(ids.toString(), dictionary.getJsonAliasFor(loadClass));
+            throw new InvalidObjectIdentifierException(ids.toString(), dictionary.getTypeName(loadClass));
         }
 
         Set<String> requestedFields = projection.getRequestedFields();
@@ -351,13 +333,13 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         if (pagination != null && !pagination.isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope, requestedFields)) {
             throw new BadRequestException(String.format("Cannot paginate %s",
-                    dictionary.getJsonAliasFor(loadClass)));
+                    dictionary.getTypeName(loadClass)));
         }
 
         Set<PersistentResource> newResources = new LinkedHashSet<>();
 
         if (!ids.isEmpty()) {
-            String typeAlias = dictionary.getJsonAliasFor(loadClass);
+            String typeAlias = dictionary.getTypeName(loadClass);
             newResources = requestScope.getNewPersistentResources().stream()
                     .filter(resource -> typeAlias.equals(resource.getTypeName())
                             && ids.contains(resource.getUUID().orElse("")))
@@ -411,7 +393,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         allResources = allResources.doOnComplete(() -> {
             Set<String> missedIds = Sets.difference(new LinkedHashSet<>(ids), foundIds);
             if (!missedIds.isEmpty()) {
-                throw new InvalidObjectIdentifierException(missedIds.toString(), dictionary.getJsonAliasFor(loadClass));
+                throw new InvalidObjectIdentifierException(missedIds.toString(), dictionary.getTypeName(loadClass));
             }
         });
 
@@ -1282,7 +1264,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 relationship.getProjection().getRequestedFields())) {
 
             throw new BadRequestException(String.format("Cannot paginate %s",
-                    dictionary.getJsonAliasFor(relationClass)));
+                    dictionary.getTypeName(relationClass)));
         }
 
         return getRelationUnchecked(relationship);
@@ -1537,167 +1519,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Convert a persistent resource to a resource.
-     *
-     * @return a resource
-     */
-    public Resource toResource() {
-        return toResource(this::getRelationships, this::getAttributes);
-    }
-
-    /**
-     * Fetch a resource with support for lambda function for getting relationships and attributes.
-     *
-     * @return The Resource
-     */
-    public Resource toResource(EntityProjection projection) {
-        return toResource(() -> getRelationships(projection), this::getAttributes);
-    }
-
-    /**
-     * Fetch a resource with support for lambda function for getting relationships and attributes.
-     *
-     * @param relationshipSupplier The relationship supplier (getRelationships())
-     * @param attributeSupplier    The attribute supplier
-     * @return The Resource
-     */
-    private Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
-                                final Supplier<Map<String, Object>> attributeSupplier) {
-        return toResource(relationshipSupplier.get(), attributeSupplier.get());
-    }
-
-    /**
-     * Convert a persistent resource to a resource.
-     *
-     * @param relationships The relationships
-     * @param attributes    The attributes
-     * @return The Resource
-     */
-    public Resource toResource(final Map<String, Relationship> relationships,
-                               final Map<String, Object> attributes) {
-        final Resource resource = new Resource(typeName, (obj == null)
-                ? uuid.orElseThrow(
-                () -> new InvalidEntityBodyException("No id found on object"))
-                : dictionary.getId(obj));
-        resource.setRelationships(relationships);
-        resource.setAttributes(attributes);
-
-        JsonApiSettings jsonApiSettings = requestScope.getElideSettings().getSettings(JsonApiSettings.class);
-        if (jsonApiSettings != null && jsonApiSettings.getLinks().isEnabled()) {
-            resource.setLinks(jsonApiSettings.getLinks().getJsonApiLinks().getResourceLevelLinks(this));
-        }
-
-        if (! (getObject() instanceof WithMetadata)) {
-            return resource;
-        }
-
-        WithMetadata withMetadata = (WithMetadata) getObject();
-        Set<String> fields = withMetadata.getMetadataFields();
-
-        if (fields.size() == 0) {
-            return resource;
-        }
-
-        Meta meta = new Meta(new LinkedHashMap<>());
-
-        for (String field : fields) {
-            meta.getMetaMap().put(field, withMetadata.getMetadataField(field).get());
-        }
-
-        resource.setMeta(meta);
-
-        return resource;
-    }
-
-    /**
-     * Get relationship mappings.
-     *
-     * @return Relationship mapping
-     */
-    protected Map<String, Relationship> getRelationships() {
-        return getRelationshipsWithRelationshipFunction((relationName) -> {
-            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceType(),
-                    relationName);
-
-            return getRelationCheckedFiltered(com.yahoo.elide.core.request.Relationship.builder()
-                    .alias(relationName)
-                    .name(relationName)
-                    .projection(EntityProjection.builder()
-                            .type(dictionary.getParameterizedType(getResourceType(), relationName))
-                            .filterExpression(filterExpression.orElse(null))
-                            .build())
-                    .build());
-        });
-    }
-
-    /**
-     * Get relationship mappings.
-     *
-     * @return Relationship mapping
-     */
-    private Map<String, Relationship> getRelationships(EntityProjection projection) {
-        return getRelationshipsWithRelationshipFunction(
-                (relationName) -> getRelationCheckedFiltered(projection.getRelationship(relationName)
-                        .orElseThrow(IllegalStateException::new)
-                ));
-    }
-
-    /**
-     * Get relationship mappings.
-     *
-     * @param relationshipFunction a function to load the value of a relationship. Takes a string of the relationship
-     *                             name and returns the relationship's value.
-     * @return Relationship mapping
-     */
-    protected Map<String, Relationship> getRelationshipsWithRelationshipFunction(
-            final Function<String, Flux<PersistentResource>> relationshipFunction) {
-        final Map<String, Relationship> relationshipMap = new LinkedHashMap<>();
-        final Set<String> relationshipFields = filterFields(dictionary.getRelationships(obj));
-
-        for (String field : relationshipFields) {
-            TreeMap<String, Resource> orderedById = new TreeMap<>(lengthFirstComparator);
-            for (PersistentResource relationship : relationshipFunction.apply(field).collectList().block()) {
-                orderedById.put(relationship.getId(),
-                        new ResourceIdentifier(relationship.getTypeName(), relationship.getId()).castToResource());
-
-            }
-            Flux<Resource> resources = Flux.fromIterable(orderedById.values());
-
-            Data<Resource> data;
-            RelationshipType relationshipType = getRelationshipType(field);
-            if (relationshipType.isToOne()) {
-                data = new Data<>(firstOrNullIfEmpty(resources));
-            } else {
-                data = new Data<>(resources);
-            }
-            Map<String, String> links = null;
-            JsonApiSettings jsonApiSettings = requestScope.getElideSettings().getSettings(JsonApiSettings.class);
-            if (jsonApiSettings != null && jsonApiSettings.getLinks().isEnabled()) {
-                links = jsonApiSettings.getLinks().getJsonApiLinks().getRelationshipLinks(this, field);
-            }
-            relationshipMap.put(field, new Relationship(links, data));
-        }
-
-        return relationshipMap;
-    }
-
-    /**
-     * Get attributes mapping from entity.
-     *
-     * @return Mapping of attributes to objects
-     */
-    protected Map<String, Object> getAttributes() {
-        final Map<String, Object> attributes = new LinkedHashMap<>();
-
-        final Set<String> attrFields = filterFields(dictionary.getAttributes(obj));
-        for (String field : attrFields) {
-            Object val = getAttribute(field);
-            attributes.put(field, val);
-        }
-        return attributes;
-    }
-
-    /**
      * Sets value.
      *
      * @param fieldName the field name
@@ -1911,39 +1732,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Filter a set of fields.
-     *
-     * @param fields the fields
-     * @return Filtered set of fields
-     */
-    protected Set<String> filterFields(Collection<String> fields) {
-        Set<String> filteredSet = new LinkedHashSet<>();
-        Map<String, Set<String>> sparseFields = requestScope.getSparseFields();
-        Stream<String> stream;
-        if (sparseFields.isEmpty()) {
-            // If sparse fields is not set return all fields
-            stream = fields.stream();
-        } else {
-            // If sparse fields is set return those fields
-            Set<String> byType = sparseFields.get(typeName);
-            if (byType == null || fields == null || byType.isEmpty() || fields.isEmpty()) {
-                stream = Stream.empty();
-            } else {
-                stream = byType.stream().filter(fields::contains);
-            }
-        }
-        stream.forEach(field -> {
-            try {
-                checkFieldAwareReadPermissions(field);
-                filteredSet.add(field);
-            } catch (ForbiddenAccessException e) {
-                // Do nothing. Filter from set.
-            }
-        });
-        return filteredSet;
-    }
-
-    /**
      * Queue the @*Update triggers iff this is not a newly created object (otherwise we run @*Create).
      */
     private void triggerUpdate(String fieldName, Object original, Object value) {
@@ -1962,11 +1750,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             Set<String> requestedFields
     ) {
         return requestScope.getPermissionExecutor().checkPermission(annotationClass, this, requestedFields);
-    }
-
-    private <A extends Annotation> ExpressionResult checkFieldAwareReadPermissions(String fieldName) {
-        return requestScope.getPermissionExecutor()
-                .checkSpecificFieldPermissions(this, null, ReadPermission.class, fieldName);
     }
 
     private <A extends Annotation> ExpressionResult checkFieldAwareDeferPermissions(Class<A> annotationClass,

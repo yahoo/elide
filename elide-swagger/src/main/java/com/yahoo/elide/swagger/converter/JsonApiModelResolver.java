@@ -88,7 +88,7 @@ public class JsonApiModelResolver extends ModelResolver {
                                      final ModelConverterContext context,
                                      final Iterator<ModelConverter> next) {
         Resource entitySchema = new Resource();
-        entitySchema.name(dictionary.getJsonAliasFor(clazzType));
+        entitySchema.name(dictionary.getTypeName(clazzType));
         entitySchema.description(getSchemaDescription(clazzType));
         entitySchema.setSecurityDescription(getClassPermissions(clazzType));
 
@@ -159,7 +159,7 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     protected String getSchemaName(Type<?> type) {
-        String schemaName = dictionary.getJsonAliasFor(type);
+        String schemaName = dictionary.getTypeName(type);
         String apiVersion = EntityDictionary.getModelVersion(type);
         if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
             schemaName = "v" + apiVersion + "_" + schemaName;
@@ -238,7 +238,7 @@ public class JsonApiModelResolver extends ModelResolver {
             List<String> required) {
         Relationship relationship = null;
         try {
-            relationship = new Relationship(dictionary.getJsonAliasFor(relationshipClazz));
+            relationship = new Relationship(dictionary.getTypeName(relationshipClazz));
 
         /* Skip the relationship if it is not bound in the dictionary */
         } catch (IllegalArgumentException e) {

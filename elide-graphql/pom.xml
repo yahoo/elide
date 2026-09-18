@@ -48,6 +48,12 @@
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-jsonapi</artifactId>
+            <version>7.2.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
             <version>7.2.1-SNAPSHOT</version>
             <scope>test</scope>

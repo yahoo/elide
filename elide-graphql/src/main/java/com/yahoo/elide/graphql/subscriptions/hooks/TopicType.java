@@ -46,7 +46,7 @@ public enum TopicType {
      * @return a JMS topic name.
      */
     public String toTopicName(Type<?> type, EntityDictionary dictionary) {
-        return dictionary.getJsonAliasFor(type) + topicSuffix;
+        return dictionary.getTypeName(type) + topicSuffix;
     }
 
     /**

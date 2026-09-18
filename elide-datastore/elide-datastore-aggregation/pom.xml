@@ -49,6 +49,12 @@
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-jsonapi</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
             <version>7.2.1-SNAPSHOT</version>
         </dependency>

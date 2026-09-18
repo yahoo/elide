@@ -791,8 +791,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertNull(getEntityClass("subclassBinding", NO_VERSION));
         assertEquals(ClassType.of(SuperclassBinding.class), getEntityClass("superclassBinding", NO_VERSION));
 
-        assertEquals("superclassBinding", getJsonAliasFor(ClassType.of(SubclassBinding.class)));
-        assertEquals("superclassBinding", getJsonAliasFor(ClassType.of(SuperclassBinding.class)));
+        assertEquals("superclassBinding", getTypeName(ClassType.of(SubclassBinding.class)));
+        assertEquals("superclassBinding", getTypeName(ClassType.of(SuperclassBinding.class)));
     }
 
     @Test
@@ -1276,7 +1276,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testEntityPrefix() {
         assertEquals("example_includedPackageLevel",
-                getJsonAliasFor(ClassType.of(IncludedPackageLevel.class)));
+                getTypeName(ClassType.of(IncludedPackageLevel.class)));
     }
 
     @Test

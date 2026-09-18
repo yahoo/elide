@@ -127,7 +127,7 @@ public class SubscriptionModelBuilder {
             }
 
             GraphQLObjectType subscriptionType = buildQueryObject(clazz);
-            String entityName = entityDictionary.getJsonAliasFor(clazz);
+            String entityName = entityDictionary.getTypeName(clazz);
 
             GraphQLFieldDefinition.Builder rootFieldDefinitionBuilder = newFieldDefinition()
                     .name(entityName)

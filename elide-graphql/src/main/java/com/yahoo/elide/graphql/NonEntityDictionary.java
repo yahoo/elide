@@ -46,7 +46,7 @@ public class NonEntityDictionary extends EntityDictionary {
     public void bindEntity(Type<?> cls) {
         String type = WordUtils.uncapitalize(cls.getSimpleName());
 
-        Type<?> duplicate = bindJsonApiToEntity.put(Pair.of(type, NO_VERSION), cls);
+        Type<?> duplicate = bindTypeToEntity.put(Pair.of(type, NO_VERSION), cls);
 
         if (duplicate != null && !duplicate.equals(cls)) {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);

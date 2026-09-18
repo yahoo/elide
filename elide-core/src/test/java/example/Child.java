@@ -7,13 +7,11 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
-import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -24,10 +22,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.Transient;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,13 +38,11 @@ import java.util.Set;
        operation = 0,
        logStatement = "CREATE Child {0} Parent {1}",
        logExpressions = {"${child.id}", "${parent.id}"})
-public class Child implements WithMetadata {
+public class Child {
     @JsonIgnore
 
     private long id;
     private Set<Parent> parents;
-
-    private Map<String, Object> metadata = new HashMap<>();
 
     private String name;
 
@@ -114,27 +107,6 @@ public class Child implements WithMetadata {
 
     public void setReadNoAccess(Child noReadAccess) {
         this.noReadAccess = noReadAccess;
-    }
-
-    @Exclude
-    @Transient
-    @Override
-    public void setMetadataField(String property, Object value) {
-        metadata.put(property, value);
-    }
-
-    @Exclude
-    @Transient
-    @Override
-    public Optional<Object> getMetadataField(String property) {
-        return Optional.ofNullable(metadata.getOrDefault(property, null));
-    }
-
-    @Exclude
-    @Transient
-    @Override
-    public Set<String> getMetadataFields() {
-        return metadata.keySet();
     }
 
     static public class InitCheck extends OperationCheck<Child> {

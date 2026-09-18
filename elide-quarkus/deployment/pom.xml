@@ -49,6 +49,10 @@
       <artifactId>elide-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-jsonapi</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-hibernate-orm-deployment</artifactId>
       <optional>true</optional>

@@ -394,7 +394,7 @@ public class GraphQLEntityProjectionMaker {
         } else {
             throw new InvalidEntityBodyException(String.format(
                             "Unknown attribute field {%s.%s}.",
-                            entityDictionary.getJsonAliasFor(projectionBuilder.getType()),
+                            entityDictionary.getTypeName(projectionBuilder.getType()),
                             attributeName));
         }
     }
@@ -622,7 +622,7 @@ public class GraphQLEntityProjectionMaker {
             projectionBuilder.sorting(sorting);
         } catch (InvalidValueException e) {
             throw new BadRequestException("Invalid sorting clause " + sortRule
-                    + " for type " + entityDictionary.getJsonAliasFor(projectionBuilder.getType()));
+                    + " for type " + entityDictionary.getTypeName(projectionBuilder.getType()));
         }
 
     }
@@ -636,7 +636,7 @@ public class GraphQLEntityProjectionMaker {
     private void addFilter(Argument argument, EntityProjectionBuilder projectionBuilder) {
         FilterExpression filter = buildFilter(
                 projectionBuilder,
-                entityDictionary.getJsonAliasFor(projectionBuilder.getType()),
+                entityDictionary.getTypeName(projectionBuilder.getType()),
                 variableResolver.resolveValue(argument.getValue()));
 
         if (projectionBuilder.getFilterExpression() != null) {

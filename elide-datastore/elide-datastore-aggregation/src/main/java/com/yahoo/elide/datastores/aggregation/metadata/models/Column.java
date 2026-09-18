@@ -175,7 +175,7 @@ public abstract class Column implements Versioned, Named, RequiresFilter {
      * @return <code>tableAlias.fieldName</code>
      */
     protected static String constructColumnName(Type<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
+        return dictionary.getTypeName(tableClass) + "." + fieldName;
     }
 
     /**

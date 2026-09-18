@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Generates a simple wrapper around the sort fields from the JSON-API GET Query.
+ * Generates a simple wrapper around the requested sort fields.
  */
 @ToString
 @EqualsAndHashCode
@@ -34,7 +34,7 @@ public class SortingImpl implements Sorting {
 
     private final Map<String, SortOrder> sortRules = new LinkedHashMap<>();
     private static final SortingImpl DEFAULT_EMPTY_INSTANCE = null;
-    private static final String JSONAPI_ID_KEYWORD = "id";
+    private static final String ID_KEYWORD = "id";
 
     @Getter
     private Type<?> type;
@@ -264,7 +264,7 @@ public class SortingImpl implements Sorting {
         for (Map.Entry<String, SortOrder> entry : sortRules.entrySet()) {
             String key = entry.getKey();
             SortOrder value = entry.getValue();
-            if (JSONAPI_ID_KEYWORD.equals(key)) {
+            if (ID_KEYWORD.equals(key)) {
                 result.put(idFieldName, value);
             } else {
                 result.put(key, value);

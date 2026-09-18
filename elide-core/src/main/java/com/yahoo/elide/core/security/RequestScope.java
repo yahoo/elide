@@ -8,12 +8,11 @@ package com.yahoo.elide.core.security;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.route.Route;
-import com.yahoo.elide.jsonapi.document.processors.WithMetadata;
 
 /**
  * The request scope interface passed to checks.
  */
-public interface RequestScope extends WithMetadata {
+public interface RequestScope {
     /**
      * Returns the {@link User} of the request.
      *

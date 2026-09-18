@@ -101,7 +101,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
+ * Entity Dictionary maps Elide Entity beans to/from Entity type names.
  *
  * @see Include#name
  */
@@ -117,7 +117,7 @@ public class EntityDictionary {
     };
     private static final Map<Class<?>, Type<?>> TYPE_MAP = new ConcurrentHashMap<>();
 
-    protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindTypeToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
 
     @Getter
@@ -311,13 +311,13 @@ public class EntityDictionary {
      * @return binding class
      */
     public Type<?> getEntityClass(String entityName, String version) {
-        Type<?> lookup = bindJsonApiToEntity.getOrDefault(Pair.of(entityName, version), null);
+        Type<?> lookup = bindTypeToEntity.getOrDefault(Pair.of(entityName, version), null);
 
         if (lookup == null) {
             //Elide standard models transcend API versions.
             return entityBindings.values().stream()
                     .filter(binding -> binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX))
-                    .filter(binding -> binding.jsonApiType.equals(entityName))
+                    .filter(binding -> binding.typeName.equals(entityName))
                     .map(EntityBinding::getEntityClass)
                     .findFirst()
                     .orElse(null);
@@ -332,8 +332,8 @@ public class EntityDictionary {
      * @return binding class
      * @see Include
      */
-    public String getJsonAliasFor(Type<?> entityClass) {
-        return getEntityBinding(entityClass).jsonApiType;
+    public String getTypeName(Type<?> entityClass) {
+        return getEntityBinding(entityClass).typeName;
     }
 
     /**
@@ -1023,7 +1023,7 @@ public class EntityDictionary {
         String type = getEntityName(declaredClass);
         String version = getModelVersion(declaredClass);
 
-        bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
+        bindTypeToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
         EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, isFieldHidden);
         entityBindings.put(declaredClass, binding);
@@ -1058,7 +1058,7 @@ public class EntityDictionary {
         Include include = (Include) getFirstAnnotation(declaredClass, Collections.singletonList(Include.class));
 
         String version = getModelVersion(declaredClass);
-        bindJsonApiToEntity.put(Pair.of(entityBinding.jsonApiType, version), declaredClass);
+        bindTypeToEntity.put(Pair.of(entityBinding.typeName, version), declaredClass);
         entityBindings.put(declaredClass, entityBinding);
         apiVersions.add(version);
         if (include != null && include.rootLevel()) {
@@ -1761,11 +1761,11 @@ public class EntityDictionary {
                 return ((Field) accessor).get(target);
             }
         } catch (IllegalAccessException e) {
-            throw new InvalidAttributeException(fieldName, getJsonAliasFor(getType(target)), e);
+            throw new InvalidAttributeException(fieldName, getTypeName(getType(target)), e);
         } catch (InvocationTargetException e) {
             throw handleInvocationTargetException(e);
         }
-        throw new InvalidAttributeException(fieldName, getJsonAliasFor(getType(target)));
+        throw new InvalidAttributeException(fieldName, getTypeName(getType(target)));
     }
 
     /**
@@ -1797,7 +1797,7 @@ public class EntityDictionary {
      */
     public void setValue(Object target, String fieldName, Object value) {
         Type<?> targetClass = getType(target);
-        String targetType = getJsonAliasFor(targetClass);
+        String targetType = getTypeName(targetClass);
 
         String fieldAlias = fieldName;
         try {

@@ -155,7 +155,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     @VisibleForTesting
     Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Table table = metaDataStore.getTable(
-                scope.getDictionary().getJsonAliasFor(entityProjection.getType()),
+                scope.getDictionary().getTypeName(entityProjection.getType()),
                 scope.getRoute().getApiVersion());
         String bypassCacheStr = scope.getRoute().getHeaders().getOrDefault("bypasscache", Collections.emptyList())
                 .stream().findFirst().orElse(null);
@@ -259,6 +259,6 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private <T> void throwReadOnlyException(T entity) {
         EntityDictionary dictionary = metaDataStore.getMetadataDictionary();
         Type<?> type  = dictionary.getType(entity);
-        throw new InvalidOperationException(dictionary.getJsonAliasFor(type) + " is read only.");
+        throw new InvalidOperationException(dictionary.getTypeName(type) + " is read only.");
     }
 }

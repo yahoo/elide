@@ -36,6 +36,11 @@
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-jsonapi</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- Jackson data-binder -->
         <dependency>
             <groupId>tools.jackson.core</groupId>

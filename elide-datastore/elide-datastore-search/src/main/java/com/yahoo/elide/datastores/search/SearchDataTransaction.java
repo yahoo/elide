@@ -213,7 +213,7 @@ public class SearchDataTransaction extends TransactionWrapper {
             predicate.getValues().stream().map(Object::toString).forEach((value) -> {
                 if (value.length() < minNgram || value.length() > maxNgram) {
                     String message = String.format("Field values for %s on entity %s must be >= %d and <= %d",
-                            predicate.getField(), dictionary.getJsonAliasFor(entityClass), minNgram, maxNgram);
+                            predicate.getField(), dictionary.getTypeName(entityClass), minNgram, maxNgram);
                     throw new InvalidValueException(predicate.getValues(), message);
                 }
             });

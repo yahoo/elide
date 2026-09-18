@@ -12,8 +12,6 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
 import com.yahoo.elide.core.lifecycle.LifecycleHookInvoker;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -28,7 +26,6 @@ import com.yahoo.elide.core.type.Type;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -54,20 +51,14 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final LinkedHashSet<PersistentResource> deletedResources;
     private final ElideSettings elideSettings;
-    @Getter private final Map<String, Set<String>> sparseFields;
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
     protected Function<RequestScope, EntityProjection> entityProjectionResolver;
     @Getter private final UUID requestId;
 
-    protected Map<String, FilterExpression> expressionsByType;
-
     private final Map<String, Object> metadata;
 
     private LinkedHashSet<CRUDEvent> eventQueue;
-
-    /* Used to filter across heterogeneous types during the first load */
-    protected FilterExpression globalFilterExpression;
 
     /**
      * Create a new RequestScope.
@@ -94,16 +85,12 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.auditLogger = elideSettings.getAuditLogger();
         this.elideSettings = elideSettings;
 
-        this.globalFilterExpression = null;
-        this.expressionsByType = new LinkedHashMap<>();
         this.objectEntityCache = new ObjectEntityCache();
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
         this.metadata = new LinkedHashMap<>();
-
-        this.sparseFields = parseSparseFields(getRoute().getParameters());
 
         this.entityProjectionResolver = entityProjection;
         if (this.entityProjectionResolver != null) {
@@ -131,12 +118,9 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.dirtyResources = copy.dirtyResources;
         this.deletedResources = copy.deletedResources;
         this.elideSettings = copy.elideSettings;
-        this.sparseFields = copy.sparseFields;
         this.requestId = copy.requestId;
-        this.expressionsByType = copy.expressionsByType;
         this.metadata = copy.metadata;
         this.eventQueue = copy.eventQueue;
-        this.globalFilterExpression = copy.globalFilterExpression;
 
         this.permissionExecutor = copy.permissionExecutor;
 
@@ -152,83 +136,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
 
     public boolean isNewResource(Object entity) {
         return newPersistentResources.stream().anyMatch(r -> r.getObject() == entity);
-    }
-
-    /**
-     * Parses queryParams and produces sparseFields map.
-     * @param queryParams The request query parameters
-     * @return Parsed sparseFields map
-     */
-    public static Map<String, Set<String>> parseSparseFields(Map<String, List<String>> queryParams) {
-        Map<String, Set<String>> result = new LinkedHashMap<>();
-
-        for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
-            String key = kv.getKey();
-            if (key.startsWith("fields[") && key.endsWith("]")) {
-                String type = key.substring(7, key.length() - 1);
-
-                LinkedHashSet<String> filters = new LinkedHashSet<>();
-                for (String filterParams : kv.getValue()) {
-                    Collections.addAll(filters, filterParams.split(","));
-                }
-
-                if (!filters.isEmpty()) {
-                    result.put(type, filters);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Get filter expression for a specific collection type.
-     * @param type The name of the type
-     * @return The filter expression for the given type
-     */
-    public Optional<FilterExpression> getFilterExpressionByType(String type) {
-        return Optional.ofNullable(expressionsByType.get(type));
-    }
-
-    /**
-     * Get filter expression for a specific collection type.
-     * @param entityClass The class to lookup
-     * @return The filter expression for the given type
-     */
-    public Optional<FilterExpression> getFilterExpressionByType(Type<?> entityClass) {
-        return Optional.ofNullable(expressionsByType.get(dictionary.getJsonAliasFor(entityClass)));
-    }
-
-    /**
-     * Get the global/cross-type filter expression.
-     * @param loadClass Entity class
-     * @return The global filter expression evaluated at the first load
-     */
-    public Optional<FilterExpression> getLoadFilterExpression(Type<?> loadClass) {
-        Optional<FilterExpression> filterExpression;
-        if (globalFilterExpression == null) {
-            String typeName = dictionary.getJsonAliasFor(loadClass);
-            filterExpression =  getFilterExpressionByType(typeName);
-        } else {
-            filterExpression = Optional.of(globalFilterExpression);
-        }
-        return filterExpression;
-    }
-
-    /**
-     * Get the filter expression for a particular relationship.
-     * @param parentType The parent type which has the relationship
-     * @param relationName The relationship name
-     * @return A type specific filter expression for the given relationship
-     */
-    public Optional<FilterExpression> getExpressionForRelation(Type<?> parentType, String relationName) {
-        final Type<?> entityClass = dictionary.getParameterizedType(parentType, relationName);
-        if (entityClass == null) {
-            throw new InvalidAttributeException(relationName, dictionary.getJsonAliasFor(parentType));
-        }
-
-        final String valType = dictionary.getJsonAliasFor(entityClass);
-        return getFilterExpressionByType(valType);
     }
 
     /**
@@ -387,17 +294,14 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         return subClass + "!" + superClass;
     }
 
-    @Override
     public void setMetadataField(String property, Object value) {
         metadata.put(property, value);
     }
 
-    @Override
     public Optional<Object> getMetadataField(String property) {
         return Optional.ofNullable(metadata.getOrDefault(property, null));
     }
 
-    @Override
     public Set<String> getMetadataFields() {
         return metadata.keySet();
     }

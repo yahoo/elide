@@ -15,8 +15,8 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.PathUtils;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,7 +97,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         filterPredicates = extractPredicates(filterParams, apiVersion);
 
         /* Extract the first collection in the URL */
-        String normalizedPath = JsonApiParser.normalizePath(path);
+        String normalizedPath = PathUtils.normalizePath(path);
         String[] pathComponents = normalizedPath.split("/");
         String firstPathComponent = "";
         if (pathComponents.length > 0) {
@@ -112,7 +112,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             Type firstClass = filterPredicate.getPath().getPathElements().get(0).getType();
 
             /* The first type in the predicate must match the first collection in the URL */
-            if (!dictionary.getJsonAliasFor(firstClass).equals(firstPathComponent)) {
+            if (!dictionary.getTypeName(firstClass).equals(firstPathComponent)) {
                 throw new ParseException(String.format("Invalid predicate: %s", filterPredicate));
             }
 
@@ -156,7 +156,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         for (FilterPredicate filterPredicate : filterPredicates) {
             validateFilterPredicate(filterPredicate);
-            String entityType = dictionary.getJsonAliasFor(filterPredicate.getEntityType());
+            String entityType = dictionary.getTypeName(filterPredicate.getEntityType());
             FilterExpression filterExpression = expressionMap.get(entityType);
             if (filterExpression != null) {
                 expressionMap.put(entityType, new AndFilterExpression(filterExpression, filterPredicate));

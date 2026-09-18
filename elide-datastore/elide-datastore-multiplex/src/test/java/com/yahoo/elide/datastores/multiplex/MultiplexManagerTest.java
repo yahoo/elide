@@ -58,9 +58,9 @@ public class MultiplexManagerTest {
     @Test
     public void checkLoading() {
         EntityDictionary entityDictionary = multiplexManager.getDictionary();
-        assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(FirstBean.class)));
-        assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(OtherBean.class)));
-        assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(ComplexAttribute.class)));
+        assertNotNull(entityDictionary.getTypeName(ClassType.of(FirstBean.class)));
+        assertNotNull(entityDictionary.getTypeName(ClassType.of(OtherBean.class)));
+        assertNotNull(entityDictionary.getTypeName(ClassType.of(ComplexAttribute.class)));
     }
 
     @Test

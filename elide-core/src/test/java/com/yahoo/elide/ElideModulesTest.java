@@ -6,7 +6,6 @@
 package com.yahoo.elide;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +26,6 @@ class ElideModulesTest {
 
     @Test
     void isJsonApiPresent() {
-        assertTrue(ElideModules.isJsonApiPresent());
+        assertFalse(ElideModules.isJsonApiPresent());
     }
 }

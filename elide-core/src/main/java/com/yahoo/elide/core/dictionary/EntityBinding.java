@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
+ * Entity Dictionary maps Elide Entity beans to/from Entity type names.
  *
  * @see com.yahoo.elide.annotation.Include#name
  */
@@ -81,7 +81,7 @@ public class EntityBinding {
     @Getter
     public final Type<?> entityClass;
     @Getter
-    public final String jsonApiType;
+    public final String typeName;
     @Getter
     public boolean idGenerated;
     @Getter
@@ -136,7 +136,7 @@ public class EntityBinding {
     private EntityBinding() {
         isElideModel = false;
         injected = false;
-        jsonApiType = null;
+        typeName = null;
         apiVersion = NO_VERSION;
         apiAttributes = new ArrayList<>();
         apiRelationships = new ArrayList<>();
@@ -198,7 +198,7 @@ public class EntityBinding {
         this.isElideModel = isElideModel;
         this.injector = injector;
         entityClass = cls;
-        jsonApiType = type;
+        typeName = type;
         this.apiVersion = apiVersion;
         inheritedTypes = getInheritedTypes(cls);
 

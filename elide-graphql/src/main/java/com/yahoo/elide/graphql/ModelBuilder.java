@@ -229,7 +229,7 @@ public class ModelBuilder {
             return existing;
         }
 
-        String entityName = entityDictionary.getJsonAliasFor(entityClass);
+        String entityName = entityDictionary.getTypeName(entityClass);
         String postfix = entityName.substring(0, 1).toUpperCase(Locale.ENGLISH) + entityName.substring(1);
         GraphQLEnumType relationshipOp = generator.classToNamedEnumType(ClassType.of(RelationshipOp.class),
                 name -> name + postfix, e -> {
@@ -271,7 +271,7 @@ public class ModelBuilder {
             return existing;
         }
 
-        String entityName = entityDictionary.getJsonAliasFor(entityClass);
+        String entityName = entityDictionary.getTypeName(entityClass);
         String postfix = entityName.substring(0, 1).toUpperCase(Locale.ENGLISH) + entityName.substring(1)
                 + field.substring(0, 1).toUpperCase(Locale.ENGLISH) + field.substring(1);
         GraphQLEnumType relationshipOp = generator.classToNamedEnumType(ClassType.of(RelationshipOp.class),
@@ -347,7 +347,7 @@ public class ModelBuilder {
         /* Construct root object */
         GraphQLObjectType.Builder root = newObject().name(OBJECT_QUERY);
         for (Type<?> clazz : rootClasses) {
-            String entityName = entityDictionary.getJsonAliasFor(clazz);
+            String entityName = entityDictionary.getTypeName(clazz);
 
             GraphQLArgument relationshipOpArg = getRelationshipOp(clazz);
             if (relationshipOpArg != null) {

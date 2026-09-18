@@ -163,7 +163,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             Optional<List<String>> ids
     ) {
         EntityDictionary dictionary = requestScope.getDictionary();
-        String typeName = dictionary.getJsonAliasFor(projection.getType());
+        String typeName = dictionary.getTypeName(projection.getType());
 
         /* fetching a collection */
         Flux<PersistentResource> records = ids.map((idList) -> {
@@ -194,7 +194,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
     ) {
         EntityDictionary dictionary = parentResource.getRequestScope().getDictionary();
         Type relationshipClass = dictionary.getParameterizedType(parentResource.getObject(), relationship.getName());
-        String relationshipType = dictionary.getJsonAliasFor(relationshipClass);
+        String relationshipType = dictionary.getTypeName(relationshipClass);
 
         Set<PersistentResource> relationResources;
         if (ids.isPresent()) {
@@ -291,7 +291,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogg
             }
         }
 
-        String entityName = dictionary.getJsonAliasFor(entityClass);
+        String entityName = dictionary.getTypeName(entityClass);
 
         Set<PersistentResource> resources = entitySet.stream()
                 .map(Entity::toPersistentResource)

@@ -16,6 +16,7 @@
 
     <modules>
         <module>elide-core</module>
+        <module>elide-jsonapi</module>
         <module>elide-graphql</module>
         <module>elide-datastore</module>
         <module>elide-integration-tests</module>

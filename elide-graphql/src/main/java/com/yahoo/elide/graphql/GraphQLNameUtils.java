@@ -25,7 +25,7 @@ public class GraphQLNameUtils {
     public String toOutputTypeName(Type<?> clazz) {
         String typeName;
         if (dictionary.hasBinding(clazz)) {
-            typeName = StringUtils.capitalize(dictionary.getJsonAliasFor(clazz));
+            typeName = StringUtils.capitalize(dictionary.getTypeName(clazz));
         } else {
             typeName = clazz.getSimpleName();
         }

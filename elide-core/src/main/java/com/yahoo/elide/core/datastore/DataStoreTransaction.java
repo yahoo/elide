@@ -159,7 +159,7 @@ public interface DataStoreTransaction extends Closeable {
 
             //Multiple objects with the same ID.
             throw new InvalidObjectIdentifierException(idOrEntityId.toString(),
-                    dictionary.getJsonAliasFor(entityClass));
+                    dictionary.getTypeName(entityClass));
         }
         return null;
     }

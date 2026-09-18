@@ -148,7 +148,7 @@ public class Path {
         if ("this".equals(fieldName)) {
             return new PathElement(entityClass, null, fieldName);
         }
-        String entityAlias = dictionary.getJsonAliasFor(entityClass);
+        String entityAlias = dictionary.getTypeName(entityClass);
         throw new InvalidValueException(entityAlias + " does not contain the field " + fieldName);
     }
 

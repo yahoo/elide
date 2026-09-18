@@ -35,8 +35,8 @@ import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.PathUtils;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -185,7 +185,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         /*
          * Extract the last collection in the URL.
          */
-        String normalizedPath = JsonApiParser.normalizePath(path);
+        String normalizedPath = PathUtils.normalizePath(path);
         String[] pathComponents = normalizedPath.split("/");
         String lastPathComponent = pathComponents.length > 0 ? pathComponents[pathComponents.length - 1] : "";
 
@@ -387,7 +387,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     addDefaultArguments(arguments, dictionary.getAttributeArguments(entityType, associationName));
                 }
 
-                String typeName = dictionary.getJsonAliasFor(entityType);
+                String typeName = dictionary.getTypeName(entityType);
                 Type fieldType = dictionary.getParameterizedType(entityType, associationName);
 
                 if (fieldType == null) {

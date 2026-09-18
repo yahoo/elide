@@ -136,7 +136,7 @@ public class OpenApiBuilder {
          * @param type the 'root' entity type of the first segment of the URL.
          */
         public PathMetaData(Type<?> type) {
-            this(new Stack<>(), dictionary.getJsonAliasFor(type), type);
+            this(new Stack<>(), dictionary.getTypeName(type), type);
         }
 
         /**
@@ -184,7 +184,7 @@ public class OpenApiBuilder {
          * @return Something like '/book/{bookId}'
          */
         private String constructInstanceUrl() {
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
             return getCollectionUrl() + "/{" + typeName + "Id}";
         }
 
@@ -230,7 +230,7 @@ public class OpenApiBuilder {
          * @return the swagger PathParameter for this particular path segment.
          */
         private Parameter getPathParameter() {
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
 
             return new PathParameter().name(typeName + "Id").description(typeName + " Identifier")
                     .schema(new StringSchema());
@@ -326,7 +326,7 @@ public class OpenApiBuilder {
          * @return the OpenAPI 'Path' for a collection URL (/books).
          */
         public PathItem getCollectionPath() {
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
             String schemaName = getSchemaName(type);
             PathItem path = new PathItem();
 
@@ -393,7 +393,7 @@ public class OpenApiBuilder {
          * @return the OpenAPI 'Path' for a instance URL (/books/{bookID}).
          */
         public PathItem getInstancePath() {
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
             String schemaName = getSchemaName(type);
             PathItem path = new PathItem();
 
@@ -491,7 +491,7 @@ public class OpenApiBuilder {
          * @return the JSON-API 'field' query parameter for some GET operations.
          */
         private Parameter getSparseFieldsParameter() {
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
             List<String> fieldNames = dictionary.getAllExposedFields(type);
 
             return new QueryParameter().schema(new ArraySchema().items(new StringSchema()._enum(fieldNames)))
@@ -642,7 +642,7 @@ public class OpenApiBuilder {
          * @return the Elide 'filter' query parameter for some GET operations.
          */
         private List<Parameter> getFilterParameters() {
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
             List<String> attributeNames = dictionary.getAttributes(type);
 
             List<Parameter> params = new ArrayList<>();
@@ -993,7 +993,7 @@ public class OpenApiBuilder {
         Optional<Type<?>> optionalCanCreateType = this.rootClasses.stream().filter(this::canCreate).findFirst();
         if (optionalCanCreateType.isPresent()) {
             Type<?> type = optionalCanCreateType.get();
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
 
             Map<String, Object> attributes = dataAttributes(type);
             Map<String, Object> creatingResourcesData = new LinkedHashMap<>();
@@ -1014,7 +1014,7 @@ public class OpenApiBuilder {
         Optional<Type<?>> optionalCanUpdateType = this.rootClasses.stream().filter(this::canUpdate).findFirst();
         if (optionalCanUpdateType.isPresent()) {
             Type<?> type = optionalCanUpdateType.get();
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
 
             Map<String, Object> attributes = dataAttributes(type);
             Map<String, Object> updatingResourcesData = new LinkedHashMap<>();
@@ -1036,7 +1036,7 @@ public class OpenApiBuilder {
         Optional<Type<?>> optionalCanDeleteType = this.rootClasses.stream().filter(this::canDelete).findFirst();
         if (optionalCanDeleteType.isPresent()) {
             Type<?> type = optionalCanDeleteType.get();
-            String typeName = dictionary.getJsonAliasFor(type);
+            String typeName = dictionary.getTypeName(type);
 
             Map<String, Object> deletingResourcesRef = new LinkedHashMap<>();
             deletingResourcesRef.put("type", typeName);
@@ -1097,7 +1097,7 @@ public class OpenApiBuilder {
     }
 
     protected String tagNameOf(Type<?> type) {
-        String tagName = dictionary.getJsonAliasFor(type);
+        String tagName = dictionary.getTypeName(type);
         return tagNameOf(tagName);
     }
 
@@ -1176,7 +1176,7 @@ public class OpenApiBuilder {
 
     protected String getSchemaName(Type<?> type) {
         // Should be the same as JsonApiModelResolver#getSchemaName
-        String schemaName = dictionary.getJsonAliasFor(type);
+        String schemaName = dictionary.getTypeName(type);
         String apiVersion = EntityDictionary.getModelVersion(type);
         if (!EntityDictionary.NO_VERSION.equals(apiVersion)) {
             schemaName = "v" + this.apiVersion + "_" + schemaName;
