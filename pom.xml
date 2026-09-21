@@ -131,7 +131,7 @@
         <reactor-bom.version>2025.0.6</reactor-bom.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
         <slf4j.version>2.0.18</slf4j.version>
-        <spring-boot.version>4.1.0</spring-boot.version>
+        <spring-boot.version>4.1.1</spring-boot.version>
         <spring-framework.version>7.0.8</spring-framework.version>
         <spring-cloud-commons.version>5.0.2</spring-cloud-commons.version>
         <springdoc.version>3.1.0</springdoc.version>
