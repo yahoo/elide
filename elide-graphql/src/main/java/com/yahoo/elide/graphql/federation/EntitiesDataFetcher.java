@@ -20,11 +20,12 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import reactor.core.publisher.Flux;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,46 +37,63 @@ public class EntitiesDataFetcher implements DataFetcher<List<NodeContainer>> {
     @Override
     public List<NodeContainer> get(DataFetchingEnvironment environment) throws Exception {
         List<Map<String, Object>> representations = environment.getArgument(_Entity.argumentName);
-        List<String> ids = representations.stream() // only supports the single id key field
-            .map(representation -> {
-                    String idKey = representation.keySet()
-                            .stream()
-                            .filter(key -> !KeyWord.TYPENAME.getName().equals(key))
-                            .findFirst()
-                            .get();
-                    return (String) representation.get(idKey);
-                })
-            .toList();
 
-        String entityName = StringUtils.uncapitalize(representations.get(0).get(KeyWord.TYPENAME.getName()).toString());
+        if (representations == null || representations.isEmpty()) {
+            throw new BadRequestException("Empty list passed to representations");
+        }
 
         GraphQLRequestScope requestScope = environment.getLocalContext();
-        EntityProjection projection = requestScope
-                .getProjectionInfo()
-                .getProjection(null, entityName);
 
-        /* fetching a collection */
-        Flux<PersistentResource> records = Optional.of(ids).map((idList) -> {
-            /* handle empty list of ids */
-            if (idList.isEmpty()) {
-                throw new BadRequestException("Empty list passed to ids");
+        // A single _entities call can contain representations of multiple types. Group the
+        // representation indices by their own __typename so each type is resolved with its own
+        // projection, then return the results in the same order as the input representations.
+        Map<String, List<Integer>> indicesByType = new LinkedHashMap<>();
+        for (int index = 0; index < representations.size(); index++) {
+            String typeName = representations.get(index).get(KeyWord.TYPENAME.getName()).toString();
+            indicesByType.computeIfAbsent(typeName, key -> new ArrayList<>()).add(index);
+        }
+
+        NodeContainer[] nodes = new NodeContainer[representations.size()];
+
+        for (Map.Entry<String, List<Integer>> entry : indicesByType.entrySet()) {
+            String entityName = StringUtils.uncapitalize(entry.getKey());
+            List<Integer> indices = entry.getValue();
+
+            List<String> ids = indices.stream()
+                    .map(index -> getId(representations.get(index)))
+                    .toList();
+
+            EntityProjection projection = requestScope.getProjectionInfo().getProjection(null, entityName);
+
+            // Ignore errors as potentially an id on a subgraph no longer exists here
+            Set<PersistentResource> results = PersistentResource.loadRecords(projection, ids, requestScope)
+                    .onErrorResume(error -> Flux.empty())
+                    .collect(Collectors.toCollection(LinkedHashSet::new))
+                    .block();
+
+            for (Integer index : indices) {
+                String id = getId(representations.get(index));
+                nodes[index] = results.stream()
+                        .filter(resource -> id.equals(resource.getId()))
+                        .findFirst()
+                        .map(NodeContainer::new)
+                        .orElse(null);
             }
+        }
 
-            return PersistentResource.loadRecords(projection, idList, requestScope);
-        }).orElseGet(() -> PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope));
+        // Return node containers in the order of the input representations.
+        return Arrays.asList(nodes);
+    }
 
-        // Ignore errors as potentially an id on a subgraph no longer exists here
-        Set<PersistentResource> results = records.onErrorResume(error -> Flux.empty())
-                .collect(Collectors.toCollection(LinkedHashSet::new)).block();
-
-        // Return node containers in order of the ids from the representations
-        return ids.stream().map(id -> {
-            Optional<PersistentResource> result = results.stream().filter(r -> id.equals(r.getId())).findFirst();
-            if (result.isPresent()) {
-                return new NodeContainer(result.get());
-            } else {
-                return null;
-            }
-        }).toList();
+    /**
+     * Extracts the entity id from a representation: the single key field that is not __typename.
+     * Only single (non-composite) id keys are supported, matching the original behavior.
+     */
+    private static String getId(Map<String, Object> representation) {
+        String idKey = representation.keySet().stream()
+                .filter(key -> !KeyWord.TYPENAME.getName().equals(key))
+                .findFirst()
+                .get();
+        return (String) representation.get(idKey);
     }
 }
