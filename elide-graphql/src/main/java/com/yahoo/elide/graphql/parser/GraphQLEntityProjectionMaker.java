@@ -56,6 +56,7 @@ import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
 import graphql.language.SourceLocation;
+import graphql.language.Value;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,6 +64,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -193,27 +195,8 @@ public class GraphQLEntityProjectionMaker {
 
             //_entities comes from Apollo federation spec
             if (_Entity.fieldName.equals(entityName)) {
-                /*
-                 * query {
-                 *   _entities(representations: [{__typename: "Group", id: "com.yahoo.elide"}]) {
-                 *     ... on Group {
-                 *       name
-                 *       commonName
-                 *       description
-                 *     }
-                 *   }
-                 * }
-                 */
-                List<InlineFragment> inlineFragments = rootSelectionField.getSelectionSet()
-                        .getSelectionsOfType(graphql.language.InlineFragment.class);
-                if (inlineFragments == null || inlineFragments.isEmpty()) {
-                    throw new InvalidEntityBodyException("Entity selection must be an inline fragment.");
-                }
-                String graphqlTypeName = inlineFragments
-                        .get(0)
-                        .getTypeCondition()
-                        .getName();
-                entityName = StringUtils.uncapitalize(graphqlTypeName);
+                addEntityProjections(rootSelectionField);
+                return;
             }
 
             Type<?> entityType = getRootEntity(entityName, apiVersion);
@@ -234,6 +217,69 @@ public class GraphQLEntityProjectionMaker {
 
     }
 
+    private void addEntityProjections(Field entityField) {
+        List<Selection> selections = entityField.getSelectionSet().getSelections();
+        for (Selection selection : selections) {
+            if (selection instanceof Field field && !TYPENAME.hasName(field.getName())) {
+                throw new InvalidEntityBodyException("Entity selection must be an inline fragment.");
+            }
+            if (selection instanceof InlineFragment fragment) {
+                String fragmentEntity = StringUtils.uncapitalize(fragment.getTypeCondition().getName());
+                if (getRootEntity(fragmentEntity, apiVersion) == null) {
+                    throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", fragmentEntity));
+                }
+            }
+        }
+
+        for (String graphqlTypeName : getRepresentationTypes(entityField)) {
+            String entityName = StringUtils.uncapitalize(graphqlTypeName);
+            Type<?> entityType = getRootEntity(entityName, apiVersion);
+            if (entityType == null) {
+                throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", entityName));
+            }
+
+            String keyName = GraphQLProjectionInfo.computeProjectionKey(entityField.getAlias(), entityName);
+            if (rootProjections.containsKey(keyName)) {
+                throw new InvalidEntityBodyException(
+                        String.format("Found two root level query for Entity {%s} with same alias name", entityName));
+            }
+
+            List<Selection> selectionsForType = selections.stream()
+                    .filter(selection -> selection instanceof Field || selection instanceof FragmentSpread
+                            || selection instanceof InlineFragment fragment
+                                    && graphqlTypeName.equals(fragment.getTypeCondition().getName()))
+                    .toList();
+            rootProjections.put(keyName, createProjection(entityType, entityField, selectionsForType));
+        }
+    }
+
+    private Set<String> getRepresentationTypes(Field entityField) {
+        Object resolved = entityField.getArguments().stream()
+                .filter(argument -> _Entity.argumentName.equals(argument.getName()))
+                .findFirst()
+                .map(argument -> variableResolver.resolveValue(argument.getValue()))
+                .orElse(null);
+        if (!(resolved instanceof List<?> representations) || representations.isEmpty()) {
+            throw new InvalidEntityBodyException("Empty list passed to representations");
+        }
+
+        Set<String> typeNames = new LinkedHashSet<>();
+        for (Object representation : representations) {
+            if (!(representation instanceof Map<?, ?> fields)) {
+                throw new InvalidEntityBodyException("Invalid entity representation");
+            }
+            Object typeName = fields.get(TYPENAME.getName());
+            if (typeName instanceof Value) {
+                typeName = variableResolver.resolveValue((Value) typeName);
+            }
+            if (!(typeName instanceof String) || ((String) typeName).isBlank()) {
+                throw new InvalidEntityBodyException("Missing entity representation type");
+            }
+            typeNames.add((String) typeName);
+        }
+        return typeNames;
+    }
+
     /**
      * Construct an {@link EntityProjection} from a GraphQL {@link Field} for an entity type.
      *
@@ -242,6 +288,11 @@ public class GraphQLEntityProjectionMaker {
      * @return constructed {@link EntityProjection}
      */
     private EntityProjection createProjection(Type<?> entityType, Field entityField) {
+        return createProjection(entityType, entityField, entityField.getSelectionSet() == null
+                ? null : entityField.getSelectionSet().getSelections());
+    }
+
+    private EntityProjection createProjection(Type<?> entityType, Field entityField, List<Selection> selections) {
         final EntityProjectionBuilder projectionBuilder = EntityProjection.builder()
                 .type(entityType)
                 .pagination(getDefaultPagination(entityType));
@@ -251,9 +302,8 @@ public class GraphQLEntityProjectionMaker {
                 getArguments(entityField, entityDictionary.getEntityArguments(entityType))
                 ));
 
-        if (entityField.getSelectionSet() != null) {
-            entityField.getSelectionSet().getSelections().forEach(
-                    selection -> addSelection(selection, projectionBuilder));
+        if (selections != null) {
+            selections.forEach(selection -> addSelection(selection, projectionBuilder));
         }
 
         if (entityField.getArguments() != null) {
