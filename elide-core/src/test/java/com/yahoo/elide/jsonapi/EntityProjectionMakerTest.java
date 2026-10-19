@@ -842,6 +842,30 @@ public class EntityProjectionMakerTest {
         assertEquals("Invalid value: publisher does not contain the fields: [cost]", e.getMessage());
     }
 
+    @Test
+    public void testEmptySortRule() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "sort", "");
+        String path = "/book";
+
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
+
+        assertThrows(InvalidValueException.class, () -> maker.parsePath(path));
+    }
+
+    @Test
+    public void testEmptySortRuleInList() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        add(queryParams, "sort", ",title");
+        String path = "/book";
+
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
+
+        assertThrows(InvalidValueException.class, () -> maker.parsePath(path));
+    }
+
     private void projectionEquals(EntityProjection projection1, EntityProjection projection2) {
         assertEquals(projection1.getType(), projection2.getType());
         assertEquals(projection1.getSorting(), projection2.getSorting());
