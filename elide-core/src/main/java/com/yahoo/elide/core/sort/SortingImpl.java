@@ -240,6 +240,9 @@ public class SortingImpl implements Sorting {
      * @param sortingRules The final shared reference to the sortingRules map
      */
     private static void parseSortRule(String sortRule, final Map<String, SortOrder> sortingRules) {
+        if (sortRule.isEmpty()) {
+            throw new InvalidValueException("Sort rule must not be empty");
+        }
         boolean isDesc = false;
         char firstCharacter = sortRule.charAt(0);
         if (firstCharacter == '-') {
