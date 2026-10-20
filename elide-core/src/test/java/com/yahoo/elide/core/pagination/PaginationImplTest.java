@@ -345,4 +345,15 @@ public class PaginationImplTest {
         assertEquals(0, pageData.getOffset());
         assertEquals(10, pageData.getLimit());
     }
+
+    @Test
+    public void shouldThrowExceptionForPageNumberThatOverflowsOffset() {
+        Map<String, List<String>> queryParams = new LinkedHashMap<>();
+        // (268435457 - 1) * 16 is 2^32, which wraps to an offset of 0 when computed as an int
+        add(queryParams, "page[size]", "16");
+        add(queryParams, "page[number]", "268435457");
+
+        assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
+                queryParams, elideSettings));
+    }
 }

@@ -246,7 +246,11 @@ public class PaginationImpl implements Pagination {
             if (pageNumber < 1) {
                 throw new InvalidValueException("Pagination number must be a positive, non-zero value.");
             }
-            this.offset = (pageNumber - 1) * limit;
+            long pageOffset = (long) (pageNumber - 1) * limit;
+            if (pageOffset > Integer.MAX_VALUE) {
+                throw new InvalidValueException("Pagination number is too large.");
+            }
+            this.offset = (int) pageOffset;
         } else {
             this.offset = clientOffset != null ? clientOffset : 0;
 
